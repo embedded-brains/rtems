@@ -56,6 +56,10 @@ links:
 - role: build-dependency
   uid: optprofiling
 - role: build-dependency
+  uid: optqual
+- role: build-dependency
+  uid: optqualonly
+- role: build-dependency
   uid: optsmp
 - role: build-dependency
   uid: optlibdebugger

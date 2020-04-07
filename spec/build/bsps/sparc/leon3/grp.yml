@@ -10,13 +10,11 @@ links:
 - role: build-dependency
   uid: ../../linkcmds
 - role: build-dependency
-  uid: ../../obj
+  uid: ../../objqual
 - role: build-dependency
-  uid: ../../objgrlib
+  uid: ../../objgrlibqual
 - role: build-dependency
-  uid: ../../objirq
-- role: build-dependency
-  uid: ../objmem
+  uid: ../../objirqqual
 - role: build-dependency
   uid: ../grp
 - role: build-dependency
@@ -26,9 +24,11 @@ links:
 - role: build-dependency
   uid: abiclanganalyzer
 - role: build-dependency
-  uid: obj
+  uid: grpnoqual
 - role: build-dependency
-  uid: objmpci
+  uid: librtemsbspextra
+- role: build-dependency
+  uid: objqual
 - role: build-dependency
   uid: objsmp
 - role: build-dependency

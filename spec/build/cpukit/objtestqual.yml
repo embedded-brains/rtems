@@ -1,0 +1,33 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+cppflags: []
+cxxflags: []
+enabled-by: RTEMS_QUAL
+includes:
+- ${BSP_INCLUDES}
+install: []
+links: []
+source:
+- bsps/shared/rtems-version.c
+- cpukit/libc/search/qsort.c
+- cpukit/libc/string/memcmp.c
+- cpukit/libc/string/strcmp.c
+- cpukit/libc/string/strlen.c
+- cpukit/libc/string/strchr.c
+- cpukit/libc/string/strrchr.c
+- cpukit/posix/src/pspindestroy.c
+- cpukit/posix/src/pspininit.c
+- cpukit/posix/src/pspinlock.c
+- cpukit/posix/src/pspinunlock.c
+- cpukit/sapi/src/cpucounterconverter.c
+- cpukit/sapi/src/delaynano.c
+- cpukit/sapi/src/delayticks.c
+- cpukit/score/src/rbtreeiterate.c
+- cpukit/score/src/rbtreemax.c
+- cpukit/score/src/rbtreenext.c
+- cpukit/score/src/rbtreeprev.c
+type: build
+

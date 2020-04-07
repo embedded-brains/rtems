@@ -14,7 +14,7 @@ links:
 - role: build-dependency
   uid: ../../objgrlib
 - role: build-dependency
-  uid: ../../objirq
+  uid: ../../grpirq
 - role: build-dependency
   uid: ../objmem
 - role: build-dependency

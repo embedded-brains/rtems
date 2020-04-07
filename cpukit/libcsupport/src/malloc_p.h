@@ -28,6 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef _MALLOC_P
+#define _MALLOC_P
+
 #include <rtems.h>
 #include <rtems/score/protectedheap.h>
 #include <rtems/malloc.h>
@@ -35,6 +38,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+
 
 typedef enum {
   MALLOC_SYSTEM_STATE_NORMAL,
@@ -49,3 +54,5 @@ void _Malloc_Process_deferred_frees( void );
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
+
+#endif /* _MALLOC_P */

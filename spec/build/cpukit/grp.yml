@@ -18,6 +18,8 @@ links:
 - role: build-dependency
   uid: optldflagscoverage
 - role: build-dependency
+  uid: optlinkflagsqual
+- role: build-dependency
   uid: libdebugger
 - role: build-dependency
   uid: libftpd
@@ -30,11 +32,15 @@ links:
 - role: build-dependency
   uid: librtemscpu
 - role: build-dependency
+  uid: librtemscpuextra
+- role: build-dependency
   uid: librtemscxx
 - role: build-dependency
   uid: librtemsdfltcfg
 - role: build-dependency
   uid: librtemstest
+- role: build-dependency
+  uid: librtemstestextra
 - role: build-dependency
   uid: libtelnetd
 - role: build-dependency

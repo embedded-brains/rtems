@@ -34,10 +34,7 @@
 #include <rtems/test-info.h>
 #include <rtems/bspIo.h>
 #include <rtems/version.h>
-
-rtems_printer rtems_test_printer = {
-  .printer = rtems_printk_printer
-};
+#include <rtems/score/io.h>
 
 static const char* const test_state_strings[] =
 {
@@ -50,8 +47,14 @@ static const char* const test_state_strings[] =
 
 int rtems_test_begin(const char* name, const RTEMS_TEST_STATE state)
 {
+#if defined(RTEMS_QUAL)
+  return _IO_Printf(
+    rtems_put_char,
+    NULL,
+#else
   return rtems_printf(
     &rtems_test_printer,
+#endif
     "\n\n*** BEGIN OF TEST %s ***\n"
     "*** TEST VERSION: %s\n"
     "*** TEST STATE: %s\n"
@@ -87,31 +90,14 @@ int rtems_test_begin(const char* name, const RTEMS_TEST_STATE state)
 
 int rtems_test_end(const char* name)
 {
+#if defined(RTEMS_QUAL)
+  return _IO_Printf(
+    rtems_put_char,
+    NULL,
+#else
   return rtems_printf(
     &rtems_test_printer,
+#endif
     "\n*** END OF TEST %s ***\n\n", name
   );
-}
-
-void rtems_test_exit(int status)
-{
-  (void) status;
-  rtems_shutdown_executive(0);
-}
-
-int rtems_test_printf(
-  const char* format,
-  ...
-)
-{
-  va_list ap;
-  int len;
-  va_start(ap, format);
-  len = rtems_vprintf(
-    &rtems_test_printer,
-    format,
-    ap
-  );
-  va_end(ap);
-  return len;
 }

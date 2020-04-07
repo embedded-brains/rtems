@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+cppflags: []
+cxxflags: []
+enabled-by: RTEMS_QUAL_ONLY
+includes: []
+install: []
+links: []
+source:
+- cpukit/libc/string/flsl.c
+- cpukit/libc/string/memcpy.c
+- cpukit/libc/string/memset.c
+type: build

@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+cppflags: []
+cxxflags: []
+enabled-by: true
+includes: []
+install:
+- destination: ${BSP_INCLUDEDIR}
+  source:
+  - bsps/sparc/leon3/include/bsp.h
+  - bsps/sparc/leon3/include/tm27.h
+- destination: ${BSP_INCLUDEDIR}/bsp
+  source:
+  - bsps/sparc/leon3/include/bsp/irq.h
+  - bsps/sparc/leon3/include/bsp/leon3.h
+- destination: ${BSP_INCLUDEDIR}/grlib
+  source:
+  - bsps/sparc/include/grlib/io.h
+- destination: ${BSP_LIBDIR}
+  source:
+  - bsps/sparc/leon3/start/linkcmds.gr712rc
+  - bsps/sparc/leon3/start/linkcmds.gr740
+  - bsps/sparc/leon3/start/linkcmds.leon3
+  - bsps/sparc/leon3/start/linkcmds.ut699
+  - bsps/sparc/leon3/start/linkcmds.ut700
+  - bsps/sparc/shared/start/linkcmds.base
+links: []
+source:
+- bsps/shared/irq/irq-default-handler.c
+- bsps/sparc/leon3/clock/ckinit.c
+- bsps/sparc/leon3/console/printk_support.c
+- bsps/sparc/leon3/start/bspclean.c
+- bsps/sparc/leon3/start/bspidle.S
+- bsps/sparc/leon3/start/bspstart.c
+- bsps/sparc/leon3/start/cache.c
+- bsps/sparc/leon3/start/cpucounter.c
+- bsps/sparc/leon3/start/eirq.c
+- bsps/sparc/shared/irq/bsp_isr_handler.c
+- bsps/sparc/shared/start/bspgetworkarea.c
+type: build

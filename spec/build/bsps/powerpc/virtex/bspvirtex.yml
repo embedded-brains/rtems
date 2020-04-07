@@ -27,7 +27,7 @@ links:
 - role: build-dependency
   uid: ../../obj
 - role: build-dependency
-  uid: ../../objirq
+  uid: ../../grpirq
 - role: build-dependency
   uid: ../../opto2
 - role: build-dependency

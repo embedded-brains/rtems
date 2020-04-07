@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- env-append: PKGCONFIG_LDFLAGS
+build-type: option
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+default:
+- -nodefaultlibs
+- -Wl,--start-group
+- -lrtemscpu
+- -lrtemsbsp
+- -lgcc
+- -Wl,--end-group
+default-by-variant: []
+description: |
+  Flags passed to the linker recommended for applications if RTEMS_QUAL_ONLY is
+  enabled.
+enabled-by: RTEMS_QUAL_ONLY
+links: []
+name: PKGCONFIG_LDFLAGS_QUAL_ONLY
+type: build

@@ -22,6 +22,8 @@ links:
 - role: build-dependency
   uid: optldflags
 - role: build-dependency
+  uid: optldflagsqualonly
+- role: build-dependency
   uid: optldflagsbsp
 - role: build-dependency
   uid: optmakelegacy

@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: library
+cflags: []
+copyrights:
+- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+cppflags: []
+cxxflags: []
+enabled-by:
+- and:
+  - RTEMS_QUAL
+  - not: RTEMS_QUAL_ONLY
+includes: []
+install: []
+install-path: ${BSP_LIBDIR}
+links:
+- role: build-dependency
+  uid: obj
+source: []
+target: rtemsbspextra
+type: build

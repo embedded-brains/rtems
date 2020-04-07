@@ -1,0 +1,45 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: objects
+cflags: []
+copyrights:
+- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+cppflags: []
+cxxflags: []
+enabled-by: true
+includes: []
+install:
+- destination: ${BSP_INCLUDEDIR}/grlib
+  source:
+  - bsps/include/grlib/ahbstat-regs.h
+  - bsps/include/grlib/ahbtrace-regs.h
+  - bsps/include/grlib/apbuart.h
+  - bsps/include/grlib/apbuart-regs.h
+  - bsps/include/grlib/dsu4-regs.h
+  - bsps/include/grlib/ftmctrl-regs.h
+  - bsps/include/grlib/gptimer-regs.h
+  - bsps/include/grlib/gr1553b-regs.h
+  - bsps/include/grlib/gr740thsens-regs.h
+  - bsps/include/grlib/grcan-regs.h
+  - bsps/include/grlib/grclkgate-regs.h
+  - bsps/include/grlib/grethgbit-regs.h
+  - bsps/include/grlib/grgpio-regs.h
+  - bsps/include/grlib/grgprbank-regs.h
+  - bsps/include/grlib/grgpreg-regs.h
+  - bsps/include/grlib/griommu-regs.h
+  - bsps/include/grlib/grpci2-regs.h
+  - bsps/include/grlib/grspw2-regs.h
+  - bsps/include/grlib/grspwrouter-regs.h
+  - bsps/include/grlib/irqamp.h
+  - bsps/include/grlib/irqamp-regs.h
+  - bsps/include/grlib/l2cache-regs.h
+  - bsps/include/grlib/l4stat-regs.h
+  - bsps/include/grlib/memscrub-regs.h
+  - bsps/include/grlib/mmctrl-regs.h
+  - bsps/include/grlib/spictrl-regs.h
+  - bsps/include/grlib/spwpnp-regs.h
+  - bsps/include/grlib/spwrmap-regs.h
+  - bsps/include/grlib/spwtdp-regs.h
+links: []
+source:
+- bsps/shared/grlib/uart/apbuart_polled.c
+type: build

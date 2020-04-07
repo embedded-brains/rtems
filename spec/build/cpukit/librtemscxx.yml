@@ -6,7 +6,8 @@ copyrights:
 cppflags: []
 cxxflags:
 - -std=c++17
-enabled-by: true
+enabled-by:
+  not: RTEMS_QUAL_ONLY
 includes: []
 install:
 - destination: ${BSP_INCLUDEDIR}/rtems
