@@ -15,7 +15,6 @@ install:
   - bsps/include/grlib/ambapp_bus.h
   - bsps/include/grlib/ambapp_bus_grlib.h
   - bsps/include/grlib/ambapp_ids.h
-  - bsps/include/grlib/apbuart.h
   - bsps/include/grlib/apbuart_cons.h
   - bsps/include/grlib/apbuart_termios.h
   - bsps/include/grlib/b1553brm.h
@@ -136,7 +135,6 @@ source:
 - bsps/shared/grlib/tmtc/grtc.c
 - bsps/shared/grlib/tmtc/grtm.c
 - bsps/shared/grlib/uart/apbuart_cons.c
-- bsps/shared/grlib/uart/apbuart_polled.c
 - bsps/shared/grlib/uart/apbuart_termios.c
 - bsps/shared/grlib/uart/cons.c
 type: build

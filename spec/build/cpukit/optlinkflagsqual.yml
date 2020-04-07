@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- env-append: LINKFLAGS
+build-type: option
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+default:
+- -nodefaultlibs
+- -Wl,--start-group
+default-by-variant: []
+description: |
+  Flags passed to the linker if RTEMS_QUAL is enabled.
+enabled-by: RTEMS_QUAL
+links: []
+name: LINKFLAGS_QUAL
+type: build

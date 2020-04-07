@@ -5,7 +5,10 @@ copyrights:
 - Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
 cppflags: []
 cxxflags: []
-enabled-by: BUILD_LIBDEBUGGER
+enabled-by:
+  and:
+  - BUILD_LIBDEBUGGER
+  - not: RTEMS_QUAL_ONLY
 includes: []
 install: []
 install-path: ${BSP_LIBDIR}

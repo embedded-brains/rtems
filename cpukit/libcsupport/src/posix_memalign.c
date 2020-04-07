@@ -17,7 +17,8 @@
 #include "config.h"
 #endif
 
-#ifdef RTEMS_NEWLIB
+#if defined( RTEMS_NEWLIB ) && \
+  ( !defined( RTEMS_QUAL ) || defined( INCLUDED_BY_FREE ) )
 #include "malloc_p.h"
 
 #include <stdlib.h>

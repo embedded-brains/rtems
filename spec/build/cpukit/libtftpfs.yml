@@ -5,7 +5,8 @@ copyrights:
 - Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
 cppflags: []
 cxxflags: []
-enabled-by: true
+enabled-by:
+  not: RTEMS_QUAL_ONLY
 includes:
 - cpukit/libnetworking
 install:

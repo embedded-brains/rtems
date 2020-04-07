@@ -94,4 +94,6 @@ type: build
 use-after:
 - validation
 - rtemstest
+- rtemscpu
+- rtemsbsp
 use-before: []

@@ -25,6 +25,12 @@
 
 #include <rtems/chain.h>
 
+#ifdef RTEMS_QUAL
+#define INCLUDED_BY_FREE
+#include "malloc_deferred.c"
+#include "posix_memalign.c"
+#endif
+
 static RTEMS_CHAIN_DEFINE_EMPTY( _Malloc_GC_list );
 
 RTEMS_INTERRUPT_LOCK_DEFINE( static, _Malloc_GC_lock, "Malloc GC" )

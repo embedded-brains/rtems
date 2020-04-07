@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+enabled-by:
+  not: RTEMS_QUAL
+includes:
+- ${BSP_INCLUDES}
+install: []
+ldflags: []
+links:
+- role: build-dependency
+  uid: membench/grp
+- role: build-dependency
+  uid: unit/grp
+- role: build-dependency
+  uid: validation/grp
+type: build
+use-after:
+- rtemscpu
+- rtemsbsp
+use-before: []

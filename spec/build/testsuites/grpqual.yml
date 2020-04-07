@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+copyrights:
+- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+enabled-by: RTEMS_QUAL
+includes:
+- ${BSP_INCLUDES}
+install: []
+ldflags:
+- -latomic
+- -lc
+- -lgcc
+- -lgcov
+- -lgomp
+- -lstdc++
+- -Wl,--end-group
+links:
+- role: build-dependency
+  uid: grpmisc
+type: build
+use-after:
+- rtemstestextra
+- rtemscpu
+- rtemscpuextra
+- rtemsbsp
+- rtemsbspextra
+use-before: []

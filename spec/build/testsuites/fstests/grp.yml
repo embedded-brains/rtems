@@ -139,6 +139,6 @@ links:
 - role: build-dependency
   uid: mrfsfstime
 type: build
-use-after: []
-use-before:
+use-after:
 - rtemstest
+use-before: []

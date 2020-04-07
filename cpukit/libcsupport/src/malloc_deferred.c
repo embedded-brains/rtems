@@ -21,7 +21,8 @@
 #include "config.h"
 #endif
 
-#ifdef RTEMS_NEWLIB
+#if defined( RTEMS_NEWLIB ) && \
+  ( !defined( RTEMS_QUAL ) || defined( INCLUDED_BY_FREE ) )
 #include <stdlib.h>
 #include <string.h>
 
@@ -47,6 +48,7 @@ Malloc_System_state _Malloc_System_state( void )
   }
 }
 
+#if !defined( INCLUDED_BY_FREE )
 RTEMS_WEAK void _Malloc_Process_deferred_frees( void )
 {
   /*
@@ -54,6 +56,7 @@ RTEMS_WEAK void _Malloc_Process_deferred_frees( void )
    * strong implementation of this function will be provided.
    */
 }
+#endif
 
 void *rtems_heap_allocate_aligned_with_boundary(
   size_t    size,

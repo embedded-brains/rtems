@@ -10,7 +10,7 @@ includes: []
 install: []
 links:
 - role: build-dependency
-  uid: objirq
+  uid: grpirq
 source:
 - bsps/shared/irq/irq-default-handler.c
 - bsps/shared/irq/irq-default.c
