@@ -666,6 +666,7 @@ class TestProgramItem(Item):
         )
 
     def do_build(self, bld, bic):
+        target = self.get(bld, "target")
         bld(
             cflags=bic.cflags + self.data["cflags"],
             cppflags=bld.env[self.cppflags] + self.data["cppflags"],
@@ -677,9 +678,12 @@ class TestProgramItem(Item):
             source=self.data["source"],
             start_files=True,
             stlib=self.data["stlib"],
-            target=self.get(bld, "target"),
+            target=target,
             use=bic.objects + self.data["use-before"] + bic.use + self.data["use-after"],
         )
+
+        if not target.endswith(".norun.exe"):
+            bld.install_files(bld.env.BSP_PREFIX + "/tests", target)
 
 
 class AdaTestProgramItem(TestProgramItem):
