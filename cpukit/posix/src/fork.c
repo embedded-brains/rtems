@@ -24,9 +24,19 @@
 #include <unistd.h>
 
 #include <errno.h>
+#include <rtems/score/cpuopts.h>
 #include <rtems/seterr.h>
 
 int fork( void )
 {
   rtems_set_errno_and_return_minus_one( ENOSYS );
 }
+
+#if defined(RTEMS_COVERAGE)
+pid_t __gcov_fork( void );
+
+pid_t __gcov_fork( void )
+{
+  rtems_set_errno_and_return_minus_one( ENOSYS );
+}
+#endif

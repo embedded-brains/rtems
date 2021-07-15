@@ -1,6 +1,8 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: library
-cflags: []
+cflags:
+- ${CFLAGS_COVERAGE}
+- ${CFLAGS_COVERAGE_OPTIMIZATION}
 copyrights:
 - Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
 cppflags: []
@@ -1420,6 +1422,7 @@ source:
 - cpukit/score/src/heapwalk.c
 - cpukit/score/src/interr.c
 - cpukit/score/src/iobase64.c
+- cpukit/score/src/iodumpgcovinfo.c
 - cpukit/score/src/ioprintf.c
 - cpukit/score/src/iorelax.c
 - cpukit/score/src/iovprintf.c
