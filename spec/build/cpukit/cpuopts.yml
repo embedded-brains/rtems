@@ -36,6 +36,8 @@ links:
 - role: build-dependency
   uid: optbuildlabel
 - role: build-dependency
+  uid: optcoverage
+- role: build-dependency
   uid: optdebug
 - role: build-dependency
   uid: optdrvmgr

@@ -10,8 +10,13 @@
  */
 
 #include <rtems.h>
+#include <rtems/bspIo.h>
+#include <rtems/score/io.h>
 #include <bsp/bootcard.h>
 
 void bsp_reset( void )
 {
+#if defined(RTEMS_COVERAGE)
+  _IO_Dump_gcov_info( rtems_put_char, NULL );
+#endif
 }

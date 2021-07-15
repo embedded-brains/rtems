@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- env-assign: null
+- env-append: BSP_CFLAGS
+build-type: option
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+default:
+- -fprofile-arcs
+- -fprofile-info-section=.rtemsroset.gcov_info.content
+- -fprofile-update=atomic
+- -ftest-coverage
+default-by-variant: []
+description: |
+  C compiler flags recommended for components which should generate coverage
+  information if RTEMS_COVERAGE is enabled.
+enabled-by: RTEMS_COVERAGE
+links: []
+name: CFLAGS_COVERAGE
+type: build

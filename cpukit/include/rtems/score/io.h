@@ -133,6 +133,16 @@ int _IO_Base64url(
   int          wordlen
 );
 
+/*
+ * @brief Dumps the gcov info sections using _IO_Printf().
+ *
+ * @param put_char is the put character handler used to dump the gcov info
+ *   sections.
+ *
+ * @param arg is the argument passed to the put character handler.
+ */
+void _IO_Dump_gcov_info( IO_Put_char put_char, void *arg );
+
 /**
  * @brief Issues a couple of no-operation instructions.
  *

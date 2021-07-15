@@ -3,16 +3,15 @@
 /**
  * @file
  *
- * @ingroup POSIXAPI
+ * @ingroup RTEMSTest
  *
- * @brief Inoperable implementation of fork() for POSIX threads
+ * @brief This source file contains the implementation of a wrapper for
+ *   _CPU_Fatal_halt() which dumps the gcov information using
+ *   _IO_Dump_gcov_info() before the real _CPU_Fatal_halt() is called.
  */
 
 /*
- *  fork() - POSIX 1003.1b 3.1.1
- *
- *  COPYRIGHT (c) 1989-2007.
- *  On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,22 +39,16 @@
 #include "config.h"
 #endif
 
-#include <unistd.h>
+#include <rtems/score/cpu.h>
+#include <rtems/score/io.h>
+#include <rtems/bspIo.h>
 
-#include <errno.h>
-#include <rtems/score/cpuopts.h>
-#include <rtems/seterr.h>
+void __real__CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
 
-int fork( void )
+void __wrap__CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
+
+void __wrap__CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error )
 {
-  rtems_set_errno_and_return_minus_one( ENOSYS );
+  _IO_Dump_gcov_info( rtems_put_char, NULL );
+  __real__CPU_Fatal_halt( source, error );
 }
-
-#if defined(RTEMS_COVERAGE)
-pid_t __gcov_fork( void );
-
-pid_t __gcov_fork( void )
-{
-  rtems_set_errno_and_return_minus_one( ENOSYS );
-}
-#endif

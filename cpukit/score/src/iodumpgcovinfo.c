@@ -3,16 +3,13 @@
 /**
  * @file
  *
- * @ingroup POSIXAPI
+ * @ingroup RTEMSScoreIO
  *
- * @brief Inoperable implementation of fork() for POSIX threads
+ * @brief This source file contains the implementation of _IO_Dump_gcov_info().
  */
 
 /*
- *  fork() - POSIX 1003.1b 3.1.1
- *
- *  COPYRIGHT (c) 1989-2007.
- *  On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,22 +37,64 @@
 #include "config.h"
 #endif
 
-#include <unistd.h>
+#include <rtems/score/io.h>
+#include <rtems/score/interr.h>
+#include <rtems/linkersets.h>
 
-#include <errno.h>
-#include <rtems/score/cpuopts.h>
-#include <rtems/seterr.h>
+#include <gcov.h>
 
-int fork( void )
+RTEMS_LINKER_ROSET( gcov_info, const struct gcov_info * );
+
+typedef struct {
+  IO_Put_char put_char;
+  void *arg;
+} IO_Dump_gcov_context;
+
+static void _IO_Gcov_filename( const char *f, void *arg )
 {
-  rtems_set_errno_and_return_minus_one( ENOSYS );
+  const IO_Dump_gcov_context *ctx;
+
+  ctx = arg;
+  _IO_Printf( ctx->put_char, ctx->arg, "Emitting gcda bytes for %s\n", f );
 }
 
-#if defined(RTEMS_COVERAGE)
-pid_t __gcov_fork( void );
-
-pid_t __gcov_fork( void )
+static void _IO_Gcov_dump( const void *d, unsigned n, void *arg )
 {
-  rtems_set_errno_and_return_minus_one( ENOSYS );
+  const IO_Dump_gcov_context *ctx;
+  const unsigned char        *c;
+  unsigned                    i;
+
+  ctx = arg;
+  c = d;
+
+  for (i = 0; i < n; ++i) {
+    _IO_Printf( ctx->put_char, ctx->arg, "%02x", c[ i ] );
+  }
 }
-#endif
+
+static void *_IO_Gcov_allocate( unsigned length, void *arg )
+{
+  (void) length;
+  (void) arg;
+  return NULL;
+}
+
+void _IO_Dump_gcov_info( IO_Put_char put_char, void *arg )
+{
+  IO_Dump_gcov_context            ctx;
+  const struct gcov_info * const *item;
+
+  ctx.put_char = put_char;
+  ctx.arg = arg;
+
+  RTEMS_LINKER_SET_FOREACH( gcov_info, item ) {
+    __gcov_info_to_gcda(
+      *item,
+      _IO_Gcov_filename,
+      _IO_Gcov_dump,
+      _IO_Gcov_allocate,
+      &ctx
+    );
+    ( *put_char )( '\n', arg );
+  }
+}

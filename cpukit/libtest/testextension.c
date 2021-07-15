@@ -32,6 +32,7 @@
 #include <rtems/test-info.h>
 #include <rtems/profiling.h>
 #include <rtems/bspIo.h>
+#include <rtems/score/io.h>
 
 #if defined(RTEMS_PROFILING)
 static bool report_done;

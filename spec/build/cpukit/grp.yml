@@ -12,6 +12,12 @@ links:
 - role: build-dependency
   uid: cfghdr
 - role: build-dependency
+  uid: optcflagscoverage
+- role: build-dependency
+  uid: optcflagscoverageopt
+- role: build-dependency
+  uid: optldflagscoverage
+- role: build-dependency
   uid: libdebugger
 - role: build-dependency
   uid: libftpd

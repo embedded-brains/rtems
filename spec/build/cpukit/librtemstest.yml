@@ -41,5 +41,6 @@ source:
 - cpukit/libtest/testparallel.c
 - cpukit/libtest/testrun.c
 - cpukit/libtest/testwrappers.c
+- cpukit/libtest/wrapcpufatalhalt.c
 target: rtemstest
 type: build
