@@ -269,7 +269,11 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
 /**
  * @brief This pointer provides the GPTIMER register block address.
  */
+#if defined(LEON3_GPTIMER_BASE)
+#define LEON3_Timer_Regs ((gptimer *) LEON3_GPTIMER_BASE)
+#else
 extern gptimer *LEON3_Timer_Regs;
+#endif
 
 /**
  * @brief This pointer provides the GPTIMER device information block.
