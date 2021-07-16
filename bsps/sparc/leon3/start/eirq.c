@@ -12,9 +12,9 @@
  *
  */
 
-#include <leon.h>
 #include <bsp/irq.h>
 #include <bsp/irq-generic.h>
+#include <bsp/leon3.h>
 
 /* GRLIB extended IRQ controller IRQ number */
 uint32_t LEON3_IrqCtrl_EIrq;
@@ -23,12 +23,12 @@ rtems_interrupt_lock LEON3_IrqCtrl_Lock =
   RTEMS_INTERRUPT_LOCK_INITIALIZER("LEON3 IrqCtrl");
 
 /* Initialize Extended Interrupt controller */
-void leon3_ext_irq_init(volatile struct irqmp_regs *regs)
+void leon3_ext_irq_init(irqamp *regs)
 {
-  regs->mask[LEON3_Cpu_Index] = 0;
-  regs->force[LEON3_Cpu_Index] = 0;
-  regs->iclear = 0xffffffff;
-  LEON3_IrqCtrl_EIrq = (regs->mpstat >> 16) & 0xf;
+  grlib_store_32(&regs->pimask[LEON3_Cpu_Index], 0);
+  grlib_store_32(&regs->piforce[LEON3_Cpu_Index], 0);
+  grlib_store_32(&regs->iclear, 0xffffffff);
+  LEON3_IrqCtrl_EIrq = IRQAMP_MPSTAT_EIRQ_GET(grlib_load_32(&regs->mpstat));
 }
 
 bool bsp_interrupt_is_valid_vector(rtems_vector_number vector)
@@ -93,14 +93,16 @@ rtems_status_code bsp_interrupt_is_pending(
 {
   rtems_interrupt_level level;
   uint32_t bit;
+  irqamp *regs;
 
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bsp_interrupt_assert(pending != NULL);
   bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
 
   rtems_interrupt_local_disable(level);
-  *pending = (LEON3_IrqCtrl_Regs->ipend & bit) != 0 ||
-    (LEON3_IrqCtrl_Regs->force[rtems_scheduler_get_processor()] & bit) != 0;
+  *pending = (grlib_load_32(&regs->ipend) & bit) != 0 ||
+    (grlib_load_32(&regs->piforce[rtems_scheduler_get_processor()]) & bit) != 0;
   rtems_interrupt_local_enable(level);
   return RTEMS_SUCCESSFUL;
 }
@@ -108,9 +110,11 @@ rtems_status_code bsp_interrupt_is_pending(
 rtems_status_code bsp_interrupt_raise(rtems_vector_number vector)
 {
   uint32_t bit;
+  irqamp *regs;
 
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
 
   if ( vector <= BSP_INTERRUPT_VECTOR_MAX_STD ) {
     uint32_t cpu_count;
@@ -119,10 +123,11 @@ rtems_status_code bsp_interrupt_raise(rtems_vector_number vector)
     cpu_count = rtems_scheduler_get_processor_maximum();
 
     for (cpu_index = 0; cpu_index < cpu_count; ++cpu_index) {
-      LEON3_IrqCtrl_Regs->force[cpu_index] = bit;
+      grlib_store_32(&regs->piforce[cpu_index], bit);
     }
   } else {
     rtems_interrupt_lock_context lock_context;
+    uint32_t ipend;
 
     /*
      * This is a very dangerous operation and should only be used for test
@@ -130,7 +135,9 @@ rtems_status_code bsp_interrupt_raise(rtems_vector_number vector)
      * peripherals with this read-modify-write operation.
      */
     LEON3_IRQCTRL_ACQUIRE(&lock_context);
-    LEON3_IrqCtrl_Regs->ipend |= bit;
+    ipend = grlib_load_32(&regs->ipend);
+    ipend |= bit;
+    grlib_store_32(&regs->ipend, ipend);
     LEON3_IRQCTRL_RELEASE(&lock_context);
   }
 
@@ -143,6 +150,8 @@ rtems_status_code bsp_interrupt_raise_on(
   uint32_t            cpu_index
 )
 {
+  irqamp *regs;
+
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bsp_interrupt_assert(cpu_index < rtems_scheduler_get_processor_maximum());
 
@@ -150,7 +159,8 @@ rtems_status_code bsp_interrupt_raise_on(
     return RTEMS_UNSATISFIED;
   }
 
-  LEON3_IrqCtrl_Regs->force[cpu_index] = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
+  grlib_store_32(&regs->piforce[cpu_index], 1U << vector);
   return RTEMS_SUCCESSFUL;
 }
 #endif
@@ -158,14 +168,16 @@ rtems_status_code bsp_interrupt_raise_on(
 rtems_status_code bsp_interrupt_clear(rtems_vector_number vector)
 {
   uint32_t bit;
+  irqamp *regs;
 
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
 
-  LEON3_IrqCtrl_Regs->iclear = bit;
+  grlib_store_32(&regs->iclear, bit);
 
   if (vector <= BSP_INTERRUPT_VECTOR_MAX_STD) {
-    LEON3_IrqCtrl_Regs->force[rtems_scheduler_get_processor()] = bit << 16;
+    grlib_store_32(&regs->piforce[rtems_scheduler_get_processor()], bit << 16);
   }
 
   return RTEMS_SUCCESSFUL;
@@ -176,9 +188,16 @@ rtems_status_code bsp_interrupt_vector_is_enabled(
   bool               *enabled
 )
 {
+  uint32_t bit;
+  irqamp *regs;
+  uint32_t pimask;
+
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  *enabled =
-    !BSP_Cpu_Is_interrupt_masked(vector, _LEON3_Get_current_processor());
+
+  bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
+  pimask = grlib_load_32(&regs->pimask[_LEON3_Get_current_processor()]);
+  *enabled = (pimask & bit) != 0;
   return RTEMS_SUCCESSFUL;
 }
 
@@ -190,6 +209,8 @@ static void leon3_interrupt_vector_enable(rtems_vector_number vector)
   Processor_mask affinity;
   uint32_t bit;
   uint32_t unmasked;
+  uint32_t brdcst;
+  irqamp *regs;
 
   if (vector <= BSP_INTERRUPT_VECTOR_MAX_STD) {
     affinity = leon3_interrupt_affinities[vector];
@@ -199,72 +220,103 @@ static void leon3_interrupt_vector_enable(rtems_vector_number vector)
 
   cpu_count = rtems_scheduler_get_processor_maximum();
   bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
   unmasked = 0;
 
   for (cpu_index = 0; cpu_index < cpu_count; ++cpu_index) {
-    uint32_t mask;
+    uint32_t pimask;
 
-    mask = LEON3_IrqCtrl_Regs->mask[cpu_index];
+    pimask = grlib_load_32(&regs->pimask[cpu_index]);
 
     if (_Processor_mask_Is_set(&affinity, cpu_index)) {
       ++unmasked;
-      mask |= bit;
+      pimask |= bit;
     } else {
-      mask &= ~bit;
+      pimask &= ~bit;
     }
 
-    LEON3_IrqCtrl_Regs->mask[cpu_index] = mask;
+    grlib_store_32(&regs->pimask[cpu_index], pimask);
   }
 
+  brdcst = grlib_load_32(&regs->brdcst);
+
   if (unmasked > 1) {
-    LEON3_IrqCtrl_Regs->bcast |= bit;
+    brdcst |= bit;
   } else {
-    LEON3_IrqCtrl_Regs->bcast &= ~bit;
+    brdcst &= ~bit;
   }
+
+  grlib_store_32(&regs->brdcst, brdcst);
 }
 #endif
 
 rtems_status_code bsp_interrupt_vector_enable(rtems_vector_number vector)
 {
-#if defined(RTEMS_SMP)
   rtems_interrupt_lock_context lock_context;
+#if !defined(RTEMS_SMP)
+  uint32_t bit;
+  irqamp *regs;
+  uint32_t pimask;
+  uint32_t cpu_index;
+#endif
 
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  LEON3_IRQCTRL_ACQUIRE(&lock_context);
-  leon3_interrupt_vector_enable(vector);
-  LEON3_IRQCTRL_RELEASE(&lock_context);
-#else
-  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  BSP_Cpu_Unmask_interrupt(vector, _LEON3_Get_current_processor());
+#if !defined(RTEMS_SMP)
+  bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
 #endif
+
+  LEON3_IRQCTRL_ACQUIRE(&lock_context);
+#if defined(RTEMS_SMP)
+  leon3_interrupt_vector_enable(vector);
+#else
+  cpu_index = _LEON3_Get_current_processor();
+  pimask = grlib_load_32(&regs->pimask[cpu_index]);
+  pimask |= bit;
+  grlib_store_32(&regs->pimask[cpu_index], pimask);
+#endif
+  LEON3_IRQCTRL_RELEASE(&lock_context);
   return RTEMS_SUCCESSFUL;
 }
 
 rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
 {
-#if defined(RTEMS_SMP)
   rtems_interrupt_lock_context lock_context;
   uint32_t bit;
+  irqamp *regs;
+  uint32_t pimask;
   uint32_t cpu_index;
+#if defined(RTEMS_SMP)
   uint32_t cpu_count;
+  uint32_t brdcst;
+#endif
 
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bit = 1U << vector;
-  cpu_count = rtems_scheduler_get_processor_maximum();
+  regs = LEON3_IrqCtrl_Regs;
 
   LEON3_IRQCTRL_ACQUIRE(&lock_context);
 
+#if defined(RTEMS_SMP)
+  cpu_count = rtems_scheduler_get_processor_maximum();
+
   for (cpu_index = 0; cpu_index < cpu_count; ++cpu_index) {
-    LEON3_IrqCtrl_Regs->mask[cpu_index] &= ~bit;
+    pimask = grlib_load_32(&regs->pimask[cpu_index]);
+    pimask &= ~bit;
+    grlib_store_32(&regs->pimask[cpu_index], pimask);
   }
 
-  LEON3_IrqCtrl_Regs->bcast &= ~bit;
+  brdcst = grlib_load_32(&regs->brdcst);
+  brdcst &= ~bit;
+  grlib_store_32(&regs->brdcst, brdcst);
+#else
+  cpu_index = _LEON3_Get_current_processor();
+  pimask = grlib_load_32(&regs->pimask[cpu_index]);
+  pimask &= ~bit;
+  grlib_store_32(&regs->pimask[cpu_index], pimask);
+#endif
 
   LEON3_IRQCTRL_RELEASE(&lock_context);
-#else
-  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  BSP_Cpu_Mask_interrupt(vector, _LEON3_Get_current_processor());
-#endif
   return RTEMS_SUCCESSFUL;
 }
 
@@ -278,6 +330,7 @@ rtems_status_code bsp_interrupt_set_affinity(
   uint32_t cpu_count;
   uint32_t cpu_index;
   uint32_t bit;
+  irqamp *regs;
 
   if (vector >= RTEMS_ARRAY_SIZE(leon3_interrupt_affinities)) {
     return RTEMS_UNSATISFIED;
@@ -285,6 +338,7 @@ rtems_status_code bsp_interrupt_set_affinity(
 
   cpu_count = rtems_scheduler_get_processor_maximum();
   bit = 1U << vector;
+  regs = LEON3_IrqCtrl_Regs;
 
   LEON3_IRQCTRL_ACQUIRE(&lock_context);
   leon3_interrupt_affinities[vector] = *affinity;
@@ -294,7 +348,7 @@ rtems_status_code bsp_interrupt_set_affinity(
    * using the new affinity.
    */
   for (cpu_index = 0; cpu_index < cpu_count; ++cpu_index) {
-    if ((LEON3_IrqCtrl_Regs->mask[cpu_index] & bit) != 0) {
+    if ((grlib_load_32(&regs->pimask[cpu_index]) & bit) != 0) {
       leon3_interrupt_vector_enable(vector);
       break;
     }
