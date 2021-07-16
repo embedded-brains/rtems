@@ -26,6 +26,7 @@
 #include <leon.h>
 #include <rtems/rtems/intr.h>
 #include <grlib/ambapp.h>
+#include <grlib/irqamp.h>
 #include <rtems/score/profiling.h>
 #include <rtems/score/sparcimpl.h>
 #include <rtems/timecounter.h>
@@ -160,11 +161,11 @@ static void bsp_clock_handler_install(rtems_interrupt_handler isr)
 
 static void leon3_clock_initialize(void)
 {
-  volatile struct irqmp_timestamp_regs *irqmp_ts;
+  irqamp_timestamp *irqmp_ts;
   volatile struct gptimer_regs *gpt;
   struct timecounter *tc;
 
-  irqmp_ts = &LEON3_IrqCtrl_Regs->timestamp[0];
+  irqmp_ts = irqamp_get_timestamp_registers(LEON3_IrqCtrl_Regs);
   gpt = LEON3_Timer_Regs;
   tc = &leon3_tc;
 
@@ -182,13 +183,13 @@ static void leon3_clock_initialize(void)
     tc->tc_frequency = leon3_up_counter_frequency();
 
 #ifdef RTEMS_PROFILING
-    if (!irqmp_has_timestamp(irqmp_ts)) {
+    if (irqmp_ts == NULL) {
       bsp_fatal(LEON3_FATAL_CLOCK_NO_IRQMP_TIMESTAMP_SUPPORT);
     }
 #endif
 
     leon3_tc_tick = leon3_tc_tick_irqmp_timestamp_init;
-  } else if (irqmp_has_timestamp(irqmp_ts)) {
+  } else if (irqmp_ts != NULL) {
     /* Use the interrupt controller timestamp counter if available */
     tc->tc_get_timecount = _SPARC_Get_timecount_up;
     tc->tc_frequency = ambapp_freq_get(ambapp_plb(), LEON3_Timer_Adev);
@@ -199,7 +200,7 @@ static void leon3_clock_initialize(void)
      * At least one TSISEL field must be non-zero to enable the timestamp
      * counter.  Use an arbitrary interrupt source.
      */
-    irqmp_ts->control = 0x1;
+    grlib_store_32(&irqmp_ts->itstmpc, IRQAMP_ITSTMPC_TSISEL(1));
   } else {
 #ifdef RTEMS_SMP
     /*
