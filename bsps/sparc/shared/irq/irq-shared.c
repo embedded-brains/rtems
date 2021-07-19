@@ -11,6 +11,10 @@
 #include <bsp.h>
 #include <bsp/irq-generic.h>
 
+#if defined(LEON3)
+#include <leon.h>
+#endif
+
 static inline int bsp_irq_cpu(int irq)
 {
 #if defined(RTEMS_SMP)
