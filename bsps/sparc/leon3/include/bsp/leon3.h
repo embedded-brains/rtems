@@ -38,6 +38,7 @@
 
 #include <rtems.h>
 #include <grlib/grlib.h>
+#include <grlib/apbuart-regs.h>
 
 struct ambapp_dev;
 
@@ -103,6 +104,11 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
 
   return eirq;
 }
+
+/**
+ * @brief This pointer provides the debug APBUART register block address.
+ */
+extern apbuart *leon3_debug_uart;
 
 /** @} */
 
