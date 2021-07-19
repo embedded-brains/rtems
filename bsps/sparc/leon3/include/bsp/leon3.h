@@ -43,7 +43,9 @@
 #include <grlib/irqamp-regs.h>
 #include <grlib/io.h>
 
+#if !defined(LEON3_PLB_FREQUENCY_DEFINED_BY_GPTIMER)
 #include <grlib/ambapp.h>
+#endif
 
 struct ambapp_dev;
 
@@ -285,6 +287,25 @@ extern gptimer *LEON3_Timer_Regs;
 extern struct ambapp_dev *LEON3_Timer_Adev;
 
 /**
+ * @brief Gets the processor local bus frequency in Hz.
+ *
+ * @return Returns the frequency.
+ */
+static inline uint32_t leon3_processor_local_bus_frequency( void )
+{
+#if defined(LEON3_PLB_FREQUENCY_DEFINED_BY_GPTIMER)
+  return ( grlib_load_32( &LEON3_Timer_Regs->sreload ) + 1 ) *
+    LEON3_GPTIMER_0_FREQUENCY_SET_BY_BOOT_LOADER;
+#else
+  /*
+   * For simplicity, assume that the interrupt controller uses the processor
+   * clock.  This is at least true on the GR740.
+   */
+  return ambapp_freq_get( ambapp_plb(), LEON3_IrqCtrl_Adev );
+#endif
+}
+
+/**
  * @brief Gets the LEON up-counter low register (%ASR23) value.
  *
  * @return Returns the register value.
@@ -347,11 +368,7 @@ static inline bool leon3_up_counter_is_available( void )
  */
 static inline uint32_t leon3_up_counter_frequency( void )
 {
-  /*
-   * For simplicity, assume that the interrupt controller uses the processor
-   * clock.  This is at least true on the GR740.
-   */
-  return ambapp_freq_get( ambapp_plb(), LEON3_IrqCtrl_Adev );
+  return leon3_processor_local_bus_frequency();
 }
 
 /**
