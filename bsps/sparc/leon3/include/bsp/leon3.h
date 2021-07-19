@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2014, 2021 embedded brains GmbH (http://www.embedded-brains.de)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 
 #include <rtems.h>
 #include <grlib/apbuart-regs.h>
+#include <grlib/gptimer-regs.h>
 #include <grlib/irqamp-regs.h>
 #include <grlib/io.h>
 
@@ -232,6 +233,47 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
 
   return eirq;
 }
+
+/**
+ * @brief This constant defines the index of the GPTIMER timer used by the
+ *   clock driver.
+ */
+#if defined(RTEMS_MULTIPROCESSING)
+#define LEON3_CLOCK_INDEX \
+  ( rtems_configuration_get_user_multiprocessing_table() ? LEON3_Cpu_Index : 0 )
+#else
+#define LEON3_CLOCK_INDEX 0
+#endif
+
+/**
+ * @brief This constant defines the index of the GPTIMER timer used by the
+ *   CPU counter if the CPU counter uses the GPTIMER.
+ */
+#if defined(RTEMS_SMP)
+#define LEON3_COUNTER_GPTIMER_INDEX ( LEON3_CLOCK_INDEX + 1 )
+#else
+#define LEON3_COUNTER_GPTIMER_INDEX LEON3_CLOCK_INDEX
+#endif
+
+/**
+ * @brief This constant defines the frequency set by the boot loader of the
+ *   first GPTIMER instance.
+ *
+ * We assume that a boot loader (usually GRMON) initialized the GPTIMER 0 to
+ * run with 1MHz.  This is used to determine all clock frequencies of the PnP
+ * devices.  See also ambapp_freq_init() and ambapp_freq_get().
+ */
+#define LEON3_GPTIMER_0_FREQUENCY_SET_BY_BOOT_LOADER 1000000
+
+/**
+ * @brief This pointer provides the GPTIMER register block address.
+ */
+extern gptimer *LEON3_Timer_Regs;
+
+/**
+ * @brief This pointer provides the GPTIMER device information block.
+ */
+extern struct ambapp_dev *LEON3_Timer_Adev;
 
 /**
  * @brief Gets the LEON up-counter low register (%ASR23) value.
