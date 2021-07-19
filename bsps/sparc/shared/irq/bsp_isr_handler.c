@@ -11,6 +11,10 @@
 #include <bsp.h>
 #include <bsp/irq-generic.h>
 
+#ifdef LEON3
+#include <bsp/leon3.h>
+#endif
+
 /*
  * This function is called directly from _SPARC_Interrupt_trap() for
  * traps 0x10 to 0x1F which correspond to IRQ 0 to 15 respectively.
