@@ -13,7 +13,7 @@
  */
 
 #include <amba.h>
-#include <leon.h>
+#include <bsp/leon3.h>
 
 #define CPU_CACHE_SUPPORT_PROVIDES_RANGE_FUNCTIONS
 

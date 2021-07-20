@@ -61,6 +61,105 @@ extern "C" {
 extern uint32_t LEON3_Cpu_Index;
 
 /**
+ * @brief This constant represents the flush instruction cache flag of the LEON
+ *   cache control register.
+ */
+#define LEON3_REG_CACHE_CTRL_FI 0x00200000U
+
+/**
+ * @brief This constant represents the data cache snooping enable flag of the
+ *   LEON cache control register.
+ */
+#define LEON3_REG_CACHE_CTRL_DS 0x00800000U
+
+/**
+ * @brief Sets the ASI 0x2 system register value.
+ *
+ * @param addr is the address of the ASI 0x2 system register.
+ *
+ * @param val is the value to set.
+ */
+static inline void leon3_set_system_register( uint32_t addr, uint32_t val )
+{
+  __asm__ volatile(
+    "sta %1, [%0] 2"
+    :
+    : "r" ( addr ), "r" ( val )
+  );
+}
+
+/**
+ * @brief Gets the ASI 0x2 system register value.
+ *
+ * @param addr is the address of the ASI 0x2 system register.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_get_system_register( uint32_t addr )
+{
+  uint32_t val;
+
+  __asm__ volatile(
+    "lda [%1] 2, %0"
+    : "=r" ( val )
+    : "r" ( addr )
+  );
+
+  return val;
+}
+
+/**
+ * @brief Sets the LEON cache control register value.
+ *
+ * @param val is the value to set.
+ */
+static inline void leon3_set_cache_control_register( uint32_t val )
+{
+  leon3_set_system_register( 0x0, val );
+}
+
+/**
+ * @brief Gets the LEON cache control register value.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_get_cache_control_register( void )
+{
+  return leon3_get_system_register( 0x0 );
+}
+
+/**
+ * @brief Checks if the data cache snooping is enabled.
+ *
+ * @return Returns true, if the data cache snooping is enabled, otherwise
+ *   false.
+ */
+static inline bool leon3_data_cache_snooping_enabled( void )
+{
+  return ( leon3_get_cache_control_register() & LEON3_REG_CACHE_CTRL_DS ) != 0;
+}
+
+/**
+ * @brief Gets the LEON instruction cache configuration register value.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_get_inst_cache_config_register( void )
+{
+  return leon3_get_system_register( 0x8 );
+}
+
+/**
+ * @brief Gets the LEON data cache configuration register value.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_get_data_cache_config_register( void )
+{
+  return leon3_get_system_register( 0xc );
+}
+
+/**
  * @brief This lock serializes the interrupt controller access.
  */
 extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
