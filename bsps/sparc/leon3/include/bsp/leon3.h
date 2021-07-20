@@ -67,6 +67,12 @@ extern "C" {
 extern uint32_t LEON3_Cpu_Index;
 
 /**
+ * @brief Sets %asr19 to zero to enter the power-down mode of the processor in
+ *   an infinite loop.
+ */
+RTEMS_NO_RETURN void leon3_power_down_loop( void );
+
+/**
  * @brief This constant represents the flush instruction cache flag of the LEON
  *   cache control register.
  */
