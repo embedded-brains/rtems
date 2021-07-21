@@ -360,51 +360,6 @@ extern unsigned int leon3_timer_prescaler;
 
 RTEMS_NO_RETURN void leon3_power_down_loop(void);
 
-static inline uint32_t leon3_up_counter_low(void)
-{
-  uint32_t asr23;
-
-  __asm__ volatile (
-    "mov %%asr23, %0"
-    : "=&r" (asr23)
-  );
-
-  return asr23;
-}
-
-static inline uint32_t leon3_up_counter_high(void)
-{
-  uint32_t asr22;
-
-  __asm__ volatile (
-    "mov %%asr22, %0"
-    : "=&r" (asr22)
-  );
-
-  return asr22;
-}
-
-static inline void leon3_up_counter_enable(void)
-{
-  __asm__ volatile (
-    "mov %g0, %asr22"
-  );
-}
-
-static inline bool leon3_up_counter_is_available(void)
-{
-  return leon3_up_counter_low() != leon3_up_counter_low();
-}
-
-static inline uint32_t leon3_up_counter_frequency(void)
-{
-  /*
-   * For simplicity, assume that the interrupt controller uses the processor
-   * clock.  This is at least true on the GR740.
-   */
-  return ambapp_freq_get(ambapp_plb(), LEON3_IrqCtrl_Adev);
-}
-
 #endif /* !ASM */
 
 #ifdef __cplusplus
