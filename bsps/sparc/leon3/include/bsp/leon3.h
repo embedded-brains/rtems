@@ -41,6 +41,8 @@
 #include <grlib/irqamp-regs.h>
 #include <grlib/io.h>
 
+#include <grlib/ambapp.h>
+
 struct ambapp_dev;
 
 #ifdef __cplusplus
@@ -229,6 +231,76 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
   }
 
   return eirq;
+}
+
+/**
+ * @brief Gets the LEON up-counter low register (%ASR23) value.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_up_counter_low( void )
+{
+  uint32_t asr23;
+
+  __asm__ volatile (
+    "mov %%asr23, %0"
+    : "=&r" (asr23)
+  );
+
+  return asr23;
+}
+
+/**
+ * @brief Gets the LEON up-counter high register (%ASR22) value.
+ *
+ * @return Returns the register value.
+ */
+static inline uint32_t leon3_up_counter_high(void)
+{
+  uint32_t asr22;
+
+  __asm__ volatile (
+    "mov %%asr22, %0"
+    : "=&r" (asr22)
+  );
+
+  return asr22;
+}
+
+/**
+ * @brief Enables the LEON up-counter.
+ */
+static inline void leon3_up_counter_enable( void )
+{
+  __asm__ volatile (
+    "mov %g0, %asr22"
+  );
+}
+
+/**
+ * @brief Checks if the LEON up-counter is available.
+ *
+ * The LEON up-counter must have been enabled.
+ *
+ * @return Returns true, if the LEON up-counter is available, otherwise false.
+ */
+static inline bool leon3_up_counter_is_available( void )
+{
+  return leon3_up_counter_low() != leon3_up_counter_low();
+}
+
+/**
+ * @brief Gets the LEON up-counter frequency in Hz.
+ *
+ * @return Returns the frequency.
+ */
+static inline uint32_t leon3_up_counter_frequency( void )
+{
+  /*
+   * For simplicity, assume that the interrupt controller uses the processor
+   * clock.  This is at least true on the GR740.
+   */
+  return ambapp_freq_get( ambapp_plb(), LEON3_IrqCtrl_Adev );
 }
 
 /**
