@@ -5,10 +5,13 @@ copyrights:
 - Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
 cppflags: []
 cxxflags: []
-enabled-by: sparc/leon3
+enabled-by: bsps/sparc/leon3
 includes: []
 install: []
 links: []
 source:
-- testsuites/validation/tc-bsp-sparc-leon3.c
+- testsuites/validation/tc-dev-grlib-apbuart-inbyte-nonblocking.c
+- testsuites/validation/tc-dev-grlib-apbuart-outbyte-polled.c
+- testsuites/validation/tc-dev-grlib-apbuart-outbyte-wait.c
+- testsuites/validation/tc-dev-grlib-io.c
 type: build

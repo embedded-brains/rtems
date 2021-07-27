@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup RTEMSTestCaseBspSparcValGrlibIo
+ * @ingroup RTEMSTestCaseDevGrlibValIo
  */
 
 /*
@@ -52,16 +52,20 @@
 #include "config.h"
 #endif
 
-#include <dev/grlib/io.h>
+#include <string.h>
+#include <grlib/apbuart.h>
+#include <grlib/io.h>
+
+#include "tx-support.h"
 
 #include <rtems/test.h>
 
 /**
- * @defgroup RTEMSTestCaseBspSparcValGrlibIo spec:/bsp/sparc/val/grlib-io
+ * @defgroup RTEMSTestCaseDevGrlibValIo spec:/dev/grlib/val/io
  *
  * @ingroup RTEMSTestSuiteTestsuitesValidationDev0
  *
- * @brief Tests the SPARC-specific GRLIB API.
+ * @brief Tests some @ref RTEMSDeviceGRLIB directives.
  *
  * This test case performs the following actions:
  *
@@ -81,29 +85,46 @@
  *
  *   - Check that the returned value is equal to the prepared value.
  *
- * - Call grlib_store_8() to store a value to an object.
+ * - Call grlib_load_8() to store a value to an object.
  *
  *   - Check that the value of the object is equal to the stored value.
  *
- * - Call grlib_store_16() to store a value to an object.
+ * - Call grlib_load_16() to store a value to an object.
  *
  *   - Check that the value of the object is equal to the stored value.
  *
- * - Call grlib_store_32() to store a value to an object.
+ * - Call grlib_load_32() to store a value to an object.
  *
  *   - Check that the value of the object is equal to the stored value.
  *
- * - Call grlib_store_64() to store a value to an object.
+ * - Call grlib_load_64() to store a value to an object.
  *
  *   - Check that the value of the object is equal to the stored value.
+ *
+ * - Call apbuart_outbyte_polled() to store a character to the data register.
+ *   The transmitter FIFO shall be initially non-empty.  The status is checked
+ *   by apbuart_outbyte_wait().
+ *
+ *   - Check that the transmitter FIFO empty flag was set by ApbuartIORelax().
+ *
+ *   - Check that the data register was written by apbuart_outbyte_polled().
  *
  * @{
  */
 
+static void ApbuartIORelax( void *arg )
+{
+  apbuart *regs;
+
+  regs = arg;
+  regs->status = 0x4;
+  T_quiet_eq_u32( regs->data, 0 );
+}
+
 /**
  * @brief Call grlib_load_8() to load a prepared value.
  */
-static void BspSparcValGrlibIo_Action_0( void )
+static void DevGrlibValIo_Action_0( void )
 {
   uint8_t reg_8;
   uint8_t val_8;
@@ -120,7 +141,7 @@ static void BspSparcValGrlibIo_Action_0( void )
 /**
  * @brief Call grlib_load_16() to load a prepared value.
  */
-static void BspSparcValGrlibIo_Action_1( void )
+static void DevGrlibValIo_Action_1( void )
 {
   uint16_t reg_16;
   uint16_t val_16;
@@ -137,7 +158,7 @@ static void BspSparcValGrlibIo_Action_1( void )
 /**
  * @brief Call grlib_load_32() to load a prepared value.
  */
-static void BspSparcValGrlibIo_Action_2( void )
+static void DevGrlibValIo_Action_2( void )
 {
   uint32_t reg_32;
   uint32_t val_32;
@@ -154,7 +175,7 @@ static void BspSparcValGrlibIo_Action_2( void )
 /**
  * @brief Call grlib_load_64() to load a prepared value.
  */
-static void BspSparcValGrlibIo_Action_3( void )
+static void DevGrlibValIo_Action_3( void )
 {
   uint64_t reg_64;
   uint64_t val_64;
@@ -169,9 +190,9 @@ static void BspSparcValGrlibIo_Action_3( void )
 }
 
 /**
- * @brief Call grlib_store_8() to store a value to an object.
+ * @brief Call grlib_load_8() to store a value to an object.
  */
-static void BspSparcValGrlibIo_Action_4( void )
+static void DevGrlibValIo_Action_4( void )
 {
   uint8_t reg_8;
 
@@ -184,9 +205,9 @@ static void BspSparcValGrlibIo_Action_4( void )
 }
 
 /**
- * @brief Call grlib_store_16() to store a value to an object.
+ * @brief Call grlib_load_16() to store a value to an object.
  */
-static void BspSparcValGrlibIo_Action_5( void )
+static void DevGrlibValIo_Action_5( void )
 {
   uint16_t reg_16;
 
@@ -199,9 +220,9 @@ static void BspSparcValGrlibIo_Action_5( void )
 }
 
 /**
- * @brief Call grlib_store_32() to store a value to an object.
+ * @brief Call grlib_load_32() to store a value to an object.
  */
-static void BspSparcValGrlibIo_Action_6( void )
+static void DevGrlibValIo_Action_6( void )
 {
   uint32_t reg_32;
 
@@ -214,9 +235,9 @@ static void BspSparcValGrlibIo_Action_6( void )
 }
 
 /**
- * @brief Call grlib_store_64() to store a value to an object.
+ * @brief Call grlib_load_64() to store a value to an object.
  */
-static void BspSparcValGrlibIo_Action_7( void )
+static void DevGrlibValIo_Action_7( void )
 {
   uint64_t reg_64;
 
@@ -229,20 +250,46 @@ static void BspSparcValGrlibIo_Action_7( void )
 }
 
 /**
- * @fn void T_case_body_BspSparcValGrlibIo( void )
+ * @brief Call apbuart_outbyte_polled() to store a character to the data
+ *   register.  The transmitter FIFO shall be initially non-empty.  The status
+ *   is checked by apbuart_outbyte_wait().
  */
-T_TEST_CASE( BspSparcValGrlibIo )
+static void DevGrlibValIo_Action_8( void )
 {
-  T_plan( 8 );
+  apbuart regs;
 
-  BspSparcValGrlibIo_Action_0();
-  BspSparcValGrlibIo_Action_1();
-  BspSparcValGrlibIo_Action_2();
-  BspSparcValGrlibIo_Action_3();
-  BspSparcValGrlibIo_Action_4();
-  BspSparcValGrlibIo_Action_5();
-  BspSparcValGrlibIo_Action_6();
-  BspSparcValGrlibIo_Action_7();
+  memset( &regs, 0, sizeof( regs ) );
+  SetIORelaxHandler( ApbuartIORelax, &regs );
+  apbuart_outbyte_polled( &regs, (char) 0xff );
+  SetIORelaxHandler( NULL, NULL );
+
+  /*
+   * Check that the transmitter FIFO empty flag was set by ApbuartIORelax().
+   */
+  T_step_eq_u32( 8, regs.status, APBUART_STATUS_TE );
+
+  /*
+   * Check that the data register was written by apbuart_outbyte_polled().
+   */
+  T_step_eq_u32( 9, regs.data, 0xff );
+}
+
+/**
+ * @fn void T_case_body_DevGrlibValIo( void )
+ */
+T_TEST_CASE( DevGrlibValIo )
+{
+  T_plan( 10 );
+
+  DevGrlibValIo_Action_0();
+  DevGrlibValIo_Action_1();
+  DevGrlibValIo_Action_2();
+  DevGrlibValIo_Action_3();
+  DevGrlibValIo_Action_4();
+  DevGrlibValIo_Action_5();
+  DevGrlibValIo_Action_6();
+  DevGrlibValIo_Action_7();
+  DevGrlibValIo_Action_8();
 }
 
 /** @} */
