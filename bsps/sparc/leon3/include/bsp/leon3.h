@@ -222,6 +222,18 @@ extern uint32_t LEON3_IrqCtrl_EIrq;
 void leon3_ext_irq_init( irqamp *regs );
 
 /**
+ * @brief Gets the processor count.
+ *
+ * @param[in] regs is the IRQ(A)MP register block address.
+ *
+ * @return Returns the processor count.
+ */
+static inline uint32_t leon3_get_cpu_count( const irqamp *regs )
+{
+  return IRQAMP_MPSTAT_NCPU_GET( grlib_load_32( &regs->mpstat ) ) + 1;
+}
+
+/**
  * @brief Acknowledges and maps extended interrupts if this feature is
  * available and the interrupt for extended interrupts is present.
  *
