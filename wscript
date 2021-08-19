@@ -182,44 +182,50 @@ class Item(object):
         self.data = data
         self.links = self._init_links
 
-    def _init_links(self):
+    def _init_links(self, enable):
         self._links = []
         for link in self.data["links"]:
-            if link["role"] == "build-dependency":
+            if link["role"].startswith("build-dependency"):
                 uid = link["uid"]
                 if not os.path.isabs(uid):
                     uid = os.path.normpath(
                         os.path.join(os.path.dirname(self.uid), uid)
                     )
-                self._links.append(items[uid])
+                if link["role"] == "build-dependency":
+                    enabled_by = True
+                else:
+                    enabled_by = link["enabled-by"]
+                self._links.append((enabled_by, items[uid]))
         self.links = self._yield_links
         for link in self._links:
-            yield link
+            if _is_enabled(enable, link[0]):
+                yield link[1]
 
-    def _yield_links(self):
+    def _yield_links(self, enable):
         for link in self._links:
-            yield link
+            if _is_enabled(enable, link[0]):
+                yield link[1]
 
     def get_enabled_by(self):
         return self.data["enabled-by"]
 
     def defaults(self, enable, variant, family):
         if _is_enabled(enable, self.get_enabled_by()):
-            for p in self.links():
+            for p in self.links(enable):
                 p.defaults(enable, variant, family)
             self.do_defaults(variant, family)
 
     def configure(self, conf, cic):
         if _is_enabled(conf.env.ENABLE, self.get_enabled_by()):
             self.prepare_configure(conf, cic)
-            for p in self.links():
+            for p in self.links(conf.env.ENABLE):
                 p.configure(conf, cic)
             self.do_configure(conf, cic)
 
     def build(self, bld, bic):
         if _is_enabled(bld.env.ENABLE, self.get_enabled_by()):
             bic = self.prepare_build(bld, bic)
-            for p in self.links():
+            for p in self.links(bld.env.ENABLE):
                 p.build(bld, bic)
             self.do_build(bld, bic)
 
