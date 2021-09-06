@@ -291,7 +291,7 @@ class Item(object):
         if target is None:
             target = os.path.splitext(source)[0] + ".o"
         bld(
-            cflags=self.data["cflags"],
+            cflags=bic.cflags + self.data["cflags"],
             cppflags=cppflags + self.data["cppflags"],
             features="c",
             includes=bic.includes + self.get_values(bld, "includes"),
@@ -306,7 +306,7 @@ class Item(object):
             target = os.path.splitext(source)[0] + ".o"
         bld(
             cppflags=cppflags + self.data["cppflags"],
-            cxxflags=self.data["cxxflags"],
+            cxxflags=bic.cflags + self.data["cxxflags"],
             features="cxx",
             includes=bic.includes + self.get_values(bld, "includes"),
             rule="${CXX} ${CXXFLAGS} ${CPPFLAGS} ${DEFINES_ST:DEFINES} ${CPPPATH_ST:INCPATHS} -c ${SRC[0]} -o ${TGT}",
@@ -517,6 +517,7 @@ class GroupItem(Item):
     def prepare_build(self, bld, bic):
         return BuildItemContext(
             bic.includes + self.get_values(bld, "includes"),
+            bic.cflags,
             self.data["use-before"] + bic.use + self.data["use-after"],
             bic.ldflags + self.get_values(bld, "ldflags"),
             bic.objects,
@@ -581,9 +582,9 @@ class ObjectsItem(Item):
     def do_build(self, bld, bic):
         bld.objects(
             asflags=self.data["cppflags"],
-            cflags=self.data["cflags"],
+            cflags=bic.cflags + self.data["cflags"],
             cppflags=self.data["cppflags"],
-            cxxflags=self.data["cxxflags"],
+            cxxflags=bic.cflags + self.data["cxxflags"],
             includes=bic.includes + self.get_values(bld, "includes"),
             source=self.data["source"],
             target=self.uid,
@@ -600,12 +601,16 @@ class BSPItem(Item):
 
     def prepare_build(self, bld, bic):
         return BuildItemContext(
-            bic.includes + bld.env.BSP_INCLUDES.split(), [], [], []
+            bic.includes + bld.env.BSP_INCLUDES.split(),
+            bic.cflags + bld.env.BSP_CFLAGS,
+            [],
+            [],
+            [],
         )
 
     def do_build(self, bld, bic):
         bld(
-            cflags=self.data["cflags"],
+            cflags=bic.cflags + self.data["cflags"],
             cppflags=self.data["cppflags"],
             features="c cstlib",
             includes=bic.includes + self.get_values(bld, "includes"),
@@ -622,11 +627,17 @@ class LibraryItem(Item):
         super(LibraryItem, self).__init__(uid, data)
 
     def prepare_build(self, bld, bic):
-        return BuildItemContext(bic.includes, [], [], [])
+        return BuildItemContext(
+            bic.includes,
+            bic.cflags + self.get_values(bld, "cflags"),
+            [],
+            [],
+            [],
+        )
 
     def do_build(self, bld, bic):
         bld(
-            cflags=self.data["cflags"],
+            cflags=bic.cflags,
             cppflags=self.data["cppflags"],
             cxxflags=self.data["cxxflags"],
             features="c cxx cstlib",
@@ -650,11 +661,13 @@ class TestProgramItem(Item):
         return [{"and": [{"not": self.exclude}, self.data["enabled-by"]]}]
 
     def prepare_build(self, bld, bic):
-        return BuildItemContext(bic.includes, bic.use, bic.ldflags, [])
+        return BuildItemContext(
+            bic.includes, bic.cflags, bic.use, bic.ldflags, []
+        )
 
     def do_build(self, bld, bic):
         bld(
-            cflags=self.data["cflags"],
+            cflags=bic.cflags + self.data["cflags"],
             cppflags=bld.env[self.cppflags] + self.data["cppflags"],
             cxxflags=self.data["cxxflags"],
             features=self.data["features"],
@@ -1105,8 +1118,9 @@ class ConfigItemContext(object):
 
 
 class BuildItemContext(object):
-    def __init__(self, includes, use, ldflags, objects):
+    def __init__(self, includes, cflags, use, ldflags, objects):
         self.includes = includes
+        self.cflags = cflags
         self.use = use
         self.ldflags = ldflags
         self.objects = objects
@@ -1557,7 +1571,7 @@ def build(bld):
         append_variant_builds(bld)
         return
     long_command_line_workaround(bld)
-    bic = BuildItemContext(bld.env.ARCH_INCLUDES.split(), [], [], [])
+    bic = BuildItemContext(bld.env.ARCH_INCLUDES.split(), [], [], [], [])
     bsps[bld.env.ARCH][bld.env.BSP_BASE].build(bld, bic)
     items[bld.env.TOPGROUP].build(bld, bic)
 
