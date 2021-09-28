@@ -169,6 +169,10 @@ typedef ISR_Handler rtems_isr;
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within interrupt context.
  *
  * * The directive may be called from within device driver initialization
@@ -248,6 +252,10 @@ rtems_status_code rtems_interrupt_catch(
    * @parblock
    * The following constraints apply to this directive:
    *
+   * * The directive is not included in the pre-qualified feature set of RTEMS.
+   *   Applications which are restricted to only use interfaces of the
+   *   pre-qualified feature set of RTEMS shall not use the directive.
+   *
    * * The directive may be called from within any runtime context.
    *
    * * The directive will not cause the calling task to be preempted.
@@ -289,6 +297,10 @@ rtems_status_code rtems_interrupt_catch(
    * @par Constraints
    * @parblock
    * The following constraints apply to this directive:
+   *
+   * * The directive is not included in the pre-qualified feature set of RTEMS.
+   *   Applications which are restricted to only use interfaces of the
+   *   pre-qualified feature set of RTEMS shall not use the directive.
    *
    * * The directive may be called from within any runtime context.
    *
@@ -337,6 +349,10 @@ rtems_status_code rtems_interrupt_catch(
    * @par Constraints
    * @parblock
    * The following constraints apply to this directive:
+   *
+   * * The directive is not included in the pre-qualified feature set of RTEMS.
+   *   Applications which are restricted to only use interfaces of the
+   *   pre-qualified feature set of RTEMS shall not use the directive.
    *
    * * The directive may be called from within any runtime context.
    *
@@ -483,6 +499,10 @@ rtems_status_code rtems_interrupt_catch(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *
@@ -922,6 +942,15 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler shared option
  *   #RTEMS_INTERRUPT_SHARED is set, otherwise false.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_SHARED( _options ) \
   ( ( _options ) & RTEMS_INTERRUPT_SHARED )
@@ -935,6 +964,15 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler unique option
  *   #RTEMS_INTERRUPT_UNIQUE is set, otherwise false.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_UNIQUE( _options ) \
   ( ( _options ) & RTEMS_INTERRUPT_UNIQUE )
@@ -948,6 +986,15 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler replace option
  *   #RTEMS_INTERRUPT_REPLACE is set, otherwise false.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_REPLACE( _options ) \
   ( ( _options ) & RTEMS_INTERRUPT_REPLACE )
@@ -1298,6 +1345,10 @@ rtems_status_code rtems_interrupt_entry_remove(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -1347,6 +1398,10 @@ rtems_status_code rtems_interrupt_handler_install(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within device driver initialization
  *   context.
@@ -2052,6 +2107,15 @@ rtems_status_code rtems_interrupt_handler_iterate(
  * @ingroup RTEMSAPIClassicIntr
  *
  * @brief The constant represents the index of the default interrupt server.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this constant:
+ *
+ * * The constant is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the constant.
+ * @endparblock
  */
 #define RTEMS_INTERRUPT_SERVER_DEFAULT 0
 
@@ -2218,6 +2282,10 @@ typedef struct {
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -2265,6 +2333,10 @@ rtems_status_code rtems_interrupt_server_initialize(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within device driver initialization
  *   context.
@@ -2344,6 +2416,10 @@ rtems_status_code rtems_interrupt_server_create(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -2394,6 +2470,10 @@ rtems_status_code rtems_interrupt_server_handler_install(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within task context.
  *
@@ -2459,6 +2539,10 @@ rtems_status_code rtems_interrupt_server_handler_remove(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within interrupt context.
  *
  * * The directive may be called from within device driver initialization
@@ -2507,6 +2591,10 @@ rtems_status_code rtems_interrupt_server_set_affinity(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within task context.
  *
  * * The directive shall not be called from within the context of an interrupt
@@ -2542,6 +2630,10 @@ rtems_status_code rtems_interrupt_server_delete( uint32_t server_index );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within task context.
  *
  * * The directive shall not be called from within the context of an interrupt
@@ -2576,6 +2668,10 @@ rtems_status_code rtems_interrupt_server_suspend( uint32_t server_index );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within task context.
  *
@@ -2621,6 +2717,10 @@ rtems_status_code rtems_interrupt_server_resume( uint32_t server_index );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within task context.
  *
@@ -2678,6 +2778,10 @@ rtems_status_code rtems_interrupt_server_move(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within device driver initialization
  *   context.
@@ -2791,6 +2895,10 @@ typedef struct {
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -2830,6 +2938,10 @@ rtems_status_code rtems_interrupt_server_entry_initialize(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within interrupt context.
  *
@@ -2884,6 +2996,10 @@ void rtems_interrupt_server_action_prepend(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within task context.
  *
  * * The directive shall not be called from within the context of an interrupt
@@ -2933,6 +3049,10 @@ void rtems_interrupt_server_entry_destroy(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within interrupt context.
  *
  * * The directive may be called from within device driver initialization
@@ -2981,6 +3101,10 @@ void rtems_interrupt_server_entry_submit(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within device driver initialization
  *   context.
@@ -3078,6 +3202,10 @@ typedef struct {
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -3119,6 +3247,10 @@ rtems_status_code rtems_interrupt_server_request_initialize(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within interrupt context.
  *
@@ -3171,6 +3303,10 @@ static inline void rtems_interrupt_server_request_set_vector(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within task context.
  *
  * * The directive shall not be called from within the context of an interrupt
@@ -3221,6 +3357,10 @@ static inline void rtems_interrupt_server_request_destroy(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within interrupt context.
  *

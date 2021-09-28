@@ -127,6 +127,10 @@ extern "C" {
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within device driver initialization
  *   context.
  *
@@ -193,6 +197,10 @@ rtems_status_code rtems_port_create(
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -222,6 +230,10 @@ rtems_status_code rtems_port_ident( rtems_name name, rtems_id *id );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within device driver initialization
  *   context.
@@ -270,6 +282,10 @@ rtems_status_code rtems_port_delete( rtems_id id );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within interrupt context.
  *
  * * The directive may be called from within device driver initialization
@@ -316,6 +332,10 @@ rtems_status_code rtems_port_external_to_internal(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within interrupt context.
  *

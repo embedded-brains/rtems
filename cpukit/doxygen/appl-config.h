@@ -76,6 +76,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * Each option of the Block Device Cache (bdbuf) configuration can be
  * explicitly set by the user with the configuration options below.  The Block
@@ -94,14 +99,19 @@
  * @par Default Value
  * The default value is 4096.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be an integral multiple of #CONFIGURE_BDBUF_BUFFER_MIN_SIZE.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be an integral multiple of
+ *   #CONFIGURE_BDBUF_BUFFER_MIN_SIZE.
  * @endparblock
  */
 #define CONFIGURE_BDBUF_BUFFER_MAX_SIZE
@@ -117,14 +127,18 @@
  * @par Default Value
  * The default value is 512.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  */
@@ -141,14 +155,18 @@
  * @par Default Value
  * The default value is 32768.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  * @endparblock
  */
@@ -165,14 +183,18 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -194,14 +216,18 @@
  * @par Default Value
  * The default value is 16.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  */
@@ -217,10 +243,18 @@
  * @par Default Value
  * The default value is 15.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid Classic API task
- * priority.  The set of valid task priorities depends on the scheduler
- * configuration.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a valid Classic API task
+ *   priority.  The set of valid task priorities depends on the scheduler
+ *   configuration.
+ * @endparblock
  */
 #define CONFIGURE_BDBUF_READ_AHEAD_TASK_PRIORITY
 
@@ -235,19 +269,24 @@
  * @par Default Value
  * The default value is #RTEMS_MINIMUM_STACK_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be greater than or equal to
+ *   #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  */
@@ -264,14 +303,18 @@
  * @par Default Value
  * The default value is 1000.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  */
@@ -288,14 +331,18 @@
  * @par Default Value
  * The default value is 250.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  */
@@ -311,10 +358,18 @@
  * @par Default Value
  * The default value is 15.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid Classic API task
- * priority.  The set of valid task priorities depends on the scheduler
- * configuration.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a valid Classic API task
+ *   priority.  The set of valid task priorities depends on the scheduler
+ *   configuration.
+ * @endparblock
  */
 #define CONFIGURE_SWAPOUT_TASK_PRIORITY
 
@@ -329,14 +384,18 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  */
@@ -353,231 +412,20 @@
  * @par Default Value
  * The default value is 15.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid Classic API task
- * priority.  The set of valid task priorities depends on the scheduler
- * configuration.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a valid Classic API task
+ *   priority.  The set of valid task priorities depends on the scheduler
+ *   configuration.
+ * @endparblock
  */
 #define CONFIGURE_SWAPOUT_WORKER_TASK_PRIORITY
-
-/** @} */
-
-/* Generated from spec:/acfg/if/group-bsp */
-
-/**
- * @defgroup RTEMSApplConfigBSPRelatedConfigurationOptions \
- *   BSP Related Configuration Options
- *
- * @ingroup RTEMSApplConfig
- *
- * This section describes configuration options related to the BSP.  Some
- * configuration options may have a BSP-specific setting which is defined by
- * ``<bsp.h>``.  The BSP-specific settings can be disabled by the
- * #CONFIGURE_DISABLE_BSP_SETTINGS configuration option.
- *
- * @{
- */
-
-/* Generated from spec:/acfg/if/bsp-idle-task-body */
-
-/**
- * @brief This configuration option is an initializer define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then the value of this configuration option defines the default value of
- * #CONFIGURE_IDLE_TASK_BODY.
- *
- * @par Default Value
- * The default value is BSP-specific.
- *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
- * pointer of the type ``void *( *idle_body )( uintptr_t )``.
- *
- * @par Notes
- * As it has knowledge of the specific CPU model, system controller logic, and
- * peripheral buses, a BSP-specific IDLE task may be capable of turning
- * components off to save power during extended periods of no task activity.
- */
-#define BSP_IDLE_TASK_BODY
-
-/* Generated from spec:/acfg/if/bsp-idle-task-stack-size */
-
-/**
- * @brief This configuration option is an integer define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then the value of this configuration option defines the default value of
- * #CONFIGURE_IDLE_TASK_STACK_SIZE.
- *
- * @par Default Value
- * The default value is BSP-specific.
- *
- * @par Value Constraints
- * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
- *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
- *
- * * It shall be small enough so that the IDLE task stack area calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
- * @endparblock
- */
-#define BSP_IDLE_TASK_STACK_SIZE
-
-/* Generated from spec:/acfg/if/bsp-initial-extension */
-
-/**
- * @brief This configuration option is an initializer define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then the value of this configuration option is used to initialize the table
- * of initial user extensions.
- *
- * @par Default Value
- * The default value is BSP-specific.
- *
- * @par Value Constraints
- * The value of this configuration option shall be a list of initializers for
- * structures of type ::rtems_extensions_table.
- *
- * @par Notes
- * The value of this configuration option is placed after the entries of all
- * other initial user extensions.
- */
-#define BSP_INITIAL_EXTENSION
-
-/* Generated from spec:/acfg/if/bsp-interrupt-stack-size */
-
-/**
- * @brief This configuration option is an integer define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then the value of this configuration option defines the default value of
- * #CONFIGURE_INTERRUPT_STACK_SIZE.
- *
- * @par Default Value
- * The default value is BSP-specific.
- *
- * @par Value Constraints
- * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
- *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
- *
- * * It shall be small enough so that the interrupt stack area calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
- *
- * * It shall be aligned according to #CPU_INTERRUPT_STACK_ALIGNMENT.
- * @endparblock
- */
-#define BSP_INTERRUPT_STACK_SIZE
-
-/* Generated from spec:/acfg/if/bsp-prerequisite-drivers */
-
-/**
- * @brief This configuration option is an initializer define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then the value of this configuration option is used to add BSP-provided
- * prerequisite drivers to the Device Driver Table.
- *
- * @par Default Value
- * The default value is BSP-specific.
- *
- * @par Value Constraints
- * The value of this configuration option shall be a list of initializers for
- * structures of type ::rtems_extensions_table.
- *
- * @par Notes
- * The value of this configuration option is placed before the entries of all
- * other initial user extensions (including
- * #CONFIGURE_APPLICATION_PREREQUISITE_DRIVERS).
- */
-#define CONFIGURE_BSP_PREREQUISITE_DRIVERS
-
-/* Generated from spec:/acfg/if/disable-bsp-settings */
-
-/**
- * @brief This configuration option is a boolean feature define.
- *
- * In case this configuration option is defined, then the following BSP related
- * configuration options are undefined:
- *
- * * #BSP_IDLE_TASK_BODY
- *
- * * #BSP_IDLE_TASK_STACK_SIZE
- *
- * * #BSP_INITIAL_EXTENSION
- *
- * * #BSP_INTERRUPT_STACK_SIZE
- *
- * * #CONFIGURE_BSP_PREREQUISITE_DRIVERS
- *
- * * #CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
- *
- * @par Default Configuration
- * If this configuration option is undefined, then the described feature is not
- * enabled.
- */
-#define CONFIGURE_DISABLE_BSP_SETTINGS
-
-/* Generated from spec:/acfg/if/malloc-bsp-supports-sbrk */
-
-/**
- * @brief This configuration option is a boolean feature define.
- *
- * If
- *
- * * this configuration option is defined by the BSP
- *
- * * and #CONFIGURE_DISABLE_BSP_SETTINGS is undefined,
- *
- * then not all memory is made available to the C Program Heap immediately at
- * system initialization time.  When malloc() or other standard memory
- * allocation functions are unable to allocate memory, they will call the BSP
- * supplied sbrk() function to obtain more memory.
- *
- * @par Default Configuration
- * If this configuration option is undefined, then the described feature is not
- * enabled.
- *
- * @par Notes
- * This option should not be defined by the application. Only the BSP knows how
- * it allocates memory to the C Program Heap.
- */
-#define CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
 
 /** @} */
 
@@ -604,23 +452,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -641,23 +490,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -679,23 +529,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -716,23 +567,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -753,23 +605,28 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -790,23 +647,28 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -827,23 +689,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -873,27 +736,29 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -931,17 +796,18 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be an integral multiple of #RTEMS_TASK_STORAGE_ALIGNMENT.
+ * * The value of the configuration option shall be an integral multiple of
+ *   #RTEMS_TASK_STORAGE_ALIGNMENT.
  * @endparblock
  *
  * @par Notes
@@ -976,23 +842,24 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -1013,18 +880,19 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -1043,14 +911,15 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to #CONFIGURE_MAXIMUM_TASKS.
+ * * The value of the configuration option shall be less than or equal to
+ *   #CONFIGURE_MAXIMUM_TASKS.
  * @endparblock
  *
  * @par Notes
@@ -1089,8 +958,8 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
- * The value of this configuration option shall be convertible to an integer of
+ * @par Constraints
+ * The value of the configuration option shall be convertible to an integer of
  * type ::rtems_task_argument.
  */
 #define CONFIGURE_INIT_TASK_ARGUMENTS
@@ -1106,8 +975,8 @@
  * @par Default Value
  * The default value is #RTEMS_DEFAULT_ATTRIBUTES.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid task attribute set.
+ * @par Constraints
+ * The value of the configuration option shall be a valid task attribute set.
  */
 #define CONFIGURE_INIT_TASK_ATTRIBUTES
 
@@ -1124,14 +993,15 @@
  * then the Classic API initialization task will be created with the stack size
  * defined by the #CONFIGURE_INIT_TASK_STACK_SIZE configuration option.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ * * The value of the configuration option shall be greater than or equal to
+ *   #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
  *
- * * It shall be defined using RTEMS_TASK_STORAGE_SIZE().
+ * * The value of the configuration option shall be defined using
+ *   RTEMS_TASK_STORAGE_SIZE().
  * @endparblock
  *
  * @par Notes
@@ -1176,8 +1046,8 @@
  * @par Default Value
  * The default value is ``Init``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
+ * @par Constraints
+ * The value of the configuration option shall be defined to a valid function
  * pointer of the type ``void ( *entry_point )( rtems_task_argument )``.
  *
  * @par Notes
@@ -1198,8 +1068,8 @@
  * In SMP  configurations, the default value is #RTEMS_DEFAULT_MODES otherwise
  * the default value is #RTEMS_NO_PREEMPT.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid task mode set.
+ * @par Constraints
+ * The value of the configuration option shall be a valid task mode set.
  */
 #define CONFIGURE_INIT_TASK_INITIAL_MODES
 
@@ -1214,8 +1084,8 @@
  * @par Default Value
  * The default value is ``rtems_build_name( 'U', 'I', '1', ' ' )``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be convertible to an integer of
+ * @par Constraints
+ * The value of the configuration option shall be convertible to an integer of
  * type ::rtems_name.
  *
  * @par Notes
@@ -1234,8 +1104,8 @@
  * @par Default Value
  * The default value is 1.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid Classic API task
+ * @par Constraints
+ * The value of the configuration option shall be a valid Classic API task
  * priority.  The set of valid task priorities depends on the scheduler
  * configuration.
  */
@@ -1252,15 +1122,20 @@
  * @par Default Value
  * The default value is #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  *
@@ -1364,9 +1239,17 @@
  * @par Default Value
  * The default value is the empty list.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a list of initializers for
- * structures of type ::rtems_driver_address_table.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a list of initializers for
+ *   structures of type ::rtems_driver_address_table.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -1390,6 +1273,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1444,6 +1332,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * The Console Driver is responsible for providing the ``/dev/console`` device
@@ -1478,6 +1371,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * Most BSPs do not include support for a Frame Buffer Driver. This is because
@@ -1501,6 +1399,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * Most BSPs do not include support for an IDE Driver.
@@ -1523,6 +1426,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * This device driver is supported by all BSPs.
  */
@@ -1539,6 +1447,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1562,6 +1475,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1600,6 +1518,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1648,6 +1571,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * This device driver simply provides entry points that return successful and
  * is primarily a test fixture. It is supported by all BSPs.
@@ -1665,6 +1593,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1697,6 +1630,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * Most BSPs do not include support for a watchdog device driver. This is
@@ -1720,6 +1658,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * This device driver is supported by all BSPs.
  */
@@ -1736,9 +1679,17 @@
  * @par Default Value
  * The default value is the empty list.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a list of initializers for
- * structures of type ::rtems_driver_address_table.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a list of initializers for
+ *   structures of type ::rtems_driver_address_table.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -1762,10 +1713,18 @@
  * @par Default Value
  * The default value is 140.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a valid Classic API task
- * priority.  The set of valid task priorities depends on the scheduler
- * configuration.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a valid Classic API task
+ *   priority.  The set of valid task priorities depends on the scheduler
+ *   configuration.
+ * @endparblock
  *
  * @par Notes
  * This configuration option is only evaluated if the configuration option
@@ -1784,6 +1743,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -1841,23 +1805,28 @@
  *
  * * #CONFIGURE_APPLICATION_PREREQUISITE_DRIVERS
  *
- * * #CONFIGURE_BSP_PREREQUISITE_DRIVERS
+ * If the #CONFIGURE_DISABLE_BSP_SETTINGS configuration option is not defined
+ * and the BSP provides #CONFIGURE_BSP_PREREQUISITE_DRIVERS, then the
+ * BSP-provided prerequisite device drivers are also taken into account.
  * @endparblock
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be less than or equal to <a
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be greater than or equal than the number of statically configured
- *   device drivers.
+ * * The value of the configuration option shall be greater than or equal than
+ *   the number of statically configured device drivers.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -1899,6 +1868,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * The record extensions capture thread create, start, restart, delete, switch,
  * begin, exitted and terminate events.
@@ -1927,6 +1901,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * This extension can be used to produce crash dumps.
  */
@@ -1952,6 +1931,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * The zlib compression needs about 512KiB of RAM.  This extension can be used
  * to produce crash dumps.
@@ -1969,21 +1953,25 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to 16.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   16.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be a power of two.
+ * * The value of the configuration option shall be a power of two.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -2060,6 +2048,11 @@
  * If this configuration option is undefined, then a base filesystem and the
  * configured filesystems are initialized during system initialization.
  *
+ * @par Constraints
+ * The configuration option is mandatory for the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall define the configuration option.
+ *
  * @par Notes
  * Filesystems shall be initialized to support file descriptor based device
  * drivers and basic input/output functions such as printf(). Filesystems can
@@ -2092,6 +2085,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_FILESYSTEM_ALL
 
@@ -2107,6 +2105,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * This filesystem requires a Block Device Cache configuration, see
@@ -2126,6 +2129,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_FILESYSTEM_FTPFS
 
@@ -2141,6 +2149,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * Applications will rarely need this configuration option.  This configuration
@@ -2162,6 +2175,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_FILESYSTEM_JFFS2
 
@@ -2177,6 +2195,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_FILESYSTEM_NFS
 
@@ -2192,6 +2215,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * This filesystem requires a Block Device Cache configuration, see
@@ -2211,6 +2239,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_FILESYSTEM_TFTPFS
 
@@ -2225,6 +2258,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * changing the mode of files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_CHMOD
 
@@ -2239,6 +2277,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * changing the ownership of files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_CHOWN
 
@@ -2253,6 +2296,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports hard
  * links.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_LINK
 
@@ -2267,6 +2315,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * making files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_MKNOD
 
@@ -2281,6 +2334,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * making device files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_MKNOD_DEVICE
 
@@ -2295,6 +2353,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * making regular files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_MKNOD_FILE
 
@@ -2309,6 +2372,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * mounting other filesystems.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_MOUNT
 
@@ -2324,6 +2392,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * reading directories.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_READDIR
 
@@ -2338,6 +2411,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * reading symbolic links.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_READLINK
 
@@ -2352,6 +2430,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * renaming files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_RENAME
 
@@ -2366,6 +2449,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * removing files.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_RMNOD
 
@@ -2380,6 +2468,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * creating symbolic links.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_SYMLINK
 
@@ -2394,6 +2487,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * unmounting other filesystems.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_UNMOUNT
 
@@ -2408,6 +2506,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS supports
  * changing file times.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_DISABLE_UTIME
 
@@ -2422,6 +2525,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the root IMFS does not
  * support making FIFOs (no support for mkfifo()).
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  */
 #define CONFIGURE_IMFS_ENABLE_MKFIFO
 
@@ -2436,9 +2544,17 @@
  * @par Default Value
  * The default value is 128.
  *
- * @par Value Constraints
- * The value of this configuration option shall be equal to 16, 32, 64, 128,
- * 256, or 512.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be equal to 16, 32, 64, 128,
+ *   256, or 512.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -2484,6 +2600,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -2535,6 +2656,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -2588,6 +2714,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * Dirtying memory can add significantly to system initialization time.  It may
@@ -2601,6 +2732,37 @@
  */
 #define CONFIGURE_DIRTY_MEMORY
 
+/* Generated from spec:/acfg/if/disable-bsp-settings */
+
+/**
+ * @brief This configuration option is a boolean feature define.
+ *
+ * In case this configuration option is defined, then the optional BSP provided
+ * settings listed below are disabled.
+ *
+ * The optional BSP provided default values for the following application
+ * configuration options are disabled:
+ *
+ * * #CONFIGURE_IDLE_TASK_BODY
+ *
+ * * #CONFIGURE_IDLE_TASK_STACK_SIZE
+ *
+ * * #CONFIGURE_INTERRUPT_STACK_SIZE
+ *
+ * The optional BSP provided initial extension set is disabled (see initial
+ * extension sets).  The optional BSP provided prerequisite IO device drivers
+ * are disabled (see Device Driver Configuration).  The optional BSP provided
+ * support for sbrk() is disabled.
+ *
+ * This configuration option provides an all or nothing choice with respect to
+ * the optional BSP provided settings.
+ *
+ * @par Default Configuration
+ * If this configuration option is undefined, then the described feature is not
+ * enabled.
+ */
+#define CONFIGURE_DISABLE_BSP_SETTINGS
+
 /* Generated from spec:/acfg/if/disable-newlib-reentrancy */
 
 /**
@@ -2612,6 +2774,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is mandatory for the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall define the configuration option.
  *
  * @par Notes
  * You can enable this option to reduce the size of the :term:`TCB`.  Use this
@@ -2634,19 +2801,23 @@
  * stack space size is calculated by ``<rtems/confdefs.h>`` based on the values
  * configuration options.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINTPTR_MAX</a>.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -2667,15 +2838,20 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  *
@@ -2697,8 +2873,8 @@
  * @par Default Value
  * The default value is the empty list.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a list of initializers for
+ * @par Constraints
+ * The value of the configuration option shall be a list of initializers for
  * structures of type ::rtems_extensions_table.
  *
  * @par Notes
@@ -2717,22 +2893,25 @@
  * stack in bytes.
  *
  * @par Default Value
- * The default value is #BSP_INTERRUPT_STACK_SIZE in case it is defined,
- * otherwise the default value is #CPU_STACK_MINIMUM_SIZE.
+ * If the #CONFIGURE_DISABLE_BSP_SETTINGS configuration option is not defined
+ * and #BSP_INTERRUPT_STACK_SIZE is provided by the BSP, then the default value
+ * is defined by #BSP_INTERRUPT_STACK_SIZE, otherwise the default value is
+ * #CPU_STACK_MINIMUM_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
+ * * The value of the configuration option shall be greater than or equal to a
+ *   BSP-specific and application-specific minimum value.
  *
- * * It shall be small enough so that the interrupt stack area calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
+ * * The value of the configuration option shall be small enough so that the
+ *   interrupt stack area calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
  *
- * * It shall be aligned according to #CPU_INTERRUPT_STACK_ALIGNMENT.
+ * * The value of the configuration option shall be aligned according to
+ *   #CPU_INTERRUPT_STACK_ALIGNMENT.
  * @endparblock
  *
  * @par Notes
@@ -2769,6 +2948,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * The dirtying performed by this option is carried out for each successful
  * memory allocation from the C Program Heap in contrast to
@@ -2788,19 +2972,24 @@
  * @par Default Value
  * The default value is 3.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * A value of zero for the configuration option is mandatory for the
+ *   pre-qualified feature set of RTEMS.  Applications which are restricted to
+ *   only use interfaces of the pre-qualified feature set of RTEMS shall define
+ *   the configuration option to zero.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -2823,14 +3012,15 @@
  * @par Default Value
  * The default value is 1.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to one.
+ * * The value of the configuration option shall be greater than or equal to
+ *   one.
  *
- * * It shall be less than or equal to #CPU_MAXIMUM_PROCESSORS.
+ * * The value of the configuration option shall be less than or equal to
+ *   #CPU_MAXIMUM_PROCESSORS.
  * @endparblock
  *
  * @par Notes
@@ -2856,19 +3046,23 @@
  * @par Default Value
  * The default value is 16.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -2896,20 +3090,25 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  *
  * @par Notes
@@ -2932,20 +3131,25 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  *
  * @par Notes
@@ -3024,14 +3228,15 @@
  * @par Default Value
  * The default value is 10000.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to a value defined by the Clock Driver.
+ * * The value of the configuration option shall be greater than or equal to a
+ *   value defined by the Clock Driver.
  *
- * * It shall be less than or equal to a value defined by the Clock Driver.
+ * * The value of the configuration option shall be less than or equal to a
+ *   value defined by the Clock Driver.
  *
  * * The resulting clock ticks per second should be an integer.
  * @endparblock
@@ -3058,17 +3263,17 @@
  * @par Default Value
  * The default value is #CPU_STACK_MINIMUM_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
+ * * The value of the configuration option shall be greater than or equal to a
+ *   BSP-specific and application-specific minimum value.
  * @endparblock
  *
  * @par Notes
@@ -3108,6 +3313,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * The stack checker performs run-time stack bounds checking.  This increases
@@ -3130,14 +3340,14 @@
  * @par Default Value
  * The default value is 50.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -3158,6 +3368,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then there will be separate
  * memory pools for the RTEMS Workspace and C Program Heap.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -3189,9 +3404,17 @@
  * @par Default Value
  * The default value is 8.
  *
- * @par Value Constraints
- * The value of this configuration option shall meet the constraints of all
- * object classes to which it is applied.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall meet the constraints of all
+ *   object classes to which it is applied.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -3215,6 +3438,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -3242,6 +3470,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * You may use this feature to debug system initialization issues.  The
  * printk() function is used to print the information.
@@ -3260,6 +3493,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * Zeroing memory can add significantly to the system initialization time. It
@@ -3291,11 +3529,13 @@
  * The value of this configuration option initializes the IDLE thread body.
  *
  * @par Default Value
- * If #BSP_IDLE_TASK_BODY is defined, then this will be the default value,
- * otherwise the default value is ``_CPU_Thread_Idle_body``.
+ * If the #CONFIGURE_DISABLE_BSP_SETTINGS configuration option is not defined
+ * and #BSP_IDLE_TASK_BODY is provided by the BSP, then the default value is
+ * defined by #BSP_IDLE_TASK_BODY, otherwise the default value is
+ * ``_CPU_Thread_Idle_body``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
+ * @par Constraints
+ * The value of the configuration option shall be defined to a valid function
  * pointer of the type ``void *( *idle_body )( uintptr_t )``.
  *
  * @par Notes
@@ -3306,6 +3546,11 @@
  *
  * IDLE threads can be used to initialize the application, see configuration
  * option #CONFIGURE_IDLE_TASK_INITIALIZES_APPLICATION.
+ *
+ * The BSP may have knowledge of the specific CPU model, system controller
+ * logic, and peripheral buses, so a BSP-specific IDLE task may be capable of
+ * turning components off to save power during extended periods of no task
+ * activity.
  * @endparblock
  */
 #define CONFIGURE_IDLE_TASK_BODY
@@ -3360,19 +3605,22 @@
  * IDLE task.
  *
  * @par Default Value
- * The default value is #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ * If the #CONFIGURE_DISABLE_BSP_SETTINGS configuration option is not defined
+ * and #BSP_IDLE_TASK_STACK_SIZE is provided by the BSP, then the default value
+ * is defined by #BSP_IDLE_TASK_STACK_SIZE, otherwise the default value is
+ * defined by the #CONFIGURE_MINIMUM_TASK_STACK_SIZE configuration option.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
+ * * The value of the configuration option shall be greater than or equal to a
+ *   BSP-specific and application-specific minimum value.
  *
- * * It shall be small enough so that the IDLE task stack area calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
+ * * The value of the configuration option shall be small enough so that the
+ *   IDLE task stack area calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
  * @endparblock
  *
  * @par Notes
@@ -3413,19 +3661,23 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  *
- * * It shall be small enough so that the MPCI receive server stack area
- *   calculation carried out by ``<rtems/confdefs.h>`` does not overflow an
- *   integer of type <a
+ * * The value of the configuration option shall be small enough so that the
+ *   MPCI receive server stack area calculation carried out by
+ *   ``<rtems/confdefs.h>`` does not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/size_t">size_t</a>.
  * @endparblock
  *
@@ -3448,6 +3700,11 @@
  * If this configuration option is undefined, then the multiprocessing services
  * are not initialized.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * This configuration option shall be undefined if the multiprocessing support
  * is not enabled (e.g. RTEMS was built without the
@@ -3467,14 +3724,18 @@
  * @par Default Value
  * The default value is 32.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -3500,14 +3761,18 @@
  * @par Default Value
  * The default value is 2.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -3529,14 +3794,18 @@
  * @par Default Value
  * The default value is 32.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -3564,9 +3833,17 @@
  * @par Default Value
  * The default value is ``&MPCI_table``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be a pointer to
- * ::rtems_mpci_table.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a pointer to
+ *   ::rtems_mpci_table.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -3591,14 +3868,18 @@
  * @par Default Value
  * The default value is ``NODE_NUMBER``.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
  * @endparblock
  *
@@ -3643,23 +3924,28 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -3678,26 +3964,31 @@
  * value pairs used by POSIX API Keys that can be concurrently active.
  *
  * @par Default Value
- * The default value is #CONFIGURE_MAXIMUM_POSIX_KEYS *
- * #CONFIGURE_MAXIMUM_TASKS + #CONFIGURE_MAXIMUM_POSIX_THREADS.
+ * The default value is #CONFIGURE_MAXIMUM_POSIX_KEYS * (
+ * #CONFIGURE_MAXIMUM_TASKS + #CONFIGURE_MAXIMUM_POSIX_THREADS ).
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -3724,27 +4015,33 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -3766,24 +4063,30 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It shall be zero if the POSIX API is not enabled (e.g. RTEMS was built
- *   without the ``RTEMS_POSIX_API = True`` build configuration option).
- *   Otherwise a compile time error in the configuration file will occur.
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ *
+ * * The value of the configuration option shall be zero if the POSIX API is
+ *   not enabled (e.g. RTEMS was built without the ``RTEMS_POSIX_API = True``
+ *   build configuration option).  Otherwise a compile time error in the
+ *   configuration file will occur.
  * @endparblock
  *
  * @par Notes
@@ -3807,27 +4110,33 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -3854,27 +4163,33 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be small enough so that the RTEMS Workspace size calculation
- *   carried out by ``<rtems/confdefs.h>`` does not overflow an integer of type
- *   <a href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be small enough so that the
+ *   RTEMS Workspace size calculation carried out by ``<rtems/confdefs.h>``
+ *   does not overflow an integer of type <a
+ *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
+ *
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
  * @endparblock
  *
  * @par Notes
@@ -3895,21 +4210,27 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  *
@@ -3944,27 +4265,33 @@
  * @par Default Value
  * The default value is 0.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to 65535.
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to
+ *   65535.
  *
- * * It may be defined through rtems_resource_unlimited() the enable unlimited
- *   objects for the object class, if the value passed to
- *   rtems_resource_unlimited() satisfies all other constraints of the
- *   configuration option.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  *
- * * It shall be zero if the POSIX API is not enabled (e.g. RTEMS was built
- *   without the ``RTEMS_POSIX_API = True`` build configuration option).
- *   Otherwise a compile time error in the configuration file will occur.
+ * * The value of the configuration option may be defined through
+ *   rtems_resource_unlimited() the enable unlimited objects for the object
+ *   class, if the value passed to rtems_resource_unlimited() satisfies all
+ *   other constraints of the configuration option.
+ *
+ * * The value of the configuration option shall be zero if the POSIX API is
+ *   not enabled (e.g. RTEMS was built without the ``RTEMS_POSIX_API = True``
+ *   build configuration option).  Otherwise a compile time error in the
+ *   configuration file will occur.
  * @endparblock
  *
  * @par Notes
@@ -3991,17 +4318,21 @@
  * The default value is two times the value of
  * #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  *
- * * It shall be greater than or equal to a BSP-specific and
- *   application-specific minimum value.
+ * * The value of the configuration option shall be greater than or equal to a
+ *   BSP-specific and application-specific minimum value.
  * @endparblock
  */
 #define CONFIGURE_MINIMUM_POSIX_THREAD_STACK_SIZE
@@ -4033,9 +4364,17 @@
  * @par Default Value
  * The default value is ``POSIX_Init``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
- * pointer of the type ``void *( *entry_point )( void * )``.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be defined to a valid function
+ *   pointer of the type ``void *( *entry_point )( void * )``.
+ * @endparblock
  *
  * @par Notes
  * The application shall provide the function referenced by this configuration
@@ -4054,15 +4393,20 @@
  * @par Default Value
  * The default value is #CONFIGURE_MINIMUM_POSIX_THREAD_STACK_SIZE.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be small enough so that the task stack space calculation carried
- *   out by ``<rtems/confdefs.h>`` does not overflow an integer of type <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   #CONFIGURE_MINIMUM_TASK_STACK_SIZE.
+ *
+ * * The value of the configuration option shall be small enough so that the
+ *   task stack space calculation carried out by ``<rtems/confdefs.h>`` does
+ *   not overflow an integer of type <a
  *   href="https://en.cppreference.com/w/c/types/integer">uintptr_t</a>.
  * @endparblock
  */
@@ -4079,6 +4423,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -4145,19 +4494,23 @@
  * @par Default Value
  * The default value is #CONFIGURE_MAXIMUM_TASKS.
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be greater than or equal to zero.
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
  *
- * * It shall be less than or equal to <a
+ * * The value of the configuration option shall be greater than or equal to
+ *   zero.
+ *
+ * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
- * * It shall be less than or equal to a BSP-specific and application-specific
- *   value which depends on the size of the memory available to the
- *   application.
+ * * The value of the configuration option shall be less than or equal to a
+ *   BSP-specific and application-specific value which depends on the size of
+ *   the memory available to the application.
  * @endparblock
  *
  * @par Notes
@@ -4198,8 +4551,8 @@
  * @par Default Value
  * The default value is 255.
  *
- * @par Value Constraints
- * The value of this configuration option shall be equal to 3, 7, 31, 63, 127,
+ * @par Constraints
+ * The value of the configuration option shall be equal to 3, 7, 31, 63, 127,
  * or 255.
  *
  * @par Notes
@@ -4236,18 +4589,19 @@
  * The default value of this configuration option is computed so that the
  * default scheduler is assigned to each configured processor (up to 32).
  *
- * @par Value Constraints
+ * @par Constraints
  * @parblock
- * The value of this configuration option shall satisfy all of the following
- * constraints:
+ * The following constraints apply to this configuration option:
  *
- * * It shall be a list of the following macros:
+ * * The value of the configuration option shall be a list of the following
+ *   macros:
  *
  *   * ``RTEMS_SCHEDULER_ASSIGN( processor_index, attributes )``
  *
  *   * ``RTEMS_SCHEDULER_ASSIGN_NO_SCHEDULER``
  *
- * * It shall be a list of exactly #CONFIGURE_MAXIMUM_PROCESSORS elements.
+ * * The value of the configuration option shall be a list of exactly
+ *   #CONFIGURE_MAXIMUM_PROCESSORS elements.
  * @endparblock
  *
  * @par Notes
@@ -4275,6 +4629,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * This scheduler configuration option is an advanced configuration option.
@@ -4300,6 +4659,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -4392,8 +4756,8 @@
  *   Priority Scheduler</a>.
  * @endparblock
  *
- * @par Value Constraints
- * The value of this configuration option shall be convertible to an integer of
+ * @par Constraints
+ * The value of the configuration option shall be convertible to an integer of
  * type ::rtems_name.
  *
  * @par Notes
@@ -4454,6 +4818,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * This scheduler configuration option is an advanced configuration option.
@@ -4485,6 +4854,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -4518,6 +4892,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * This scheduler configuration option is an advanced configuration option.
@@ -4543,6 +4922,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -4572,6 +4956,11 @@
  * If this configuration option is undefined, then the described feature is not
  * enabled.
  *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
  * @par Notes
  * @parblock
  * This scheduler configuration option is an advanced configuration option.
@@ -4596,6 +4985,11 @@
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
  * enabled.
+ *
+ * @par Constraints
+ * The configuration option is not included in the pre-qualified feature set of
+ * RTEMS.  Applications which are restricted to only use interfaces of the
+ * pre-qualified feature set of RTEMS shall not use the configuration option.
  *
  * @par Notes
  * @parblock
@@ -4658,8 +5052,8 @@
  * The default value is ``_Workspace_Allocate``, which indicates that task
  * stacks will be allocated from the RTEMS Workspace.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
+ * @par Constraints
+ * The value of the configuration option shall be defined to a valid function
  * pointer of the type ``void *( *allocate )( size_t )``.
  *
  * @par Notes
@@ -4708,8 +5102,8 @@
  * indicates that IDLE task stacks will be allocated from an area statically
  * allocated by ``<rtems/confdefs.h>``.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
+ * @par Constraints
+ * The value of the configuration option shall be defined to a valid function
  * pointer of the type ``void *( *allocate )( uint32_t, size_t )``.
  *
  * @par Notes
@@ -4732,10 +5126,18 @@
  * The default value is <a
  * href="https://en.cppreference.com/w/c/types/NULL">NULL</a>.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
- * pointer of the type ``void ( *initialize )( size_t )`` or to <a
- * href="https://en.cppreference.com/w/c/types/NULL">NULL</a>.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be defined to a valid function
+ *   pointer of the type ``void ( *initialize )( size_t )`` or to <a
+ *   href="https://en.cppreference.com/w/c/types/NULL">NULL</a>.
+ * @endparblock
  *
  * @par Notes
  * @parblock
@@ -4763,8 +5165,8 @@
  * The default value is ``_Workspace_Free``, which indicates that task stacks
  * will be allocated from the RTEMS Workspace.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a valid function
+ * @par Constraints
+ * The value of the configuration option shall be defined to a valid function
  * pointer of the type ``void ( *deallocate )( void * )``.
  *
  * @par Notes
@@ -4792,12 +5194,20 @@
  * @par Default Value
  * The default value is a macro which supports the system heap allocator.
  *
- * @par Value Constraints
- * The value of this configuration option shall be defined to a macro which
- * accepts exactly one parameter and returns an unsigned integer.  The
- * parameter will be an allocation size and the macro shall return this size
- * plus the overhead of the allocator to manage an allocation request for this
- * size.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be defined to a macro which
+ *   accepts exactly one parameter and returns an unsigned integer.  The
+ *   parameter will be an allocation size and the macro shall return this size
+ *   plus the overhead of the allocator to manage an allocation request for
+ *   this size.
+ * @endparblock
  *
  * @par Notes
  * This configuration option may be used if a custom task stack allocator is
