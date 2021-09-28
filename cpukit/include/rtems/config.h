@@ -118,6 +118,10 @@ extern "C" {
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -133,6 +137,15 @@ const char *rtems_get_build_label( void );
  * @brief Gets the RTEMS copyright notice.
  *
  * @return Returns the pointer to the RTEMS copyright notice.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 const char *rtems_get_copyright_notice( void );
 
@@ -149,6 +162,15 @@ const char *rtems_get_copyright_notice( void );
  *
  * @par Notes
  * See #CONFIGURE_ZERO_WORKSPACE_AUTOMATICALLY.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_do_zero_of_workspace() _Memory_Zero_before_use
 
@@ -299,6 +321,15 @@ uint32_t rtems_configuration_get_maximum_extensions( void );
  *
  * @par Notes
  * See #CONFIGURE_INITIAL_EXTENSIONS.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_number_of_initial_extensions() \
   ((uint32_t) _User_extensions_Initial_count)
@@ -349,6 +380,15 @@ uint32_t rtems_configuration_get_maximum_extensions( void );
  *
  * @par Notes
  * See #CONFIGURE_TASK_STACK_ALLOCATOR_INIT.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_stack_allocate_init_hook() \
   _Stack_Allocator_initialize
@@ -396,6 +436,15 @@ uint32_t rtems_configuration_get_maximum_extensions( void );
  *
  * @return Returns the thread stack space size in bytes of configured for this
  *   application.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 uintptr_t rtems_configuration_get_stack_space_size( void );
 
@@ -424,6 +473,10 @@ uintptr_t rtems_configuration_get_stack_space_size( void );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *
@@ -461,6 +514,15 @@ const char *rtems_get_target_hash( void );
  *
  * @par Notes
  * See #CONFIGURE_UNIFIED_WORK_AREAS.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_unified_work_area() _Workspace_Is_unified
 
@@ -473,6 +535,15 @@ const char *rtems_get_target_hash( void );
  *
  * @return Returns the pointer to the initial extensions table configured for
  *   this application.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_user_extension_table() \
   _User_extensions_Initial_extensions
@@ -486,6 +557,15 @@ const char *rtems_get_target_hash( void );
  *
  * @return Returns the pointer to the MPCI configuration table configured for
  *   this application.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #if defined(RTEMS_MULTIPROCESSING)
   #define rtems_configuration_get_user_multiprocessing_table() \
@@ -502,6 +582,15 @@ const char *rtems_get_target_hash( void );
  * @brief Gets the RTEMS version string.
  *
  * @return Returns the pointer to the RTEMS version string.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 const char *rtems_get_version_string( void );
 
@@ -515,6 +604,15 @@ const char *rtems_get_version_string( void );
  *
  * @return Returns the RTEMS Workspace size in bytes configured for this
  *   application.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_configuration_get_work_space_size() \
   ( _Workspace_Size + \
@@ -528,6 +626,15 @@ const char *rtems_get_version_string( void );
  *
  * @brief This constant evaluates to #TRUE, if this processor variant has
  *   hardware floating point support, otherwise to #FALSE.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this constant:
+ *
+ * * The constant is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the constant.
+ * @endparblock
  */
 #define RTEMS_HAS_HARDWARE_FP CPU_HARDWARE_FP
 
@@ -545,6 +652,15 @@ const char *rtems_get_version_string( void );
  * @par Notes
  * This function is implemented as a macro and can be used to define compile
  * time constants.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_resource_is_unlimited( _resource ) \
   _Objects_Is_unlimited( _resource )
@@ -563,6 +679,15 @@ const char *rtems_get_version_string( void );
  * @par Notes
  * This function is implemented as a macro and can be used to define compile
  * time constants.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_resource_maximum_per_allocation( _resource ) \
   _Objects_Maximum_per_allocation( _resource )
@@ -601,6 +726,15 @@ typedef Stack_Allocator_free rtems_stack_free_hook;
  *
  * @brief This flag is used in augment a resource number so that it indicates
  *   an unlimited resource.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this constant:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define RTEMS_UNLIMITED_OBJECTS OBJECTS_UNLIMITED_OBJECTS
 
@@ -620,6 +754,15 @@ typedef Stack_Allocator_free rtems_stack_free_hook;
  * @par Notes
  * This function is implemented as a macro and can be used to define compile
  * time constants.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 #define rtems_resource_unlimited( _resource ) \
   ( ( _resource ) | RTEMS_UNLIMITED_OBJECTS )

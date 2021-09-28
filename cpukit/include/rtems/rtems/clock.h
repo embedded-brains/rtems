@@ -209,6 +209,10 @@ rtems_status_code rtems_clock_get_tod( rtems_time_of_day *time_of_day );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -830,6 +834,10 @@ void rtems_clock_get_boot_time_timeval( struct timeval *boot_time );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -868,6 +876,17 @@ rtems_status_code rtems_clock_get_seconds_since_epoch(
 rtems_interval rtems_clock_get_ticks_per_second( void );
 
 /* Generated from spec:/rtems/clock/if/get-ticks-per-second-macro */
+
+/**
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
+ */
 #define rtems_clock_get_ticks_per_second() _Watchdog_Ticks_per_second
 
 /* Generated from spec:/rtems/clock/if/get-ticks-since-boot */
@@ -899,6 +918,17 @@ rtems_interval rtems_clock_get_ticks_per_second( void );
 rtems_interval rtems_clock_get_ticks_since_boot( void );
 
 /* Generated from spec:/rtems/clock/if/get-ticks-since-boot-macro */
+
+/**
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
+ */
 #define rtems_clock_get_ticks_since_boot() _Watchdog_Ticks_since_boot
 
 /* Generated from spec:/rtems/clock/if/get-uptime */
@@ -949,6 +979,10 @@ rtems_status_code rtems_clock_get_uptime( struct timespec *uptime );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -973,6 +1007,10 @@ void rtems_clock_get_uptime_timeval( struct timeval *uptime );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *
@@ -999,6 +1037,10 @@ time_t rtems_clock_get_uptime_seconds( void );
  * @parblock
  * The following constraints apply to this directive:
  *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
  * * The directive may be called from within any runtime context.
  *
  * * The directive will not cause the calling task to be preempted.
@@ -1024,6 +1066,10 @@ uint64_t rtems_clock_get_uptime_nanoseconds( void );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *
@@ -1053,6 +1099,10 @@ static inline rtems_interval rtems_clock_tick_later( rtems_interval delta )
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *
@@ -1114,6 +1164,10 @@ static inline rtems_interval rtems_clock_tick_later_usec(
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * * The directive may be called from within any runtime context.
  *

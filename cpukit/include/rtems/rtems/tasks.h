@@ -413,8 +413,8 @@ rtems_task_priority _RTEMS_Maximum_priority( void );
 /**
  * @ingroup RTEMSAPIClassicTasks
  *
- * @brief This constant variable provides the lowest (least important) task
- *   priority of the first configured scheduler.
+ * @brief This runtime constant represents the lowest (least important) task
+ *   priority of the scheduler with index zero.
  */
 #define RTEMS_MAXIMUM_PRIORITY _RTEMS_Maximum_priority()
 

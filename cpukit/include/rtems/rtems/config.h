@@ -178,6 +178,15 @@ typedef struct {
  *
  * @return Returns the pointer to the Classic API Configuration Table of this
  *   application.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 const rtems_api_configuration_table *
 rtems_configuration_get_rtems_api_configuration( void );
