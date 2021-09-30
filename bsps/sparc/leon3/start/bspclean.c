@@ -1,6 +1,6 @@
 /**
  * @file
- * @ingroup sparc_leon3
+ * @ingroup RTEMSBSPsSPARCLEON3
  * @brief LEON3 BSP fatal extension
  *
  *  Copyright (c) 2014 embedded brains GmbH.  All rights reserved.
