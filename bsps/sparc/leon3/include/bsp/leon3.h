@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup sparc_leon3
+ * @ingroup RTEMSBSPsSPARCLEON3
  *
  * @brief This header file provides interfaces used by the BSP implementation.
  */
@@ -54,7 +54,7 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup sparc_leon3
+ * @addtogroup RTEMSBSPsSPARCLEON3
  *
  * @{
  */
