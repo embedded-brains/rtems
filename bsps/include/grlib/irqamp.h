@@ -55,6 +55,7 @@
 #ifndef _GRLIB_IRQAMP_H
 #define _GRLIB_IRQAMP_H
 
+#include <stddef.h>
 #include <grlib/io.h>
 #include <grlib/irqamp-regs.h>
 
