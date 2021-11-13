@@ -85,11 +85,7 @@ extern "C" {
  */
 static inline uint8_t grlib_load_8( const volatile uint8_t *address )
 {
-  uint8_t value;
-
-  __asm__ volatile ( "ldub [%1], %0" : "=&r" ( value ) : "r" ( address ) );
-
-  return value;
+  return *address;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-load-16 */
@@ -106,11 +102,7 @@ static inline uint8_t grlib_load_8( const volatile uint8_t *address )
  */
 static inline uint16_t grlib_load_16( const volatile uint16_t *address )
 {
-  uint16_t value;
-
-  __asm__ volatile ( "lduh [%1], %0" : "=&r" ( value ) : "r" ( address ) );
-
-  return value;
+  return *address;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-load-32 */
@@ -127,11 +119,7 @@ static inline uint16_t grlib_load_16( const volatile uint16_t *address )
  */
 static inline uint32_t grlib_load_32( const volatile uint32_t *address )
 {
-  uint32_t value;
-
-  __asm__ volatile ( "ld [%1], %0" : "=&r" ( value ) : "r" ( address ) );
-
-  return value;
+  return *address;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-load-64 */
@@ -148,11 +136,7 @@ static inline uint32_t grlib_load_32( const volatile uint32_t *address )
  */
 static inline uint64_t grlib_load_64( const volatile uint64_t *address )
 {
-  uint64_t value;
-
-  __asm__ volatile ( "ldd [%1], %0" : "=&U" ( value ) : "r" ( address ) );
-
-  return value;
+  return *address;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-store-08 */
@@ -168,7 +152,7 @@ static inline uint64_t grlib_load_64( const volatile uint64_t *address )
  */
 static inline void grlib_store_8( volatile uint8_t *address, uint8_t value )
 {
-  __asm__ volatile ( "stb %0, [%1]" : : "r" ( value ), "r" ( address ) );
+  *address = value;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-store-16 */
@@ -184,7 +168,7 @@ static inline void grlib_store_8( volatile uint8_t *address, uint8_t value )
  */
 static inline void grlib_store_16( volatile uint16_t *address, uint16_t value )
 {
-  __asm__ volatile ( "sth %0, [%1]" : : "r" ( value ), "r" ( address ) );
+  *address = value;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-store-32 */
@@ -200,7 +184,7 @@ static inline void grlib_store_16( volatile uint16_t *address, uint16_t value )
  */
 static inline void grlib_store_32( volatile uint32_t *address, uint32_t value )
 {
-  __asm__ volatile ( "st %0, [%1]" : : "r" ( value ), "r" ( address ) );
+  *address = value;
 }
 
 /* Generated from spec:/bsp/sparc/if/grlib-store-64 */
@@ -216,7 +200,7 @@ static inline void grlib_store_32( volatile uint32_t *address, uint32_t value )
  */
 static inline void grlib_store_64( volatile uint64_t *address, uint64_t value )
 {
-  __asm__ volatile ( "std %0, [%1]" : : "U" ( value ), "r" ( address ) );
+  *address = value;
 }
 
 #ifdef __cplusplus
