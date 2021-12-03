@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON3
+ *
+ * @brief This source file contains a definition of
+ *   the GRLIB/LEON3 extended interrupt controller.
+ */
+
 /*
  *  GRLIB/LEON3 extended interrupt controller
  *

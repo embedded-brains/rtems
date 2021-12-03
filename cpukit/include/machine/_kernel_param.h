@@ -1,3 +1,18 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplKernel
+ *
+ * @brief This header file provides interfaces of the
+ *   kernel functions.
+ */
+
+/**
+ * @defgroup RTEMSImplKernel RTEMS Kernel Interface
+ *
+ * @ingroup RTEMSImpl
+ */
+
 #include <sys/cdefs.h>
 #include <sys/errno.h>
 #include <sys/time.h>

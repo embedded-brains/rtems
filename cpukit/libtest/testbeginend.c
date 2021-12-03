@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSTestFramework
+ *
+ * @brief This source file contains a definition of
+ *   RTEMS Test Framework.
+ */
+
 /*
  * Copyright (c) 2014, 2018 embedded brains GmbH.  All rights reserved.
  *

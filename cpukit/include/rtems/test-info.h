@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSTestFramework
+ *
+ * @brief This header file provides interfaces of the
+ *   RTEMS Test Framework.
+ */
+
 /*
  * Copyright (c) 2014, 2018 embedded brains GmbH.  All rights reserved.
  *

@@ -1,5 +1,7 @@
 /**
  * @file
+ *
+ * @ingroup RTEMSPOSIXAPISpinlock
  * 
  * @brief Inlined Routines from the POSIX Spinlock Manager
  *
@@ -16,6 +18,12 @@
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
  *  http://www.rtems.org/license/LICENSE.
+ */
+
+/**
+ * @defgroup RTEMSPOSIXAPISpinlock POSIX Spinlock Manager
+ *
+ * @ingroup POSIXAPI
  */
 
 #ifndef _RTEMS_POSIX_SPINLOCKIMPL_H

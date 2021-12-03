@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * @ingroup POSIXAPI
+ *
  * @brief POSIX API Implementation
  *
  * This include file defines the top level interface to the POSIX API

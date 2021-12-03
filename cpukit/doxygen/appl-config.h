@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSApplConfig
+ *
+ * @brief This header file provides interfaces of the
+ *   application configuration
+ */
+
 /*
  * Copyright (C) 2019, 2021 embedded brains GmbH (http://www.embedded-brains.de)
  * Copyright (C) 2010 Gedare Bloom

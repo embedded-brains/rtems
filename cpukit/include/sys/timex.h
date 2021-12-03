@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplSysTimer
+ *
+ * @brief This header file provides interfaces of the
+ *   Network Time Protocol (NTP)
+ */
+
 /*-
  ***********************************************************************
  *								       *
@@ -30,6 +39,12 @@
  * In 2000 the APIs got a upgrade from microseconds to nanoseconds,
  * a joint work between Poul-Henning Kamp and David L. Mills.
  *
+ */
+
+/**
+ * @defgroup RTEMSImplSysTimer System Timer Support
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _SYS_TIMEX_H_

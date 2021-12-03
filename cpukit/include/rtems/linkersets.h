@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplLinker
+ *
+ * @brief This header file provides interfaces of the
+ *   linker set support.
+ */
+
 /*
  * Copyright (c) 2015, 2020 embedded brains GmbH.  All rights reserved.
  *
@@ -10,6 +19,12 @@
  * The license and distribution terms for this file may be
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.org/license/LICENSE.
+ */
+
+/**
+ * @defgroup RTEMSImplLinker RTEMS linker control
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _RTEMS_LINKERSET_H

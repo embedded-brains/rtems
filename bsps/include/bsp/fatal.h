@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsFatal
+ *
+ * @brief This header file provides interfaces of the
+ *   BSP fatal codes.
+ */
+
 /*
  * Copyright (c) 2012, 2018 embedded brains GmbH.  All rights reserved.
  *
@@ -10,6 +19,12 @@
  * The license and distribution terms for this file may be
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.org/license/LICENSE.
+ */
+
+/**
+ * @defgroup RTEMSBSPsFatal BSP fatal codes
+ *
+ * @ingroup RTEMSBSPs
  */
 
 #ifndef LIBBSP_SHARED_BSP_FATAL_H

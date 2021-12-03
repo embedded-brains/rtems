@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSTestFramework
+ *
+ * @brief This source file contains a definition of
+ *   RTEMS Test Framework.
+ */
+
 /*
  * Copyright (C) 2020 embedded brains GmbH
  *

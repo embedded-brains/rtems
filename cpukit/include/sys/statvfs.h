@@ -1,6 +1,8 @@
 /**
  * @file
  *
+ * @ingroup RTEMSAPIStatvfs
+ *
  * @brief Interface to the statvfs() Set of API Methods
  *
  * This include file defines the interface to the statvfs() set of
@@ -18,6 +20,12 @@
  */
 
 /*
+ */
+
+/**
+ * @defgroup RTEMSAPIStatvfs statvfs API Methods
+ *
+ * @ingroup RTEMSAPI
  */
 
 #ifndef _SYS_STATVFS_H_

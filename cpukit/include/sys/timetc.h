@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplSysTimer
+ *
+ * @brief This header file provides interfaces of the
+ *   binary timecounter.
+ */
+
 /*-
  * ----------------------------------------------------------------------------
  * "THE BEER-WARE LICENSE" (Revision 42):

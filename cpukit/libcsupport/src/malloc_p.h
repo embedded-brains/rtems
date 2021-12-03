@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides interfaces of the
+ *   C lib.
+ */
+
 /*
  *  RTEMS Malloc Family Internal Header
  *

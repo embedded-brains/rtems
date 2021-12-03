@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON3
+ *
+ * @brief This source file contains a definition of
+ *   the TTY driver for the serial ports on the LEON.
+ */
+
 /*
  *  This file contains the TTY driver for the serial ports on the LEON.
  *

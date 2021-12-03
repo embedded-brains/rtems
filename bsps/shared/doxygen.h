@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup RTEMSImplDoxygen
+ *
+ * @brief This header file defines Doxygen groups.
+ */
+
+/**
  * @defgroup RTEMSBSPs Board Support Packages
  *
  * @brief This group contains the Board Support Packages (BSPs).

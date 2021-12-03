@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSAPICounter
+ *
+ * @brief This source file contains a definition of
+ *   the Free-Running Counter and Busy Wait Delay API.
+ */
+
 /*
  * Copyright (c) 2014, 2018 embedded brains GmbH.  All rights reserved.
  *

@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains a definition of
+ *   C lib functions.
+ */
+
 /*-
  * Copyright (c) 2017 embedded brains GmbH
  * All rights reserved.

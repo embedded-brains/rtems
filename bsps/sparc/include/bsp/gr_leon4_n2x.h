@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON3
+ *
+ * @brief This header file provides interfaces of the
+ *   GR-CPCI-LEON4-N2X (NGFP) PCI Peripheral driver
+ */
+
 /*  GR-CPCI-LEON4-N2X (NGFP) PCI Peripheral driver
  *
  *  COPYRIGHT (c) 2013.

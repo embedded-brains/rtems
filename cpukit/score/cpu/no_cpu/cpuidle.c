@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSScoreCPU
+ *
+ * @brief This source file contains a definition of
+ *   the ::_CPU_Thread_Idle_body.
+ */
+
 /*
  * Copyright (c) 2013-2014 embedded brains GmbH.  All rights reserved.
  *

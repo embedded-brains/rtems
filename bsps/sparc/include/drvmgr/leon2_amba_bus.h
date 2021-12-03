@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON2
+ *
+ * @brief This header file provides interfaces of the
+ *   LEON2 Hardcoded bus driver interface.
+ */
+
 /*  LEON2 Hardcoded bus driver interface.
  *
  *  COPYRIGHT (c) 2008.

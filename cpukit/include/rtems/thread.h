@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplThread
+ *
+ * @brief This header file provides interfaces of the
+ *   Thread Handler.
+ */
+
 /*
  * Copyright (c) 2017 embedded brains GmbH.  All rights reserved.
  *
@@ -10,6 +19,12 @@
  * The license and distribution terms for this file may be
  * found in the file LICENSE in this distribution or at
  * http://www.rtems.org/license/LICENSE.
+ */
+
+/**
+ * @defgroup RTEMSImplThread Thread Handler
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _RTEMS_THREAD_H

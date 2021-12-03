@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup CACHE_MGR
+ *
+ * @brief This header file provides interfaces of the
+ *   RTEMS Cache Manager.
+ */
+
 /*
  *  Cache Manager
  *

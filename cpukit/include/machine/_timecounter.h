@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSScoreTimecounter
+ *
+ * @brief This header file provides interfaces of the
+ *   machine timecounter functions.
+ */
+
 /*-
  * Copyright (c) 2016 embedded brains GmbH
  * All rights reserved.

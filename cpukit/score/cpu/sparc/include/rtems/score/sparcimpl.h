@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARC
+ *
+ * @brief This header file provides interfaces of the
+ *   _SPARC_Counter and _SPARC_Counter_mutable global variables.
+ */
+
 /*
  * Copyright (c) 2016, 2018 embedded brains GmbH.  All rights reserved.
  *
