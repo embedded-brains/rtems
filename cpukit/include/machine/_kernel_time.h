@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplKernel
+ *
+ * @brief This header file provides interfaces of the
+ *   kernel functions.
+ */
+
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
  *

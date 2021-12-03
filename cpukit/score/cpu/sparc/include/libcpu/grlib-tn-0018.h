@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON3
+ *
+ * @brief This header file provides interfaces of the
+ *   LEON3 TN0018 fix.
+ */
+
 /*
  * Copyright (C) 2020 Cobham Gailer AB
  *

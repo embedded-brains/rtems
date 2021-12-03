@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSAPIClassicVersion
+ *
+ * @brief This header file provides interfaces of the
+ *   RTEMS versions.
+ */
+
 /*
  *  COPYRIGHT (c) 2003, Ralf Corsepius, Ulm, Germany.
  *  COPYRIGHT (c) 2003, On-Line Applications Research Corporation (OAR).

@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSTestFramework
+ *
+ * @brief This source file contains a definition of
+ *   RTEMS Test Framework.
+ */
+
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *

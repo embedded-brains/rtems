@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplLinker
+ *
+ * @brief This header file provides interfaces of the
+ *   linker set support.
+ */
+
 /*
  * Copyright (c) 2015, 2020 embedded brains GmbH.  All rights reserved.
  *
@@ -23,6 +32,12 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @defgroup RTEMSImplLinker RTEMS linker control
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _RTEMS_LINKERSET_H

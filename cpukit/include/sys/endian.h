@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplSysEndian
+ *
+ * @brief This header file provides interfaces of the
+ *   system endianness.
+ */
+
 /*-
  * Copyright (c) 2002 Thomas Moestl <tmm@FreeBSD.org>
  * All rights reserved.
@@ -24,6 +33,12 @@
  * SUCH DAMAGE.
  *
  * $FreeBSD: head/sys/sys/endian.h 208331 2010-05-20 06:16:13Z phk $
+ */
+
+/**
+ * @defgroup RTEMSImplSysEndian System Endianness Support
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _SYS_ENDIAN_H_

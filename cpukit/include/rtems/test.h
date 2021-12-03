@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSTestFramework
+ *
+ * @brief This header file provides interfaces of the
+ *   RTEMS Test Framework.
+ */
+
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *

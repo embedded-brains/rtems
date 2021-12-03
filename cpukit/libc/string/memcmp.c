@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains a definition of
+ *   C lib functions.
+ */
+
 /*
 FUNCTION
 	<<memcmp>>---compare two memory areas

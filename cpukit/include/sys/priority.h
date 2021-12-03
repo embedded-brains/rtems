@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplKernel
+ *
+ * @brief This header file provides interfaces of the
+ *   Process priority specifications.
+ */
+
 /*-
  * SPDX-License-Identifier: BSD-4-Clause
  *

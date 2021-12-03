@@ -1,5 +1,15 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSScoreAtomicCPU
+ *
+ * @brief This header file provides interfaces of the
+ *   atomic operations implementation using
+ *   functions provided by the C11/C++11.
+ */
+
 /*
  * COPYRIGHT (c) 2012-2013 Deng Hengyi.
  *

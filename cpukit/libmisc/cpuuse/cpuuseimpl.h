@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup libmisc_cpuuse
+ *
+ * @brief This header file provides interfaces of the
+ *   CPU use accounting.
+ */
+
 /*
  * COPYRIGHT (c) 1989-2011.
  * On-Line Applications Research Corporation (OAR).

@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSPARCLEON3
+ *
+ * @brief This source file contains a definition of
+ *   a set of routines which start the application.
+ */
+
 /*
  *  This set of routines starts the application.  It includes application,
  *  board, and monitor specific initialization and configuration.

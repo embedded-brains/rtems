@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSAPIClassicInit
+ *
+ * @brief This header file provides interfaces of the
+ *   system initialization handler.
+ */
+
 /*
  * Copyright (c) 2015, 2020 embedded brains GmbH.  All rights reserved.
  *

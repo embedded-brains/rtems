@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides interfaces of the
+ *   C lib.
+ */
+
 /*
  *  RTEMS Malloc Family Internal Header
  *

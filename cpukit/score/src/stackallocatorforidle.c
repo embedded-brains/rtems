@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSScoreStack
+ *
+ * @brief This source file contains a definition of
+ *   ::_Stack_Allocator_allocate_for_idle_default.
+ */
+
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *

@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplSHA256
+ *
+ * @brief This header file provides interfaces of the
+ *   SHA256 Checksum Implementation.
+ */
+
 /*-
  * Copyright 2005 Colin Percival
  * All rights reserved.
@@ -24,6 +33,12 @@
  * SUCH DAMAGE.
  *
  * $FreeBSD$
+ */
+
+/**
+ * @defgroup RTEMSImplSHA256 SHA256 Checksum Implementation
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _SHA256_H_

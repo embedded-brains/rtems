@@ -3,6 +3,8 @@
 /**
  * @file
  *
+ * @ingroup RTEMSImplKernel
+ *
  * @brief This header file provides parameter definitions for the kernel space
  *   (_KERNEL is defined before including <sys/param.h>).
  */
@@ -30,6 +32,12 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @defgroup RTEMSImplKernel RTEMS Kernel Interface
+ *
+ * @ingroup RTEMSImpl
  */
 
 #include <sys/cdefs.h>

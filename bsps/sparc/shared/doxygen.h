@@ -1,4 +1,12 @@
 /**
+ * @file
+ *
+ * @ingroup RTEMSImplDoxygen
+ *
+ * @brief This header file defines Doxygen groups.
+ */
+
+/**
  * @defgroup RTEMSBSPsSPARC SPARC
  *
  * @ingroup RTEMSBSPs

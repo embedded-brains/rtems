@@ -3,8 +3,16 @@
 /**
  * @file
  *
+ * @ingroup RTEMSImplDoxygen
+ *
  * @brief This file exists to provide a top level description of RTEMS for
  *   Doxygen.
+ */
+
+/**
+ * @defgroup RTEMSImplDoxygen Doxygen document generator support
+ *
+ * @ingroup RTEMSImpl
  */
 
 /*

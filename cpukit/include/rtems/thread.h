@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplThread
+ *
+ * @brief This header file provides interfaces of the
+ *   Thread Handler.
+ */
+
 /*
  * Copyright (c) 2017 embedded brains GmbH.  All rights reserved.
  *
@@ -23,6 +32,12 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @defgroup RTEMSImplThread Thread Handler
+ *
+ * @ingroup RTEMSImpl
  */
 
 #ifndef _RTEMS_THREAD_H

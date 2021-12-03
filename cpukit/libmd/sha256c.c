@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplSHA256
+ *
+ * @brief This source file contains a definition of
+ *   the SHA256 Checksum Implementation.
+ */
+
 /*-
  * Copyright 2005 Colin Percival
  * All rights reserved.

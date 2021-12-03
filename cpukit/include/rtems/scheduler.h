@@ -3,6 +3,8 @@
 /**
  * @file
  *
+ * @ingroup RTEMSApplConfigGeneralSchedulerConfiguration
+ *
  * @brief Scheduler Configuration API
  */
 

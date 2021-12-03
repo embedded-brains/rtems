@@ -1,3 +1,12 @@
+/**
+ * @file
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides interfaces of the
+ *   C lib.
+ */
+
 #include <_ansi.h>
 #ifndef __rtems__
 #include <../ctype/local.h>

@@ -1,5 +1,13 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSImplDoxygen
+ *
+ * @brief This header file defines top level Doxygen groups.
+ */
+
 /*
  * Copyright (C) 2019, 2020 embedded brains GmbH (http://www.embedded-brains.de)
  *
