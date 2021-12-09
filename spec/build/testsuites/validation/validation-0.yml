@@ -12,6 +12,9 @@ ldflags: []
 links: []
 source:
 - testsuites/validation/tc-event-send-receive.c
+- testsuites/validation/tc-mem-rtems-calloc.c
+- testsuites/validation/tc-mem-rtems-malloc.c
+- testsuites/validation/tc-mem-posix-memalign.c
 - testsuites/validation/tr-event-send-receive.c
 - testsuites/validation/ts-validation-0.c
 stlib: []
