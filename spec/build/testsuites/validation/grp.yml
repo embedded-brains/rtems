@@ -13,7 +13,21 @@ links:
 - role: build-dependency
   uid: libvalidation
 - role: build-dependency
+  uid: bsp-sparc-leon3-gr712rc
+- role: build-dependency
   uid: fatal-boot-processor-not-assigned-to-scheduler
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-cache-snooping-disabled-boot
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-cache-snooping-disabled-secondary
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-clock-initialization
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-shutdown-nop
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-shutdown-response
+- role: build-dependency
+  uid: fatal-bsp-sparc-leon3-shutdown-timeout
 - role: build-dependency
   uid: fatal-init-task-construct-failed
 - role: build-dependency
