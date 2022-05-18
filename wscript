@@ -308,7 +308,7 @@ class Item(object):
             target = os.path.splitext(source)[0] + ".o"
         bld(
             cppflags=cppflags + self.substitute(bld, self.data["cppflags"]),
-            cxxflags=bic.cflgas + self.substitute(bld, self.data["cxxflags"]),
+            cxxflags=bic.cflags + self.substitute(bld, self.data["cxxflags"]),
             features="cxx",
             includes=bic.includes + self.get_values(bld, "includes"),
             rule="${CXX} ${CXXFLAGS} ${CPPFLAGS} ${DEFINES_ST:DEFINES} ${CPPPATH_ST:INCPATHS} -c ${SRC[0]} -o ${TGT}",
