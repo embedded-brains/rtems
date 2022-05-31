@@ -1,0 +1,67 @@
+name: BSPs
+
+on:
+  # Triggers the workflow on push or pull request for the given branch
+  #push:
+  #  branches: [ ci ]
+  #pull_request:
+  #  branches: [ ci ]
+
+  # Trigger manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  setup-bsp-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: rtems
+          ref: ci
+      - name: Build matrix
+        id: set-matrix
+        shell: bash
+        run: |
+          cd ${GITHUB_WORKSPACE}/rtems
+          out=$(./waf bsp_list | jq -R '.|split("/")|{ arch: .[0], bsp: .[1] }' | jq -sc '{include: .}')
+          echo "$out"
+          echo "::set-output name=matrix::$out"
+
+  build:
+    needs: setup-bsp-matrix
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.setup-bsp-matrix.outputs.matrix) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: rtems
+          ref: ci
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install \
+            python3 \
+            python-is-python3
+      - name: Download toolchain artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          repo: embedded-brains/rtems-source-builder
+          branch: ci
+          workflow: toolchain.yml
+          workflow_conclusion: completed
+          name: tools-${{ matrix.arch }}
+      - name: Unpack toolchain
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/toolchain"
+          tar xf rtems-tools-*.tar.bz2 -v -C "$GITHUB_WORKSPACE/toolchain"
+          ls -la "$GITHUB_WORKSPACE/toolchain"
+      - name: Build BSPs
+        uses: ./rtems/.github/actions/build-bsps
+        with:
+          bsp: "${{ matrix.arch }}/${{ matrix.bsp }}"
+          sources-rtems: "$GITHUB_WORKSPACE/rtems"
+          prefix: "$GITHUB_WORKSPACE/toolchain/opt/rtems/6"

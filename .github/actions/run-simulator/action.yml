@@ -1,0 +1,125 @@
+name: "Run Simulator"
+description: "Build BSPs for the given target/BSP and run tests on a simulator"
+
+inputs:
+  target:
+    description: "The Arch/BSP to run. For example 'sparc/erc32'"
+    type: string
+    required: true
+  sources-rtems:
+    description: "Where to find the RTEMS sources. Use absolute path!"
+    type: string
+    required: true
+  prefix:
+    description: "Prefix directory with the installed tools. Use absolute path!"
+    type: string
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+        # Find correct parameters for this simulator
+        args=""
+        found=0
+        [ "${{ inputs.target }}" == "sparc/erc32" ] && \
+           args="--rtems-bsp=erc32-sis" && \
+           found=1
+        [ "${{ inputs.target }}" == "sparc/gr740" ] && \
+           args="--rtems-bsp=gr740-sis" && \
+           found=1
+        [ "${{ inputs.target }}" == "riscv/griscv" ] && \
+           args="--rtems-bsp=griscv-sis" && \
+           found=1
+        [ "${{ inputs.target }}" == "arm/xilinx_zynq_a9_qemu" ] && \
+           args="--rtems-bsp=xilinx_zynq_a9_qemu" && \
+           found=1
+        echo "rtems_test_args=${args}" >> $GITHUB_ENV
+        echo "simulator_supported=${found}" >> $GITHUB_ENV
+    - if: ${{ env.simulator_supported == 0 }}
+      shell: bash
+      run: |
+        # Check whether parameters for this simulator have been found
+        echo "${{ inputs.target }} is not supported for simulator runs"
+        false
+    - shell: bash
+      run: |
+        # create environment variables for paths and names
+        shortname=`echo "${{ inputs.target }}" | sed -e "s|/|_|g"`
+        echo "shortname=${shortname}" >> $GITHUB_ENV
+        echo "logdir=${GITHUB_WORKSPACE}/logs-${shortname}" >> $GITHUB_ENV
+        echo "builddir=${GITHUB_WORKSPACE}/build-${shortname}" >> $GITHUB_ENV
+    - shell: bash
+      run: |
+        # create directories
+        mkdir -p "${{ env.logdir }}"
+        mkdir -p "${{ env.builddir }}"
+    - shell: bash
+      run: |
+        # generate BSP config
+        echo -e "[${{ inputs.target }}]\nBUILD_TESTS = True" >> "${{ env.builddir }}/config.ini"
+        cat "${{ env.builddir }}/config.ini"
+    - shell: bash
+      run: |
+        # configure
+        cd ${{ env.builddir }} && ${{ inputs.sources-rtems }}/waf configure \
+          --out="${{ env.builddir }}" \
+          --rtems-config="${{ env.builddir }}/config.ini" \
+          --top="${{ inputs.sources-rtems }}" \
+          --prefix="${{ inputs.prefix }}"
+    - if: ${{ failure() }}
+      shell: bash
+      run: |
+        # print log
+        cat "${{ env.builddir }}/config.log"
+    - shell: bash
+      run: |
+        # compile
+        cd ${{ env.builddir }} && ${{ inputs.sources-rtems }}/waf \
+          --out="${{ env.builddir }}" \
+          --top="${{ inputs.sources-rtems }}" \
+          --prefix="${{ inputs.prefix }}"
+        find ${{ env.builddir }} -name "*.exe"
+    - shell: bash
+      run: |
+        # run tests
+        # Note: PATH needs to be adapted so that for example qemu is found
+        PATH="${{ inputs.prefix }}/bin":$PATH rtems-test \
+          --log="${{ env.logdir }}/test.log" \
+          --log-mode=all \
+          --report-path="${{ env.logdir }}/report" \
+          --report-format=json \
+          --warn-all \
+          --rtems-tools="${{ inputs.prefix }}" \
+          ${{ env.rtems_test_args }} \
+          ${{ env.builddir }}
+    - name: Archive log
+      uses: actions/upload-artifact@v3
+      if: success() || failure()
+      with:
+        name: test-logs-${{ env.shortname }}
+        path: logs-${{ env.shortname }}
+    - id: parse-result
+      shell: bash
+      run: |
+        # Count number of passed / failed / ... tests
+        # Make sure first that the ones that we use later are set to a sensible default value
+        echo "::set-output name=total::-1"
+        echo "::set-output name=passed::0"
+        echo "::set-output name=user-input::0"
+        echo "::set-output name=expected-fail::0"
+        echo "::set-output name=benchmark::0"
+        jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("::set-output name="+.result+"::"+(.count|tostring))' ${{ env.logdir }}/report.json
+        jq -r '.reports|("::set-output name=total::"+(length|tostring))' ${{ env.logdir }}/report.json
+    - shell: bash
+      run: |
+        # check whether all tests worked as expected
+        tests_ok=$(expr \
+            ${{ steps.parse-result.outputs.passed }} + \
+            ${{ steps.parse-result.outputs.user-input }} + \
+            ${{ steps.parse-result.outputs.expected-fail }} + \
+            ${{ steps.parse-result.outputs.benchmark }})
+        expected=${{ steps.parse-result.outputs.total }}
+        echo "$tests_ok of $expected worked as expected."
+        [ $tests_ok -eq $expected ]

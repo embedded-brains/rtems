@@ -1,0 +1,49 @@
+name: "Build BSPs"
+description: "Build BSPs for the given target architecture."
+
+inputs:
+  bsp:
+    description: "The bsp to build 'sparc/erc32'"
+    type: string
+    required: true
+  sources-rtems:
+    description: "Where to find the RTEMS sources. Use absolute path!"
+    type: string
+    required: true
+  prefix:
+    description: "Prefix directory with the installed tools. Use absolute path!"
+    type: string
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: create name for logs
+      shell: bash
+      run: |
+        shortname=`echo "${{ inputs.bsp }}" | sed -e "s|/|_|g"`
+        echo "shortname=${shortname}" >> $GITHUB_ENV
+    - name: create log dir
+      shell: bash
+      run: mkdir "${GITHUB_WORKSPACE}"/bsp-logs
+    - name: Run BSP builder
+      shell: bash
+      run: |
+        "${{ inputs.prefix }}"/bin/rtems-bsp-builder \
+                              --build-path "${GITHUB_WORKSPACE}"/rtems-build \
+                              --prefix "${{ inputs.prefix }}" \
+                              --rtems-tools "${{ inputs.prefix }}/bin" \
+                              --rtems "${{ inputs.sources-rtems }}" \
+                              --bsp ${{ inputs.bsp }} \
+                              --log "${GITHUB_WORKSPACE}"/bsp-logs/log-${{ env.shortname }}.txt \
+                              --warnings-report "${GITHUB_WORKSPACE}"/bsp-logs/warnings-${{ env.shortname }}.txt \
+                              --failures-report "${GITHUB_WORKSPACE}"/bsp-logs/failures-${{ env.shortname }}.txt
+    - name: Archive log
+      uses: actions/upload-artifact@v3
+      with:
+        name: log-${{ env.shortname }}
+        path: bsp-logs
+    - name: Check for errors
+      shell: bash
+      run: |
+        grep "Failures: 0" "$GITHUB_WORKSPACE"/bsp-logs/log-${{ env.shortname }}.txt
