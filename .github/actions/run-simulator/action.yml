@@ -112,6 +112,18 @@ runs:
         echo "::set-output name=benchmark::0"
         jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("::set-output name="+.result+"::"+(.count|tostring))' ${{ env.logdir }}/report.json
         jq -r '.reports|("::set-output name=total::"+(length|tostring))' ${{ env.logdir }}/report.json
+        # Generate markdown report
+        echo "# Test Run on {{ inputs.target }}" >> ${{ env.logdir }}/report.md
+        echo "" >> ${{ env.logdir }}/report.md
+        echo "Command line:" >> ${{ env.logdir }}/report.md
+        jq -r '("    "+(."command-line" | join(" ")))' ${{ env.logdir }}/report.json >> ${{ env.logdir }}/report.md
+        echo "" >> ${{ env.logdir }}/report.md
+        echo "Host:" >> ${{ env.logdir }}/report.md
+        jq -r '("    "+(."host"))' ${{ env.logdir }}/report.json >> ${{ env.logdir }}/report.md
+        echo "" >> ${{ env.logdir }}/report.md
+        echo "Test | Result" >> ${{ env.logdir }}/report.md
+        echo "---|---" >> ${{ env.logdir }}/report.md
+        jq -r '.reports[] | ((.executable | split("testsuites/")[1] | split(".exe")[0])+" | "+(if .result=="passed" then ":heavy_check_mark:" else ":x:" end)+" "+.result)' ${{ env.logdir }}/report.json >> ${{ env.logdir }}/report.md
     - shell: bash
       run: |
         # check whether all tests worked as expected
@@ -123,3 +135,10 @@ runs:
         expected=${{ steps.parse-result.outputs.total }}
         echo "$tests_ok of $expected worked as expected."
         [ $tests_ok -eq $expected ]
+    - uses: michaelhenry/create-report@v2.0.0
+      name: create report from markdown
+      if: success() || failure()
+      with:
+        title: "Markdown report"
+        path: ${{ env.logdir }}/report.md
+        format: markdown
