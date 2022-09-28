@@ -112,6 +112,8 @@ runs:
         echo "::set-output name=benchmark::0"
         jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("::set-output name="+.result+"::"+(.count|tostring))' ${{ env.logdir }}/report.json
         jq -r '.reports|("::set-output name=total::"+(length|tostring))' ${{ env.logdir }}/report.json
+        # Generate ASCII-Table report
+        jq -r '.reports[] | ((.executable | split("testsuites/")[1] | split(".exe")[0])+";"+(if .result=="passed" or .result=="user-input" or .result=="benchmark" or .result=="expected-fail" then "\u001b[32m\u2714" else "\u001b[31m\u2716" end)+" "+.result+"\u001b[0m")' ${{ env.logdir }}/report.json | column -t -s\;
     - shell: bash
       run: |
         # check whether all tests worked as expected
