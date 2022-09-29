@@ -15,6 +15,11 @@ inputs:
     type: string
     required: true
 
+outputs:
+  shortname:
+    description: "Short name used in artifact names like the log artifact."
+    value: ${{ steps.shortnames.outputs.shortname }}
+
 runs:
   using: "composite"
   steps:
@@ -44,9 +49,11 @@ runs:
         echo "${{ inputs.target }} is not supported for simulator runs"
         false
     - shell: bash
+      id: shortnames
       run: |
         # create environment variables for paths and names
         shortname=`echo "${{ inputs.target }}" | sed -e "s|/|_|g"`
+        echo "::set-output name=shortname::${shortname}"
         echo "shortname=${shortname}" >> $GITHUB_ENV
         echo "logdir=${GITHUB_WORKSPACE}/logs-${shortname}" >> $GITHUB_ENV
         echo "builddir=${GITHUB_WORKSPACE}/build-${shortname}" >> $GITHUB_ENV
@@ -94,12 +101,6 @@ runs:
           --rtems-tools="${{ inputs.prefix }}" \
           ${{ env.rtems_test_args }} \
           ${{ env.builddir }}
-    - name: Archive log
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test-logs-${{ env.shortname }}
-        path: logs-${{ env.shortname }}
     - id: parse-result
       shell: bash
       run: |
@@ -124,6 +125,12 @@ runs:
         echo "Test | Result" >> ${{ env.logdir }}/report.md
         echo "---|---" >> ${{ env.logdir }}/report.md
         jq -r '.reports[] | ((.executable | split("testsuites/")[1] | split(".exe")[0])+" | "+(if .result=="passed" then ":heavy_check_mark:" else ":x:" end)+" "+.result)' ${{ env.logdir }}/report.json >> ${{ env.logdir }}/report.md
+    - name: Archive log
+      uses: actions/upload-artifact@v3
+      if: success() || failure()
+      with:
+        name: test-logs-${{ env.shortname }}
+        path: logs-${{ env.shortname }}
     - shell: bash
       run: |
         # check whether all tests worked as expected
@@ -135,10 +142,3 @@ runs:
         expected=${{ steps.parse-result.outputs.total }}
         echo "$tests_ok of $expected worked as expected."
         [ $tests_ok -eq $expected ]
-    - uses: michaelhenry/create-report@v2.0.0
-      name: create report from markdown
-      if: success() || failure()
-      with:
-        title: "Markdown report"
-        path: ${{ env.logdir }}/report.md
-        format: markdown

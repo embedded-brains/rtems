@@ -67,3 +67,16 @@ jobs:
           target: ${{ matrix.simulators }}
           sources-rtems: "$GITHUB_WORKSPACE/rtems"
           prefix: "$GITHUB_WORKSPACE/toolchain/opt/rtems/6"
+      - name: Download log artifacts for nice looking report
+        if: success() || failure()
+        uses: actions/download-artifact@v3
+        with:
+          name: test-logs-${{ steps.simulator.shortname }}
+          path: logs-${{ steps.simulator.shortname }}
+      - uses: michaelhenry/create-report@v2.0.0
+        name: create report from markdown
+        if: success() || failure()
+        with:
+          title: "Markdown report"
+          path: logs-${{ steps.simulator.shortname }}/report.md
+          format: markdown
