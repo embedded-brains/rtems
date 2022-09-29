@@ -15,11 +15,6 @@ inputs:
     type: string
     required: true
 
-outputs:
-  shortname:
-    description: "Short name used in artifact names like the log artifact."
-    value: ${{ steps.shortnames.outputs.shortname }}
-
 runs:
   using: "composite"
   steps:
@@ -49,11 +44,9 @@ runs:
         echo "${{ inputs.target }} is not supported for simulator runs"
         false
     - shell: bash
-      id: shortnames
       run: |
         # create environment variables for paths and names
         shortname=`echo "${{ inputs.target }}" | sed -e "s|/|_|g"`
-        echo "::set-output name=shortname::${shortname}"
         echo "shortname=${shortname}" >> $GITHUB_ENV
         echo "logdir=${GITHUB_WORKSPACE}/logs-${shortname}" >> $GITHUB_ENV
         echo "builddir=${GITHUB_WORKSPACE}/build-${shortname}" >> $GITHUB_ENV
