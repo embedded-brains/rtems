@@ -71,12 +71,12 @@ jobs:
         if: success() || failure()
         uses: actions/download-artifact@v3
         with:
-          name: test-logs-${{ steps.simulator.shortname }}
-          path: logs-${{ steps.simulator.shortname }}
+          name: test-logs-${{ steps.simulator.outputs.shortname }}
+          path: logs-${{ steps.simulator.outputs.shortname }}
       - uses: michaelhenry/create-report@v2.0.0
         name: create report from markdown
         if: success() || failure()
         with:
           title: "Markdown report"
-          path: logs-${{ steps.simulator.shortname }}/report.md
+          path: logs-${{ steps.simulator.outputs.shortname }}/report.md
           format: markdown
