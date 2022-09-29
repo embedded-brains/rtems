@@ -73,10 +73,10 @@ jobs:
         with:
           name: test-logs-${{ env.arch }}_${{ env.bsp }}
           path: logs-${{ env.arch }}_${{ env.bsp }}
-      - uses: michaelhenry/create-report@v2.0.0
+      - uses: dtinth/markdown-report-action@v1
         name: create report from markdown
         if: success() || failure()
         with:
-          title: "Markdown report"
-          path: logs-${{ env.arch }}_${{ env.bsp }}/report.md
-          format: markdown
+          name: Test Report
+          title: "Test Report for ${{ env.arch }}/${{ env.bsp }}"
+          body-file: logs-${{ env.arch }}_${{ env.bsp }}/report.md
