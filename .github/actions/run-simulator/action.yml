@@ -100,28 +100,45 @@ runs:
       with:
         name: test-logs-${{ env.shortname }}
         path: logs-${{ env.shortname }}
-    - id: parse-result
-      shell: bash
+    - shell: bash
+      run: |
+        # Set default values
+        echo "results_total=-1" | tee -a $GITHUB_ENV
+        echo "tests_passed=0" | tee -a $GITHUB_ENV
+        echo "tests_user-input=0" | tee -a $GITHUB_ENV
+        echo "tests_expected-fail=0" | tee -a $GITHUB_ENV
+        echo "tests_benchmark=0" | tee -a $GITHUB_ENV
+    - shell: bash
       run: |
         # Count number of passed / failed / ... tests
-        # Make sure first that the ones that we use later are set to a sensible default value
-        echo "::set-output name=total::-1"
-        echo "::set-output name=passed::0"
-        echo "::set-output name=user-input::0"
-        echo "::set-output name=expected-fail::0"
-        echo "::set-output name=benchmark::0"
-        jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("::set-output name="+.result+"::"+(.count|tostring))' ${{ env.logdir }}/report.json
-        jq -r '.reports|("::set-output name=total::"+(length|tostring))' ${{ env.logdir }}/report.json
+        jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("tests_"+.result+"="+(.count|tostring))' ${{ env.logdir }}/report.json | tee -a $GITHUB_ENV
+        jq -r '.reports | ("results_total="+(length|tostring))' ${{ env.logdir }}/report.json | tee -a $GITHUB_ENV
+    - shell: bash
+      run: |
+        # Summarize tests
+        echo "results_ok=$(expr \
+            ${{ env.tests_passed }} + \
+            ${{ env.tests_user-input }} + \
+            ${{ env.tests_expected-fail }} + \
+            ${{ env.tests_benchmark }})" | tee -a $GITHUB_ENV
+    - shell: bash
+      run: |
         # Generate ASCII-Table report
         jq -r '.reports[] | ((.executable | split("testsuites/")[1] | split(".exe")[0])+";"+(if .result=="passed" or .result=="user-input" or .result=="benchmark" or .result=="expected-fail" then "\u001b[32m\u2714" else "\u001b[31m\u2716" end)+" "+.result+"\u001b[0m")' ${{ env.logdir }}/report.json | column -t -s\;
     - shell: bash
       run: |
+        # Summarize not passed tests on github step summary
+        echo "### Tests for ${{ inputs.target }}" >> $GITHUB_STEP_SUMMARY
+        jq -r '.reports | group_by(.result) | map({result: .[0].result, count: length})[] | ("- "+.result+": "+(.count|tostring))' ${{ env.logdir }}/report.json >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ ${{ env.results_ok }} -ne ${{ env.results_total }} ]; then
+          echo "The following tests did not pass:" >> $GITHUB_STEP_SUMMARY
+          echo "| name | result |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          jq -r '.reports[] | select(.result != "passed" and .result != "benchmark" and .result != "user-input" and .result != "expected-fail") | ("| "+(.executable | split("testsuites/")[1] | split(".exe")[0])+" | "+.result+" |")' ${{ env.logdir }}/report.json >> $GITHUB_STEP_SUMMARY
+        fi
+    - shell: bash
+      run: |
         # check whether all tests worked as expected
-        tests_ok=$(expr \
-            ${{ steps.parse-result.outputs.passed }} + \
-            ${{ steps.parse-result.outputs.user-input }} + \
-            ${{ steps.parse-result.outputs.expected-fail }} + \
-            ${{ steps.parse-result.outputs.benchmark }})
-        expected=${{ steps.parse-result.outputs.total }}
-        echo "$tests_ok of $expected worked as expected."
-        [ $tests_ok -eq $expected ]
+        echo "${{ env.results_ok }} of ${{ env.results_total }} worked as expected."
+        [ ${{ env.results_ok }} -eq ${{ env.results_total }} ]
