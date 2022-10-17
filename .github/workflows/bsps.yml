@@ -19,7 +19,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: rtems
-          ref: ci
       - name: Build matrix
         id: set-matrix
         shell: bash
@@ -39,6 +38,9 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: rtems
+      - uses: actions/checkout@v3
+        with:
+          path: rtems-actions
           ref: ci
       - name: Install dependencies
         run: |
@@ -57,10 +59,10 @@ jobs:
       - name: Unpack toolchain
         run: |
           mkdir -p "$GITHUB_WORKSPACE/toolchain"
-          tar xf rtems-tools-*.tar.bz2 -v -C "$GITHUB_WORKSPACE/toolchain"
+          for t in *.tar.bz2; do tar xf $t -v -C "$GITHUB_WORKSPACE/toolchain"; done
           ls -la "$GITHUB_WORKSPACE/toolchain"
       - name: Build BSPs
-        uses: ./rtems/.github/actions/build-bsps
+        uses: ./rtems-actions/.github/actions/build-bsps
         with:
           bsp: "${{ matrix.arch }}/${{ matrix.bsp }}"
           sources-rtems: "$GITHUB_WORKSPACE/rtems"
