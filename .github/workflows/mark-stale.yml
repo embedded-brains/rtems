@@ -16,7 +16,8 @@ jobs:
     steps:
       - uses: actions/stale@v7
         with:
-          stale-issue-message: 'Please note that issues are not processed in this repository and will automatically be closed after a few days. Please send a mail to the devel mailing list at https://lists.rtems.org or create a ticket at https://devel.rtems.org.'
-          stale-pr-message: 'Please note that Pull Requests are not processed in this repository and will automatically be closed after a few days. You may use Pull Requests for testing changes. As soon as you are happy with the result, you should send the patch set to the devel mailing list at https://lists.rtems.org. Thank you.'
-          days-before-stale: 0
-          days-before-close: 7
+          stale-pr-message: 'Please note that Pull Requests are neither merged nor reviewed! Your Pull Requests only trigger continuous integration builds and tests in this repository and will automatically be closed after a month. As soon as you are happy with the result, please send the patches to the mailing list at devel@rtems.org. See https://lists.rtems.org for instructions how to register for that list. Thank you. '
+          days-before-stale: -1
+          days-before-close: -1
+          days-before-pr-stale: 0
+          days-before-pr-close: 30
