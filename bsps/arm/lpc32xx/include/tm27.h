@@ -30,7 +30,7 @@
 
 #define MUST_WAIT_FOR_INTERRUPT 1
 
-static void Install_tm27_vector(void (*handler)(rtems_vector_number))
+static inline void Install_tm27_vector( rtems_interrupt_handler handler )
 {
   rtems_status_code sc = RTEMS_SUCCESSFUL;
 
@@ -40,7 +40,7 @@ static void Install_tm27_vector(void (*handler)(rtems_vector_number))
     LPC32XX_IRQ_SW,
     "SW",
     RTEMS_INTERRUPT_UNIQUE,
-    (rtems_interrupt_handler) handler,
+    handler,
     NULL
   );
   assert(sc == RTEMS_SUCCESSFUL);

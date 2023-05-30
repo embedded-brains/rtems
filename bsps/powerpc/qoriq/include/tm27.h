@@ -34,7 +34,7 @@
 
 #define IPI_INDEX_HIGH 2
 
-RTEMS_INLINE_ROUTINE void Install_tm27_vector(void (*handler)(rtems_vector_number))
+RTEMS_INLINE_ROUTINE void Install_tm27_vector( rtems_interrupt_handler handler )
 {
   rtems_status_code sc;
   rtems_vector_number low = QORIQ_IRQ_IPI_0 + IPI_INDEX_LOW;
@@ -44,7 +44,7 @@ RTEMS_INLINE_ROUTINE void Install_tm27_vector(void (*handler)(rtems_vector_numbe
     low,
     "tm17 low",
     RTEMS_INTERRUPT_UNIQUE,
-    (rtems_interrupt_handler) handler,
+    handler,
     NULL
   );
   assert(sc == RTEMS_SUCCESSFUL);
@@ -56,7 +56,7 @@ RTEMS_INLINE_ROUTINE void Install_tm27_vector(void (*handler)(rtems_vector_numbe
     high,
     "tm17 high",
     RTEMS_INTERRUPT_UNIQUE,
-    (rtems_interrupt_handler) handler,
+    handler,
     NULL
   );
   assert(sc == RTEMS_SUCCESSFUL);

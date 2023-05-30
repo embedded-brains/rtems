@@ -64,11 +64,15 @@ static CallWithinISRContext CallWithinISRInstance = {
   .pending = CHAIN_INITIALIZER_EMPTY( CallWithinISRInstance.pending )
 };
 
-static void CallWithinISRHandler( rtems_vector_number vector )
+#ifdef TM27_USE_VECTOR_HANDLER
+static rtems_isr CallWithinISRHandler( rtems_vector_number arg )
+#else
+static void CallWithinISRHandler( void *arg )
+#endif
 {
   CallWithinISRContext *ctx;
 
-  (void) vector;
+  (void) arg;
   ctx = &CallWithinISRInstance;
 
   while ( true ) {
