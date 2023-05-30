@@ -199,12 +199,12 @@ extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
 #define LEON3_IrqCtrl_Regs ((irqamp *) LEON3_IRQAMP_BASE)
 #else
 extern irqamp *LEON3_IrqCtrl_Regs;
-#endif
 
 /**
  * @brief This pointer provides the IRQ(A)MP device information block.
  */
 extern struct ambapp_dev *LEON3_IrqCtrl_Adev;
+#endif
 
 /**
  * @brief This object provides the interrupt number used to multiplex extended
@@ -301,12 +301,12 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
 #define LEON3_Timer_Regs ((gptimer *) LEON3_GPTIMER_BASE)
 #else
 extern gptimer *LEON3_Timer_Regs;
-#endif
 
 /**
  * @brief This pointer provides the GPTIMER device information block.
  */
 extern struct ambapp_dev *LEON3_Timer_Adev;
+#endif
 
 /**
  * @brief Gets the processor local bus frequency in Hz.
