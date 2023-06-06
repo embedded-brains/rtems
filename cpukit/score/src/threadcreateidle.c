@@ -92,7 +92,7 @@ static void _Thread_Create_idle_for_CPU( Per_CPU_Control *cpu )
    *  WARNING!!! This is necessary to "kick" start the system and
    *             MUST be done before _Thread_Start is invoked.
    */
-  cpu->heir      =
+  cpu->heir      = idle;
   cpu->executing = idle;
 #if defined(RTEMS_SMP)
   cpu->ancestor = idle;
