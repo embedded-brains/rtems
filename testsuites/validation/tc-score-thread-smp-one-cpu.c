@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,11 +97,9 @@ typedef struct {
 static ScoreThreadValSmpOneCpu_Context
   ScoreThreadValSmpOneCpu_Instance;
 
-typedef ScoreThreadValSmpOneCpu_Context Context;
+#define EVENT_COUNT RTEMS_EVENT_0
 
-typedef enum {
-  EVENT_COUNT = RTEMS_EVENT_0
-} Event;
+typedef ScoreThreadValSmpOneCpu_Context Context;
 
 static void WorkerTask( rtems_task_argument arg )
 {

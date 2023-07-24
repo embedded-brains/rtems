@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 #ifndef LIBBSP_ARM_IMXRT_IRQ_H
 #define LIBBSP_ARM_IMXRT_IRQ_H
 
+#include <bspopts.h>
 #ifndef ASM
   #include <rtems/irq.h>
   #include <rtems/irq-extension.h>
@@ -43,7 +44,11 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#if IMXRT_IS_MIMXRT10xx
 #define BSP_INTERRUPT_VECTOR_COUNT 160
+#elif IMXRT_IS_MIMXRT11xx
+#define BSP_INTERRUPT_VECTOR_COUNT 217
+#endif
 #define BSP_INTERRUPT_VECTOR_INVALID (UINT32_MAX)
 
 #ifdef __cplusplus

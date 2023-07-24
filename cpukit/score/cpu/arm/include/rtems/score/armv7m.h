@@ -3,7 +3,10 @@
 /**
  * @file
  *
- * @brief ARMV7M Architecture Support
+ * @ingroup RTEMSScoreCPUARM
+ *
+ * @brief This header file provides interfaces of the ARMv7-M architecture
+ *   support.
  */
 
 /*
@@ -156,8 +159,19 @@ typedef struct {
 #define ARMV7M_SCB_SHCSR_MEMFAULTENA (1U << 16)
   uint32_t shcsr;
 
+#define ARMV7M_SCB_CFSR_MMFSR_MASK 0xff
+#define ARMV7M_SCB_CFSR_MMFSR_GET(n) (n & ARMV7M_SCB_CFSR_MMFSR_MASK)
+#define ARMV7M_SCB_CFSR_BFSR_MASK 0xff00
+#define ARMV7M_SCB_CFSR_BFSR_GET(n) (n & ARMV7M_SCB_CFSR_BFSR_MASK)
+#define ARMV7M_SCB_CFSR_UFSR_MASK 0xffff0000
+#define ARMV7M_SCB_CFSR_UFSR_GET(n) (n & ARMV7M_SCB_CFSR_UFSR_MASK)
   uint32_t cfsr;
+
+#define ARMV7M_SCB_HFSR_VECTTBL_MASK 0x2
+#define ARMV7M_SCB_HFSR_FORCED_MASK (1U << 30)
+#define ARMV7M_SCB_HFSR_DEBUGEVT_MASK (1U << 31)
   uint32_t hfsr;
+
   uint32_t dfsr;
   uint32_t mmfar;
   uint32_t bfar;
@@ -691,6 +705,7 @@ static inline void _ARMV7M_MPU_Disable_region(
 }
 
 static inline void _ARMV7M_MPU_Setup(
+  uint32_t ctrl,
   const ARMV7M_MPU_Region_config *cfg,
   size_t cfg_count
 )
@@ -726,7 +741,7 @@ static inline void _ARMV7M_MPU_Setup(
     _ARMV7M_MPU_Disable_region(mpu, region);
   }
 
-  mpu->ctrl = ARMV7M_MPU_CTRL_ENABLE | ARMV7M_MPU_CTRL_PRIVDEFENA;
+  mpu->ctrl = ctrl;
   scb->shcsr |= ARMV7M_SCB_SHCSR_MEMFAULTENA;
 
   _ARM_Data_synchronization_barrier();

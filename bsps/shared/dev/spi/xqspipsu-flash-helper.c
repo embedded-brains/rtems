@@ -314,6 +314,7 @@ static int FlashReadID(XQspiPsu *QspiPsuPtr)
   }
   while (TransferInProgress);
 
+  rtems_cache_invalidate_multiple_data_lines(ReadBfrPtr, 3);
   /* In case of dual, read both and ensure they are same make/size */
 
   /*
@@ -333,7 +334,7 @@ static int FlashReadID(XQspiPsu *QspiPsuPtr)
   return XST_SUCCESS;
 }
 
-int QspiPsu_NOR_Write(
+int QspiPsu_NOR_Write_Page(
   XQspiPsu *QspiPsuPtr,
   u32 Address,
   u32 ByteCount,
@@ -475,6 +476,51 @@ int QspiPsu_NOR_Write(
   return 0;
 }
 
+int QspiPsu_NOR_Write(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u32 ByteCount,
+  u8 *WriteBfrPtr
+)
+{
+  int Status;
+  size_t ByteCountRemaining = ByteCount;
+  unsigned char *WriteBfrPartial = WriteBfrPtr;
+  uint32_t AddressPartial = Address;
+  uint32_t PageSize = Flash_Config_Table[FCTIndex].PageSize;
+  if(QspiPsuPtr->Config.ConnectionMode == XQSPIPSU_CONNECTION_MODE_PARALLEL) {
+    PageSize *= 2;
+  }
+
+  while (ByteCountRemaining > 0) {
+    /* Get write boundary */
+    size_t WriteChunkLen = RTEMS_ALIGN_UP(AddressPartial + 1, PageSize);
+
+    /* Get offset to write boundary */
+    WriteChunkLen -= (size_t)AddressPartial;
+
+    /* Cap short writes */
+    if (WriteChunkLen > ByteCountRemaining) {
+      WriteChunkLen = ByteCountRemaining;
+    }
+
+    Status = QspiPsu_NOR_Write_Page(
+      QspiPsuPtr,
+      AddressPartial,
+      WriteChunkLen,
+      WriteBfrPartial
+    );
+    if ( Status != XST_SUCCESS ) {
+      return Status;
+    }
+
+    ByteCountRemaining -= WriteChunkLen;
+    AddressPartial += WriteChunkLen;
+    WriteBfrPartial += WriteChunkLen;
+  }
+  return Status;
+}
+
 int QspiPsu_NOR_Erase(
   XQspiPsu *QspiPsuPtr,
   u32 Address,
@@ -489,22 +535,18 @@ int QspiPsu_NOR_Erase(
   u32 NumSect;
   int Status;
   u32 SectSize;
-  u32 SectMask;
 
   WriteEnableCmd = WRITE_ENABLE_CMD;
 
   if(QspiPsuPtr->Config.ConnectionMode == XQSPIPSU_CONNECTION_MODE_PARALLEL) {
-    SectMask = (Flash_Config_Table[FCTIndex]).SectMask - (Flash_Config_Table[FCTIndex]).SectSize;
     SectSize = (Flash_Config_Table[FCTIndex]).SectSize * 2;
     NumSect = (Flash_Config_Table[FCTIndex]).NumSect;
   } else if (QspiPsuPtr->Config.ConnectionMode == XQSPIPSU_CONNECTION_MODE_STACKED) {
     NumSect = (Flash_Config_Table[FCTIndex]).NumSect * 2;
-    SectMask = (Flash_Config_Table[FCTIndex]).SectMask;
     SectSize = (Flash_Config_Table[FCTIndex]).SectSize;
   } else {
     SectSize = (Flash_Config_Table[FCTIndex]).SectSize;
     NumSect = (Flash_Config_Table[FCTIndex]).NumSect;
-    SectMask = (Flash_Config_Table[FCTIndex]).SectMask;
   }
 
   /*
@@ -569,18 +611,9 @@ int QspiPsu_NOR_Erase(
   /*
    * Calculate no. of sectors to erase based on byte count
    */
-  NumSect = (ByteCount / SectSize) + 1;
-
-  /*
-   * If ByteCount to k sectors,
-   * but the address range spans from N to N+k+1 sectors, then
-   * increment no. of sectors to be erased
-   */
-
-  if (((Address + ByteCount) & SectMask) ==
-    ((Address + (NumSect * SectSize)) & SectMask)) {
-    NumSect++;
-  }
+  u32 SectorStartBase = RTEMS_ALIGN_DOWN(Address, SectSize);
+  u32 SectorEndTop = RTEMS_ALIGN_UP(Address + ByteCount, SectSize);
+  NumSect = (SectorEndTop - SectorStartBase)/SectSize;
 
   for (Sector = 0; Sector < NumSect; Sector++) {
 
@@ -828,6 +861,7 @@ int QspiPsu_NOR_Read(
     while (TransferInProgress);
 
   }
+  rtems_cache_invalidate_multiple_data_lines(ReadBuffer, ByteCount);
   return 0;
 }
 
@@ -1015,6 +1049,7 @@ static int MultiDieRead(
     Address += data_len;
     remain_len -= data_len;
   }
+  rtems_cache_invalidate_multiple_data_lines(ReadBfrPtr, ByteCount);
   return 0;
 }
 
@@ -2002,4 +2037,243 @@ static int FlashEnableQuadMode(XQspiPsu *QspiPsuPtr)
   }
 
   return Status;
+}
+
+static int MultiDieReadEcc(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u32 ByteCount,
+  u8 *WriteBfrPtr,
+  u8 *ReadBfrPtr
+);
+
+int QspiPsu_NOR_Read_Ecc(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u8 *ReadBfrPtr
+)
+{
+  u32 RealAddr;
+  u32 DiscardByteCnt;
+  u32 FlashMsgCnt;
+  u8  EccBuffer[16];
+  int ByteCount = sizeof(EccBuffer);
+  int Status;
+
+  /* Check die boundary conditions if required for any flash */
+  if (Flash_Config_Table[FCTIndex].NumDie > 1) {
+
+    Status = MultiDieReadEcc(QspiPsuPtr, Address, ByteCount,
+              CmdBfr, EccBuffer);
+    if (Status == XST_SUCCESS) {
+      /* All bytes are the same, so copy one return byte into the output buffer */
+      *ReadBfrPtr = EccBuffer[0];
+    }
+    return Status;
+  }
+
+  /* For Dual Stacked, split and read for boundary crossing */
+  /*
+   * Translate address based on type of connection
+   * If stacked assert the slave select based on address
+   */
+  RealAddr = GetRealAddr(QspiPsuPtr, Address);
+
+  CmdBfr[COMMAND_OFFSET]   = READ_ECCSR;
+  CmdBfr[ADDRESS_1_OFFSET] =
+      (u8)((RealAddr & 0xFF000000) >> 24);
+  CmdBfr[ADDRESS_2_OFFSET] =
+      (u8)((RealAddr & 0xFF0000) >> 16);
+  CmdBfr[ADDRESS_3_OFFSET] =
+      (u8)((RealAddr & 0xFF00) >> 8);
+  CmdBfr[ADDRESS_4_OFFSET] =
+      (u8)(RealAddr & 0xF0);
+  DiscardByteCnt = 5;
+
+  FlashMsgCnt = 0;
+
+  FlashMsg[FlashMsgCnt].TxBfrPtr = CmdBfr;
+  FlashMsg[FlashMsgCnt].RxBfrPtr = NULL;
+  FlashMsg[FlashMsgCnt].ByteCount = DiscardByteCnt;
+  FlashMsg[FlashMsgCnt].BusWidth = XQSPIPSU_SELECT_MODE_SPI;
+  FlashMsg[FlashMsgCnt].Flags = XQSPIPSU_MSG_FLAG_TX;
+
+  FlashMsgCnt++;
+
+  FlashMsg[FlashMsgCnt].TxBfrPtr = NULL;
+  FlashMsg[FlashMsgCnt].RxBfrPtr = NULL;
+  FlashMsg[FlashMsgCnt].ByteCount = DUMMY_CLOCKS;
+  FlashMsg[FlashMsgCnt].Flags = 0;
+
+  FlashMsgCnt++;
+
+  FlashMsg[FlashMsgCnt].TxBfrPtr = NULL;
+  FlashMsg[FlashMsgCnt].RxBfrPtr = EccBuffer;
+  FlashMsg[FlashMsgCnt].ByteCount = ByteCount;
+  FlashMsg[FlashMsgCnt].BusWidth = XQSPIPSU_SELECT_MODE_SPI;
+  FlashMsg[FlashMsgCnt].Flags = XQSPIPSU_MSG_FLAG_RX;
+
+  if (QspiPsuPtr->Config.ConnectionMode ==
+      XQSPIPSU_CONNECTION_MODE_PARALLEL) {
+    FlashMsg[FlashMsgCnt].Flags |= XQSPIPSU_MSG_FLAG_STRIPE;
+  }
+
+  TransferInProgress = TRUE;
+  Status = XQspiPsu_InterruptTransfer(QspiPsuPtr, FlashMsg,
+              FlashMsgCnt + 1);
+  if (Status == XST_SUCCESS) {
+    while (TransferInProgress);
+
+    /* All bytes are the same, so copy one return byte into the output buffer */
+    *ReadBfrPtr = EccBuffer[0];
+  }
+
+  return Status;
+}
+
+/*****************************************************************************/
+/**
+ *
+ * This function performs an ECC read operation for multi die flash devices.
+ * Default setting is in DMA mode.
+ *
+ * @param	QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ * @param	Address contains the address of the first sector which needs to
+ *		be erased.
+ * @param	ByteCount contains the total size to be erased.
+ * @param	WriteBfrPtr is pointer to the write buffer which contains data to be
+ *		transmitted
+ * @param	ReadBfrPtr is pointer to the read buffer to which valid received data
+ *		should be written
+ *
+ * @return	XST_SUCCESS if successful, else XST_FAILURE.
+ *
+ * @note	None.
+ *
+ ******************************************************************************/
+static int MultiDieReadEcc(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u32 ByteCount,
+  u8 *WriteBfrPtr,
+  u8 *ReadBuffer
+)
+{
+  u32 RealAddr;
+  u32 DiscardByteCnt;
+  u32 FlashMsgCnt;
+  int Status;
+  u32 cur_bank = 0;
+  u32 nxt_bank = 0;
+  u32 bank_size;
+  u32 remain_len = ByteCount;
+  u32 data_len;
+  u32 transfer_len;
+
+  /*
+   * Some flash devices like N25Q512 have multiple dies
+   * in it. Read operation in these devices is bounded
+   * by its die segment. In a continuous read, across
+   * multiple dies, when the last byte of the selected
+   * die segment is read, the next byte read is the
+   * first byte of the same die segment. This is Die
+   * cross over issue. So to handle this issue, split
+   * a read transaction, that spans across multiple
+   * banks, into one read per bank. Bank size is 16MB
+   * for single and dual stacked mode and 32MB for dual
+   * parallel mode.
+   */
+  if (QspiPsuPtr->Config.ConnectionMode ==
+      XQSPIPSU_CONNECTION_MODE_PARALLEL)
+    bank_size = SIXTEENMB << 1;
+  else
+    bank_size = SIXTEENMB;
+
+  while (remain_len) {
+    cur_bank = Address / bank_size;
+    nxt_bank = (Address + remain_len) / bank_size;
+
+    if (cur_bank != nxt_bank) {
+      transfer_len = (bank_size * (cur_bank  + 1)) - Address;
+      if (remain_len < transfer_len)
+        data_len = remain_len;
+      else
+        data_len = transfer_len;
+    } else {
+      data_len = remain_len;
+    }
+    /*
+     * Translate address based on type of connection
+     * If stacked assert the slave select based on address
+     */
+    RealAddr = GetRealAddr(QspiPsuPtr, Address);
+
+    WriteBfrPtr[COMMAND_OFFSET]   = READ_ECCSR;
+    WriteBfrPtr[ADDRESS_1_OFFSET] =
+        (u8)((RealAddr & 0xFF000000) >> 24);
+    WriteBfrPtr[ADDRESS_2_OFFSET] =
+        (u8)((RealAddr & 0xFF0000) >> 16);
+    WriteBfrPtr[ADDRESS_3_OFFSET] =
+        (u8)((RealAddr & 0xFF00) >> 8);
+    WriteBfrPtr[ADDRESS_4_OFFSET] =
+        (u8)(RealAddr & 0xF0);
+    DiscardByteCnt = 5;
+
+    FlashMsgCnt = 0;
+
+    FlashMsg[FlashMsgCnt].TxBfrPtr = WriteBfrPtr;
+    FlashMsg[FlashMsgCnt].RxBfrPtr = NULL;
+    FlashMsg[FlashMsgCnt].ByteCount = DiscardByteCnt;
+    FlashMsg[FlashMsgCnt].BusWidth = XQSPIPSU_SELECT_MODE_SPI;
+    FlashMsg[FlashMsgCnt].Flags = XQSPIPSU_MSG_FLAG_TX;
+
+    FlashMsgCnt++;
+
+    FlashMsg[FlashMsgCnt].TxBfrPtr = NULL;
+    FlashMsg[FlashMsgCnt].RxBfrPtr = NULL;
+    FlashMsg[FlashMsgCnt].ByteCount = DUMMY_CLOCKS;
+    FlashMsg[FlashMsgCnt].Flags = 0;
+
+    FlashMsgCnt++;
+
+    FlashMsg[FlashMsgCnt].TxBfrPtr = NULL;
+    FlashMsg[FlashMsgCnt].RxBfrPtr = ReadBuffer;
+    FlashMsg[FlashMsgCnt].ByteCount = data_len;
+    FlashMsg[FlashMsgCnt].BusWidth = XQSPIPSU_SELECT_MODE_SPI;
+    FlashMsg[FlashMsgCnt].Flags = XQSPIPSU_MSG_FLAG_RX;
+
+    if (QspiPsuPtr->Config.ConnectionMode ==
+        XQSPIPSU_CONNECTION_MODE_PARALLEL)
+      FlashMsg[FlashMsgCnt].Flags |=
+        XQSPIPSU_MSG_FLAG_STRIPE;
+
+    TransferInProgress = TRUE;
+    Status = XQspiPsu_InterruptTransfer(QspiPsuPtr, FlashMsg,
+                FlashMsgCnt + 1);
+    if (Status != XST_SUCCESS)
+      return XST_FAILURE;
+
+    while (TransferInProgress);
+
+    ReadBuffer += data_len;
+    Address += data_len;
+    remain_len -= data_len;
+  }
+  return 0;
+}
+
+u32 QspiPsu_NOR_Get_Sector_Size(XQspiPsu *QspiPsuPtr)
+{
+  if(QspiPsuPtr->Config.ConnectionMode == XQSPIPSU_CONNECTION_MODE_PARALLEL) {
+    return Flash_Config_Table[FCTIndex].SectSize * 2;
+  }
+  return Flash_Config_Table[FCTIndex].SectSize;
+}
+
+u32 QspiPsu_NOR_Get_Device_Size(XQspiPsu *QspiPsuPtr)
+{
+  if(QspiPsuPtr->Config.ConnectionMode == XQSPIPSU_CONNECTION_MODE_STACKED) {
+    return Flash_Config_Table[FCTIndex].FlashDeviceSize * 2;
+  }
+  return Flash_Config_Table[FCTIndex].FlashDeviceSize;
 }

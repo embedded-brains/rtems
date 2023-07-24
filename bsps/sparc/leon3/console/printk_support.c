@@ -35,20 +35,30 @@
  */
 
 #include <bsp.h>
-#include <leon.h>
+#include <bsp/leon3.h>
 #include <rtems/bspIo.h>
 #include <rtems/sysinit.h>
-#include <rtems/score/thread.h>
 #include <grlib/apbuart.h>
+#include <grlib/io.h>
+
+#if !defined(LEON3_APBUART_BASE)
+#include <grlib/ambapp.h>
 
 int leon3_debug_uart_index __attribute__((weak)) = 0;
-struct apbuart_regs *leon3_debug_uart = NULL;
+
+apbuart *leon3_debug_uart = NULL;
+#endif
 
 static void bsp_debug_uart_init(void);
 
-static void bsp_debug_uart_discard(char c)
+static void apbuart_enable_receive_and_transmit(apbuart *regs)
 {
-  (void) c;
+  uint32_t ctrl;
+
+  ctrl = grlib_load_32(&regs->ctrl);
+  ctrl |= APBUART_CTRL_RE | APBUART_CTRL_TE;
+  grlib_store_32(&regs->ctrl, ctrl);
+  grlib_store_32(&regs->status, 0);
 }
 
 static void bsp_debug_uart_output_char(char c)
@@ -66,6 +76,22 @@ static void bsp_debug_uart_pre_init_out(char c)
 {
   bsp_debug_uart_init();
   (*BSP_output_char)(c);
+}
+
+#if defined(LEON3_APBUART_BASE)
+
+static void bsp_debug_uart_init(void)
+{
+  apbuart_enable_receive_and_transmit(leon3_debug_uart);
+  BSP_poll_char = bsp_debug_uart_poll_char;
+  BSP_output_char = bsp_debug_uart_output_char;
+}
+
+#else /* !LEON3_APBUART_BASE */
+
+static void bsp_debug_uart_discard(char c)
+{
+  (void) c;
 }
 
 /* Initialize the BSP system debug console layer. It will scan AMBA Plu&Play
@@ -111,14 +137,15 @@ static void bsp_debug_uart_init(void)
      * printk().
      */
     apb = (struct ambapp_apb_info *)adev->devinfo;
-    leon3_debug_uart = (struct apbuart_regs *)apb->start;
-    leon3_debug_uart->ctrl |= APBUART_CTRL_RE | APBUART_CTRL_TE;
-    leon3_debug_uart->status = 0;
+    leon3_debug_uart = (apbuart *)apb->start;
+    apbuart_enable_receive_and_transmit(leon3_debug_uart);
 
     BSP_poll_char = bsp_debug_uart_poll_char;
     BSP_output_char = bsp_debug_uart_output_char;
   }
 }
+
+#endif /* LEON3_APBUART_BASE */
 
 RTEMS_SYSINIT_ITEM(
   bsp_debug_uart_init,

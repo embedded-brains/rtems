@@ -4,7 +4,7 @@ actions:
 - env-assign: null
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
 default:
 - enabled-by:
   - arm/stm32h747i-disco
@@ -12,6 +12,9 @@ default:
   - arm/stm32h757i-eval
   - arm/stm32h757i-eval-m4
   value: 0x02000000
+- enabled-by:
+  - arm/stm32h750b-dk
+  value: 0x01000000
 - enabled-by: true
   value: 0x00000000
 description: |

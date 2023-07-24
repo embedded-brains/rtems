@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: group
 cflags: []
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
 cxxflags: []
 enabled-by:
@@ -10,6 +10,7 @@ enabled-by:
 - BUILD_VALIDATIONTESTS
 includes:
 - ${BSP_INCLUDES}
+- testsuites/validation
 install: []
 ldflags: []
 links:
@@ -79,6 +80,16 @@ links:
   uid: validation-tls-0
 - role: build-dependency
   uid: validation-tls-1
+- role: build-dependency
+  uid: bsps/fatal-sparc-leon3-cache-snooping-disabled-boot
+- role: build-dependency
+  uid: bsps/fatal-sparc-leon3-cache-snooping-disabled-secondary
+- role: build-dependency
+  uid: bsps/fatal-sparc-leon3-clock-initialization
+- role: build-dependency
+  uid: bsps/fatal-sparc-leon3-shutdown
+- role: build-dependency
+  uid: bsps/validation-bsp-0
 type: build
 use-after:
 - validation

@@ -3,13 +3,13 @@
 /**
  * @file
  *
- * @ingroup bsp_kit
+ * @ingroup RTEMSBSPsShared
  *
- * @brief Utility macros.
+ * @brief This header file provides utility macros for BSPs.
  */
 
 /*
- * Copyright (c) 2008-2011 embedded brains GmbH.  All rights reserved.
+ * Copyright (C) 2008, 2011 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

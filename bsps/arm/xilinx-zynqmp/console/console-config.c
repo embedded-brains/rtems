@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (C) 2013, 2017 embedded brains GmbH
+ * Copyright (C) 2013, 2017 embedded brains GmbH & Co. KG
  *
  * Copyright (C) 2019 DornerWorks
  *
@@ -33,6 +33,7 @@
 #include <rtems/console.h>
 #include <rtems/bspIo.h>
 #include <rtems/sysinit.h>
+#include <rtems/termiostypes.h>
 
 #include <bsp/irq.h>
 #include <dev/serial/zynq-uart.h>

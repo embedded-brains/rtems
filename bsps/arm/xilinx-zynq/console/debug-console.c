@@ -1,7 +1,16 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
  *
- * Copyright (C) 2013, 2017 embedded brains GmbH
+ * @ingroup RTEMSBSPsARMZynq
+ *
+ * @brief This source file contains the definition of ::BSP_output_char and
+ *   ::BSP_poll_char.
+ */
+
+/*
+ * Copyright (C) 2013, 2017 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,10 +50,16 @@ static void zynq_debug_console_out(char c)
   zynq_uart_write_polled(base, c);
 }
 
+static void zynq_debug_console_early_init(char c);
+
 static void zynq_debug_console_init(void)
 {
   rtems_termios_device_context *base =
     &zynq_uart_instances[BSP_CONSOLE_MINOR].base;
+
+  if (BSP_output_char != zynq_debug_console_early_init) {
+    return;
+  }
 
   zynq_uart_initialize(base);
   BSP_output_char = zynq_debug_console_out;

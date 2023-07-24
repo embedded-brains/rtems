@@ -34,7 +34,7 @@
 #define APBUART_TERMIOS_H
 
 #include <rtems/termiostypes.h>
-#include "grlib.h"
+#include "apbuart.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,7 +42,7 @@ extern "C" {
 
 struct apbuart_context {
   rtems_termios_device_context base;
-  struct apbuart_regs *regs;
+  apbuart *regs;
   unsigned int freq_hz;
   rtems_vector_number irq;
   volatile int sending;

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -224,15 +224,15 @@ typedef struct {
 
   rtems_status_code status;
 
-  Semaphore_Variant variant;;
+  Semaphore_Variant variant;
 
-  Semaphore_Discipline discipline;;
+  Semaphore_Discipline discipline;
 
-  uint32_t sem_count;;
+  uint32_t sem_count;
 
-  Thread_Control *executing;;
+  Thread_Control *executing;
 
-  Thread_Control *owner;;
+  Thread_Control *owner;
 
   rtems_name name;
 

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@
  * This test case performs the following actions:
  *
  * - Run the generic object identification tests for Classic API timer class
- *   objects defined by /rtems/req/ident-local.
+ *   objects defined by spec:/rtems/req/ident-local.
  *
  * @{
  */
@@ -83,7 +83,7 @@ static rtems_status_code ClassicTimerIdentAction(
 
 /**
  * @brief Run the generic object identification tests for Classic API timer
- *   class objects defined by /rtems/req/ident-local.
+ *   class objects defined by spec:/rtems/req/ident-local.
  */
 static void RtemsTimerValIdent_Action_0( void )
 {

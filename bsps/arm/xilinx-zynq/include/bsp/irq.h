@@ -7,7 +7,7 @@
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (C) 2013 embedded brains GmbH
+ * Copyright (C) 2013 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 
 #ifndef ASM
 
-#include <rtems/irq.h>
 #include <rtems/irq-extension.h>
 
 #include <bsp/arm-a9mpcore-irq.h>

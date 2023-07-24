@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,6 +55,10 @@ extern char imxrt_memory_ocram_nocache_size[];
 extern char imxrt_memory_peripheral_begin[];
 extern char imxrt_memory_peripheral_end[];
 extern char imxrt_memory_peripheral_size[];
+
+extern char imxrt_memory_flash_raw_begin[];
+extern char imxrt_memory_flash_raw_end[];
+extern char imxrt_memory_flash_raw_size[];
 
 extern char imxrt_memory_flash_config_begin[];
 extern char imxrt_memory_flash_config_end[];

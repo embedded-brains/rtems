@@ -1,6 +1,6 @@
 /**
  * @file
- * @ingroup sparc_leon3
+ * @ingroup RTEMSBSPsSPARCLEON3
  * @brief LEON3 SMP BSP Support
  */
 
@@ -17,7 +17,7 @@
 #include <bsp/bootcard.h>
 #include <bsp/fatal.h>
 #include <bsp/irq.h>
-#include <leon.h>
+#include <bsp/leon3.h>
 #include <rtems/bspIo.h>
 #include <rtems/sysinit.h>
 #include <rtems/score/assert.h>
@@ -39,14 +39,9 @@ static void bsp_inter_processor_interrupt( void *arg )
 
 void bsp_start_on_secondary_processor(Per_CPU_Control *cpu_self)
 {
-  /*
-   * If data cache snooping is not enabled we terminate using BSP_fatal_exit()
-   * instead of bsp_fatal().  This is done since the latter function tries to
-   * acquire a ticket lock, an operation which requires data cache snooping to
-   * be enabled.
-   */
-  if ( !leon3_data_cache_snooping_enabled() )
-    BSP_fatal_exit( LEON3_FATAL_INVALID_CACHE_CONFIG_SECONDARY_PROCESSOR );
+  if ( !leon3_data_cache_snooping_enabled() ) {
+    bsp_fatal( LEON3_FATAL_INVALID_CACHE_CONFIG_SECONDARY_PROCESSOR );
+  }
 
   _SMP_Start_multitasking_on_secondary_processor(cpu_self);
 }
@@ -89,7 +84,10 @@ bool _CPU_SMP_Start_processor( uint32_t cpu_index )
     printk( "Waking CPU %d\n", cpu_index );
   #endif
 
-  LEON3_IrqCtrl_Regs->mpstat = 1U << cpu_index;
+  grlib_store_32(
+    &LEON3_IrqCtrl_Regs->mpstat,
+    IRQAMP_MPSTAT_STATUS(1U << cpu_index)
+  );
 
   return true;
 }
@@ -111,7 +109,10 @@ void _CPU_SMP_Prepare_start_multitasking( void )
 void _CPU_SMP_Send_interrupt(uint32_t target_processor_index)
 {
   /* send interrupt to destination CPU */
-  LEON3_IrqCtrl_Regs->force[target_processor_index] = 1 << LEON3_mp_irq;
+  grlib_store_32(
+    &LEON3_IrqCtrl_Regs->piforce[target_processor_index],
+    1U << LEON3_mp_irq
+  );
 }
 
 #if defined(RTEMS_DRVMGR_STARTUP)

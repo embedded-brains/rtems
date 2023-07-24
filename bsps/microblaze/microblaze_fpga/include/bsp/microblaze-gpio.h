@@ -129,15 +129,23 @@ typedef struct {
   bool                       has_interrupts;
 } Microblaze_GPIO_context;
 
-extern Microblaze_GPIO_context gpio1_context;
-#ifdef BSP_MICROBLAZE_FPGA_GPIO2_ENABLED
-extern Microblaze_GPIO_context gpio2_context;
-#endif
-
-#define gpio1 ((Microblaze_GPIO_context * const) &gpio1_context)
-#ifdef BSP_MICROBLAZE_FPGA_GPIO2_ENABLED
-#define gpio2 ((Microblaze_GPIO_context * const) &gpio2_context)
-#endif
+#ifdef BSP_MICROBLAZE_FPGA_USE_FDT
+/**
+ * @brief Initialize GPIO context from FDT.
+ *
+ * @param[in] context the GPIO context to initialize
+ * @param[in] index the zero-based GPIO index in the FDT
+ *
+ * @retval RTEMS_SUCCESSFUL on success
+ * @retval RTEMS_INVALID_NUMBER if the index is invalid or the node is missing a
+ *         required property
+ * @retval RTEMS_INVALID_ADDRESS if the context is NULL
+ */
+rtems_status_code microblaze_gpio_init_context_from_fdt(
+  Microblaze_GPIO_context *context,
+  int index
+);
+#endif /* BSP_MICROBLAZE_FPGA_USE_FDT */
 
 /**
  * @brief Set pin configuration for the specified GPIO channel.

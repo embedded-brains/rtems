@@ -38,6 +38,7 @@
 #include <rtems/bspIo.h>
 #include <rtems/endian.h>
 #include <rtems/sysinit.h>
+#include <rtems/termiostypes.h>
 
 #include <bsp/aarch64-mmu.h>
 #include <bsp/fdt.h>
@@ -224,7 +225,7 @@ rtems_status_code console_initialize(
   if ( zynqmp_mgmt_uart_context.port != 0 ) {
     rtems_termios_device_install(
       "/dev/ttyMGMT0",
-      &ns16550_handler_polled,
+      &ns16550_handler_interrupt,
       NULL,
       &zynqmp_mgmt_uart_context.base
     );

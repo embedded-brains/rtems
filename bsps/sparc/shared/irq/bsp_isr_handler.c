@@ -29,6 +29,7 @@
 
 #include <bsp.h>
 #include <bsp/irq-generic.h>
+#include <bsp/irqimpl.h>
 
 /*
  * This function is called directly from _SPARC_Interrupt_trap() for

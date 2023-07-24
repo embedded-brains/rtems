@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -129,13 +129,13 @@ typedef struct {
 typedef struct {
   void *seized_objects;
 
-  rtems_extensions_table table_variable;;
+  rtems_extensions_table table_variable;
 
   rtems_id id_value;
 
   rtems_name name;
 
-  rtems_extensions_table *table;;
+  rtems_extensions_table *table;
 
   rtems_id *id;
 

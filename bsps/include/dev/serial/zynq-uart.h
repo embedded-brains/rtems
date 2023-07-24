@@ -7,7 +7,7 @@
 /*
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (C) 2013, XXX embedded brains GmbH
+ * Copyright (C) 2013, XXX embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 #ifndef LIBBSP_ARM_XILINX_ZYNQ_UART_H
 #define LIBBSP_ARM_XILINX_ZYNQ_UART_H
 
-#include <rtems/termiostypes.h>
+#include <rtems/termiosdevice.h>
 
 #ifdef __cplusplus
 extern "C" {

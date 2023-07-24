@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -225,7 +225,7 @@ typedef struct {
    * @brief This member contains a reference to the user data to be used in the
    *   next call to the Timer Service Routine.
    */
-  void **scheduled_user_data;;
+  void **scheduled_user_data;
 
   /**
    * @brief This member contains 1 if the Timer Service Routine "A" has been

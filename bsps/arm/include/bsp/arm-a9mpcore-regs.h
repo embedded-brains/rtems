@@ -1,15 +1,15 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @ingroup RTEMSBSPsARMShared
+ * @ingroup A9MPCoreSupport
  *
- *  @brief ARM_A9MPCORE_REGS Support
+ * @brief This header file provides the interfaces of the @ref A9MPCoreSupport.
  */
 
 /*
- * Copyright (c) 2013 embedded brains GmbH.  All rights reserved.
+ * Copyright (c) 2013 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,16 @@
 #define LIBBSP_ARM_SHARED_ARM_A9MPCORE_REGS_H
 
 #include <bsp/utility.h>
+
+/**
+ * @defgroup A9MPCoreSupport Cortex-A9 MPCore Support
+ *
+ * @ingroup RTEMSBSPsARMShared
+ *
+ * @brief This group contains support interfaces for the Cortex-A9 MPCore.
+ *
+ * @{
+ */
 
 typedef struct {
   uint32_t ctrl;
@@ -142,5 +152,7 @@ typedef struct {
   uint32_t reserved_638[626];
   a9mpcore_idist idist;
 } a9mpcore;
+
+/** @} */
 
 #endif /* LIBBSP_ARM_SHARED_ARM_A9MPCORE_REGS_H */

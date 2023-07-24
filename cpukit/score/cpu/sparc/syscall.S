@@ -11,7 +11,7 @@
  *  COPYRIGHT:
  *
  *  COPYRIGHT (c) 1995. European Space Agency.
- *  Copyright (c) 2016, 2017 embedded brains GmbH
+ *  Copyright (C) 2016, 2017 embedded brains GmbH & Co. KG
  *
  *  This terms of the RTEMS license apply to this file.
  *
@@ -44,8 +44,10 @@ SYM(syscall):
 	ta	0			! syscall 1, halt with %g1,%g2,%g3 info
 
 	PUBLIC(sparc_syscall_exit)
+	PUBLIC(_CPU_Fatal_halt)
 
 SYM(sparc_syscall_exit):
+SYM(_CPU_Fatal_halt):
 
 	mov	SYS_exit, %g1
 	mov	%o0, %g2	! Additional exit code 1

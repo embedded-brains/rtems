@@ -4,8 +4,10 @@ actions:
 - env-assign: null
 build-type: option
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2021 embedded brains GmbH & Co. KG
 default:
+- enabled-by: arm/imxrt1166-cm7-saltshaker
+  value: 0x0003ff00
 - enabled-by: true
   value: 0x0001ff00
 description: |

@@ -4,7 +4,7 @@ actions:
 - define-unquoted: null
 build-type: option
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2021 embedded brains GmbH & Co. KG
 default:
 - enabled-by:
   - arm/stm32h747i-disco
@@ -12,6 +12,7 @@ default:
   - arm/stm32h7b3i-dk
   value: GPIOA
 - enabled-by:
+  - arm/stm32h750b-dk
   - arm/stm32h757i-eval
   - arm/stm32h757i-eval-m4
   value: GPIOB

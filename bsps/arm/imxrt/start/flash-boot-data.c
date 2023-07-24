@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 #include <bspopts.h>
 
 const BOOT_DATA_T imxrt_boot_data = {
-  .start = (uint32_t) imxrt_memory_flash_config_begin,
+  .start = (uint32_t) imxrt_memory_flash_raw_begin,
   .size = IMXRT_MEMORY_FLASH_SIZE,
   .plugin = PLUGIN_FLAG,
   .placeholder = 0xFFFFFFFF,

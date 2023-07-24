@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (c) 2013, 2018 embedded brains GmbH.  All rights reserved.
+ * Copyright (c) 2013-2023 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,13 +31,10 @@
 #include <imxrt/mpu-config.h>
 
 #include <chip.h>
-#include <fsl_pin_mux.h>
 #include <fsl_clock_config.h>
 
 BSP_START_TEXT_SECTION void bsp_start_hook_0(void)
 {
-  /* FIXME: Initializing SDRAM is currently done by DCD. It would be more user
-   * friendly if that would be done here with a readable structure. */
   if ((SCB->CCR & SCB_CCR_IC_Msk) == 0) {
     SCB_EnableICache();
   }
@@ -46,7 +43,7 @@ BSP_START_TEXT_SECTION void bsp_start_hook_0(void)
     SCB_EnableDCache();
   }
 
-  _ARMV7M_MPU_Setup(imxrt_config_mpu_region, imxrt_config_mpu_region_count);
+  _ARMV7M_MPU_Setup(ARMV7M_MPU_CTRL_DEFAULT, imxrt_config_mpu_region, imxrt_config_mpu_region_count);
 }
 
 BSP_START_TEXT_SECTION void bsp_start_hook_1(void)
@@ -59,9 +56,11 @@ BSP_START_TEXT_SECTION void bsp_start_hook_1(void)
   BOARD_BootClockRUN();
   BOARD_InitDEBUG_UARTPins();
 
+#if IMXRT_IS_MIMXRT10xx
   /* Reduce frequency for I2C */
   CLOCK_SetDiv(kCLOCK_Lpi2cDiv, 5);
 
   /* Enable EDMA clock. We initialize the EDMA so we need the clock. */
   CLOCK_EnableClock(kCLOCK_Dma);
+#endif
 }

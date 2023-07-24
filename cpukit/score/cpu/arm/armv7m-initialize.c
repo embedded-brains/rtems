@@ -3,11 +3,13 @@
 /**
  * @file
  *
- * @brief ARM7M CPU Initialize
+ * @ingroup RTEMSScoreCPUARM
+ *
+ * @brief This source file contains the implementation of _CPU_Initialize().
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  * Copyright (C) 2011 Sebastian Huber
  *
  * Redistribution and use in source and binary forms, with or without

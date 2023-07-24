@@ -4,7 +4,7 @@ bsp: erc32
 build-type: bsp
 cflags: []
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
 enabled-by: true
 family: erc32
@@ -17,6 +17,7 @@ install:
 - destination: ${BSP_INCLUDEDIR}/bsp
   source:
   - bsps/sparc/erc32/include/bsp/irq.h
+  - bsps/sparc/erc32/include/bsp/irqimpl.h
 - destination: ${BSP_LIBDIR}
   source:
   - bsps/sparc/erc32/start/linkcmds
@@ -36,8 +37,6 @@ links:
   uid: objsmp
 - role: build-dependency
   uid: optconirq
-- role: build-dependency
-  uid: optpwrdwnhlt
 - role: build-dependency
   uid: ../grp
 - role: build-dependency
@@ -70,5 +69,4 @@ source:
 - bsps/sparc/shared/irq/bsp_isr_handler.c
 - bsps/sparc/shared/irq/irq-shared.c
 - bsps/sparc/shared/start/bsp_fatal_exit.c
-- bsps/sparc/shared/start/bsp_fatal_halt.c
 type: build

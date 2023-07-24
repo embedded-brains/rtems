@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: objects
 cflags: []
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
 cxxflags: []
 enabled-by: true
@@ -16,6 +16,7 @@ install:
   source:
   - bsps/sparc/leon2/include/bsp/at697_pci.h
   - bsps/sparc/leon2/include/bsp/irq.h
+  - bsps/sparc/leon2/include/bsp/irqimpl.h
 - destination: ${BSP_LIBDIR}
   source:
   - bsps/sparc/leon2/start/linkcmds.at697f
@@ -46,5 +47,4 @@ source:
 - bsps/sparc/shared/irq/bsp_isr_handler.c
 - bsps/sparc/shared/irq/irq-shared.c
 - bsps/sparc/shared/start/bsp_fatal_exit.c
-- bsps/sparc/shared/start/bsp_fatal_halt.c
 type: build

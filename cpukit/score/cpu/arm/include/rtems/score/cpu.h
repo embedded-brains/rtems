@@ -3,14 +3,17 @@
 /**
  * @file
  *
- * @brief ARM Architecture Support API
+ * @ingroup RTEMSScoreCPUARM
+ *
+ * @brief This header file defines implementation interfaces pertaining to the
+ *   port of the executive to the ARM architecture.
  */
 
 /*
  *  This include file contains information pertaining to the ARM
  *  processor.
  *
- *  Copyright (c) 2009, 2017 embedded brains GmbH
+ *  Copyright (C) 2009, 2017 embedded brains GmbH & Co. KG
  *
  *  Copyright (c) 2007 Ray Xu <Rayx.cn@gmail.com>
  *

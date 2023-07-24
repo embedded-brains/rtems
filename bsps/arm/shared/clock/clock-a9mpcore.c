@@ -1,7 +1,16 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup A9MPCoreSupport
+ *
+ * @brief This source file contains the Clock Driver for Cortex-A9 MPCore
+ * compatible devices.
+ */
+
 /*
- * Copyright (c) 2013, 2016 embedded brains GmbH.  All rights reserved.
+ * Copyright (C) 2013, 2016 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +48,7 @@
 static struct timecounter a9mpcore_tc;
 
 /* This is defined in dev/clock/clockimpl.h */
-void Clock_isr(rtems_irq_hdl_param arg);
+void Clock_isr(void *arg);
 
 __attribute__ ((weak)) uint32_t a9mpcore_clock_periphclk(void)
 {
@@ -54,16 +63,21 @@ static void a9mpcore_clock_at_tick(void)
   gt->irqst = A9MPCORE_GT_IRQST_EFLG;
 }
 
+static rtems_interrupt_entry a9mpcore_clock_interrupt_entry =
+  RTEMS_INTERRUPT_ENTRY_INITIALIZER(
+    (rtems_interrupt_handler) Clock_isr,
+    NULL,
+    "Clock"
+  );
+
 static void a9mpcore_clock_handler_install(void)
 {
   rtems_status_code sc;
 
-  sc = rtems_interrupt_handler_install(
+  sc = rtems_interrupt_entry_install(
     A9MPCORE_IRQ_GT,
-    "Clock",
     RTEMS_INTERRUPT_UNIQUE,
-    (rtems_interrupt_handler) Clock_isr,
-    NULL
+    &a9mpcore_clock_interrupt_entry
   );
   if (sc != RTEMS_SUCCESSFUL) {
     bsp_fatal(BSP_ARM_A9MPCORE_FATAL_CLOCK_IRQ_INSTALL);

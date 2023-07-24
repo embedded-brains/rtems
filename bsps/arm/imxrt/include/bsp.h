@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,6 +83,7 @@ uint32_t imxrt_systick_frequency(void);
 void imxrt_lpspi_init(void);
 void imxrt_lpi2c_init(void);
 void imxrt_ffec_init(void);
+void BOARD_InitDEBUG_UARTPins(void);
 
 #ifdef __cplusplus
 }

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -88,19 +88,19 @@ typedef struct {
    * @brief If this member is true, then the calling thread shall be the owner
    *   of the mutex.
    */
-  bool owner_caller;;
+  bool owner_caller;
 
   /**
    * @brief If this member is true, then a thread other than the calling thread
    *   shall be the owner of the mutex.
    */
-  bool owner_other;;
+  bool owner_other;
 
   /**
    * @brief This member contains the current priority of the calling thread
    *   before the directive call.
    */
-  rtems_task_priority priority_before;;
+  rtems_task_priority priority_before;
 
   /**
    * @brief This member contains the owner of the mutex after the directive
@@ -112,7 +112,7 @@ typedef struct {
    * @brief This member contains the current priority of the calling thread
    *   after the directive call.
    */
-  rtems_task_priority priority_after;;
+  rtems_task_priority priority_after;
 
   /**
    * @brief This member contains a copy of the corresponding

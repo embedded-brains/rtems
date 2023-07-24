@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (c) 2015 embedded brains GmbH.  All rights reserved.
+ * Copyright (c) 2015 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@ const char rtems_test_name[] = "SPTIMECOUNTER 3";
 
 #define CPU_COUNT 32
 
-static rtems_test_parallel_context ctx;;
+static rtems_test_parallel_context ctx;
 
 static rtems_interval test_binuptime_init(
   rtems_test_parallel_context *ctx,

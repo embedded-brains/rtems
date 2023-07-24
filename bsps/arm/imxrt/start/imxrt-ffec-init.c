@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@ void imxrt_ffec_init(void)
 
   fdt = bsp_fdt_get();
 
+#if IMXRT_IS_MIMXRT10xx
   const clock_enet_pll_config_t config = {
     .enableClkOutput = true,
     .enableClkOutput25M = false,
@@ -49,7 +50,10 @@ void imxrt_ffec_init(void)
 
   CLOCK_InitEnetPll(&config);
 
-  iomuxc_gpr->GPR1 |= IOMUXC_GPR_GPR1_ENET1_TX_CLK_DIR_MASK;
+  iomuxc_gpr->GPR1 |= IOMUXC_GPR_GPR1_ENET_REF_CLK_DIR_MASK;
+#else
+  iomuxc_gpr->GPR4 |= IOMUXC_GPR_GPR4_ENET_REF_CLK_DIR_MASK;
+#endif
 
   node = fdt_node_offset_by_compatible(fdt, -1, "fsl,imxrt-fec");
   if (node >= 0) {

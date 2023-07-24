@@ -1,7 +1,16 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
  *
- * Copyright (C) 2013, 2014 embedded brains GmbH
+ * @ingroup RTEMSBSPsARMZynq
+ *
+ * @brief This source file contains the implementation of bsp_start_hook_0()
+ *   and bsp_start_hook_1().
+ */
+
+/*
+ * Copyright (C) 2013, 2014 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

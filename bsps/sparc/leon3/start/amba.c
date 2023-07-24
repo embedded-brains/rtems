@@ -115,14 +115,15 @@ RTEMS_SYSINIT_ITEM(
 );
 #endif
 
-rtems_interrupt_lock LEON3_IrqCtrl_Lock =
-  RTEMS_INTERRUPT_LOCK_INITIALIZER("LEON3 IrqCtrl");
-
-/* Pointers to Interrupt Controller configuration registers */
-volatile struct irqmp_regs *LEON3_IrqCtrl_Regs;
+#if !defined(LEON3_IRQAMP_BASE)
+irqamp *LEON3_IrqCtrl_Regs;
 struct ambapp_dev *LEON3_IrqCtrl_Adev;
-volatile struct gptimer_regs *LEON3_Timer_Regs;
+#endif
+
+#if !defined(LEON3_GPTIMER_BASE)
+gptimer *LEON3_Timer_Regs;
 struct ambapp_dev *LEON3_Timer_Adev;
+#endif
 
 /*
  *  amba_initialize
@@ -136,12 +137,16 @@ struct ambapp_dev *LEON3_Timer_Adev;
 
 static void amba_initialize(void)
 {
-  int icsel;
   struct ambapp_dev *adev;
   struct ambapp_bus *plb;
 
   plb = ambapp_plb();
+#if defined(LEON3_IRQAMP_BASE) && defined(LEON3_GPTIMER_BASE)
+  (void) plb;
+  (void) adev;
+#endif
 
+#if !defined(LEON3_IRQAMP_BASE)
   /* Find LEON3 Interrupt controller */
   adev = (void *)ambapp_for_each(plb, (OPTIONS_ALL|OPTIONS_APB_SLVS),
                                  VENDOR_GAISLER, GAISLER_IRQMP,
@@ -154,38 +159,36 @@ static void amba_initialize(void)
     bsp_fatal(LEON3_FATAL_NO_IRQMP_CONTROLLER);
   }
 
-  LEON3_IrqCtrl_Regs = (volatile struct irqmp_regs *)DEV_TO_APB(adev)->start;
+  LEON3_IrqCtrl_Regs = (irqamp *)DEV_TO_APB(adev)->start;
   LEON3_IrqCtrl_Adev = adev;
-  if ((LEON3_IrqCtrl_Regs->ampctrl >> 28) > 0) {
+  if ((grlib_load_32(&LEON3_IrqCtrl_Regs->asmpctrl) >> 28) > 0) {
+    uint32_t icsel;
+
     /* IRQ Controller has support for multiple IRQ Controllers, each
      * CPU can be routed to different Controllers, we find out which
      * controller by looking at the IRQCTRL Select Register for this CPU.
      * Each Controller is located at a 4KByte offset.
      */
-    icsel = LEON3_IrqCtrl_Regs->icsel[LEON3_Cpu_Index/8];
+    icsel = grlib_load_32(&LEON3_IrqCtrl_Regs->icselr[LEON3_Cpu_Index/8]);
     icsel = (icsel >> ((7 - (LEON3_Cpu_Index & 0x7)) * 4)) & 0xf;
     LEON3_IrqCtrl_Regs += icsel;
   }
-  LEON3_IrqCtrl_Regs->mask[LEON3_Cpu_Index] = 0;
-  LEON3_IrqCtrl_Regs->force[LEON3_Cpu_Index] = 0;
-  LEON3_IrqCtrl_Regs->iclear = 0xffffffff;
+#endif
 
-  /* Init Extended IRQ controller if available */
-  leon3_ext_irq_init();
-
+#if !defined(LEON3_GPTIMER_BASE)
   /* find GP Timer */
   adev = (void *)ambapp_for_each(plb, (OPTIONS_ALL|OPTIONS_APB_SLVS),
                                  VENDOR_GAISLER, GAISLER_GPTIMER,
                                  ambapp_find_by_idx, &leon3_timer_core_index);
   if (adev) {
-    LEON3_Timer_Regs = (volatile struct gptimer_regs *)DEV_TO_APB(adev)->start;
+    LEON3_Timer_Regs = (gptimer *)DEV_TO_APB(adev)->start;
     LEON3_Timer_Adev = adev;
 
     /* Register AMBA Bus Frequency */
     ambapp_freq_init(
       plb,
       LEON3_Timer_Adev,
-      (LEON3_Timer_Regs->scaler_reload + 1)
+      (grlib_load_32(&LEON3_Timer_Regs->sreload) + 1)
         * LEON3_GPTIMER_0_FREQUENCY_SET_BY_BOOT_LOADER
     );
     /* Set user prescaler configuration. Use this to increase accuracy of timer
@@ -194,8 +197,9 @@ static void amba_initialize(void)
      * GRTIMER/GPTIMER hardware. See HW manual.
      */
     if (leon3_timer_prescaler)
-      LEON3_Timer_Regs->scaler_reload = leon3_timer_prescaler;
+      grlib_store_32(&LEON3_Timer_Regs->sreload, leon3_timer_prescaler);
   }
+#endif
 }
 
 RTEMS_SYSINIT_ITEM(

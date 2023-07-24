@@ -2,7 +2,7 @@
 
 /**
  * @file
- * @ingroup sparc_leon3
+ * @ingroup RTEMSBSPsSPARCLEON3
  * @brief LEON3 BSP data types and macros
  */
 
@@ -44,6 +44,8 @@
 
 #include <rtems.h>
 #include <amba.h>
+#include <grlib/io.h>
+#include <bsp/leon3.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -140,41 +142,6 @@ extern "C" {
 #define LEON_REG_UART_CTRL_FA     0x80000000 /* FIFO Available */
 #define LEON_REG_UART_CTRL_FA_BIT 31
 
-/*
- *  The following defines the bits in the LEON Cache Control Register.
- */
-#define LEON3_REG_CACHE_CTRL_FI      0x00200000 /* Flush instruction cache */
-#define LEON3_REG_CACHE_CTRL_DS      0x00800000 /* Data cache snooping */
-
-/* LEON3 Interrupt Controller */
-extern volatile struct irqmp_regs *LEON3_IrqCtrl_Regs;
-extern struct ambapp_dev *LEON3_IrqCtrl_Adev;
-
-/* LEON3 GP Timer */
-extern volatile struct gptimer_regs *LEON3_Timer_Regs;
-extern struct ambapp_dev *LEON3_Timer_Adev;
-
-/* LEON3 CPU Index of boot CPU */
-extern uint32_t LEON3_Cpu_Index;
-
-/* The external IRQ number, -1 if not external interrupts */
-extern int LEON3_IrqCtrl_EIrq;
-
-static __inline__ int bsp_irq_fixup(int irq)
-{
-  int eirq, cpu;
-
-  if (LEON3_IrqCtrl_EIrq != 0 && irq == LEON3_IrqCtrl_EIrq) {
-    /* Get interrupt number from IRQ controller */
-    cpu = _LEON3_Get_current_processor();
-    eirq = LEON3_IrqCtrl_Regs->intid[cpu] & 0x1f;
-    if (eirq & 0x10)
-      irq = eirq;
-  }
-
-  return irq;
-}
-
 /* Macros used for manipulating bits in LEON3 GP Timer Control Register */
 
 #define LEON3_IRQMPSTATUS_CPUNR     28
@@ -193,30 +160,21 @@ static __inline__ int bsp_irq_fixup(int irq)
  *        store the result back are vulnerable.
  */
 
-extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
-
-#define LEON3_IRQCTRL_ACQUIRE( _lock_context ) \
-  rtems_interrupt_lock_acquire( &LEON3_IrqCtrl_Lock, _lock_context )
-
-#define LEON3_IRQCTRL_RELEASE( _lock_context ) \
-  rtems_interrupt_lock_release( &LEON3_IrqCtrl_Lock, _lock_context )
-
 #define LEON_Clear_interrupt( _source ) \
-  do { \
-    LEON3_IrqCtrl_Regs->iclear = (1U << (_source)); \
-  } while (0)
+  grlib_store_32(&LEON3_IrqCtrl_Regs->iclear, 1U << (_source))
 
 #define LEON_Force_interrupt( _source ) \
-  do { \
-    LEON3_IrqCtrl_Regs->iforce = (1U << (_source)); \
-  } while (0)
+  grlib_store_32(&LEON3_IrqCtrl_Regs->iforce0, 1U << (_source))
 
 #define LEON_Enable_interrupt_broadcast( _source ) \
   do { \
     rtems_interrupt_lock_context _lock_context; \
     uint32_t _mask = 1U << ( _source ); \
+    uint32_t _brdcst; \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-    LEON3_IrqCtrl_Regs->bcast |= _mask; \
+    _brdcst = grlib_load_32(&LEON3_IrqCtrl_Regs->brdcst); \
+    _brdcst |= _mask; \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->brdcst, _brdcst); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
   } while (0)
 
@@ -224,30 +182,39 @@ extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
   do { \
     rtems_interrupt_lock_context _lock_context; \
     uint32_t _mask = 1U << ( _source ); \
+    uint32_t _brdcst; \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-    LEON3_IrqCtrl_Regs->bcast &= ~_mask; \
+    _brdcst = grlib_load_32(&LEON3_IrqCtrl_Regs->brdcst); \
+    _brdcst &= ~_mask; \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->brdcst, _brdcst); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
   } while (0)
 
 #define LEON_Is_interrupt_pending( _source ) \
-  (LEON3_IrqCtrl_Regs->ipend & (1U << (_source)))
+  (grlib_load_32(&LEON3_IrqCtrl_Regs->ipend) & (1U << (_source)))
 
 #define LEON_Cpu_Is_interrupt_masked( _source, _cpu ) \
-     (!(LEON3_IrqCtrl_Regs->mask[_cpu] & (1U << (_source))))
+     (!(grlib_load_32(&LEON3_IrqCtrl_Regs->pimask[_cpu]) & (1U << (_source))))
 
 #define LEON_Cpu_Mask_interrupt( _source, _cpu ) \
   do { \
     rtems_interrupt_lock_context _lock_context; \
+    uint32_t _pimask; \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-     LEON3_IrqCtrl_Regs->mask[_cpu]  &= ~(1U << (_source)); \
+    _pimask = grlib_load_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ]); \
+    _pimask &= ~(1U << (_source)); \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ], _pimask); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
   } while (0)
 
 #define LEON_Cpu_Unmask_interrupt( _source, _cpu ) \
   do { \
     rtems_interrupt_lock_context _lock_context; \
+    uint32_t _pimask; \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-    LEON3_IrqCtrl_Regs->mask[_cpu]  |= (1U << (_source)); \
+    _pimask = grlib_load_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ]); \
+    _pimask |= 1U << (_source); \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ], _pimask); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
   } while (0)
 
@@ -256,8 +223,8 @@ extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
     rtems_interrupt_lock_context _lock_context; \
     uint32_t _mask = 1U << (_source); \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-     (_previous) = LEON3_IrqCtrl_Regs->mask[_cpu]; \
-     LEON3_IrqCtrl_Regs->mask[_cpu] = _previous & ~_mask; \
+    (_previous) = grlib_load_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ]); \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ], (_previous) & ~_mask); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
     (_previous) &= _mask; \
   } while (0)
@@ -265,10 +232,12 @@ extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
 #define LEON_Cpu_Restore_interrupt( _source, _previous, _cpu ) \
   do { \
     rtems_interrupt_lock_context _lock_context; \
-    uint32_t _mask = 1U << (_source); \
+    uint32_t _pimask; \
     LEON3_IRQCTRL_ACQUIRE( &_lock_context ); \
-      LEON3_IrqCtrl_Regs->mask[_cpu] = \
-        (LEON3_IrqCtrl_Regs->mask[_cpu] & ~_mask) | (_previous); \
+    _pimask = grlib_load_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ]); \
+    _pimask &= ~(1U << (_source)); \
+    _pimask |= _previous; \
+    grlib_store_32(&LEON3_IrqCtrl_Regs->pimask[_cpu ], _pimask); \
     LEON3_IRQCTRL_RELEASE( &_lock_context ); \
   } while (0)
 
@@ -343,26 +312,6 @@ extern rtems_interrupt_lock LEON3_IrqCtrl_Lock;
 #define LEON_REG_TIMER_COUNTER_DEFINED_MASK       0x00000003
 #define LEON_REG_TIMER_COUNTER_CURRENT_MODE_MASK  0x00000003
 
-#if defined(RTEMS_MULTIPROCESSING)
-  #define LEON3_CLOCK_INDEX \
-   (rtems_configuration_get_user_multiprocessing_table() ? LEON3_Cpu_Index : 0)
-#else
-  #define LEON3_CLOCK_INDEX 0
-#endif
-
-#if defined(RTEMS_SMP)
-#define LEON3_COUNTER_GPTIMER_INDEX (LEON3_CLOCK_INDEX + 1)
-#else
-#define LEON3_COUNTER_GPTIMER_INDEX LEON3_CLOCK_INDEX
-#endif
-
-/*
- * We assume that a boot loader (usually GRMON) initialized the GPTIMER 0 to
- * run with 1MHz.  This is used to determine all clock frequencies of the PnP
- * devices.  See also ambapp_freq_init() and ambapp_freq_get().
- */
-#define LEON3_GPTIMER_0_FREQUENCY_SET_BY_BOOT_LOADER 1000000
-
 /* Load 32-bit word by forcing a cache-miss */
 static inline unsigned int leon_r32_no_cache(uintptr_t addr)
 {
@@ -380,6 +329,7 @@ static inline unsigned int leon_r32_no_cache(uintptr_t addr)
  */
 extern int syscon_uart_index;
 
+#if !defined(LEON3_APBUART_BASE)
 /* Let user override which on-chip APBUART will be debug UART
  * 0 = Default APBUART. On MP system CPU0=APBUART0, CPU1=APBUART1...
  * 1 = APBUART[0]
@@ -388,6 +338,7 @@ extern int syscon_uart_index;
  * ...
  */
 extern int leon3_debug_uart_index;
+#endif
 
 /* Let user override which on-chip TIMER core will be used for system clock
  * timer. This controls which timer core will be accociated with
@@ -409,112 +360,6 @@ extern int leon3_timer_core_index;
  *  ...
  */
 extern unsigned int leon3_timer_prescaler;
-
-/* GRLIB extended IRQ controller register */
-void leon3_ext_irq_init(void);
-
-RTEMS_NO_RETURN void leon3_power_down_loop(void);
-
-static inline uint32_t leon3_get_cpu_count(
-  volatile struct irqmp_regs *irqmp
-)
-{
-  uint32_t mpstat = irqmp->mpstat;
-
-  return ((mpstat >> LEON3_IRQMPSTATUS_CPUNR) & 0xf)  + 1;
-}
-
-static inline void leon3_set_system_register(uint32_t addr, uint32_t val)
-{
-  __asm__ volatile(
-    "sta %1, [%0] 2"
-    :
-    : "r" (addr), "r" (val)
-  );
-}
-
-static inline uint32_t leon3_get_system_register(uint32_t addr)
-{
-  uint32_t val;
-
-  __asm__ volatile(
-    "lda [%1] 2, %0"
-    : "=r" (val)
-    : "r" (addr)
-  );
-
-  return val;
-}
-
-static inline void leon3_set_cache_control_register(uint32_t val)
-{
-  leon3_set_system_register(0x0, val);
-}
-
-static inline uint32_t leon3_get_cache_control_register(void)
-{
-  return leon3_get_system_register(0x0);
-}
-
-static inline bool leon3_data_cache_snooping_enabled(void)
-{
-  return leon3_get_cache_control_register() & LEON3_REG_CACHE_CTRL_DS;
-}
-
-static inline uint32_t leon3_get_inst_cache_config_register(void)
-{
-  return leon3_get_system_register(0x8);
-}
-
-static inline uint32_t leon3_get_data_cache_config_register(void)
-{
-  return leon3_get_system_register(0xc);
-}
-
-static inline uint32_t leon3_up_counter_low(void)
-{
-  uint32_t asr23;
-
-  __asm__ volatile (
-    "mov %%asr23, %0"
-    : "=&r" (asr23)
-  );
-
-  return asr23;
-}
-
-static inline uint32_t leon3_up_counter_high(void)
-{
-  uint32_t asr22;
-
-  __asm__ volatile (
-    "mov %%asr22, %0"
-    : "=&r" (asr22)
-  );
-
-  return asr22;
-}
-
-static inline void leon3_up_counter_enable(void)
-{
-  __asm__ volatile (
-    "mov %g0, %asr22"
-  );
-}
-
-static inline bool leon3_up_counter_is_available(void)
-{
-  return leon3_up_counter_low() != leon3_up_counter_low();
-}
-
-static inline uint32_t leon3_up_counter_frequency(void)
-{
-  /*
-   * For simplicity, assume that the interrupt controller uses the processor
-   * clock.  This is at least true on the GR740.
-   */
-  return ambapp_freq_get(ambapp_plb(), LEON3_IrqCtrl_Adev);
-}
 
 #endif /* !ASM */
 

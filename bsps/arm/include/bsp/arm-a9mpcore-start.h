@@ -1,15 +1,15 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @ingroup RTEMSBSPsARMShared
+ * @ingroup A9MPCoreSupport
  *
- *  @brief A9MPCORE_START Support
+ * @brief This header file provides the interfaces of the @ref A9MPCoreSupport.
  */
 
 /*
- * Copyright (c) 2013-2014 embedded brains GmbH.  All rights reserved.
+ * Copyright (C) 2013, 2014 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+/**
+ * @addtogroup A9MPCoreSupport
+ *
+ * @{
+ */
 
 BSP_START_TEXT_SECTION static inline void arm_a9mpcore_start_scu_invalidate(
   volatile a9mpcore_scu *scu,
@@ -187,6 +193,8 @@ BSP_START_TEXT_SECTION static inline void arm_a9mpcore_start_hook_1(void)
 {
   arm_a9mpcore_start_global_timer();
 }
+
+/** @} */
 
 #ifdef __cplusplus
 }

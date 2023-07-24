@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -108,7 +108,7 @@ typedef struct {
   /**
    * @brief This member contains the thread queue test context.
    */
-  TQContext tq_ctx;;
+  TQContext tq_ctx;
 
   /**
    * @brief This member specifies if the attribute set of the semaphore.
@@ -273,7 +273,7 @@ static void RtemsSemReqTimeout_Post_Action_Check(
     case RtemsSemReqTimeout_Post_Action_Timeout: {
       /*
        * The semaphore obtain timeout actions shall be done as specified by
-       * /score/tq/req/timeout.
+       * spec:/score/tq/req/timeout.
        */
       ctx->tq_ctx.wait = TQ_WAIT_TIMED;
       ScoreTqReqTimeout_Run( &ctx->tq_ctx );
@@ -283,7 +283,7 @@ static void RtemsSemReqTimeout_Post_Action_Check(
     case RtemsSemReqTimeout_Post_Action_TimeoutMrsP: {
       /*
        * The semaphore obtain timeout actions shall be done as specified by
-       * /score/tq/req/timeout-mrsp.
+       * spec:/score/tq/req/timeout-mrsp.
        */
       ctx->tq_ctx.wait = TQ_WAIT_TIMED;
       ScoreTqReqTimeoutMrsp_Run( &ctx->tq_ctx );
@@ -293,7 +293,7 @@ static void RtemsSemReqTimeout_Post_Action_Check(
     case RtemsSemReqTimeout_Post_Action_TimeoutPriorityInherit: {
       /*
        * The semaphore obtain timeout actions shall be done as specified by
-       * /score/tq/req/timeout-priority-inherit.
+       * spec:/score/tq/req/timeout-priority-inherit.
        */
       ctx->tq_ctx.wait = TQ_WAIT_FOREVER;
       ScoreTqReqTimeoutPriorityInherit_Run( &ctx->tq_ctx );
@@ -361,8 +361,12 @@ static void RtemsSemReqTimeout_Action( RtemsSemReqTimeout_Context *ctx )
 
 static void RtemsSemReqTimeout_Cleanup( RtemsSemReqTimeout_Context *ctx )
 {
-  if ( ctx->tq_ctx.thread_queue_id != 0 ) { rtems_status_code sc;
-  sc = rtems_semaphore_delete( ctx->tq_ctx.thread_queue_id ); T_rsc_success( sc ); }
+  if ( ctx->tq_ctx.thread_queue_id != 0 ) {
+    rtems_status_code sc;
+
+    sc = rtems_semaphore_delete( ctx->tq_ctx.thread_queue_id );
+    T_rsc_success( sc );
+  }
 }
 
 static const RtemsSemReqTimeout_Entry

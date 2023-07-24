@@ -105,7 +105,7 @@ typedef void (*bsp_shared_isr)(void *arg);
  *  isr       Function pointer to the ISR
  *  arg       Second argument to function isr
  */
-static __inline__ int BSP_shared_interrupt_register
+RTEMS_DEPRECATED static inline int BSP_shared_interrupt_register
        (
        int irq,
        const char *info,
@@ -124,7 +124,7 @@ static __inline__ int BSP_shared_interrupt_register
  *  isr       Function pointer to the ISR
  *  arg       Second argument to function isr
  */
-static __inline__ int BSP_shared_interrupt_unregister
+RTEMS_DEPRECATED static inline int BSP_shared_interrupt_unregister
        (
        int irq,
        bsp_shared_isr isr,
@@ -142,7 +142,10 @@ static __inline__ int BSP_shared_interrupt_unregister
  * Arguments
  *  irq       System IRQ number
  */
-extern void BSP_shared_interrupt_clear(int irq);
+RTEMS_DEPRECATED static inline void BSP_shared_interrupt_clear( int irq )
+{
+  (void) rtems_interrupt_clear( (rtems_vector_number) irq );
+}
 
 /* Enable Interrupt. This function will unmask the IRQ at the interrupt
  * controller. This is normally done by _register(). Note that this will
@@ -151,7 +154,10 @@ extern void BSP_shared_interrupt_clear(int irq);
  * Arguments
  *  irq       System IRQ number
  */
-extern void BSP_shared_interrupt_unmask(int irq);
+RTEMS_DEPRECATED static inline void BSP_shared_interrupt_unmask( int irq )
+{
+  (void) rtems_interrupt_vector_enable( (rtems_vector_number) irq );
+}
 
 /* Disable Interrupt. This function will mask one IRQ at the interrupt
  * controller. This is normally done by _unregister().  Note that this will
@@ -160,7 +166,10 @@ extern void BSP_shared_interrupt_unmask(int irq);
  * Arguments
  *  irq         System IRQ number
  */
-extern void BSP_shared_interrupt_mask(int irq);
+RTEMS_DEPRECATED static inline void BSP_shared_interrupt_mask( int irq )
+{
+  (void) rtems_interrupt_vector_disable( (rtems_vector_number) irq );
+}
 
 /*
  *  Delay for the specified number of microseconds.

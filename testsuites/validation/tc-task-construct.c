@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -291,7 +291,7 @@ typedef struct {
    * @brief If this member is true, then the zombie thread is ready to get
    *   killed.
    */
-  volatile bool zombie_ready;;
+  volatile bool zombie_ready;
 
   /**
    * @brief This member contains the actual modes of the constructed task.

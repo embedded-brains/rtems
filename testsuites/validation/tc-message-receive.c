@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -207,7 +207,7 @@ typedef struct {
    *
    * It is used for run-time type checking.
    */
-  uint32_t magic;;
+  uint32_t magic;
 
   /**
    * @brief This member contains a number which is sent as next message.

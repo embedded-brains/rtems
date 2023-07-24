@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -180,7 +180,7 @@ typedef struct {
   /**
    * @brief This member provides a counter snapshot for each entry.
    */
-  uint32_t counter_by_entry[ 3 ];;
+  uint32_t counter_by_entry[ 3 ];
 
   /**
    * @brief This member provides the vector number of a testable interrupt
@@ -272,7 +272,7 @@ typedef struct {
   /**
    * @brief This member specifies if the ``entry`` parameter value.
    */
-  rtems_interrupt_entry *entry;;
+  rtems_interrupt_entry *entry;
 
   /**
    * @brief This member contains the return value of the

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -88,7 +88,7 @@
  *
  * - Check the value of RTEMS_DEFAULT_OPTIONS.
  *
- *   - Check RTEMS_DEFAULT_OPTIONS equals ``RTEMS_WAIT``.
+ *   - Check RTEMS_DEFAULT_OPTIONS equals RTEMS_WAIT.
  *
  * @{
  */
@@ -181,7 +181,7 @@ static void RtemsOptionValOptions_Action_3( void )
   /* No action */
 
   /*
-   * Check RTEMS_DEFAULT_OPTIONS equals ``RTEMS_WAIT``.
+   * Check RTEMS_DEFAULT_OPTIONS equals RTEMS_WAIT.
    */
   T_step_eq_int( 6, RTEMS_DEFAULT_OPTIONS, RTEMS_WAIT );
 }

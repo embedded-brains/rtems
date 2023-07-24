@@ -2,12 +2,14 @@
 
 /**
  * @file
- * @ingroup uart
+ *
+ * @ingroup RTEMSDeviceGRLIBAPBUART
+ *
+ * @brief This header file defines the APBUART interface.
  */
 
 /*
- *  COPYRIGHT (c) 2007.
- *  Gaisler Research
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,68 +31,80 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
  */
 
-#ifndef __APBUART_H__
-#define __APBUART_H__
-
-/**
- * @defgroup uart UART
+/*
+ * This file is part of the RTEMS quality process and was automatically
+ * generated.  If you find something that needs to be fixed or
+ * worded better please post a report or patch to an RTEMS mailing list
+ * or raise a bug report:
  *
- * @ingroup RTEMSBSPsSharedGRLIB
+ * https://www.rtems.org/bugs.html
  *
- * @brief Driver interface for APBUART
+ * For information on updating and regenerating please refer to the How-To
+ * section in the Software Requirements Engineering chapter of the
+ * RTEMS Software Engineering manual.  The manual is provided as a part of
+ * a release.  For development sources please refer to the online
+ * documentation at:
  *
- * @{
+ * https://docs.rtems.org
  */
 
-#include "ambapp.h"
-#include "grlib.h"
+/* Generated from spec:/dev/grlib/if/apbuart-header-2 */
+
+#ifndef _GRLIB_APBUART_H
+#define _GRLIB_APBUART_H
+
+#include <grlib/apbuart-regs.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define APBUART_CTRL_RE 0x1
-#define APBUART_CTRL_TE 0x2
-#define APBUART_CTRL_RI 0x4
-#define APBUART_CTRL_TI 0x8
-#define APBUART_CTRL_PS 0x10
-#define APBUART_CTRL_PE 0x20
-#define APBUART_CTRL_FL 0x40
-#define APBUART_CTRL_LB 0x80
-#define APBUART_CTRL_EC 0x100
-#define APBUART_CTRL_TF 0x200
-#define APBUART_CTRL_RF 0x400
-#define APBUART_CTRL_DB 0x800
-#define APBUART_CTRL_BI 0x1000
-#define APBUART_CTRL_DI 0x2000
-#define APBUART_CTRL_FA 0x80000000
+/* Generated from spec:/dev/grlib/if/apbuart-inbyte-nonblocking */
 
-#define APBUART_STATUS_DR 0x1
-#define APBUART_STATUS_TS 0x2
-#define APBUART_STATUS_TE 0x4
-#define APBUART_STATUS_BR 0x8
-#define APBUART_STATUS_OV 0x10
-#define APBUART_STATUS_PE 0x20
-#define APBUART_STATUS_FE 0x40
-#define APBUART_STATUS_ERR 0x78
-#define APBUART_STATUS_TH 0x80
-#define APBUART_STATUS_RH 0x100
-#define APBUART_STATUS_TF 0x200
-#define APBUART_STATUS_RF 0x400
+/**
+ * @ingroup RTEMSDeviceGRLIBAPBUART
+ *
+ * @brief Clears all errors and tries to get one character from the receiver
+ *   FIFO.
+ *
+ * @param regs is the pointer to the APBUART register block.
+ *
+ * @retval -1 The receiver FIFO was empty.
+ *
+ * @return Returns the first character of the receiver FIFO if it was
+ *   non-empty.
+ */
+int apbuart_inbyte_nonblocking( apbuart *regs );
 
-void apbuart_outbyte_wait(const struct apbuart_regs *regs);
+/* Generated from spec:/dev/grlib/if/apbuart-outbyte-polled */
 
-void apbuart_outbyte_polled(struct apbuart_regs *regs, char ch);
+/**
+ * @ingroup RTEMSDeviceGRLIBAPBUART
+ *
+ * @brief Waits until an empty transmitter FIFO was observed and then stores
+ *   the character to the data register.
+ *
+ * @param regs is the pointer to the APBUART register block.
+ *
+ * @param ch is the character to output.
+ */
+void apbuart_outbyte_polled( apbuart *regs, char ch );
 
-int apbuart_inbyte_nonblocking(struct apbuart_regs *regs);
+/* Generated from spec:/dev/grlib/if/apbuart-outbyte-wait */
+
+/**
+ * @ingroup RTEMSDeviceGRLIBAPBUART
+ *
+ * @brief Ensures that at least once an empty transmitter FIFO was observed.
+ *
+ * @param regs is the pointer to the APBUART register block.
+ */
+void apbuart_outbyte_wait( const apbuart *regs );
 
 #ifdef __cplusplus
 }
 #endif
 
-/** @} */
-
-#endif /* __APBUART_H__ */
+#endif /* _GRLIB_APBUART_H */

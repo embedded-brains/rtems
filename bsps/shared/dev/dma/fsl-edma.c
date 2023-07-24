@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2008-2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2008, 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #include <bsp/fatal.h>
 #include <bsp/irq.h>
 #ifdef LIBBSP_ARM_IMXRT_BSP_H
-#include <MIMXRT1052.h>
+#include <fsl_device_registers.h>
 #endif
 
 #define EDMA_CHANNELS_PER_GROUP 32U

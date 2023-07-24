@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,9 +33,9 @@
 
 const stm32h7_uart_config stm32h7_usart2_config = {
   .gpio = {
-    .regs = GPIOA,
+    .regs = STM32H7_USART2_GPIO_REGS,
     .config = {
-      .Pin = GPIO_PIN_2 | GPIO_PIN_3,
+      .Pin = STM32H7_USART2_GPIO_PINS,
       .Mode = GPIO_MODE_AF_PP,
       .Pull = GPIO_NOPULL,
       .Speed = GPIO_SPEED_FREQ_LOW,

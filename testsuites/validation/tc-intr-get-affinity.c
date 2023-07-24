@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -138,7 +138,7 @@ typedef struct {
    * @brief This member provides the object referenced by the ``affinity``
    *   parameter.
    */
-  cpu_set_t cpuset_obj[ 2 ];;
+  cpu_set_t cpuset_obj[ 2 ];
 
   /**
    * @brief This member contains the return value of the

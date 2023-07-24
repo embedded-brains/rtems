@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+ * Copyright (C) 2021 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -266,7 +266,7 @@ typedef struct {
   /**
    * @brief This member contains the identifier of the new scheduler.
    */
-  rtems_id new_scheduler;;
+  rtems_id new_scheduler;
 
   /**
    * @brief This member contains the new priorities of the task.

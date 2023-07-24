@@ -4,9 +4,11 @@ actions:
 - define-unquoted: null
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2020 embedded brains GmbH & Co. KG
 default:
-- enabled-by: arm/nucleo-h743zi
+- enabled-by:
+  - arm/nucleo-h743zi
+  - arm/stm32h750b-dk
   value: stm32h7_usart3_instance
 - enabled-by: true
   value: stm32h7_usart1_instance

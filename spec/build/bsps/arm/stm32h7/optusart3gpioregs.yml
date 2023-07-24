@@ -4,8 +4,10 @@ actions:
 - define-unquoted: null
 build-type: option
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH (http://www.embedded-brains.de)
+- Copyright (C) 2021 embedded brains GmbH & Co. KG
 default:
+- enabled-by: arm/stm32h750b-dk
+  value: GPIOB
 - enabled-by: true
   value: GPIOD
 description: |
