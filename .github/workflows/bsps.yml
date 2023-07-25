@@ -24,7 +24,7 @@ jobs:
         shell: bash
         run: |
           cd ${GITHUB_WORKSPACE}/rtems
-          out=$(./waf bsp_list | jq -R '.|split("/")|{ arch: .[0], bsp: .[1] }' | jq -sc '{include: .}')
+          out=$(./waf bsplist | jq -R '.|split("/")|{ arch: .[0], bsp: .[1] }' | jq -sc '{include: .}')
           echo "$out"
           echo "::set-output name=matrix::$out"
 
