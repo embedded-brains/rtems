@@ -2,20 +2,16 @@
   ******************************************************************************
   * @file    stm32h7xx_ll_rcc.h
   * @author  MCD Application Team
-  * @version $VERSION$
-  * @date    $DATE$
   * @brief   Header file of RCC LL module.
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2017 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
+  * This software is licensed under terms that can be found in the LICENSE file in
+  * the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   ******************************************************************************
   */
 
@@ -55,6 +51,10 @@ extern const uint8_t LL_RCC_PrescTable[16];
   */
 /* Private constants ---------------------------------------------------------*/
 /* Private macros ------------------------------------------------------------*/
+/** @defgroup RCC_LL_Private_Macros RCC Private Macros
+  * @ingroup RTEMSBSPsARMSTM32H7
+  * @{
+  */
 #if !defined(UNUSED)
 #define UNUSED(x) ((void)(x))
 #endif
@@ -66,13 +66,13 @@ extern const uint8_t LL_RCC_PrescTable[16];
    --------------------------------------------------------*/
 
 #if defined(RCC_VER_2_0)
-/* Clock source register offset Vs CDCCIPR regsiter */
+/* Clock source register offset Vs CDCCIPR register */
 #define CDCCIP    0x0UL
 #define CDCCIP1   0x4UL
 #define CDCCIP2   0x8UL
 #define SRDCCIP   0xCUL
 #else
-/* Clock source register offset Vs D1CCIPR regsiter */
+/* Clock source register offset Vs D1CCIPR register */
 #define D1CCIP    0x0UL
 #define D2CCIP1   0x4UL
 #define D2CCIP2   0x8UL
@@ -96,16 +96,9 @@ extern const uint8_t LL_RCC_PrescTable[16];
                                                                      (( __POS__              ) << LL_RCC_POS_SHIFT)  | \
                                                                      (( __REG__              ) << LL_RCC_REG_SHIFT)  | \
                                                                      (((__CLK__) >> (__POS__)) << LL_RCC_CONFIG_SHIFT)))
-
-#if defined(USE_FULL_LL_DRIVER) || defined(__rtems__)
-/** @defgroup RCC_LL_Private_Macros RCC Private Macros
-  * @ingroup RTEMSBSPsARMSTM32H7
-  * @{
-  */
 /**
   * @}
   */
-#endif /*USE_FULL_LL_DRIVER*/
 /* Exported types ------------------------------------------------------------*/
 #if defined(USE_FULL_LL_DRIVER) || defined(__rtems__)
 /** @defgroup RCC_LL_Exported_Types RCC Exported Types
@@ -166,11 +159,11 @@ typedef struct
   * @{
   */
 #if !defined  (HSE_VALUE)
-#if defined(RCC_VER_X)
+#if defined(RCC_VER_X) || defined(RCC_VER_3_0)
 #define HSE_VALUE    25000000U  /*!< Value of the HSE oscillator in Hz */
 #else
 #define HSE_VALUE    24000000U  /*!< Value of the HSE oscillator in Hz */
-#endif /* RCC_VER_X */
+#endif /* RCC_VER_X || RCC_VER_3_0 */
 #endif /* HSE_VALUE */
 
 #if !defined  (HSI_VALUE)
@@ -551,6 +544,29 @@ typedef struct
 #define LL_RCC_USART16_CLKSOURCE_HSI           LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16SEL, RCC_D2CCIP2R_USART16SEL_Pos, RCC_D2CCIP2R_USART16SEL_0 | RCC_D2CCIP2R_USART16SEL_1)
 #define LL_RCC_USART16_CLKSOURCE_CSI           LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16SEL, RCC_D2CCIP2R_USART16SEL_Pos, RCC_D2CCIP2R_USART16SEL_2)
 #define LL_RCC_USART16_CLKSOURCE_LSE           LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16SEL, RCC_D2CCIP2R_USART16SEL_Pos, RCC_D2CCIP2R_USART16SEL_0 | RCC_D2CCIP2R_USART16SEL_2)
+/*  Aliases */
+#define LL_RCC_USART16910_CLKSOURCE_PCLK2      LL_RCC_USART16_CLKSOURCE_PCLK2
+#define LL_RCC_USART16910_CLKSOURCE_PLL2Q      LL_RCC_USART16_CLKSOURCE_PLL2Q
+#define LL_RCC_USART16910_CLKSOURCE_PLL3Q      LL_RCC_USART16_CLKSOURCE_PLL3Q
+#define LL_RCC_USART16910_CLKSOURCE_HSI        LL_RCC_USART16_CLKSOURCE_HSI
+#define LL_RCC_USART16910_CLKSOURCE_CSI        LL_RCC_USART16_CLKSOURCE_CSI
+#define LL_RCC_USART16910_CLKSOURCE_LSE        LL_RCC_USART16_CLKSOURCE_LSE
+
+#elif defined(RCC_D2CCIP2R_USART16910SEL)
+#define LL_RCC_USART16910_CLKSOURCE_PCLK2      LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, 0x00000000U)
+#define LL_RCC_USART16910_CLKSOURCE_PLL2Q      LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, RCC_D2CCIP2R_USART16910SEL_0)
+#define LL_RCC_USART16910_CLKSOURCE_PLL3Q      LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, RCC_D2CCIP2R_USART16910SEL_1)
+#define LL_RCC_USART16910_CLKSOURCE_HSI        LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, RCC_D2CCIP2R_USART16910SEL_0 | RCC_D2CCIP2R_USART16910SEL_1)
+#define LL_RCC_USART16910_CLKSOURCE_CSI        LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, RCC_D2CCIP2R_USART16910SEL_2)
+#define LL_RCC_USART16910_CLKSOURCE_LSE        LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, RCC_D2CCIP2R_USART16910SEL_0 | RCC_D2CCIP2R_USART16910SEL_2)
+/*  Aliases */
+#define LL_RCC_USART16_CLKSOURCE_PCLK2         LL_RCC_USART16910_CLKSOURCE_PCLK2
+#define LL_RCC_USART16_CLKSOURCE_PLL2Q         LL_RCC_USART16910_CLKSOURCE_PLL2Q
+#define LL_RCC_USART16_CLKSOURCE_PLL3Q         LL_RCC_USART16910_CLKSOURCE_PLL3Q
+#define LL_RCC_USART16_CLKSOURCE_HSI           LL_RCC_USART16910_CLKSOURCE_HSI
+#define LL_RCC_USART16_CLKSOURCE_CSI           LL_RCC_USART16910_CLKSOURCE_CSI
+#define LL_RCC_USART16_CLKSOURCE_LSE           LL_RCC_USART16910_CLKSOURCE_LSE
+
 #else
 #define LL_RCC_USART16910_CLKSOURCE_PCLK2      LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_USART16910SEL, RCC_CDCCIP2R_USART16910SEL_Pos, 0x00000000U)
 #define LL_RCC_USART16910_CLKSOURCE_PLL2Q      LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_USART16910SEL, RCC_CDCCIP2R_USART16910SEL_Pos, RCC_CDCCIP2R_USART16910SEL_0)
@@ -617,6 +633,23 @@ typedef struct
 #define LL_RCC_I2C123_CLKSOURCE_PLL3R          LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C123SEL, RCC_D2CCIP2R_I2C123SEL_Pos, RCC_D2CCIP2R_I2C123SEL_0)
 #define LL_RCC_I2C123_CLKSOURCE_HSI            LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C123SEL, RCC_D2CCIP2R_I2C123SEL_Pos, RCC_D2CCIP2R_I2C123SEL_1)
 #define LL_RCC_I2C123_CLKSOURCE_CSI            LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C123SEL, RCC_D2CCIP2R_I2C123SEL_Pos, RCC_D2CCIP2R_I2C123SEL_0 | RCC_D2CCIP2R_I2C123SEL_1)
+/*  Aliases */
+#define LL_RCC_I2C1235_CLKSOURCE_PCLK1         LL_RCC_I2C123_CLKSOURCE_PCLK1
+#define LL_RCC_I2C1235_CLKSOURCE_PLL3R         LL_RCC_I2C123_CLKSOURCE_PLL3R
+#define LL_RCC_I2C1235_CLKSOURCE_HSI           LL_RCC_I2C123_CLKSOURCE_HSI
+#define LL_RCC_I2C1235_CLKSOURCE_CSI           LL_RCC_I2C123_CLKSOURCE_CSI
+
+#elif defined (RCC_D2CCIP2R_I2C1235SEL)
+#define LL_RCC_I2C1235_CLKSOURCE_PCLK1         LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C1235SEL, RCC_D2CCIP2R_I2C1235SEL_Pos, 0x00000000U)
+#define LL_RCC_I2C1235_CLKSOURCE_PLL3R         LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C1235SEL, RCC_D2CCIP2R_I2C1235SEL_Pos, RCC_D2CCIP2R_I2C1235SEL_0)
+#define LL_RCC_I2C1235_CLKSOURCE_HSI           LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C1235SEL, RCC_D2CCIP2R_I2C1235SEL_Pos, RCC_D2CCIP2R_I2C1235SEL_1)
+#define LL_RCC_I2C1235_CLKSOURCE_CSI           LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C1235SEL, RCC_D2CCIP2R_I2C1235SEL_Pos, RCC_D2CCIP2R_I2C1235SEL_0 | RCC_D2CCIP2R_I2C1235SEL_1)
+/*  Aliases */
+#define LL_RCC_I2C123_CLKSOURCE_PCLK1          LL_RCC_I2C1235_CLKSOURCE_PCLK1
+#define LL_RCC_I2C123_CLKSOURCE_PLL3R          LL_RCC_I2C1235_CLKSOURCE_PLL3R
+#define LL_RCC_I2C123_CLKSOURCE_HSI            LL_RCC_I2C1235_CLKSOURCE_HSI
+#define LL_RCC_I2C123_CLKSOURCE_CSI            LL_RCC_I2C1235_CLKSOURCE_CSI
+
 #else
 #define LL_RCC_I2C123_CLKSOURCE_PCLK1          LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_I2C123SEL, RCC_CDCCIP2R_I2C123SEL_Pos, 0x00000000U)
 #define LL_RCC_I2C123_CLKSOURCE_PLL3R          LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_I2C123SEL, RCC_CDCCIP2R_I2C123SEL_Pos, RCC_CDCCIP2R_I2C123SEL_0)
@@ -744,6 +777,9 @@ typedef struct
 #define LL_RCC_SAI4A_CLKSOURCE_PLL3P           LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4ASEL,  RCC_D3CCIPR_SAI4ASEL_Pos,  RCC_D3CCIPR_SAI4ASEL_1)
 #define LL_RCC_SAI4A_CLKSOURCE_I2S_CKIN        LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4ASEL,  RCC_D3CCIPR_SAI4ASEL_Pos,  RCC_D3CCIPR_SAI4ASEL_0 | RCC_D3CCIPR_SAI4ASEL_1)
 #define LL_RCC_SAI4A_CLKSOURCE_CLKP            LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4ASEL,  RCC_D3CCIPR_SAI4ASEL_Pos,  RCC_D3CCIPR_SAI4ASEL_2)
+#if defined(RCC_VER_3_0)
+#define LL_RCC_SAI4A_CLKSOURCE_SPDIF           LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4ASEL,  RCC_D3CCIPR_SAI4ASEL_Pos,  RCC_D3CCIPR_SAI4ASEL_2 | RCC_D3CCIPR_SAI4ASEL_0)
+#endif /* RCC_VER_3_0 */
 #endif /* SAI4_Block_A */
 #if defined(SAI4_Block_B)
 #define LL_RCC_SAI4B_CLKSOURCE_PLL1Q           LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4BSEL,  RCC_D3CCIPR_SAI4BSEL_Pos,  0x00000000U)
@@ -751,6 +787,9 @@ typedef struct
 #define LL_RCC_SAI4B_CLKSOURCE_PLL3P           LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4BSEL,  RCC_D3CCIPR_SAI4BSEL_Pos,  RCC_D3CCIPR_SAI4BSEL_1)
 #define LL_RCC_SAI4B_CLKSOURCE_I2S_CKIN        LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4BSEL,  RCC_D3CCIPR_SAI4BSEL_Pos,  RCC_D3CCIPR_SAI4BSEL_0 | RCC_D3CCIPR_SAI4BSEL_1)
 #define LL_RCC_SAI4B_CLKSOURCE_CLKP            LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4BSEL,  RCC_D3CCIPR_SAI4BSEL_Pos,  RCC_D3CCIPR_SAI4BSEL_2)
+#if defined(RCC_VER_3_0)
+#define LL_RCC_SAI4B_CLKSOURCE_SPDIF           LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_SAI4BSEL,  RCC_D3CCIPR_SAI4BSEL_Pos,  RCC_D3CCIPR_SAI4BSEL_2 | RCC_D3CCIPR_SAI4BSEL_0)
+#endif /* RCC_VER_3_0 */
 #endif /* SAI4_Block_B */
 /**
   * @}
@@ -904,10 +943,17 @@ typedef struct
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
+#if defined(RCC_D1CCIPR_OCTOSPISEL)
+#define LL_RCC_OSPI_CLKSOURCE_HCLK             (0x00000000U)
+#define LL_RCC_OSPI_CLKSOURCE_PLL1Q            (RCC_D1CCIPR_OCTOSPISEL_0)
+#define LL_RCC_OSPI_CLKSOURCE_PLL2R            (RCC_D1CCIPR_OCTOSPISEL_1)
+#define LL_RCC_OSPI_CLKSOURCE_CLKP             (RCC_D1CCIPR_OCTOSPISEL_0 | RCC_D1CCIPR_OCTOSPISEL_1)
+#else
 #define LL_RCC_OSPI_CLKSOURCE_HCLK             (0x00000000U)
 #define LL_RCC_OSPI_CLKSOURCE_PLL1Q            (RCC_CDCCIPR_OCTOSPISEL_0)
 #define LL_RCC_OSPI_CLKSOURCE_PLL2R            (RCC_CDCCIPR_OCTOSPISEL_1)
 #define LL_RCC_OSPI_CLKSOURCE_CLKP             (RCC_CDCCIPR_OCTOSPISEL_0 | RCC_CDCCIPR_OCTOSPISEL_1)
+#endif /* RCC_D1CCIPR_OCTOSPISEL */
 /**
   * @}
   */
@@ -1053,12 +1099,16 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_USARTx_CLKSOURCE  Peripheral USART get clock source
+/** @defgroup RCC_LL_EC_USARTx  Peripheral USART get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
 #if defined (RCC_D2CCIP2R_USART16SEL)
 #define LL_RCC_USART16_CLKSOURCE         LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16SEL, RCC_D2CCIP2R_USART16SEL_Pos, 0x00000000U)
+#elif defined (RCC_D2CCIP2R_USART16910SEL)
+#define LL_RCC_USART16_CLKSOURCE         LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_USART16910SEL, RCC_D2CCIP2R_USART16910SEL_Pos, 0x00000000U)
+/* alias*/
+#define LL_RCC_USART16910_CLKSOURCE      LL_RCC_USART16_CLKSOURCE
 #else
 #define LL_RCC_USART16_CLKSOURCE         LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_USART16910SEL, RCC_CDCCIP2R_USART16910SEL_Pos, 0x00000000U)
 /* alias*/
@@ -1073,7 +1123,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_LPUARTx_CLKSOURCE  Peripheral LPUART get clock source
+/** @defgroup RCC_LL_EC_LPUARTx  Peripheral LPUART get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1086,14 +1136,22 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_I2Cx_CLKSOURCE  Peripheral I2C get clock source
+/** @defgroup RCC_LL_EC_I2Cx  Peripheral I2C get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
 #if defined(RCC_D2CCIP2R_I2C123SEL)
 #define LL_RCC_I2C123_CLKSOURCE          LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C123SEL, RCC_D2CCIP2R_I2C123SEL_Pos, 0x00000000U)
+/* alias */
+#define LL_RCC_I2C1235_CLKSOURCE         LL_RCC_I2C123_CLKSOURCE
+#elif defined(RCC_D2CCIP2R_I2C1235SEL)
+#define LL_RCC_I2C1235_CLKSOURCE         LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_I2C1235SEL, RCC_D2CCIP2R_I2C1235SEL_Pos, 0x00000000U)
+/* alias */
+#define LL_RCC_I2C123_CLKSOURCE          LL_RCC_I2C1235_CLKSOURCE
 #else
 #define LL_RCC_I2C123_CLKSOURCE          LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_I2C123SEL, RCC_CDCCIP2R_I2C123SEL_Pos, 0x00000000U)
+/* alias */
+#define LL_RCC_I2C1235_CLKSOURCE         LL_RCC_I2C123_CLKSOURCE
 #endif /* RCC_D2CCIP2R_I2C123SEL */
 #if defined(RCC_D3CCIPR_I2C4SEL)
 #define LL_RCC_I2C4_CLKSOURCE            LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_I2C4SEL,    RCC_D3CCIPR_I2C4SEL_Pos,    0x00000000U)
@@ -1104,31 +1162,31 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_LPTIMx_CLKSOURCE  Peripheral LPTIM get clock source
+/** @defgroup RCC_LL_EC_LPTIMx  Peripheral LPTIM get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
 #if defined(RCC_D2CCIP2R_LPTIM1SEL)
-#define LL_RCC_LPTIM1_CLKSOURCE          LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_LPTIM1SEL,  RCC_D2CCIP2R_LPTIM1SEL_Pos,   0x00000000U)
+#define LL_RCC_LPTIM1_CLKSOURCE          LL_CLKSOURCE(D2CCIP2, RCC_D2CCIP2R_LPTIM1SEL,  RCC_D2CCIP2R_LPTIM1SEL_Pos,      0x00000000U)
 #else
-#define LL_RCC_LPTIM1_CLKSOURCE          LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_LPTIM1SEL,  RCC_CDCCIP2R_LPTIM1SEL_Pos,   0x00000000U)
+#define LL_RCC_LPTIM1_CLKSOURCE          LL_CLKSOURCE(CDCCIP2, RCC_CDCCIP2R_LPTIM1SEL,  RCC_CDCCIP2R_LPTIM1SEL_Pos,      0x00000000U)
 #endif /* RCC_D2CCIP2R_LPTIM1SEL) */
 #if defined(RCC_D3CCIPR_LPTIM2SEL)
-#define LL_RCC_LPTIM2_CLKSOURCE          LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_LPTIM2SEL,   RCC_D3CCIPR_LPTIM2SEL_Pos,    0x00000000U)
+#define LL_RCC_LPTIM2_CLKSOURCE          LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_LPTIM2SEL,   RCC_D3CCIPR_LPTIM2SEL_Pos,       0x00000000U)
 #else
-#define LL_RCC_LPTIM2_CLKSOURCE          LL_CLKSOURCE(SRDCCIP, RCC_SRDCCIPR_LPTIM2SEL,  RCC_SRDCCIPR_LPTIM2SEL_Pos,   0x00000000U)
+#define LL_RCC_LPTIM2_CLKSOURCE          LL_CLKSOURCE(SRDCCIP, RCC_SRDCCIPR_LPTIM2SEL,  RCC_SRDCCIPR_LPTIM2SEL_Pos,      0x00000000U)
 #endif /* RCC_D3CCIPR_LPTIM2SEL */
 #if defined(RCC_D3CCIPR_LPTIM345SEL)
-#define LL_RCC_LPTIM345_CLKSOURCE        LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_LPTIM345SEL, RCC_D3CCIPR_LPTIM345SEL_Pos,  0x00000000U)
+#define LL_RCC_LPTIM345_CLKSOURCE        LL_CLKSOURCE(D3CCIP,  RCC_D3CCIPR_LPTIM345SEL, RCC_D3CCIPR_LPTIM345SEL_Pos,     0x00000000U)
 #else
-#define LL_RCC_LPTIM345_CLKSOURCE        LL_CLKSOURCE(SRDCCIP,  RCC_SRDCCIPR_LPTIM3SEL, RCC_SRDCCIPR_LPTIM3SEL_Pos,   0x00000000U)
+#define LL_RCC_LPTIM345_CLKSOURCE        LL_CLKSOURCE(SRDCCIP,  RCC_SRDCCIPR_LPTIM3SEL, RCC_SRDCCIPR_LPTIM3SEL_Pos,      0x00000000U)
 #define LL_RCC_LPTIM3_CLKSOURCE          LL_RCC_LPTIM345_CLKSOURCE  /* alias */
 #endif /* RCC_D3CCIPR_LPTIM345SEL */
 /**
   * @}
   */
 
-/** @defgroup RCC_LL_EC_SAIx_CLKSOURCE  Peripheral SAI get clock source
+/** @defgroup RCC_LL_EC_SAIx  Peripheral SAI get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1156,7 +1214,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_SDMMC_CLKSOURCE  Peripheral SDMMC get clock source
+/** @defgroup RCC_LL_EC_SDMMC  Peripheral SDMMC get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1169,7 +1227,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_RNG_CLKSOURCE  Peripheral RNG get clock source
+/** @defgroup RCC_LL_EC_RNG Peripheral RNG get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1182,7 +1240,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_USB_CLKSOURCE  Peripheral USB get clock source
+/** @defgroup RCC_LL_EC_USB  Peripheral USB get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1195,7 +1253,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_CEC_CLKSOURCE  Peripheral CEC get clock source
+/** @defgroup RCC_LL_EC_CEC  Peripheral CEC get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1209,7 +1267,7 @@ typedef struct
   */
 
 #if defined(DSI)
-/** @defgroup RCC_LL_EC_DSI_CLKSOURCE  Peripheral DSI get clock source
+/** @defgroup RCC_LL_EC_DSI  Peripheral DSI get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1219,7 +1277,7 @@ typedef struct
   */
 #endif /* DSI */
 
-/** @defgroup RCC_LL_EC_DFSDM_CLKSOURCE  Peripheral DFSDM get clock source
+/** @defgroup RCC_LL_EC_DFSDM  Peripheral DFSDM get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1233,7 +1291,7 @@ typedef struct
   */
 
 #if defined(DFSDM2_BASE)
-/** @defgroup RCC_LL_EC_DFSDM2_CLKSOURCE  Peripheral DFSDM2 get clock source
+/** @defgroup RCC_LL_EC_DFSDM2  Peripheral DFSDM2 get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1241,10 +1299,11 @@ typedef struct
 /**
   * @}
   */
-#endif /* DFSDM2 */
+#endif /* DFSDM2_BASE */
 
 
-/** @defgroup RCC_LL_EC_FMC_CLKSOURCE  Peripheral FMC get clock source
+
+/** @defgroup RCC_LL_EC_FMC  Peripheral FMC get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1258,7 +1317,7 @@ typedef struct
   */
 
 #if defined(QUADSPI)
-/** @defgroup RCC_LL_EC_QSPI_CLKSOURCE  Peripheral QSPI get clock source
+/** @defgroup RCC_LL_EC_QSPI  Peripheral QSPI get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1269,17 +1328,21 @@ typedef struct
 #endif /* QUADSPI */
 
 #if defined(OCTOSPI1) || defined(OCTOSPI2)
-/** @defgroup RCC_LL_EC_OSPI_CLKSOURCE  Peripheral OSPI get clock source
+/** @defgroup RCC_LL_EC_OSPI Peripheral OSPI get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
+#if defined(RCC_CDCCIPR_OCTOSPISEL)
 #define LL_RCC_OSPI_CLKSOURCE            RCC_CDCCIPR_OCTOSPISEL
+#else
+#define LL_RCC_OSPI_CLKSOURCE            RCC_D1CCIPR_OCTOSPISEL
+#endif /* RCC_CDCCIPR_OCTOSPISEL */
 /**
   * @}
   */
 #endif /* OCTOSPI1 || OCTOSPI2 */
 
-/** @defgroup RCC_LL_EC_CLKP_CLKSOURCE  Peripheral CLKP get clock source
+/** @defgroup RCC_LL_EC_CLKP Peripheral CLKP get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1292,7 +1355,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_SPIx_CLKSOURCE  Peripheral SPI get clock source
+/** @defgroup RCC_LL_EC_SPIx  Peripheral SPI get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1315,7 +1378,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_SPDIF_CLKSOURCE  Peripheral SPDIF get clock source
+/** @defgroup RCC_LL_EC_SPDIF  Peripheral SPDIF get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1329,7 +1392,7 @@ typedef struct
   */
 
 #if defined(FDCAN1) || defined(FDCAN2)
-/** @defgroup RCC_LL_EC_FDCAN_CLKSOURCE  Peripheral FDCAN get clock source
+/** @defgroup RCC_LL_EC_FDCAN  Peripheral FDCAN get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1343,7 +1406,7 @@ typedef struct
   */
 #endif /*FDCAN1 || FDCAN2*/
 
-/** @defgroup RCC_LL_EC_SWP_CLKSOURCE  Peripheral SWP get clock source
+/** @defgroup RCC_LL_EC_SWP  Peripheral SWP get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1356,7 +1419,7 @@ typedef struct
   * @}
   */
 
-/** @defgroup RCC_LL_EC_ADC_CLKSOURCE  Peripheral ADC get clock source
+/** @defgroup RCC_LL_EC_ADC  Peripheral ADC get clock source
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
   */
@@ -1698,7 +1761,7 @@ __STATIC_INLINE void LL_RCC_HSE_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_HSE_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_HSERDY) == (RCC_CR_HSERDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_HSERDY) == (RCC_CR_HSERDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -1737,7 +1800,7 @@ __STATIC_INLINE void LL_RCC_HSI_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_HSI_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_HSIRDY) == (RCC_CR_HSIRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_HSIRDY) == (RCC_CR_HSIRDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -1747,7 +1810,7 @@ __STATIC_INLINE uint32_t LL_RCC_HSI_IsReady(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_HSI_IsDividerReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_HSIDIVF) == (RCC_CR_HSIDIVF))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_HSIDIVF) == (RCC_CR_HSIDIVF)) ? 1UL : 0UL);
 }
 
 /**
@@ -1817,7 +1880,7 @@ __STATIC_INLINE uint32_t LL_RCC_HSI_GetCalibration(void)
   * @note Default value is 64 (32 for Cut1.x), which, when added to the HSICAL value,
   *       should trim the HSI to 64 MHz +/- 1 %
   * @rmtoll HSICFGR        HSITRIM       LL_RCC_HSI_SetCalibTrimming
-  * @param  Parameter can be a value between 0 and 127 (63 for Cut1.x)
+  * @param  Value can be a value between 0 and 127 (63 for Cut1.x)
   * @retval None
   */
 __STATIC_INLINE void LL_RCC_HSI_SetCalibTrimming(uint32_t Value)
@@ -1834,7 +1897,7 @@ __STATIC_INLINE void LL_RCC_HSI_SetCalibTrimming(uint32_t Value)
     MODIFY_REG(RCC->HSICFGR, RCC_HSICFGR_HSITRIM, Value << RCC_HSICFGR_HSITRIM_Pos);
   }
 #else
-    MODIFY_REG(RCC->HSICFGR, RCC_HSICFGR_HSITRIM, Value << RCC_HSICFGR_HSITRIM_Pos);
+  MODIFY_REG(RCC->HSICFGR, RCC_HSICFGR_HSITRIM, Value << RCC_HSICFGR_HSITRIM_Pos);
 #endif /* RCC_VER_X */
 }
 
@@ -1857,7 +1920,7 @@ __STATIC_INLINE uint32_t LL_RCC_HSI_GetCalibTrimming(void)
     return (uint32_t)(READ_BIT(RCC->HSICFGR, RCC_HSICFGR_HSITRIM) >> RCC_HSICFGR_HSITRIM_Pos);
   }
 #else
-    return (uint32_t)(READ_BIT(RCC->HSICFGR, RCC_HSICFGR_HSITRIM) >> RCC_HSICFGR_HSITRIM_Pos);
+  return (uint32_t)(READ_BIT(RCC->HSICFGR, RCC_HSICFGR_HSITRIM) >> RCC_HSICFGR_HSITRIM_Pos);
 #endif /* RCC_VER_X */
 }
 
@@ -1897,7 +1960,7 @@ __STATIC_INLINE void LL_RCC_CSI_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_CSI_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_CSIRDY) == (RCC_CR_CSIRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_CSIRDY) == (RCC_CR_CSIRDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -1941,7 +2004,7 @@ __STATIC_INLINE uint32_t LL_RCC_CSI_GetCalibration(void)
     return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSICAL) >> RCC_CSICFGR_CSICAL_Pos);
   }
 #else
-    return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSICAL) >> RCC_CSICFGR_CSICAL_Pos);
+  return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSICAL) >> RCC_CSICFGR_CSICAL_Pos);
 #endif /* RCC_VER_X */
 }
 
@@ -1968,7 +2031,7 @@ __STATIC_INLINE void LL_RCC_CSI_SetCalibTrimming(uint32_t Value)
     MODIFY_REG(RCC->CSICFGR, RCC_CSICFGR_CSITRIM, Value << RCC_CSICFGR_CSITRIM_Pos);
   }
 #else
-    MODIFY_REG(RCC->CSICFGR, RCC_CSICFGR_CSITRIM, Value << RCC_CSICFGR_CSITRIM_Pos);
+  MODIFY_REG(RCC->CSICFGR, RCC_CSICFGR_CSITRIM, Value << RCC_CSICFGR_CSITRIM_Pos);
 #endif /* RCC_VER_X */
 }
 
@@ -1991,7 +2054,7 @@ __STATIC_INLINE uint32_t LL_RCC_CSI_GetCalibTrimming(void)
     return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSITRIM) >> RCC_CSICFGR_CSITRIM_Pos);
   }
 #else
-    return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSITRIM) >> RCC_CSICFGR_CSITRIM_Pos);
+  return (uint32_t)(READ_BIT(RCC->CSICFGR, RCC_CSICFGR_CSITRIM) >> RCC_CSICFGR_CSITRIM_Pos);
 #endif /* RCC_VER_X */
 }
 
@@ -2031,7 +2094,7 @@ __STATIC_INLINE void LL_RCC_HSI48_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_HSI48_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_HSI48RDY) == (RCC_CR_HSI48RDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_HSI48RDY) == (RCC_CR_HSI48RDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -2063,7 +2126,7 @@ __STATIC_INLINE uint32_t LL_RCC_HSI48_GetCalibration(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_D1CK_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_D1CKRDY) == (RCC_CR_D1CKRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_D1CKRDY) == (RCC_CR_D1CKRDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -2083,9 +2146,9 @@ __STATIC_INLINE uint32_t LL_RCC_D1CK_IsReady(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_CPUCK_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_CPUCKRDY) == (RCC_CR_CPUCKRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_CPUCKRDY) == (RCC_CR_CPUCKRDY)) ? 1UL : 0UL);
 }
- /* alias */
+/* alias */
 #define LL_RCC_D1CK_IsReady  LL_RCC_CPUCK_IsReady
 /**
   * @}
@@ -2106,7 +2169,7 @@ __STATIC_INLINE uint32_t LL_RCC_CPUCK_IsReady(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_D2CK_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_D2CKRDY) == (RCC_CR_D2CKRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_D2CKRDY) == (RCC_CR_D2CKRDY)) ? 1UL : 0UL);
 }
 /**
   * @}
@@ -2125,7 +2188,7 @@ __STATIC_INLINE uint32_t LL_RCC_D2CK_IsReady(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_CDCK_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_CDCKRDY) == (RCC_CR_CDCKRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_CDCKRDY) == (RCC_CR_CDCKRDY)) ? 1UL : 0UL);
 }
 #define LL_RCC_D2CK_IsReady LL_RCC_CDCK_IsReady
 /**
@@ -2156,7 +2219,7 @@ __STATIC_INLINE void LL_RCC_WWDG1_EnableSystemReset(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_WWDG1_IsSystemReset(void)
 {
-  return ((READ_BIT(RCC->GCR, RCC_GCR_WW1RSC) == RCC_GCR_WW1RSC)?1UL:0UL);
+  return ((READ_BIT(RCC->GCR, RCC_GCR_WW1RSC) == RCC_GCR_WW1RSC) ? 1UL : 0UL);
 }
 #endif  /* RCC_GCR_WW1RSC */
 
@@ -2178,7 +2241,7 @@ __STATIC_INLINE void LL_RCC_WWDG2_EnableSystemReset(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_WWDG2_IsSystemReset(void)
 {
-  return ((READ_BIT(RCC->GCR, RCC_GCR_WW2RSC) == RCC_GCR_WW2RSC)?1UL:0UL);
+  return ((READ_BIT(RCC->GCR, RCC_GCR_WW2RSC) == RCC_GCR_WW2RSC) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 /**
@@ -2208,7 +2271,7 @@ __STATIC_INLINE void LL_RCC_ForceCM4Boot(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsCM4BootForced(void)
 {
-  return ((READ_BIT(RCC->GCR, RCC_GCR_BOOT_C2) == RCC_GCR_BOOT_C2)?1UL:0UL);
+  return ((READ_BIT(RCC->GCR, RCC_GCR_BOOT_C2) == RCC_GCR_BOOT_C2) ? 1UL : 0UL);
 }
 
 /**
@@ -2228,7 +2291,7 @@ __STATIC_INLINE void LL_RCC_ForceCM7Boot(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsCM7BootForced(void)
 {
-  return ((READ_BIT(RCC->GCR, RCC_GCR_BOOT_C1) == RCC_GCR_BOOT_C1)?1UL:0UL);
+  return ((READ_BIT(RCC->GCR, RCC_GCR_BOOT_C1) == RCC_GCR_BOOT_C1) ? 1UL : 0UL);
 }
 
 /**
@@ -2260,7 +2323,7 @@ __STATIC_INLINE void LL_RCC_LSE_EnableCSS(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_LSE_IsFailureDetected(void)
 {
-  return ((READ_BIT(RCC->BDCR, RCC_BDCR_LSECSSD) == (RCC_BDCR_LSECSSD))?1UL:0UL);
+  return ((READ_BIT(RCC->BDCR, RCC_BDCR_LSECSSD) == (RCC_BDCR_LSECSSD)) ? 1UL : 0UL);
 }
 
 /**
@@ -2366,7 +2429,7 @@ __STATIC_INLINE uint32_t LL_RCC_LSE_GetDriveCapability(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_LSE_IsReady(void)
 {
-  return ((READ_BIT(RCC->BDCR, RCC_BDCR_LSERDY) == (RCC_BDCR_LSERDY))?1UL:0UL);
+  return ((READ_BIT(RCC->BDCR, RCC_BDCR_LSERDY) == (RCC_BDCR_LSERDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -2405,7 +2468,7 @@ __STATIC_INLINE void LL_RCC_LSI_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_LSI_IsReady(void)
 {
-  return ((READ_BIT(RCC->CSR, RCC_CSR_LSIRDY) == (RCC_CSR_LSIRDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CSR, RCC_CSR_LSIRDY) == (RCC_CSR_LSIRDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -2808,7 +2871,7 @@ __STATIC_INLINE uint32_t LL_RCC_GetAPB4Prescaler(void)
   */
 __STATIC_INLINE void LL_RCC_ConfigMCO(uint32_t MCOxSource, uint32_t MCOxPrescaler)
 {
-  MODIFY_REG(RCC->CFGR,  (MCOxSource << 16U) | (MCOxPrescaler << 16U), (MCOxSource & 0xFFFF0000U) | (MCOxPrescaler & 0xFFFF0000U));
+  MODIFY_REG(RCC->CFGR, (MCOxSource << 16U) | (MCOxPrescaler << 16U), (MCOxSource & 0xFFFF0000U) | (MCOxPrescaler & 0xFFFF0000U));
 }
 
 /**
@@ -2869,15 +2932,16 @@ __STATIC_INLINE void LL_RCC_ConfigMCO(uint32_t MCOxSource, uint32_t MCOxPrescale
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_PLL3P
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_I2S_CKIN
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_CLKP
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL1Q
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL2P
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL3P
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_I2S_CKIN
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_CLKP
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL1Q (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL2P (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL3P (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_I2S_CKIN (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_CLKP (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL1Q (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL2P  (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL3P  (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_I2S_CKIN  (*)
+  *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_SPDIF  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL1Q  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL2P  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL3P  (*)
@@ -2889,6 +2953,7 @@ __STATIC_INLINE void LL_RCC_ConfigMCO(uint32_t MCOxSource, uint32_t MCOxPrescale
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_PLL3P (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_I2S_CKIN (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_CLKP (*)
+  *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_SPDIF (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL1Q (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL2P (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL3P (*)
@@ -2920,9 +2985,9 @@ __STATIC_INLINE void LL_RCC_ConfigMCO(uint32_t MCOxSource, uint32_t MCOxPrescale
 __STATIC_INLINE void LL_RCC_SetClockSource(uint32_t ClkSource)
 {
 #if defined(RCC_D1CCIPR_FMCSEL)
-  register uint32_t * pReg = (uint32_t *)((uint32_t)&RCC->D1CCIPR + LL_CLKSOURCE_REG(ClkSource));
+  uint32_t *pReg = (uint32_t *)((uint32_t)&RCC->D1CCIPR + LL_CLKSOURCE_REG(ClkSource));
 #else
-  register uint32_t * pReg = (uint32_t *)((uint32_t)&RCC->CDCCIPR + LL_CLKSOURCE_REG(ClkSource));
+  uint32_t *pReg = (uint32_t *)((uint32_t)&RCC->CDCCIPR + LL_CLKSOURCE_REG(ClkSource));
 #endif /*  */
   MODIFY_REG(*pReg, LL_CLKSOURCE_MASK(ClkSource), LL_CLKSOURCE_CONFIG(ClkSource));
 }
@@ -3035,15 +3100,16 @@ __STATIC_INLINE void LL_RCC_SetLPTIMClockSource(uint32_t ClkSource)
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_PLL3P
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_I2S_CKIN
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_CLKP
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL1Q
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL2P
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL3P
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_I2S_CKIN
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_CLKP
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL1Q (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL2P (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_PLL3P (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_I2S_CKIN (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE_CLKP (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL1Q (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL2P  (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_PLL3P  (*)
   *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_I2S_CKIN  (*)
+  *         @arg @ref LL_RCC_SAI4A_CLKSOURCE_SPDIF  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL1Q  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL2P  (*)
   *         @arg @ref LL_RCC_SAI2A_CLKSOURCE_PLL3P  (*)
@@ -3055,6 +3121,7 @@ __STATIC_INLINE void LL_RCC_SetLPTIMClockSource(uint32_t ClkSource)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_PLL3P (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_I2S_CKIN (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_CLKP (*)
+  *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_SPDIF  (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL1Q (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL2P (*)
   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE_PLL3P (*)
@@ -3180,19 +3247,19 @@ __STATIC_INLINE void LL_RCC_SetDFSDMClockSource(uint32_t ClkSource)
   * @brief  Configure DFSDMx Kernel clock source
   * @rmtoll SRDCCIPR                   DFSDM2SEL        LL_RCC_SetDFSDM2ClockSource
   * @param  ClkSource This parameter can be one of the following values:
-  *         @arg @ref LL_RCC_DFSDM2_CLKSOURCE_PCLK2
+  *         @arg @ref LL_RCC_DFSDM2_CLKSOURCE_PCLK4
   *         @arg @ref LL_RCC_DFSDM2_CLKSOURCE_SYSCLK
   * @retval None
   */
 __STATIC_INLINE void LL_RCC_SetDFSDM2ClockSource(uint32_t ClkSource)
 {
-   MODIFY_REG(RCC->SRDCCIPR, RCC_SRDCCIPR_DFSDM2SEL, ClkSource);
+  MODIFY_REG(RCC->SRDCCIPR, RCC_SRDCCIPR_DFSDM2SEL, ClkSource);
 }
-#endif /* DFSDM2 */
+#endif /* DFSDM2_BASE */
 
 /**
   * @brief  Configure FMCx Kernel clock source
-  * @rmtoll D1CCIPR / CDCCIPR        FMCSEL        LL_RCC_SetFMCClockSource
+  * @rmtoll D1CCIPR /  CDCCIPR        FMCSEL        LL_RCC_SetFMCClockSource
   * @param  ClkSource This parameter can be one of the following values:
   *         @arg @ref LL_RCC_FMC_CLKSOURCE_HCLK
   *         @arg @ref LL_RCC_FMC_CLKSOURCE_PLL1Q
@@ -3239,7 +3306,11 @@ __STATIC_INLINE void LL_RCC_SetQSPIClockSource(uint32_t ClkSource)
   */
 __STATIC_INLINE void LL_RCC_SetOSPIClockSource(uint32_t ClkSource)
 {
+#if defined(RCC_D1CCIPR_OCTOSPISEL)
+  MODIFY_REG(RCC->D1CCIPR, RCC_D1CCIPR_OCTOSPISEL, ClkSource);
+#else
   MODIFY_REG(RCC->CDCCIPR, RCC_CDCCIPR_OCTOSPISEL, ClkSource);
+#endif /* RCC_D1CCIPR_OCTOSPISEL */
 }
 #endif /* OCTOSPI1 || OCTOSPI2 */
 
@@ -3485,11 +3556,11 @@ __STATIC_INLINE void LL_RCC_SetADCClockSource(uint32_t ClkSource)
 __STATIC_INLINE uint32_t LL_RCC_GetClockSource(uint32_t Periph)
 {
 #if defined(RCC_D1CCIPR_FMCSEL)
-  register const uint32_t *pReg = (uint32_t *)((uint32_t)((uint32_t)(&RCC->D1CCIPR) + LL_CLKSOURCE_REG(Periph)));
+  const uint32_t *pReg = (uint32_t *)((uint32_t)((uint32_t)(&RCC->D1CCIPR) + LL_CLKSOURCE_REG(Periph)));
 #else
-  register const uint32_t *pReg = (uint32_t *)((uint32_t)((uint32_t)(&RCC->CDCCIPR) + LL_CLKSOURCE_REG(Periph)));
+  const uint32_t *pReg = (uint32_t *)((uint32_t)((uint32_t)(&RCC->CDCCIPR) + LL_CLKSOURCE_REG(Periph)));
 #endif /* RCC_D1CCIPR_FMCSEL */
-  return (uint32_t) (Periph | (((READ_BIT(*pReg, LL_CLKSOURCE_MASK(Periph))) >> LL_CLKSOURCE_SHIFT(Periph)) << LL_RCC_CONFIG_SHIFT) );
+  return (uint32_t)(Periph | (((READ_BIT(*pReg, LL_CLKSOURCE_MASK(Periph))) >> LL_CLKSOURCE_SHIFT(Periph)) << LL_RCC_CONFIG_SHIFT));
 }
 
 /**
@@ -3568,7 +3639,7 @@ __STATIC_INLINE uint32_t LL_RCC_GetI2CClockSource(uint32_t Periph)
   * @rmtoll D2CCIP2R / CDCCIP2R      LPTIM1SEL     LL_RCC_GetLPTIMClockSource\n
   *         D3CCIPR  / SRDCCIPR      LPTIM2SEL     LL_RCC_GetLPTIMClockSource\n
   *         D3CCIPR  / SRDCCIPR      LPTIM345SEL   LL_RCC_GetLPTIMClockSource
-  * @param  Perihp This parameter can be one of the following values:
+  * @param  Periph This parameter can be one of the following values:
   *         @arg @ref LL_RCC_LPTIM1_CLKSOURCE
   *         @arg @ref LL_RCC_LPTIM2_CLKSOURCE
   *         @arg @ref LL_RCC_LPTIM345_CLKSOURCE
@@ -3605,10 +3676,12 @@ __STATIC_INLINE uint32_t LL_RCC_GetLPTIMClockSource(uint32_t Periph)
   *         D3CCIPR  / SRDCCIPR     SAI4ASEL      LL_RCC_GetSAIClockSource\n
   *         D3CCIPR  / SRDCCIPR     SAI4BSEL      LL_RCC_GetSAIClockSource
   * @param  Periph This parameter can be one of the following values:
-  *         @arg @ref LL_RCC_SAI1_CLKSOURCE
-  *         @arg @ref LL_RCC_SAI23_CLKSOURCE
-  *         @arg @ref LL_RCC_SAI4A_CLKSOURCE
-  *         @arg @ref LL_RCC_SAI4B_CLKSOURCE
+  *         @arg @ref LL_RCC_SAI1_CLKSOURCE    (*)
+  *         @arg @ref LL_RCC_SAI2A_CLKSOURCE  (*)
+   *         @arg @ref LL_RCC_SAI2B_CLKSOURCE  (*)
+  *         @arg @ref LL_RCC_SAI23_CLKSOURCE   (*)
+  *         @arg @ref LL_RCC_SAI4A_CLKSOURCE   (*)
+  *         @arg @ref LL_RCC_SAI4B_CLKSOURCE   (*)
   * @retval Returned value can be one of the following values:
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_PLL1Q
   *         @arg @ref LL_RCC_SAI1_CLKSOURCE_PLL2P
@@ -3642,7 +3715,7 @@ __STATIC_INLINE uint32_t LL_RCC_GetLPTIMClockSource(uint32_t Periph)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_PLL3P (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_I2S_CKIN (*)
   *         @arg @ref LL_RCC_SAI4B_CLKSOURCE_CLKP (*)
-  * 
+  *
   *  (*) value not defined in all devices.
   */
 __STATIC_INLINE uint32_t LL_RCC_GetSAIClockSource(uint32_t Periph)
@@ -3808,7 +3881,7 @@ __STATIC_INLINE uint32_t LL_RCC_GetFMCClockSource(uint32_t Periph)
 #if defined(QUADSPI)
 /**
   * @brief  Get QSPI Kernel clock source
-  * @rmtoll D1CCIPR / CDCCIPR      QSPISEL        LL_RCC_GetQSPIClockSource
+  * @rmtoll D1CCIPR  /  CDCCIPR      QSPISEL        LL_RCC_GetQSPIClockSource
   * @param  Periph This parameter can be one of the following values:
   *         @arg @ref LL_RCC_QSPI_CLKSOURCE
   * @retval Returned value can be one of the following values:
@@ -3839,13 +3912,17 @@ __STATIC_INLINE uint32_t LL_RCC_GetQSPIClockSource(uint32_t Periph)
 __STATIC_INLINE uint32_t LL_RCC_GetOSPIClockSource(uint32_t Periph)
 {
   UNUSED(Periph);
+#if defined(RCC_D1CCIPR_OCTOSPISEL)
+  return (uint32_t)(READ_BIT(RCC->D1CCIPR, RCC_D1CCIPR_OCTOSPISEL));
+#else
   return (uint32_t)(READ_BIT(RCC->CDCCIPR, RCC_CDCCIPR_OCTOSPISEL));
+#endif /* RCC_D1CCIPR_OCTOSPISEL */
 }
 #endif /* defined(OCTOSPI1) || defined(OCTOSPI2) */
 
 /**
   * @brief  Get CLKP Kernel clock source
-  * @rmtoll D1CCIPR / CDCCIPR       CKPERSEL        LL_RCC_GetCLKPClockSource
+  * @rmtoll D1CCIPR /  CDCCIPR       CKPERSEL        LL_RCC_GetCLKPClockSource
   * @param  Periph This parameter can be one of the following values:
   *         @arg @ref LL_RCC_CLKP_CLKSOURCE
   * @retval Returned value can be one of the following values:
@@ -4047,7 +4124,7 @@ __STATIC_INLINE void LL_RCC_DisableRTC(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnabledRTC(void)
 {
-  return ((READ_BIT(RCC->BDCR, RCC_BDCR_RTCEN) == (RCC_BDCR_RTCEN))?1UL:0UL);
+  return ((READ_BIT(RCC->BDCR, RCC_BDCR_RTCEN) == (RCC_BDCR_RTCEN)) ? 1UL : 0UL);
 }
 
 /**
@@ -4359,7 +4436,7 @@ __STATIC_INLINE void LL_RCC_PLL1_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL1_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_PLL1RDY) == (RCC_CR_PLL1RDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_PLL1RDY) == (RCC_CR_PLL1RDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -4412,7 +4489,7 @@ __STATIC_INLINE void LL_RCC_PLL1FRACN_Enable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL1P_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP1EN) == RCC_PLLCFGR_DIVP1EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP1EN) == RCC_PLLCFGR_DIVP1EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4422,7 +4499,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL1P_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL1Q_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ1EN) == RCC_PLLCFGR_DIVQ1EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ1EN) == RCC_PLLCFGR_DIVQ1EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4432,7 +4509,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL1Q_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL1R_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR1EN) == RCC_PLLCFGR_DIVR1EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR1EN) == RCC_PLLCFGR_DIVR1EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4442,7 +4519,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL1R_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL1FRACN_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL1FRACEN) == RCC_PLLCFGR_PLL1FRACEN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL1FRACEN) == RCC_PLLCFGR_PLL1FRACEN) ? 1UL : 0UL);
 }
 
 /**
@@ -4586,7 +4663,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL1_GetFRACN(void)
   */
 __STATIC_INLINE void LL_RCC_PLL1_SetN(uint32_t N)
 {
-  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_N1, (N-1UL) << RCC_PLL1DIVR_N1_Pos);
+  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_N1, (N - 1UL) << RCC_PLL1DIVR_N1_Pos);
 }
 
 /**
@@ -4604,11 +4681,13 @@ __STATIC_INLINE void LL_RCC_PLL1_SetM(uint32_t M)
   * @brief  Set PLL1 P Coefficient
   * @note   This API shall be called only when PLL1 is disabled.
   * @rmtoll PLL1DIVR        P1          LL_RCC_PLL1_SetP
-  * @param  P parameter can be a value between 2 and 128 (ODD division factor not supportted)
+  * @param  P parameter can be a value between 2 (or 1*) and 128 (ODD division factor not supported)
+  *
+  * (*) : For stm32h72xxx and stm32h73xxx family lines.
   */
 __STATIC_INLINE void LL_RCC_PLL1_SetP(uint32_t P)
 {
-  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_P1, (P-1UL) << RCC_PLL1DIVR_P1_Pos);
+  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_P1, (P - 1UL) << RCC_PLL1DIVR_P1_Pos);
 }
 
 /**
@@ -4619,7 +4698,7 @@ __STATIC_INLINE void LL_RCC_PLL1_SetP(uint32_t P)
   */
 __STATIC_INLINE void LL_RCC_PLL1_SetQ(uint32_t Q)
 {
-  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_Q1, (Q-1UL) << RCC_PLL1DIVR_Q1_Pos);
+  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_Q1, (Q - 1UL) << RCC_PLL1DIVR_Q1_Pos);
 }
 
 /**
@@ -4630,7 +4709,7 @@ __STATIC_INLINE void LL_RCC_PLL1_SetQ(uint32_t Q)
   */
 __STATIC_INLINE void LL_RCC_PLL1_SetR(uint32_t R)
 {
-  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_R1, (R-1UL) << RCC_PLL1DIVR_R1_Pos);
+  MODIFY_REG(RCC->PLL1DIVR, RCC_PLL1DIVR_R1, (R - 1UL) << RCC_PLL1DIVR_R1_Pos);
 }
 
 /**
@@ -4671,7 +4750,7 @@ __STATIC_INLINE void LL_RCC_PLL2_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL2_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_PLL2RDY) == (RCC_CR_PLL2RDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_PLL2RDY) == (RCC_CR_PLL2RDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -4724,7 +4803,7 @@ __STATIC_INLINE void LL_RCC_PLL2FRACN_Enable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL2P_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP2EN) == RCC_PLLCFGR_DIVP2EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP2EN) == RCC_PLLCFGR_DIVP2EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4734,7 +4813,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL2P_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL2Q_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ2EN) == RCC_PLLCFGR_DIVQ2EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ2EN) == RCC_PLLCFGR_DIVQ2EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4744,7 +4823,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL2Q_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL2R_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR2EN) == RCC_PLLCFGR_DIVR2EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR2EN) == RCC_PLLCFGR_DIVR2EN) ? 1UL : 0UL);
 }
 
 /**
@@ -4754,7 +4833,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL2R_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL2FRACN_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL2FRACEN) == RCC_PLLCFGR_PLL2FRACEN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL2FRACEN) == RCC_PLLCFGR_PLL2FRACEN) ? 1UL : 0UL);
 }
 
 /**
@@ -4898,7 +4977,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL2_GetFRACN(void)
   */
 __STATIC_INLINE void LL_RCC_PLL2_SetN(uint32_t N)
 {
-  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (N-1UL) << RCC_PLL2DIVR_N2_Pos);
+  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_N2, (N - 1UL) << RCC_PLL2DIVR_N2_Pos);
 }
 
 /**
@@ -4920,7 +4999,7 @@ __STATIC_INLINE void LL_RCC_PLL2_SetM(uint32_t M)
   */
 __STATIC_INLINE void LL_RCC_PLL2_SetP(uint32_t P)
 {
-  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (P-1UL) << RCC_PLL2DIVR_P2_Pos);
+  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_P2, (P - 1UL) << RCC_PLL2DIVR_P2_Pos);
 }
 
 /**
@@ -4931,7 +5010,7 @@ __STATIC_INLINE void LL_RCC_PLL2_SetP(uint32_t P)
   */
 __STATIC_INLINE void LL_RCC_PLL2_SetQ(uint32_t Q)
 {
-  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_Q2, (Q-1UL) << RCC_PLL2DIVR_Q2_Pos);
+  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_Q2, (Q - 1UL) << RCC_PLL2DIVR_Q2_Pos);
 }
 
 /**
@@ -4942,7 +5021,7 @@ __STATIC_INLINE void LL_RCC_PLL2_SetQ(uint32_t Q)
   */
 __STATIC_INLINE void LL_RCC_PLL2_SetR(uint32_t R)
 {
-  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_R2, (R-1UL) << RCC_PLL2DIVR_R2_Pos);
+  MODIFY_REG(RCC->PLL2DIVR, RCC_PLL2DIVR_R2, (R - 1UL) << RCC_PLL2DIVR_R2_Pos);
 }
 
 /**
@@ -4983,7 +5062,7 @@ __STATIC_INLINE void LL_RCC_PLL3_Disable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL3_IsReady(void)
 {
-  return ((READ_BIT(RCC->CR, RCC_CR_PLL3RDY) == (RCC_CR_PLL3RDY))?1UL:0UL);
+  return ((READ_BIT(RCC->CR, RCC_CR_PLL3RDY) == (RCC_CR_PLL3RDY)) ? 1UL : 0UL);
 }
 
 /**
@@ -5036,7 +5115,7 @@ __STATIC_INLINE void LL_RCC_PLL3FRACN_Enable(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL3P_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP3EN) == RCC_PLLCFGR_DIVP3EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVP3EN) == RCC_PLLCFGR_DIVP3EN) ? 1UL : 0UL);
 }
 
 /**
@@ -5046,7 +5125,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL3P_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL3Q_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ3EN) == RCC_PLLCFGR_DIVQ3EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVQ3EN) == RCC_PLLCFGR_DIVQ3EN) ? 1UL : 0UL);
 }
 
 /**
@@ -5056,7 +5135,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL3Q_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL3R_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR3EN) == RCC_PLLCFGR_DIVR3EN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_DIVR3EN) == RCC_PLLCFGR_DIVR3EN) ? 1UL : 0UL);
 }
 
 /**
@@ -5066,7 +5145,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL3R_IsEnabled(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_PLL3FRACN_IsEnabled(void)
 {
-  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL3FRACEN) == RCC_PLLCFGR_PLL3FRACEN)?1UL:0UL);
+  return ((READ_BIT(RCC->PLLCFGR, RCC_PLLCFGR_PLL3FRACEN) == RCC_PLLCFGR_PLL3FRACEN) ? 1UL : 0UL);
 }
 
 /**
@@ -5210,7 +5289,7 @@ __STATIC_INLINE uint32_t LL_RCC_PLL3_GetFRACN(void)
   */
 __STATIC_INLINE void LL_RCC_PLL3_SetN(uint32_t N)
 {
-  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_N3, (N-1UL) << RCC_PLL3DIVR_N3_Pos);
+  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_N3, (N - 1UL) << RCC_PLL3DIVR_N3_Pos);
 }
 
 /**
@@ -5232,7 +5311,7 @@ __STATIC_INLINE void LL_RCC_PLL3_SetM(uint32_t M)
   */
 __STATIC_INLINE void LL_RCC_PLL3_SetP(uint32_t P)
 {
-  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_P3, (P-1UL) << RCC_PLL3DIVR_P3_Pos);
+  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_P3, (P - 1UL) << RCC_PLL3DIVR_P3_Pos);
 }
 
 /**
@@ -5243,7 +5322,7 @@ __STATIC_INLINE void LL_RCC_PLL3_SetP(uint32_t P)
   */
 __STATIC_INLINE void LL_RCC_PLL3_SetQ(uint32_t Q)
 {
-  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_Q3, (Q-1UL) << RCC_PLL3DIVR_Q3_Pos);
+  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_Q3, (Q - 1UL) << RCC_PLL3DIVR_Q3_Pos);
 }
 
 /**
@@ -5254,7 +5333,7 @@ __STATIC_INLINE void LL_RCC_PLL3_SetQ(uint32_t Q)
   */
 __STATIC_INLINE void LL_RCC_PLL3_SetR(uint32_t R)
 {
-  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_R3, (R-1UL) << RCC_PLL3DIVR_R3_Pos);
+  MODIFY_REG(RCC->PLL3DIVR, RCC_PLL3DIVR_R3, (R - 1UL) << RCC_PLL3DIVR_R3_Pos);
 }
 
 /**
@@ -5395,7 +5474,7 @@ __STATIC_INLINE void LL_RCC_ClearFlag_HSECSS(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSIRDYF) == (RCC_CIFR_LSIRDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSIRDYF) == (RCC_CIFR_LSIRDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5405,7 +5484,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSERDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSERDYF) == (RCC_CIFR_LSERDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSERDYF) == (RCC_CIFR_LSERDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5415,7 +5494,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSERDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSIRDYF) == (RCC_CIFR_HSIRDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSIRDYF) == (RCC_CIFR_HSIRDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5425,7 +5504,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSERDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSERDYF) == (RCC_CIFR_HSERDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSERDYF) == (RCC_CIFR_HSERDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5435,7 +5514,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSERDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_CSIRDYF) == (RCC_CIFR_CSIRDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_CSIRDYF) == (RCC_CIFR_CSIRDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5445,7 +5524,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSI48RDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSI48RDYF) == (RCC_CIFR_HSI48RDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSI48RDYF) == (RCC_CIFR_HSI48RDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5455,7 +5534,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSI48RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL1RDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLLRDYF) == (RCC_CIFR_PLLRDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLLRDYF) == (RCC_CIFR_PLLRDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5465,7 +5544,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL1RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL2RDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLL2RDYF) == (RCC_CIFR_PLL2RDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLL2RDYF) == (RCC_CIFR_PLL2RDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5475,7 +5554,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL2RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL3RDY(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLL3RDYF) == (RCC_CIFR_PLL3RDYF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_PLL3RDYF) == (RCC_CIFR_PLL3RDYF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5485,7 +5564,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PLL3RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSECSS(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSECSSF) == (RCC_CIFR_LSECSSF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_LSECSSF) == (RCC_CIFR_LSECSSF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5495,7 +5574,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LSECSS(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSECSS(void)
 {
-  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSECSSF) == (RCC_CIFR_HSECSSF))?1UL:0UL);
+  return ((READ_BIT(RCC->CIFR, RCC_CIFR_HSECSSF) == (RCC_CIFR_HSECSSF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5510,9 +5589,9 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_HSECSS(void)
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LPWRRST(void)
 {
 #if defined(DUAL_CORE)
-  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF)) ? 1UL : 0UL);
 #else
-  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWRRSTF) == (RCC_RSR_LPWRRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWRRSTF) == (RCC_RSR_LPWRRSTF)) ? 1UL : 0UL);
 #endif /*DUAL_CORE*/
 }
 
@@ -5524,7 +5603,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LPWRRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LPWR2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF)) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 
@@ -5535,7 +5614,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_LPWR2RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_WWDG1RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF)) ? 1UL : 0UL);
 }
 
 #if defined(DUAL_CORE)
@@ -5546,7 +5625,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_WWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_WWDG2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF)) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 
@@ -5557,7 +5636,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_WWDG2RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_IWDG1RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF)) ? 1UL : 0UL);
 }
 
 #if defined(DUAL_CORE)
@@ -5568,7 +5647,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_IWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_IWDG2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF)) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 
@@ -5584,9 +5663,9 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_IWDG2RST(void)
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_SFTRST(void)
 {
 #if defined(DUAL_CORE)
-  return ((READ_BIT(RCC->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF)) ? 1UL : 0UL);
 #else
-  return ((READ_BIT(RCC->RSR, RCC_RSR_SFTRSTF) == (RCC_RSR_SFTRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_SFTRSTF) == (RCC_RSR_SFTRSTF)) ? 1UL : 0UL);
 #endif  /*DUAL_CORE*/
 }
 
@@ -5598,7 +5677,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_SFTRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_SFT2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF)) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 
@@ -5609,7 +5688,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_SFT2RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PORRST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5619,7 +5698,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PORRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PINRST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5629,7 +5708,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_PINRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_BORRST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF)) ? 1UL : 0UL);
 }
 
 #if defined(RCC_RSR_D1RSTF)
@@ -5640,7 +5719,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_BORRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_D1RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF)) ? 1UL : 0UL);
 }
 #endif /* RCC_RSR_D1RSTF */
 
@@ -5652,7 +5731,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_D1RST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CDRST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_CDRSTF) == (RCC_RSR_CDRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_CDRSTF) == (RCC_RSR_CDRSTF)) ? 1UL : 0UL);
 }
 #endif /* RCC_RSR_CDRSTF */
 
@@ -5664,7 +5743,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CDRST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_D2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF)) ? 1UL : 0UL);
 }
 #endif /* RCC_RSR_D2RSTF */
 
@@ -5681,9 +5760,9 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_D2RST(void)
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CPURST(void)
 {
 #if defined(DUAL_CORE)
-  return ((READ_BIT(RCC->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF)) ? 1UL : 0UL);
 #else
-  return ((READ_BIT(RCC->RSR, RCC_RSR_CPURSTF) == (RCC_RSR_CPURSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_CPURSTF) == (RCC_RSR_CPURSTF)) ? 1UL : 0UL);
 #endif/*DUAL_CORE*/
 }
 #endif /* defined(RCC_RSR_C1RSTF) || defined(RCC_RSR_CPURSTF) */
@@ -5696,7 +5775,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CPURST(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsActiveFlag_CPU2RST(void)
 {
-  return ((READ_BIT(RCC->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF)) ? 1UL : 0UL);
 }
 #endif  /*DUAL_CORE*/
 
@@ -5718,7 +5797,7 @@ __STATIC_INLINE void LL_RCC_ClearResetFlags(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_LPWRRST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5728,7 +5807,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_LPWRRST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_LPWR2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5738,7 +5817,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_LPWR2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_WWDG1RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5748,7 +5827,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_WWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_WWDG2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5758,7 +5837,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_WWDG2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_IWDG1RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5768,7 +5847,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_IWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_IWDG2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5778,7 +5857,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_IWDG2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_SFTRST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5788,7 +5867,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_SFTRST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_SFT2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5798,7 +5877,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_SFT2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_PORRST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5808,7 +5887,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_PORRST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_PINRST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5818,7 +5897,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_PINRST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_BORRST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5828,7 +5907,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_BORRST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_D1RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5838,7 +5917,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_D1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_D2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5848,7 +5927,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_D2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_CPURST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5858,7 +5937,7 @@ __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_CPURST(void)
   */
 __STATIC_INLINE uint32_t LL_C1_RCC_IsActiveFlag_CPU2RST(void)
 {
-  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C1->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5878,7 +5957,7 @@ __STATIC_INLINE void LL_C1_RCC_ClearResetFlags(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_LPWRRST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_LPWR1RSTF) == (RCC_RSR_LPWR1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5888,7 +5967,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_LPWRRST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_LPWR2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_LPWR2RSTF) == (RCC_RSR_LPWR2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5898,7 +5977,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_LPWR2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_WWDG1RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_WWDG1RSTF) == (RCC_RSR_WWDG1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5908,7 +5987,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_WWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_WWDG2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_WWDG2RSTF) == (RCC_RSR_WWDG2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5918,7 +5997,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_WWDG2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_IWDG1RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_IWDG1RSTF) == (RCC_RSR_IWDG1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5928,7 +6007,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_IWDG1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_IWDG2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_IWDG2RSTF) == (RCC_RSR_IWDG2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5938,7 +6017,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_IWDG2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_SFTRST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_SFT1RSTF) == (RCC_RSR_SFT1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5948,7 +6027,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_SFTRST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_SFT2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_SFT2RSTF) == (RCC_RSR_SFT2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5958,7 +6037,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_SFT2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_PORRST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_PORRSTF) == (RCC_RSR_PORRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5968,7 +6047,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_PORRST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_PINRST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_PINRSTF) == (RCC_RSR_PINRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5978,7 +6057,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_PINRST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_BORRST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_BORRSTF) == (RCC_RSR_BORRSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5988,7 +6067,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_BORRST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_D1RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_D1RSTF) == (RCC_RSR_D1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -5998,7 +6077,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_D1RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_D2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_D2RSTF) == (RCC_RSR_D2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -6008,7 +6087,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_D2RST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_CPURST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_C1RSTF) == (RCC_RSR_C1RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -6018,7 +6097,7 @@ __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_CPURST(void)
   */
 __STATIC_INLINE uint32_t LL_C2_RCC_IsActiveFlag_CPU2RST(void)
 {
-  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF))?1UL:0UL);
+  return ((READ_BIT(RCC_C2->RSR, RCC_RSR_C2RSTF) == (RCC_RSR_C2RSTF)) ? 1UL : 0UL);
 }
 
 /**
@@ -6248,7 +6327,7 @@ __STATIC_INLINE void LL_RCC_DisableIT_LSECSS(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_LSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_LSIRDYIE) == RCC_CIER_LSIRDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_LSIRDYIE) == RCC_CIER_LSIRDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6258,7 +6337,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_LSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_LSERDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_LSERDYIE) == RCC_CIER_LSERDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_LSERDYIE) == RCC_CIER_LSERDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6268,7 +6347,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_LSERDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_HSIRDYIE) == RCC_CIER_HSIRDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_HSIRDYIE) == RCC_CIER_HSIRDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6278,7 +6357,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSERDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_HSERDYIE) == RCC_CIER_HSERDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_HSERDYIE) == RCC_CIER_HSERDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6288,7 +6367,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSERDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_CSIRDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_CSIRDYIE) == RCC_CIER_CSIRDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_CSIRDYIE) == RCC_CIER_CSIRDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6298,7 +6377,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_CSIRDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSI48RDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_HSI48RDYIE) == RCC_CIER_HSI48RDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_HSI48RDYIE) == RCC_CIER_HSI48RDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6308,7 +6387,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_HSI48RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL1RDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL1RDYIE) == RCC_CIER_PLL1RDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL1RDYIE) == RCC_CIER_PLL1RDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6318,7 +6397,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL1RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL2RDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL2RDYIE) == RCC_CIER_PLL2RDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL2RDYIE) == RCC_CIER_PLL2RDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6328,7 +6407,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL2RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL3RDY(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL3RDYIE) == RCC_CIER_PLL3RDYIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_PLL3RDYIE) == RCC_CIER_PLL3RDYIE) ? 1UL : 0UL);
 }
 
 /**
@@ -6338,7 +6417,7 @@ __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_PLL3RDY(void)
   */
 __STATIC_INLINE uint32_t LL_RCC_IsEnableIT_LSECSS(void)
 {
-  return ((READ_BIT(RCC->CIER, RCC_CIER_LSECSSIE) == RCC_CIER_LSECSSIE)?1UL:0UL);
+  return ((READ_BIT(RCC->CIER, RCC_CIER_LSECSSIE) == RCC_CIER_LSECSSIE) ? 1UL : 0UL);
 }
 /**
   * @}
@@ -6378,7 +6457,7 @@ uint32_t    LL_RCC_GetUSBClockFreq(uint32_t USBxSource);
 uint32_t    LL_RCC_GetDFSDMClockFreq(uint32_t DFSDMxSource);
 #if defined(DFSDM2_BASE)
 uint32_t    LL_RCC_GetDFSDM2ClockFreq(uint32_t DFSDMxSource);
-#endif /* DFSDM2 */
+#endif /* DFSDM2_BASE */
 #if defined(DSI)
 uint32_t    LL_RCC_GetDSIClockFreq(uint32_t DSIxSource);
 #endif /* DSI */
@@ -6421,4 +6500,3 @@ uint32_t    LL_RCC_GetCLKPClockFreq(uint32_t CLKPxSource);
 
 #endif /* STM32H7xx_LL_RCC_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

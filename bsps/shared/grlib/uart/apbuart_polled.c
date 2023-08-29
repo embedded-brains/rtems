@@ -38,7 +38,7 @@
 #include <grlib/apbuart.h>
 #include <grlib/io.h>
 
-#include <rtems/score/io.h>
+#include <rtems/dev/io.h>
 
 void apbuart_outbyte_wait( const apbuart *regs )
 {

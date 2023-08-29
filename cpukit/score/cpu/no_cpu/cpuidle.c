@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSScoreCPU
+ *
+ * @brief This source file contains the implementation of the
+ *   _CPU_Thread_Idle_body().
+ */
+
 /*
  * Copyright (C) 2013, 2014 embedded brains GmbH & Co. KG
  *
@@ -33,6 +42,13 @@
 
 void *_CPU_Thread_Idle_body( uintptr_t ignored )
 {
+  /*
+   * This is a workaround for:
+   *
+   * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=108658
+   */
+  __asm__ volatile ("");
+
   while ( true ) {
     /* Do nothing */
   }

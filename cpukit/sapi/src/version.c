@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup RTEMSAPIClassicVersion
+ * @ingroup RTEMSImplClassic
  *
  * @brief This source file contains the implementation of rtems_version(),
  *   rtems_version_control_key(), rtems_version_major(), rtems_version_minor(),
@@ -54,8 +54,8 @@
 
 const char *rtems_version( void )
 {
-#ifdef RTEMS_VERSION_VC_KEY
-  return RTEMS_VERSION "." RTEMS_VERSION_VC_KEY;
+#ifdef RTEMS_VERSION_CONTROL_KEY
+  return RTEMS_VERSION "." RTEMS_VERSION_CONTROL_KEY;
 #else
   return RTEMS_VERSION;
 #endif
@@ -78,8 +78,8 @@ int rtems_version_revision( void )
 
 const char *rtems_version_control_key( void )
 {
-#ifdef RTEMS_VERSION_VC_KEY
-  return RTEMS_VERSION_VC_KEY;
+#ifdef RTEMS_VERSION_CONTROL_KEY
+  return RTEMS_VERSION_CONTROL_KEY;
 #else
   return "";
 #endif

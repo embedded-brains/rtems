@@ -178,12 +178,19 @@ rtems_rtl_elf_find_symbol (rtems_rtl_obj*      obj,
 
   /*
    * If the symbol type is STT_NOTYPE the symbol references a global
-   * symbol. The gobal symbol table is searched to find it and that value
+   * symbol. The global symbol table is searched to find it and that value
    * returned. If the symbol is local to the object module the section for the
    * symbol is located and it's base added to the symbol's value giving an
    * absolute location.
+   *
+   * If the symbols type of TLS return the symbols value. It is the
+   * offset from the thread's TLS area base. The offset is set by the
+   * linker for the base image and by the TLS allocator for loaded
+   * modules. There is no section and no absolute base.
    */
-  if (ELF_ST_TYPE(sym->st_info) == STT_NOTYPE || sym->st_shndx == SHN_COMMON)
+  if (ELF_ST_TYPE (sym->st_info) == STT_NOTYPE ||
+      sym->st_shndx == SHN_COMMON ||
+      ELF_ST_TYPE (sym->st_info) == STT_TLS)
   {
     /*
      * Search the object file then the global table for the symbol.
@@ -247,6 +254,13 @@ rtems_rtl_elf_reloc_parser (rtems_rtl_obj*      obj,
   rtems_rtl_elf_rel_status  rs;
 
   /*
+   * TLS are not parsed.
+   */
+  if (ELF_ST_TYPE (sym->st_info) == STT_TLS) {
+    return true;
+  }
+
+  /*
    * Check the reloc record to see if a trampoline is needed.
    */
   if (is_rela)
@@ -302,7 +316,7 @@ rtems_rtl_elf_reloc_parser (rtems_rtl_obj*      obj,
      * Find the symbol's object file. It cannot be NULL so ignore that result
      * if returned, it means something is corrupted. We are in an iterator.
      */
-    rtems_rtl_obj*  sobj = rtems_rtl_find_obj_with_symbol (symbol);
+    rtems_rtl_obj* sobj = rtems_rtl_find_obj_with_symbol (symbol);
     if (sobj != NULL)
     {
       /*
@@ -791,7 +805,7 @@ rtems_rtl_elf_tramp_resolve_reloc (rtems_rtl_unresolv_rec* rec,
       }
 
       if (unresolved || rs == rtems_rtl_elf_rel_tramp_add)
-        tramp->obj->tramps_size += tramp->obj->tramp_size;
+        ++tramp->obj->tramp_slots;
       if (rs == rtems_rtl_elf_rel_failure)
       {
         *failure = true;
@@ -804,7 +818,7 @@ rtems_rtl_elf_tramp_resolve_reloc (rtems_rtl_unresolv_rec* rec,
 }
 
 static bool
-rtems_rtl_elf_alloc_trampoline (rtems_rtl_obj* obj, size_t unresolved)
+rtems_rtl_elf_find_trampolines (rtems_rtl_obj* obj, size_t unresolved)
 {
   rtems_rtl_tramp_data td =  { 0 };
   td.obj = obj;
@@ -815,21 +829,20 @@ rtems_rtl_elf_alloc_trampoline (rtems_rtl_obj* obj, size_t unresolved)
   if (td.failure)
     return false;
   rtems_rtl_trampoline_remove (obj);
-  obj->tramp_relocs = obj->tramp_size == 0 ? 0 : obj->tramps_size / obj->tramp_size;
+  obj->tramp_relocs = obj->tramp_slots;
   if (rtems_rtl_trace (RTEMS_RTL_TRACE_RELOC))
-    printf ("rtl: tramp:elf: tramps: %zu count:%zu total:%zu\n",
+    printf ("rtl: tramp:elf: tramps: slots:%zu count:%zu total:%zu\n",
             obj->tramp_relocs, td.count, td.total);
   /*
    * Add on enough space to handle the unresolved externals that need to be
    * resolved at some point in time. They could all require fixups and
    * trampolines.
    */
-  obj->tramps_size += obj->tramp_size * unresolved;
+  obj->tramp_slots += unresolved;
   if (rtems_rtl_trace (RTEMS_RTL_TRACE_RELOC))
-    printf ("rtl: tramp:elf: slots: %zu (%zu)\n",
-            obj->tramp_size == 0 ? 0 : obj->tramps_size / obj->tramp_size,
-            obj->tramps_size);
-  return rtems_rtl_obj_alloc_trampoline (obj);
+    printf ("rtl: tramp:elf: slots:%zu (%zu)\n",
+            obj->tramp_slots, obj->tramp_slots * obj->tramp_slot_size);
+  return true;
 }
 
 static bool
@@ -1716,7 +1729,7 @@ rtems_rtl_elf_file_load (rtems_rtl_obj* obj, int fd)
   /*
    * Set the format's architecture's maximum tramp size.
    */
-  obj->tramp_size = rtems_rtl_elf_relocate_tramp_max_size ();
+  obj->tramp_slot_size = rtems_rtl_elf_relocate_tramp_max_size ();
 
   /*
    * Parse the section information first so we have the memory map of the object
@@ -1765,13 +1778,23 @@ rtems_rtl_elf_file_load (rtems_rtl_obj* obj, int fd)
   if (!rtems_rtl_obj_alloc_sections (obj, fd, rtems_rtl_elf_arch_alloc, &ehdr))
     return false;
 
-  if (!rtems_rtl_obj_load_symbols (obj, fd, rtems_rtl_elf_symbols_locate, &ehdr))
-    return false;
-
   if (!rtems_rtl_elf_dependents (obj, &relocs))
     return false;
 
-  if (!rtems_rtl_elf_alloc_trampoline (obj, relocs.unresolved))
+  if (!rtems_rtl_elf_find_trampolines (obj, relocs.unresolved))
+    return false;
+
+  /*
+   * Resize the sections to allocate the trampoline memory as part of
+   * the text section.
+   */
+  if (rtems_rtl_obj_has_trampolines (obj))
+  {
+    if (!rtems_rtl_obj_resize_sections (obj))
+      return false;
+  }
+
+  if (!rtems_rtl_obj_load_symbols (obj, fd, rtems_rtl_elf_symbols_locate, &ehdr))
     return false;
 
   /*

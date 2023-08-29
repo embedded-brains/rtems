@@ -1,6 +1,15 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
  *
+ * @ingroup RTEMSTestFrameworkImpl
+ *
+ * @brief This source file contains the core implementation of RTEMS Test
+ *    Framework.
+ */
+
+/*
  * Copyright (C) 2018, 2020 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +46,7 @@
 #include <stdatomic.h>
 
 #ifdef __rtems__
-#include <rtems/score/io.h>
+#include <rtems/dev/io.h>
 #include <rtems/score/percpu.h>
 #include <rtems/score/smp.h>
 #include <rtems/score/threadimpl.h>

@@ -108,6 +108,12 @@ get_veneer_size(int type)
   return 8;
 }
 
+uint32_t rtems_rtl_obj_tramp_alignment (const rtems_rtl_obj* obj)
+{
+  (void) obj;
+  return sizeof(uint32_t);
+}
+
 size_t
 rtems_rtl_elf_relocate_tramp_max_size (void)
 {
@@ -526,7 +532,6 @@ rtems_rtl_elf_reloc_rel (rtems_rtl_obj*            obj,
       break;
 
     case R_TYPE(TLS_LE32):
-#if ALLOW_UNTESTED_RELOCS
       if (!parsing) {
         addend = *where;
         *where = symvalue + addend;
@@ -535,7 +540,7 @@ rtems_rtl_elf_reloc_rel (rtems_rtl_obj*            obj,
                   (void *)*where, where, rtems_rtl_obj_oname (obj));
       }
       break;
-#endif
+
     case R_TYPE(TLS_GD32):
     case R_TYPE(TLS_LDM32):
     case R_TYPE(TLS_LDO32):

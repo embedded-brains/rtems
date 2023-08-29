@@ -78,8 +78,10 @@ __RCSID("$NetBSD: mdreloc.c,v 1.14 2020/06/16 21:01:30 joerg Exp $");
 #include "rtl-elf.h"
 #include "rtl-error.h"
 #include <rtems/rtl/rtl-trace.h>
-#include "rtl-unwind-arm.h"
 #include <rtems/score/tls.h>
+
+#include "rtl-unwind.h"
+#include "rtl-unwind-dw2.h"
 
 struct tls_data {
   size_t    td_tlsindex;
@@ -159,6 +161,12 @@ get_veneer_size(int type)
 {
   (void) type;
   return 16;
+}
+
+uint32_t rtems_rtl_obj_tramp_alignment (const rtems_rtl_obj* obj)
+{
+  (void) obj;
+  return sizeof(uint64_t);
 }
 
 size_t
@@ -309,11 +317,7 @@ rtems_rtl_elf_reloc_rela (rtems_rtl_obj*            obj,
       }
 
       if (!parsing) {
-        target = (Elf_Addr)symvalue + rela->r_addend;
-	/* Calculate offset accounting for the DTV */
-	target -= (uintptr_t)_TLS_Data_begin;
-	target += sizeof(TLS_Dynamic_thread_vector);
-
+        target = (Elf_Addr)symvalue;
         target >>= shift;
 	target &= WIDTHMASK(12);
         if (of_check && target >= of_check) {
@@ -388,6 +392,7 @@ rtems_rtl_elf_reloc_rela (rtems_rtl_obj*            obj,
         target -= (uintptr_t)where >> 12;
 
         if (checkoverflow(target, 21, raddr, " x 4k", where, off)) {
+          printf("]] %d\n", __LINE__);
           return rtems_rtl_elf_rel_failure;
         }
 
@@ -418,6 +423,10 @@ rtems_rtl_elf_reloc_rela (rtems_rtl_obj*            obj,
         return rtems_rtl_elf_rel_failure;
       }
 
+      if (rtems_rtl_trace (RTEMS_RTL_TRACE_RELOC))
+        printf ("rtl: JUMP26/PC26/CALL: insn=%p where=%p target=%p raddr=%p parsing=%d\n",
+                insn, (void*) where, (void*) target, (void*) raddr, parsing);
+
       target = (intptr_t)target >> 2;
 
       if (((Elf_Sword)target > 0x1FFFFFF) || ((Elf_Sword)target < -0x2000000)) {
@@ -437,9 +446,8 @@ rtems_rtl_elf_reloc_rela (rtems_rtl_obj*            obj,
           return rtems_rtl_elf_rel_failure;
         }
 
-        tramp_addr = ((Elf_Addr)(uintptr_t)obj->tramp_brk) | (symvalue & 1);
+        tramp_addr = ((Elf_Addr)(uintptr_t) obj->tramp_brk) | (symvalue & 1);
         obj->tramp_brk = set_veneer(obj->tramp_brk, symvalue);
-
         target = tramp_addr + rela->r_addend - (uintptr_t)where;
         target = (uintptr_t)target >> 2;
       }
@@ -464,6 +472,7 @@ rtems_rtl_elf_reloc_rela (rtems_rtl_obj*            obj,
         raddr = (Elf_Addr)symvalue + rela->r_addend;
         target = raddr - (uintptr_t)where;
         if (checkoverflow(target, 32, raddr, "", where, off)) {
+          printf("]] %d\n", __LINE__);
           return rtems_rtl_elf_rel_failure;
         }
         *where32 = target;
@@ -560,4 +569,21 @@ rtems_rtl_elf_relocate_rel (rtems_rtl_obj*            obj,
 {
   rtems_rtl_set_error (EINVAL, "rela type record not supported");
   return rtems_rtl_elf_rel_failure;
+}
+
+bool
+rtems_rtl_elf_unwind_parse (const rtems_rtl_obj* obj,
+                            const char*          name,
+                            uint32_t             flags) {
+  return rtems_rtl_elf_unwind_dw2_parse (obj, name, flags);
+}
+
+bool
+rtems_rtl_elf_unwind_register (rtems_rtl_obj* obj) {
+  return rtems_rtl_elf_unwind_dw2_register (obj);
+}
+
+bool
+rtems_rtl_elf_unwind_deregister (rtems_rtl_obj* obj) {
+  return rtems_rtl_elf_unwind_dw2_deregister (obj);
 }

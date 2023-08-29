@@ -6,13 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * Copyright (c) 2017 STMicroelectronics.
+  * All rights reserved.
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -74,7 +73,10 @@ typedef struct __RAMECC_HandleTypeDef
 
 
 /* Exported constants --------------------------------------------------------*/
-
+/** @defgroup RAMECC_Exported_Constants RAMECC Exported Constants
+  * @ingroup RTEMSBSPsARMSTM32H7
+  * @{
+  */
 /** @defgroup RAMECC_Error_Codes RAMECC Error Codes
   * @ingroup RTEMSBSPsARMSTM32H7
   * @{
@@ -118,6 +120,9 @@ typedef struct __RAMECC_HandleTypeDef
 #define RAMECC_FLAG_DOUBLEERR_W            RAMECC_SR_DEBWDF
 #define RAMECC_FLAGS_ALL                   (RAMECC_SR_SEDCF | RAMECC_SR_DEDF | RAMECC_SR_DEBWDF)
 
+/**
+  * @}
+  */
 /**
   * @}
   */
@@ -272,9 +277,9 @@ HAL_StatusTypeDef HAL_RAMECC_UnRegisterCallback  (RAMECC_HandleTypeDef *hramecc)
   * @}
   */
 
-/** @defgroup RAMECC_Exported_Functions_Group3 Error informations functions
+/** @defgroup RAMECC_Exported_Functions_Group3 Error information functions
   * @ingroup RTEMSBSPsARMSTM32H7
-  * @brief    Error informations functions
+  * @brief    Error information functions
   * @{
   */
 uint32_t HAL_RAMECC_GetFailingAddress        (RAMECC_HandleTypeDef *hramecc);
@@ -287,9 +292,9 @@ uint32_t HAL_RAMECC_IsECCDoubleErrorDetected (RAMECC_HandleTypeDef *hramecc);
   * @}
   */
 
-/** @defgroup RAMECC_Exported_Functions_Group3 Error informations functions
+/** @defgroup RAMECC_Exported_Functions_Group4 State and Error Functions
   * @ingroup RTEMSBSPsARMSTM32H7
-  * @brief    Error informations functions
+  * @brief    State and Error Functions
   * @{
   */
 HAL_RAMECC_StateTypeDef HAL_RAMECC_GetState (RAMECC_HandleTypeDef *hramecc);
@@ -337,11 +342,6 @@ uint32_t                HAL_RAMECC_GetError (RAMECC_HandleTypeDef *hramecc);
   * @}
   */
 
-/** @defgroup RAMECC_FLAG RAMECC Monitor flags
-  * @ingroup RTEMSBSPsARMSTM32H7
-  * @{
-  */
-
 /* Private functions ---------------------------------------------------------*/
 /** @defgroup RAMECC_Private_Functions RAMECC Private Functions
   * @ingroup RTEMSBSPsARMSTM32H7
@@ -359,14 +359,9 @@ uint32_t                HAL_RAMECC_GetError (RAMECC_HandleTypeDef *hramecc);
 /**
   * @}
   */
-
-/**
-  * @}
-  */
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* STM32H7xx_HAL_RAMECC_H */
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
