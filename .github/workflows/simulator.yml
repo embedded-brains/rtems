@@ -49,7 +49,7 @@ jobs:
           branch: ci
           workflow: toolchain.yml
           workflow_conclusion: completed
-          name: tools-${{ env.arch }}
+          name: tools-${{ env.arch }}-ubuntu-latest
       - name: Download qemu artifact
         uses: dawidd6/action-download-artifact@v2
         with:
@@ -57,7 +57,7 @@ jobs:
           branch: ci
           workflow: toolchain.yml
           workflow_conclusion: completed
-          name: devel-qemu
+          name: devel-qemu-ubuntu-latest
       - name: Unpack toolchain
         run: |
           mkdir -p "$GITHUB_WORKSPACE/toolchain"

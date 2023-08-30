@@ -55,7 +55,7 @@ jobs:
           branch: ci
           workflow: toolchain.yml
           workflow_conclusion: completed
-          name: tools-${{ matrix.arch }}
+          name: tools-${{ matrix.arch }}-ubuntu-latest
       - name: Unpack toolchain
         run: |
           mkdir -p "$GITHUB_WORKSPACE/toolchain"
