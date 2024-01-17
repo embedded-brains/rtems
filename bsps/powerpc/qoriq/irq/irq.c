@@ -348,7 +348,7 @@ rtems_status_code qoriq_pic_set_sense_and_polarity(
 	uint32_t old_vpr = 0;
 	volatile qoriq_pic_src_cfg *src_cfg;
 	rtems_interrupt_lock_context lock_context;
-	uint32_t new_p_s;
+	uint32_t new_p_s = 0;
 
 	if (!QORIQ_IRQ_IS_EXT(vector)) {
 		return RTEMS_UNSATISFIED;
