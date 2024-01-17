@@ -40,10 +40,6 @@
 #ifndef RTEMS_BSP_VME_CONFIG_H
 #define RTEMS_BSP_VME_CONFIG_H
 
-#warning FIXME: Remove these two includes
-#include <bsp/irq.h>
-#include <bsp/utility.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
