@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: kernel-printflike-conversion
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  While a ${../glossary/kernel-printflike:/term} directive processes a
+  ${../glossary/conversion-specification:/term}, while a 's' character is
+  consumed from the ${../glossary/format-string:/term}, the directive shall
+  output the next argument as a string, one argument shall be consumed, the
+  current ${../glossary/conversion-specification:/term} processing shall stop.
+type: requirement

@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: kernel-printflike-conversion
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  While a ${../glossary/kernel-printflike:/term} directive processes a
+  ${../glossary/conversion-specification:/term}, while a 'D' character is
+  consumed from the ${../glossary/format-string:/term}, the directive shall
+  print the sequence of unsigned characters referenced by the next argument in
+  two-digit hexadecimal format, the length of the sequence shall be defined by
+  the width of the current conversion, the elements of the sequence shall be
+  separated by the string referenced by the second next argument, two arguments
+  shall be consumed, the current ${../glossary/conversion-specification:/term}
+  processing shall stop.
+type: requirement

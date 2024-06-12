@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: kernel-printflike
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  While a ${../glossary/kernel-printflike:/term} directive processes a
+  ${../glossary/conversion-specification:/term}, while the long integer mode is not requested, while
+  a 'l', 't', or 'z' is consumed from the format string, the long integer mode
+  shall be requested for the current conversion.
+type: requirement
