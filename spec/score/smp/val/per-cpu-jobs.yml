@@ -34,6 +34,32 @@ test-actions:
     - role: validation
       uid: ../req/per-cpu-jobs-order
   links: []
+- action-brief: |
+    Actions were performed by
+    __wrap__SMP_Start_multitasking_on_secondary_processor().
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the unicast action was performed while the worker processor is
+      in the initial state.  Check that the counter was incremented exactly
+      once by the boot processor while it is waiting for the other online
+      processors to get ready for start multiprocessing.
+    code: |
+      T_step_eq_int( ${.:/step}, worker_state, PER_CPU_STATE_INITIAL );
+      T_step_eq_uint(
+        ${.:/step},
+        _Atomic_Fetch_add_uint(
+          &start_multitasking_counter,
+          0,
+          ATOMIC_ORDER_RELAXED
+        ),
+        1
+      );
+    links:
+    - role: validation
+      uid: ../req/per-cpu-jobs-request-start-multitasking
+  links: []
 test-brief: |
   Tests the processing order of per-processor jobs.
 test-context: []
@@ -44,6 +70,7 @@ test-includes:
 - rtems.h
 - rtems/score/atomic.h
 - rtems/score/percpu.h
+- rtems/score/smpimpl.h
 test-local-includes: []
 test-setup: null
 test-stop: null
@@ -78,8 +105,75 @@ test-support: |
   };
 
   Per_CPU_Job job_1 = {
-    .context = &job_context_1,
+    .context = &job_context_1
   };
+
+  static Atomic_Uint start_multitasking_counter;
+
+  static Atomic_Uint worker_selection;
+
+  static Per_CPU_State worker_state;
+
+  static uint32_t GetBootProcessorIndex( void )
+  {
+    uint32_t cpu_max;
+
+    cpu_max = _SMP_Processor_configured_maximum;
+
+    while ( true ) {
+      uint32_t cpu_index;
+
+      for ( cpu_index = 0 ; cpu_index < cpu_max; ++cpu_index ) {
+        Per_CPU_Control *cpu;
+
+        cpu = _Per_CPU_Get_by_index( cpu_index );
+        RTEMS_COMPILER_MEMORY_BARRIER();
+
+        if ( cpu->boot ) {
+          return cpu_index;
+        }
+      }
+    }
+  }
+
+  static void IncrementCounter( void *arg )
+  {
+    _Atomic_Fetch_add_uint( (Atomic_Uint *) arg, 1, ATOMIC_ORDER_RELAXED );
+  }
+
+  void __real__SMP_Start_multitasking_on_secondary_processor(
+    Per_CPU_Control *cpu_self
+  );
+
+  void __wrap__SMP_Start_multitasking_on_secondary_processor(
+    Per_CPU_Control *cpu_self
+  );
+
+  void __wrap__SMP_Start_multitasking_on_secondary_processor(
+    Per_CPU_Control *cpu_self
+  )
+  {
+    unsigned int worker;
+
+    worker = _Atomic_Fetch_add_uint(
+      &worker_selection,
+      1,
+      ATOMIC_ORDER_RELAXED
+    );
+
+    if ( worker == 0 ) {
+      uint32_t cpu_boot;
+
+      worker_state = cpu_self->state;
+      cpu_boot = GetBootProcessorIndex();
+      _SMP_Unicast_action(
+        cpu_boot,
+        IncrementCounter,
+        &start_multitasking_counter
+      );
+    }
+    __real__SMP_Start_multitasking_on_secondary_processor( cpu_self );
+  }
 test-target: testsuites/validation/tc-score-smp-per-cpu-jobs.c
 test-teardown: null
 type: test-case
