@@ -47,7 +47,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define BSP_INTERRUPT_VECTOR_COUNT 1024
+#define BSP_INTERRUPT_VECTOR_COUNT 1020
 
 /* Interrupts vectors */
 #define BSP_TIMER_VIRT_PPI 27
@@ -61,6 +61,7 @@ extern "C" {
 #define VERSAL_IRQ_ETHERNET_0_WAKEUP 89
 #define VERSAL_IRQ_ETHERNET_1 90
 #define VERSAL_IRQ_ETHERNET_1_WAKEUP 91
+#define VERSAL_IRQ_QSPI 157
 
 /** @} */
 

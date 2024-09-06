@@ -1,6 +1,15 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsX8664AMD64
+ *
+ * @brief Console implementation
+ */
+
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,7 +65,7 @@ static ns16550_context amd64_uart_context = {
  */
 const console_device console_device_table[] = {
   {
-    .device_file = "/dev/console",
+    .device_file = "/dev/ttyS0",
     .probe = console_device_probe_default,
     .handler = &ns16550_handler_polled,
     .context = &amd64_uart_context.base

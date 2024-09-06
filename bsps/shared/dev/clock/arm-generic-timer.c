@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSDriverClockArmGenericTimer
+ *
+ * @brief This source file contains a Clock Driver implementation using
+ *   Armv7-AR/AArch64 Generic Timer.
+ */
+
 /*
  * Copyright (c) 2017 embedded brains GmbH & Co. KG
  *
@@ -36,14 +45,23 @@
 #include <rtems/timecounter.h>
 #include <rtems/score/smpimpl.h>
 
-/*
- * Clock driver using the ARMv7-AR/AArch64 Generic Timer.  The BSP must provide the
- * following function:
+/**
+ * @defgroup RTEMSDriverClockArmGenericTimer \
+ *   Armv7-AR/AArch64 Generic Timer Clock Driver
+ *
+ * @ingroup RTEMSDriverClockImpl
+ *
+ * @brief This group contains the Armv7-AR/AArch64 Generic Timer Clock Driver
+ *   implementation.
+ *
+ * The BSP must provide the following function:
  *
  * void arm_generic_timer_get_config(uint32_t *frequency, uint32_t *irq);
  *
  * The BSP may optionally define ARM_GENERIC_TIMER_USE_VIRTUAL in <bsp.h> to
  * use the virtual timer instead of the physical timer.
+ *
+ * @{
  */
 
 typedef struct {
@@ -54,15 +72,12 @@ typedef struct {
 
 static arm_gt_clock_context arm_gt_clock_instance;
 
-/* This is defined in dev/clock/clockimpl.h */
-void Clock_isr(rtems_irq_hdl_param arg);
-
-static void arm_gt_clock_at_tick(void)
+static void arm_gt_clock_at_tick(arm_gt_clock_context *ctx)
 {
   uint64_t cval;
   uint32_t interval;
 
-  interval = arm_gt_clock_instance.interval;
+  interval = ctx->interval;
   cval = arm_gt_clock_get_compare_value();
   cval += interval;
   arm_gt_clock_set_compare_value(cval);
@@ -71,16 +86,22 @@ static void arm_gt_clock_at_tick(void)
 #endif /* ARM_GENERIC_TIMER_UNMASK_AT_TICK */
 }
 
-static void arm_gt_clock_handler_install(void)
+static rtems_interrupt_entry arm_gt_interrupt_entry;
+
+static void arm_gt_clock_handler_install(rtems_interrupt_handler handler)
 {
   rtems_status_code sc;
 
-  sc = rtems_interrupt_handler_install(
+  rtems_interrupt_entry_initialize(
+    &arm_gt_interrupt_entry,
+    handler,
+    &arm_gt_clock_instance,
+    "Clock"
+  );
+  sc = rtems_interrupt_entry_install(
     arm_gt_clock_instance.irq,
-    "Clock",
     RTEMS_INTERRUPT_UNIQUE,
-    (rtems_interrupt_handler) Clock_isr,
-    NULL
+    &arm_gt_interrupt_entry
   );
   if (sc != RTEMS_SUCCESSFUL) {
     bsp_fatal(BSP_ARM_FATAL_GENERIC_TIMER_CLOCK_IRQ_INSTALL);
@@ -185,14 +206,16 @@ RTEMS_SYSINIT_ITEM(
   RTEMS_SYSINIT_ORDER_FIRST
 );
 
-#define Clock_driver_support_at_tick() \
-  arm_gt_clock_at_tick()
+#define Clock_driver_support_at_tick(arg) \
+  arm_gt_clock_at_tick(arg)
 
 #define Clock_driver_support_initialize_hardware() \
   arm_gt_clock_initialize()
 
 #define Clock_driver_support_install_isr(isr) \
-  arm_gt_clock_handler_install()
+  arm_gt_clock_handler_install(isr)
+
+/** @} */
 
 /* Include shared source clock driver code */
 #include "../../shared/dev/clock/clockimpl.h"

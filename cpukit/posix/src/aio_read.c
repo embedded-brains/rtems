@@ -2,15 +2,19 @@
 
 /**
  * @file
+ * 
+ * @ingroup POSIX_AIO
  *
- * @ingroup POSIXAPI
- *
- * @brief Asynchronously reads Data from a File
+ * @brief Asynchronous read operation.
  */
 
 /*
- * Copyright 2010, Alin Rus <alin.codejunkie@gmail.com> 
+ *  Copyright 2010, Alin Rus <alin.codejunkie@gmail.com>
+ *  Copyright 2024, Alessandro Nardin <ale.daluch@gmail.com>
  * 
+ *  COPYRIGHT (c) 1989-2011.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -33,7 +37,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -46,45 +49,20 @@
 #include <stdlib.h>
 #include <limits.h>
 
-/*
- *  aio_read
- *
- * Asynchronous write to a file
- *
- *  Input parameters:
- *        aiocbp - asynchronous I/O control block
- *
- *  Output parameters:
- *        -1 - request could not pe enqueued
- *           - FD not opened for write
- *           - invalid aio_reqprio or aio_offset or
- *             aio_nbytes
- *           - not enough memory
- *         0 - otherwise
- */
-
-int
-aio_read (struct aiocb *aiocbp)
+int aio_read( struct aiocb *aiocbp )
 {
   rtems_aio_request *req;
-  int mode;
 
-  mode = fcntl (aiocbp->aio_fildes, F_GETFL);
-  if (!(((mode & O_ACCMODE) == O_RDONLY) || ((mode & O_ACCMODE) == O_RDWR)))
-    rtems_aio_set_errno_return_minus_one (EBADF, aiocbp);
-  
-  if (aiocbp->aio_reqprio < 0 || aiocbp->aio_reqprio > AIO_PRIO_DELTA_MAX)
-    rtems_aio_set_errno_return_minus_one (EINVAL, aiocbp);
-  
-  if (aiocbp->aio_offset < 0)
-    rtems_aio_set_errno_return_minus_one (EINVAL, aiocbp);
+  if ( 1 + atomic_load( &aio_request_queue.queued_requests ) > RTEMS_AIO_MAX ) {
+    rtems_set_errno_and_return_minus_one( EAGAIN );
+  }
 
-  req = malloc (sizeof (rtems_aio_request));
-  if (req == NULL)
-    rtems_aio_set_errno_return_minus_one (EAGAIN, aiocbp);
+  req = init_read_req( aiocbp );
 
-  req->aiocbp = aiocbp;
-  req->aiocbp->aio_lio_opcode = LIO_READ;
-
-  return rtems_aio_enqueue (req);
+  if ( req != NULL ) {
+    return rtems_aio_enqueue( req );
+  } else {
+    return -1;
+  }
 }
+

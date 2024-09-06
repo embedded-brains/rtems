@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include <rtems/bspIo.h>	/* printk */
 #include <rtems/error.h>	/* printk */
+#include <rtems/irq.h>
 #include <rtems/pci.h>
 #include <rtems/score/sysstate.h>
 #include <bsp.h>
@@ -544,16 +545,17 @@ vmeTsi148Reset(void)
 	vmeTsi148ResetXX(THEBASE);
 }
 
+RTEMS_INTERRUPT_LOCK_DEFINE( static, vmeTsi148_lock, "vmeTsi148_lock" )
 void
 vmeTsi148ResetBusXX(BERegister *base)
 {
-unsigned long flags;
 uint32_t      v;
+rtems_interrupt_lock_context lock_context;
 
-	rtems_interrupt_disable(flags);
+	rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 	v = TSI_RD(base, TSI_VCTRL_REG);
 	TSI_WR(base, TSI_VCTRL_REG, v | TSI_VCTRL_SRESET);
-	rtems_interrupt_enable(flags);
+	rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 }
 
 void
@@ -1409,7 +1411,8 @@ int
 vmeTsi148IntRoute(unsigned int level, unsigned int pin)
 {
 int				i;
-unsigned long	mask, shift, mapreg, flags, wire;
+unsigned long	mask, shift, mapreg, wire;
+rtems_interrupt_lock_context lock_context;
 
 	if ( pin >= TSI_NUM_WIRES || ! tsi_wire[pin] || !vmeTsi148IrqMgrInstalled )
 		return -1;
@@ -1441,8 +1444,7 @@ unsigned long	mask, shift, mapreg, flags, wire;
 	/* wires are offset by 1 so we can initialize the wire table to all zeros */
 	wire = (tsi_wire[pin]-1) << shift;
 
-rtems_interrupt_disable(flags);
-
+	rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 	for ( i = 0; i<TSI_NUM_WIRES; i++ ) {
 		wire_mask[i] &= ~mask;
 	}
@@ -1452,7 +1454,7 @@ rtems_interrupt_disable(flags);
 	mask |= wire;
 	TSI_WR( THEBASE, mapreg, mask );
 
-rtems_interrupt_enable(flags);
+	rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 	return 0;
 }
 
@@ -1460,9 +1462,9 @@ VmeTsi148ISR
 vmeTsi148ISRGet(unsigned long vector, void **parg)
 {
 VmeTsi148ISR	  rval = 0;
-unsigned long	  flags;
 volatile IRQEntry *p;
 int               v = uni2tsivec(vector);
+rtems_interrupt_lock_context lock_context;
 
 
 	if ( v < 0 )
@@ -1470,13 +1472,13 @@ int               v = uni2tsivec(vector);
 
 	p = irqHdlTbl + v;
 
-	rtems_interrupt_disable(flags);
+	rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 		if ( *p ) {
 			if ( parg )
 				*parg = (*p)->usrData;
 			rval = (*p)->isr;
 		}
-	rtems_interrupt_enable(flags);
+	rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 
 	return rval;
 }
@@ -1793,8 +1795,8 @@ vmeTsi148InstallISR(unsigned long vector, VmeTsi148ISR hdl, void *arg)
 {
 IRQEntry          ip;
 int				  v;
-unsigned long	  flags;
 volatile IRQEntry *p;
+rtems_interrupt_lock_context lock_context;
 
 		if ( !vmeTsi148IrqMgrInstalled || (v = uni2tsivec(vector)) < 0 )
 			return -1;
@@ -1807,14 +1809,14 @@ volatile IRQEntry *p;
 		ip->isr=hdl;
 		ip->usrData=arg;
 
-		rtems_interrupt_disable(flags);
+		rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 		if (*p) {
-			rtems_interrupt_enable(flags);
+			rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 			free(ip);
 			return -1;
 		}
 		*p = ip;
-		rtems_interrupt_enable(flags);
+		rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 		return 0;
 }
 
@@ -1823,22 +1825,22 @@ vmeTsi148RemoveISR(unsigned long vector, VmeTsi148ISR hdl, void *arg)
 {
 int               v;
 IRQEntry          ip;
-unsigned long     flags;
 volatile IRQEntry *p;
+rtems_interrupt_lock_context lock_context;
 
 		if ( !vmeTsi148IrqMgrInstalled || (v = uni2tsivec(vector)) < 0 )
 			return -1;
 
 		p = irqHdlTbl + v;
 
-		rtems_interrupt_disable(flags);
+		rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 		ip = *p;
 		if ( !ip || ip->isr!=hdl || ip->usrData!=arg ) {
-				rtems_interrupt_enable(flags);
+				rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 				return -1;
 		}
 		*p = 0;
-		rtems_interrupt_enable(flags);
+		rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 
 		free(ip);
 		return 0;
@@ -1848,8 +1850,9 @@ static int
 intDoEnDis(unsigned int level, int dis)
 {
 BERegister		*b = THEBASE;
-unsigned long	flags, v;
+unsigned long		 v;
 int				shift;
+rtems_interrupt_lock_context lock_context;
 
 	if (  ! vmeTsi148IrqMgrInstalled || (shift = lvl2bitno(level)) < 0 )
 		return -1;
@@ -1859,7 +1862,7 @@ int				shift;
 	if ( !dis )
 		return (int)(v & TSI_RD(b, TSI_INTEO_REG) & TSI_RD(b, TSI_INTEN_REG)) ? 1 : 0;
 
-	rtems_interrupt_disable(flags);
+	rtems_interrupt_lock_acquire( &vmeTsi148_lock, &lock_context );
 	if ( dis<0 ) {
 		TSI_WR(b, TSI_INTEN_REG, TSI_RD(b, TSI_INTEN_REG) & ~v);
 		TSI_WR(b, TSI_INTEO_REG, TSI_RD(b, TSI_INTEO_REG) & ~v);
@@ -1867,7 +1870,7 @@ int				shift;
 		TSI_WR(b, TSI_INTEN_REG, TSI_RD(b, TSI_INTEN_REG) |  v);
 		TSI_WR(b, TSI_INTEO_REG, TSI_RD(b, TSI_INTEO_REG) |  v);
 	}
-	rtems_interrupt_enable(flags);
+	rtems_interrupt_lock_release( &vmeTsi148_lock, &lock_context );
 	return 0;
 }
 

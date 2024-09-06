@@ -3,9 +3,9 @@
 /**
  * @file
  *
- * @ingroup RTEMSScoreCPU
+ * @ingroup RTEMSScoreCPUAArch64
  *
- * @brief AArch64 Architecture Support API
+ * @brief This header file provides interfaces of the AArch64 CPU port.
  */
 
 /*
@@ -46,7 +46,11 @@
 #include <limits.h>
 
 /**
- * @addtogroup RTEMSScoreCPUAArch64
+ * @defgroup RTEMSScoreCPUAArch64 AArch64
+ *
+ * @ingroup RTEMSScoreCPU
+ *
+ * @brief This group contains the AArch64 CPU port.
  *
  * @{
  */
@@ -384,7 +388,7 @@ uint32_t _CPU_Counter_frequency( void );
 
 CPU_Counter_ticks _CPU_Counter_read( void );
 
-void *_CPU_Thread_Idle_body( uintptr_t ignored );
+RTEMS_NO_RETURN void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 typedef enum {
   AARCH64_EXCEPTION_SP0_SYNCHRONOUS = 0,

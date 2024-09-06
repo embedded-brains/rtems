@@ -69,8 +69,6 @@
 #define	KASSERT(exp, arg) _Assert(exp)
 #endif /* __rtems__ */
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_ntp.h"
 #include "opt_ffclock.h"
 
@@ -88,6 +86,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/systm.h>
 #endif /* __rtems__ */
 #include <sys/timeffc.h>
+#ifndef __rtems__
+#include <sys/timerfd.h>
+#endif /* __rtems__ */
 #include <sys/timepps.h>
 #include <sys/timetc.h>
 #include <sys/timex.h>
@@ -99,7 +100,9 @@ __FBSDID("$FreeBSD$");
 #include <limits.h>
 #include <string.h>
 #include <rtems.h>
-ISR_LOCK_DEFINE(, _Timecounter_Lock, "Timecounter")
+#if ISR_LOCK_NEEDS_OBJECT
+ISR_lock_Control _Timecounter_Lock = ISR_LOCK_INITIALIZER( "Timecounter");
+#endif
 #define _Timecounter_Release(lock_context) \
   _ISR_lock_Release_and_ISR_enable(&_Timecounter_Lock, lock_context)
 #define hz rtems_clock_get_ticks_per_second()
@@ -1587,6 +1590,7 @@ _Timecounter_Set_clock(const struct bintime *_bt,
 
 	/* Avoid rtc_generation == 0, since td_rtcgen == 0 is special. */
 	atomic_add_rel_int(&rtc_generation, 2);
+	timerfd_jumped();
 	sleepq_chains_remove_matching(sleeping_on_old_rtc);
 	if (timestepwarnings) {
 		nanotime(&taft);

@@ -1,7 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: script
-cflags:
-- ${TEST_OPTIMIZATION_FLAGS}
+cflags: []
 copyrights:
 - Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
@@ -21,7 +20,7 @@ do-build: |
   self.link_cc(bld, bic, objs, dl04_pre)
   dl04_sym_o = path + "dl04-sym.o"
   objs.append(dl04_sym_o)
-  self.rtems_syms(bld, dl04_pre, dl04_sym_o)
+  self.rtems_syms(bld, bic, dl04_pre, dl04_sym_o)
   self.link_cc(bld, bic, objs, "testsuites/libtests/dl04.exe")
 do-configure: null
 enabled-by:
@@ -35,6 +34,7 @@ links: []
 prepare-build: null
 prepare-configure: null
 stlib: []
+target: testsuites/libtests/dl04.exe
 type: build
 use-after: []
 use-before: []

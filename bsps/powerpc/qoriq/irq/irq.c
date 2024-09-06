@@ -43,11 +43,11 @@
 #include <asm/epapr_hcalls.h>
 
 #include <bsp.h>
-#include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 #include <bsp/vectors.h>
 #include <bsp/utility.h>
 #include <bsp/qoriq.h>
+#include <rtems/score/processormaskimpl.h>
 
 #ifdef RTEMS_SMP
 #include <rtems/score/smpimpl.h>
@@ -299,40 +299,105 @@ static bool pic_is_ipi(rtems_vector_number vector)
 	return (vector - QORIQ_IRQ_IPI_BASE) < 4;
 }
 
-rtems_status_code qoriq_pic_set_priority(
+rtems_status_code bsp_interrupt_get_priority(
 	rtems_vector_number vector,
-	int new_priority,
-	int *old_priority
+	uint32_t *priority
 )
 {
-	rtems_status_code sc = RTEMS_SUCCESSFUL;
-	uint32_t old_vpr = 0;
+	volatile qoriq_pic_src_cfg *src_cfg;
+
+	bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+	bsp_interrupt_assert(priority != NULL);
 
 	if (QORIQ_IRQ_IS_MSI(vector)) {
 		return RTEMS_UNSATISFIED;
 	}
 
-	if (bsp_interrupt_is_valid_vector(vector)) {
-		volatile qoriq_pic_src_cfg *src_cfg = get_src_cfg(vector);
+	src_cfg = get_src_cfg(vector);
+	*priority =
+		QORIQ_PIC_PRIORITY_DISABLED - VPR_PRIORITY_GET(src_cfg->vpr);
+	return RTEMS_SUCCESSFUL;
+}
 
-		if (QORIQ_PIC_PRIORITY_IS_VALID(new_priority)) {
-			rtems_interrupt_lock_context lock_context;
+rtems_status_code bsp_interrupt_set_priority(
+	rtems_vector_number vector,
+	uint32_t priority
+)
+{
+	volatile qoriq_pic_src_cfg *src_cfg;
+	rtems_interrupt_lock_context lock_context;
+	uint32_t vpr;
 
-			rtems_interrupt_lock_acquire(&lock, &lock_context);
-			old_vpr = src_cfg->vpr;
-			src_cfg->vpr = VPR_PRIORITY_SET(old_vpr, (uint32_t) new_priority);
-			rtems_interrupt_lock_release(&lock, &lock_context);
-		} else if (new_priority < 0) {
-			old_vpr = src_cfg->vpr;
-		} else {
-			sc = RTEMS_INVALID_PRIORITY;
-		}
-	} else {
-		sc = RTEMS_INVALID_ID;
+	bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+
+	if (QORIQ_IRQ_IS_MSI(vector)) {
+		return RTEMS_UNSATISFIED;
 	}
 
-	if (old_priority != NULL) {
-		*old_priority = (int) VPR_PRIORITY_GET(old_vpr);
+	if (!QORIQ_PIC_PRIORITY_IS_VALID(priority)) {
+		return RTEMS_INVALID_PRIORITY;
+	}
+
+	src_cfg = get_src_cfg(vector);
+	rtems_interrupt_lock_acquire(&lock, &lock_context);
+	vpr = src_cfg->vpr;
+	src_cfg->vpr =
+		VPR_PRIORITY_SET(vpr, QORIQ_PIC_PRIORITY_DISABLED - priority);
+	rtems_interrupt_lock_release(&lock, &lock_context);
+	return RTEMS_SUCCESSFUL;
+}
+
+rtems_status_code qoriq_pic_set_sense_and_polarity(
+  rtems_vector_number vector,
+  qoriq_eirq_sense_and_polarity new_sense_and_polarity,
+  qoriq_eirq_sense_and_polarity *old_sense_and_polarity
+)
+{
+	rtems_status_code sc = RTEMS_SUCCESSFUL;
+	uint32_t old_vpr = 0;
+	volatile qoriq_pic_src_cfg *src_cfg;
+	rtems_interrupt_lock_context lock_context;
+	uint32_t new_p_s = 0;
+
+	if (!QORIQ_IRQ_IS_EXT(vector)) {
+		return RTEMS_UNSATISFIED;
+	}
+
+	if (new_sense_and_polarity == QORIQ_EIRQ_TRIGGER_EDGE_RISING ||
+	    new_sense_and_polarity == QORIQ_EIRQ_TRIGGER_LEVEL_HIGH) {
+		new_p_s |= VPR_P;
+	}
+
+	if (new_sense_and_polarity == QORIQ_EIRQ_TRIGGER_LEVEL_HIGH ||
+	    new_sense_and_polarity == QORIQ_EIRQ_TRIGGER_LEVEL_LOW) {
+		new_p_s |= VPR_S;
+	}
+
+	src_cfg = get_src_cfg(vector);
+
+	rtems_interrupt_lock_acquire(&lock, &lock_context);
+	old_vpr = src_cfg->vpr;
+	src_cfg->vpr = (old_vpr & ~(VPR_P | VPR_S)) | new_p_s;
+	rtems_interrupt_lock_release(&lock, &lock_context);
+
+	if (old_sense_and_polarity != NULL) {
+		if ((old_vpr & VPR_P) == 0) {
+			if ((old_vpr & VPR_S) == 0) {
+				*old_sense_and_polarity =
+					QORIQ_EIRQ_TRIGGER_EDGE_FALLING;
+			} else {
+				*old_sense_and_polarity =
+					QORIQ_EIRQ_TRIGGER_LEVEL_LOW;
+			}
+		} else {
+			if ((old_vpr & VPR_S) == 0) {
+				*old_sense_and_polarity =
+					QORIQ_EIRQ_TRIGGER_EDGE_RISING;
+			} else {
+				*old_sense_and_polarity =
+					QORIQ_EIRQ_TRIGGER_LEVEL_HIGH;
+			}
+		}
 	}
 
 	return sc;
@@ -417,6 +482,9 @@ rtems_status_code bsp_interrupt_get_attributes(
 	attributes->can_set_affinity = !(is_ipi || is_msi);
 	attributes->can_raise = is_ipi;
 	attributes->can_raise_on = is_ipi;
+	attributes->maximum_priority = QORIQ_PIC_PRIORITY_DISABLED;
+	attributes->can_get_priority = !is_msi;
+	attributes->can_set_priority = !is_msi;
 
 	if (is_msi) {
 		attributes->can_be_triggered_by_message = true;

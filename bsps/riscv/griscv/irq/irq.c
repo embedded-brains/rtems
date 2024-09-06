@@ -34,7 +34,6 @@
  * SUCH DAMAGE.
  */
 
-#include <bsp/irq.h>
 #include <bsp/fatal.h>
 #include <bsp/irq-generic.h>
 #include <amba.h>
@@ -152,6 +151,25 @@ rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   GRLIB_Cpu_Mask_interrupt(irq, bsp_irq_cpu(irq));
   return RTEMS_SUCCESSFUL;
+}
+
+rtems_status_code bsp_interrupt_set_priority(
+  rtems_vector_number vector,
+  uint32_t priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_get_priority(
+  rtems_vector_number vector,
+  uint32_t *priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
+  return RTEMS_UNSATISFIED;
 }
 
 rtems_status_code bsp_interrupt_get_affinity(

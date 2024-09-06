@@ -579,6 +579,9 @@ static int rtems_jffs2_ioctl(
 			break;
 		case RTEMS_JFFS2_FORCE_GARBAGE_COLLECTION:
 			eno = -jffs2_garbage_collect_pass(&inode->i_sb->jffs2_sb);
+			if (!eno) {
+			  eno = -jffs2_flush_wbuf_pad(&inode->i_sb->jffs2_sb);
+			}
 			break;
 		default:
 			eno = EINVAL;
@@ -1066,6 +1069,7 @@ static void rtems_jffs2_fsunmount(rtems_filesystem_mount_table_entry_t *mt_entry
 	/* Flush any pending writes */
 	if (!sb_rdonly(&fs_info->sb)) {
 		jffs2_flush_wbuf_gc(c, 0);
+		jffs2_flush_wbuf_pad(c);
 	}
 #endif
 
@@ -1241,39 +1245,41 @@ rtems_chain_control delayed_work_chain;
 /* Lock for protecting the delayed work chain */
 struct mutex delayed_work_mutex;
 
-void jffs2_queue_delayed_work(struct delayed_work *work, int delay_ms)
+/*
+ * All delayed work structs are initialized and added to the chain during FS
+ * init. Must be called with no locks held
+ */
+static void add_delayed_work_to_chain(struct delayed_work *work)
 {
+	/* Initialize delayed work */
+	mutex_init(&work->dw_mutex);
+	work->pending = false;
+	_Chain_Initialize_node(&work->work.node); \
+	work->callback = NULL;
+
 	mutex_lock(&delayed_work_mutex);
-	if (rtems_chain_is_node_off_chain(&work->work.node)) {
-		work->execution_time = rtems_clock_get_uptime_nanoseconds() + delay_ms*1000000;
-		rtems_chain_append(&delayed_work_chain, &work->work.node);
-	}
+	rtems_chain_append_unprotected(&delayed_work_chain, &work->work.node);
 	mutex_unlock(&delayed_work_mutex);
 }
 
+void jffs2_queue_delayed_work(struct delayed_work *work, int delay_ms)
+{
+	mutex_lock(&work->dw_mutex);
+	if (!work->pending) {
+		work->execution_time = rtems_clock_get_uptime_nanoseconds();
+		work->execution_time += delay_ms*1000000;
+		work->pending = true;
+	}
+	mutex_unlock(&work->dw_mutex);
+}
+
+/* Clean up during FS unmount */
 static void jffs2_remove_delayed_work(struct delayed_work *dwork)
 {
-	struct delayed_work* work;
-	rtems_chain_node*    node;
-
 	mutex_lock(&delayed_work_mutex);
-	if (rtems_chain_is_node_off_chain(&dwork->work.node)) {
-		mutex_unlock(&delayed_work_mutex);
-		return;
-	}
-
-	node = rtems_chain_first(&delayed_work_chain);
-	while (!rtems_chain_is_tail(&delayed_work_chain, node)) {
-		work = (struct delayed_work*) node;
-		rtems_chain_node* next_node = rtems_chain_next(node);
-		if (work == dwork) {
-			rtems_chain_extract(node);
-			mutex_unlock(&delayed_work_mutex);
-			return;
-		}
-		node = next_node;
-	}
+	rtems_chain_extract_unprotected(&dwork->work.node);
 	mutex_unlock(&delayed_work_mutex);
+	/* Don't run pending delayed work, this will happen during unmount */
 }
 
 static void process_delayed_work(void)
@@ -1291,15 +1297,27 @@ static void process_delayed_work(void)
 	node = rtems_chain_first(&delayed_work_chain);
 	while (!rtems_chain_is_tail(&delayed_work_chain, node)) {
 		work = (struct delayed_work*) node;
-		rtems_chain_node* next_node = rtems_chain_next(node);
-		if (rtems_clock_get_uptime_nanoseconds() >= work->execution_time) {
-			rtems_chain_extract(node);
-			work->callback(&work->work);
+		node = rtems_chain_next(node);
+
+		if (!work->pending) {
+			continue;
 		}
-		node = next_node;
+
+		if (rtems_clock_get_uptime_nanoseconds() < work->execution_time) {
+			continue;
+		}
+
+		mutex_lock(&work->dw_mutex);
+		work->pending = false;
+		mutex_unlock(&work->dw_mutex);
+
+		rtems_jffs2_do_lock(work->sb);
+		work->callback(&work->work);
+		rtems_jffs2_do_unlock(work->sb);
 	}
 	mutex_unlock(&delayed_work_mutex);
 }
+
 /* Task for processing delayed work */
 static rtems_task delayed_work_task(
   rtems_task_argument unused
@@ -1308,7 +1326,7 @@ static rtems_task delayed_work_task(
 	(void)unused;
 	while (1) {
 		process_delayed_work();
-		sleep(1);
+		usleep(1);
 	}
 }
 
@@ -1369,6 +1387,12 @@ int rtems_jffs2_initialize(
 	if (err == 0) {
 		sb = &fs_info->sb;
 		c = JFFS2_SB_INFO(sb);
+#ifdef CONFIG_JFFS2_FS_WRITEBUFFER
+		c->wbuf_dwork.sb = sb;
+		add_delayed_work_to_chain(&c->wbuf_dwork);
+#endif
+		spin_lock_init(&c->erase_completion_lock);
+		spin_lock_init(&c->inocache_lock);
 		c->mtd = NULL;
 		rtems_recursive_mutex_init(&sb->s_mutex, RTEMS_FILESYSTEM_TYPE_JFFS2);
 	}
@@ -1455,6 +1479,9 @@ int rtems_jffs2_initialize(
 		return 0;
 	} else {
 		if (fs_info != NULL) {
+#ifdef CONFIG_JFFS2_FS_WRITEBUFFER
+			jffs2_remove_delayed_work(&c->wbuf_dwork);
+#endif
 			free(c->mtd);
 			c->mtd = NULL;
 			rtems_jffs2_free_fs_info(fs_info, do_mount_fs_was_successful);
@@ -1502,6 +1529,8 @@ static struct _inode *new_inode(struct super_block *sb)
 	inode->i_size = 0;
 
 	inode->i_cache_next = NULL;	// Newest inode, about to be cached
+
+	mutex_init(&JFFS2_INODE_INFO(inode)->sem);
 
 	// Add to the icache
 	for (cached_inode = sb->s_root; cached_inode != NULL;
@@ -1619,8 +1648,14 @@ void jffs2_iput(struct _inode *i)
 
 static inline void jffs2_init_inode_info(struct jffs2_inode_info *f)
 {
-	memset(f, 0, sizeof(*f));
-	mutex_init(&f->sem);
+	/* These must be set manually to preserve other members */
+	f->highest_version = 0;
+	f->fragtree = RTEMS_RB_ROOT;
+	f->metadata = NULL;
+	f->dents = NULL;
+	f->target = NULL;
+	f->flags = 0;
+	f->usercompr = 0;
 }
 
 static void jffs2_clear_inode (struct _inode *inode)

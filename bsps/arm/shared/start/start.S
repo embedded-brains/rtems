@@ -71,11 +71,18 @@ bsp_start_vector_table_begin:
 	ldr	pc, .Lhandler_addr_prefetch
 	ldr	pc, .Lhandler_addr_abort
 
-	/* Program signature checked by boot loader */
-	.word	0xb8a06f58
+#ifdef BSP_START_VECTOR_RESERVED_SLOT
+	BSP_START_VECTOR_RESERVED_SLOT
+#else
+	udf
+#endif
 
 	ldr	pc, .Lhandler_addr_irq
 	ldr	pc, .Lhandler_addr_fiq
+
+#ifdef BSP_START_VECTOR_ADDRESS_TABLE_ALIGNMENT
+.balign BSP_START_VECTOR_ADDRESS_TABLE_ALIGNMENT
+#endif
 
 .Lhandler_addr_reset:
 
@@ -103,7 +110,7 @@ bsp_start_vector_table_begin:
 
 .Lhandler_addr_reserved:
 
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_irq:
 
@@ -117,38 +124,38 @@ bsp_start_vector_table_end:
 
 #ifdef BSP_START_IN_HYP_SUPPORT
 bsp_start_hyp_vector_table_begin:
-	ldr	pc, .Lhandler_addr_hyp_reset
+	udf
 	ldr	pc, .Lhandler_addr_hyp_undef
-	ldr	pc, .Lhandler_addr_hyp_swi
-	ldr	pc, .Lhandler_addr_hyp_prefetch
-	ldr	pc, .Lhandler_addr_hyp_abort
-	ldr	pc, .Lhandler_addr_hyp_hyp
-	ldr	pc, .Lhandler_addr_hyp_irq
-	ldr	pc, .Lhandler_addr_hyp_fiq
+	udf
+	udf
+	udf
+	udf
+	udf
+	udf
 
 .Lhandler_addr_hyp_reset:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_undef:
-	.word	_ARMV4_Exception_reserved_default
+	.word	_ARMV4_Exception_undef_default
 
 .Lhandler_addr_hyp_swi:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_prefetch:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_abort:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_hyp:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_irq:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 
 .Lhandler_addr_hyp_fiq:
-	.word	_ARMV4_Exception_reserved_default
+	.word	0
 #endif
 
 /* Start entry */

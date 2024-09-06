@@ -36,7 +36,6 @@
 
 #include <rtems.h>
 #include <bsp.h>
-#include <bsp/utility.h>
 #include <rtems/score/aarch64-system-registers.h>
 
 #define CPU_DATA_CACHE_ALIGNMENT 64
@@ -62,15 +61,6 @@ void AArch64_data_cache_clean_and_invalidate_line(const void *d_addr)
     : [d_addr] "r" (d_addr)
     : "memory"
   );
-}
-
-static inline void _CPU_cache_flush_1_data_line(const void *d_addr)
-{
-  /* Flush the Data cache */
-  AArch64_data_cache_clean_and_invalidate_line( d_addr );
-
-  /* Wait for L1 flush to complete */
-  _AARCH64_Data_synchronization_barrier();
 }
 
 static inline void
@@ -104,15 +94,6 @@ static inline void AArch64_data_cache_invalidate_line(const void *d_addr)
     : [d_addr] "r" (d_addr)
     : "memory"
   );
-}
-
-static inline void _CPU_cache_invalidate_1_data_line(const void *d_addr)
-{
-  /* Invalidate the data cache line */
-  AArch64_data_cache_invalidate_line( d_addr );
-
-  /* Wait for L1 invalidate to complete */
-  _AARCH64_Data_synchronization_barrier();
 }
 
 static inline void
@@ -151,15 +132,6 @@ static inline void AArch64_instruction_cache_invalidate_line(const void *i_addr)
 {
   /* __builtin___clear_cache is explicitly only for instruction cacche */
   __builtin___clear_cache((void *)i_addr, ((char *)i_addr) + sizeof(void*) - 1);
-}
-
-static inline void _CPU_cache_invalidate_1_instruction_line(const void *d_addr)
-{
-  /* Invalidate the Instruction cache line */
-  AArch64_instruction_cache_invalidate_line( d_addr );
-
-  /* Wait for L1 invalidate to complete */
-  _AARCH64_Data_synchronization_barrier();
 }
 
 static inline void
@@ -377,6 +349,7 @@ static inline void _CPU_cache_disable_data(void)
   rtems_interrupt_local_enable(level);
 }
 
+#ifdef RTEMS_SMP
 static inline
 void AArch64_instruction_cache_inner_shareable_invalidate_all(void)
 {
@@ -387,6 +360,7 @@ void AArch64_instruction_cache_inner_shareable_invalidate_all(void)
     : "memory"
   );
 }
+#endif /* RTEMS_SMP */
 
 static inline void AArch64_instruction_cache_invalidate(void)
 {

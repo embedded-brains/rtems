@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @ingroup arm_gic
+ * @ingroup DevIRQGIC
  *
- *  @brief ARM GIC IRQ
+ * @brief This header file provides interfaces of the ARM Generic Interrupt
+ *   Controller (GIC) support.
  */
 
 /*
@@ -38,11 +39,16 @@
 
 #include <bsp.h>
 #include <dev/irq/arm-gic.h>
-#include <rtems/score/processormask.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+/**
+ * @addtogroup DevIRQGIC
+ *
+ * @{
+ */
 
 #define ARM_GIC_IRQ_SGI_0 0
 #define ARM_GIC_IRQ_SGI_1 1
@@ -65,16 +71,6 @@ extern "C" {
 
 #define ARM_GIC_DIST ((volatile gic_dist *) BSP_ARM_GIC_DIST_BASE)
 
-rtems_status_code arm_gic_irq_set_priority(
-  rtems_vector_number vector,
-  uint8_t priority
-);
-
-rtems_status_code arm_gic_irq_get_priority(
-  rtems_vector_number vector,
-  uint8_t *priority
-);
-
 rtems_status_code arm_gic_irq_set_group(
   rtems_vector_number vector,
   gic_group group
@@ -83,16 +79,6 @@ rtems_status_code arm_gic_irq_set_group(
 rtems_status_code arm_gic_irq_get_group(
   rtems_vector_number vector,
   gic_group *group
-);
-
-rtems_status_code bsp_interrupt_set_affinity(
-  rtems_vector_number vector,
-  const Processor_mask *affinity
-);
-
-rtems_status_code bsp_interrupt_get_affinity(
-  rtems_vector_number vector,
-  Processor_mask *affinity
 );
 
 void arm_gic_trigger_sgi(rtems_vector_number vector, uint32_t targets);
@@ -113,9 +99,13 @@ static inline rtems_status_code arm_gic_irq_generate_software_irq(
   return sc;
 }
 
+#ifdef RTEMS_SMP
 uint32_t arm_gic_irq_processor_count(void);
 
 void arm_gic_irq_initialize_secondary_cpu(void);
+#endif
+
+/** @} */
 
 #ifdef __cplusplus
 }

@@ -46,11 +46,13 @@
 #include <rtems/libio.h>
 #include <rtems/libcsupport.h>
 #include <rtems/malloc.h>
+#include <rtems/thread.h>
 #include <dev/nand/xnandpsu_bbm.h>
 
 typedef struct {
   rtems_jffs2_flash_control super;
   XNandPsu *nandpsu;
+  rtems_mutex access_lock;
 } flash_control;
 
 static flash_control *get_flash_control(rtems_jffs2_flash_control *super)
@@ -68,7 +70,9 @@ static int flash_read(
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
   rtems_status_code sc;
 
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
   sc = XNandPsu_Read(nandpsu, offset, size_of_buffer, buffer);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
   if (sc) {
     return -EIO;
   }
@@ -85,7 +89,9 @@ static int flash_write(
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
   rtems_status_code sc;
 
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
   sc = XNandPsu_Write(nandpsu, offset, size_of_buffer, (void *)buffer);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
   if (sc) {
     return -EIO;
   }
@@ -99,20 +105,16 @@ static int flash_erase(
 {
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
   rtems_status_code sc;
-  uint32_t BlockSize = nandpsu->Geometry.BlockSize;
-  uint32_t DeviceSize = nandpsu->Geometry.DeviceSize;
-  uint32_t BlockIndex;
-  uint32_t DeviceIndex;
+  uint64_t BlockSize = nandpsu->Geometry.BlockSize;
 
   if (offset > nandpsu->Geometry.DeviceSize) {
     return -EIO;
   }
 
-  DeviceIndex = offset / DeviceSize;
-  BlockIndex = (offset % DeviceSize) / BlockSize;
-
   /* Perform erase operation. */
-  sc = XNandPsu_EraseBlock(nandpsu, DeviceIndex, BlockIndex);
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
+  sc = XNandPsu_Erase(nandpsu, RTEMS_ALIGN_DOWN(offset, BlockSize), BlockSize);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
   if (sc ) {
     return -EIO;
   }
@@ -128,6 +130,10 @@ static int flash_block_is_bad(
 {
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
   uint32_t BlockIndex;
+  uint8_t BlockData;
+  uint8_t BlockShift;
+  uint8_t BlockType;
+  uint32_t BlockOffset;
 
   assert(bad);
 
@@ -135,9 +141,29 @@ static int flash_block_is_bad(
     return -EIO;
   }
 
+  *bad = true;
+
   BlockIndex = offset / nandpsu->Geometry.BlockSize;
 
-  *bad = (XNandPsu_IsBlockBad(nandpsu, BlockIndex) == XST_SUCCESS);
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
+
+  /* XNandPsu_IsBlockBad() is insufficient for this use case */
+  BlockOffset = BlockIndex >> XNANDPSU_BBT_BLOCK_SHIFT;
+  BlockShift = XNandPsu_BbtBlockShift(BlockIndex);
+  BlockData = nandpsu->Bbt[BlockOffset];
+  BlockType = (BlockData >> BlockShift) & XNANDPSU_BLOCK_TYPE_MASK;
+
+  if (BlockType == XNANDPSU_BLOCK_GOOD) {
+    *bad = false;
+  }
+
+  int TargetBlockIndex = BlockIndex % nandpsu->Geometry.NumTargetBlocks;
+  /* The last 4 blocks of every device target are reserved for the BBT */
+  if (nandpsu->Geometry.NumTargetBlocks - TargetBlockIndex <= 4) {
+    *bad = true;
+  }
+
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
   return 0;
 }
 
@@ -146,6 +172,7 @@ static int flash_block_mark_bad(
   uint32_t offset
 )
 {
+  rtems_status_code sc;
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
   uint32_t BlockIndex;
 
@@ -155,13 +182,16 @@ static int flash_block_mark_bad(
 
   BlockIndex = offset / nandpsu->Geometry.BlockSize;
 
-  if ( XNandPsu_MarkBlockBad(nandpsu, BlockIndex) != XST_SUCCESS ) {
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
+  sc = XNandPsu_MarkBlockBad(nandpsu, BlockIndex);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
+  if ( sc != XST_SUCCESS ) {
     return -EIO;
   }
   return RTEMS_SUCCESSFUL;
 }
 
-static int flash_read_oob(
+static int flash_read_oob_locked(
   rtems_jffs2_flash_control *super,
   uint32_t offset,
   uint8_t *oobbuf,
@@ -212,6 +242,19 @@ static int flash_read_oob(
   return RTEMS_SUCCESSFUL;
 }
 
+static int flash_read_oob(
+  rtems_jffs2_flash_control *super,
+  uint32_t offset,
+  uint8_t *oobbuf,
+  uint32_t ooblen
+)
+{
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
+  int ret = flash_read_oob_locked(super, offset, oobbuf, ooblen);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
+  return ret;
+}
+
 static int flash_write_oob(
   rtems_jffs2_flash_control *super,
   uint32_t offset,
@@ -219,6 +262,7 @@ static int flash_write_oob(
   uint32_t ooblen
 )
 {
+  rtems_status_code sc;
   uint8_t *spare_bytes;
   uint8_t *buffer = oobbuf;
   XNandPsu *nandpsu = get_flash_control(super)->nandpsu;
@@ -239,10 +283,12 @@ static int flash_write_oob(
   }
 
   /* Writing a page spare area to small will result in invalid accesses */
+  rtems_mutex_lock(&(get_flash_control(super)->access_lock));
   if (ooblen < SpareBytesPerPage) {
-    int rv = flash_read_oob(super, offset, spare_bytes, SpareBytesPerPage);
+    int rv = flash_read_oob_locked(super, offset, spare_bytes, SpareBytesPerPage);
     if (rv) {
       free(spare_bytes);
+      rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
       return rv;
     }
     buffer = spare_bytes;
@@ -252,11 +298,13 @@ static int flash_write_oob(
   /* Get page index */
   uint32_t PageIndex = offset / nandpsu->Geometry.BytesPerPage;
 
-  if ( XNandPsu_WriteSpareBytes(nandpsu, PageIndex, buffer) != XST_SUCCESS ) {
-    free(spare_bytes);
+  sc = XNandPsu_WriteSpareBytes(nandpsu, PageIndex, buffer);
+  rtems_mutex_unlock(&(get_flash_control(super)->access_lock));
+  free(spare_bytes);
+
+  if ( sc != XST_SUCCESS ) {
     return -EIO;
   }
-  free(spare_bytes);
   return RTEMS_SUCCESSFUL;
 }
 
@@ -307,6 +355,7 @@ int xilinx_zynqmp_nand_jffs2_initialize(
 
   flash_instance.super.write_size = NandInstPtr->Geometry.BytesPerPage;
   flash_instance.nandpsu = NandInstPtr;
+  rtems_mutex_init(&flash_instance.access_lock, "XNandPsu JFFS2 adapter lock");
   mount_data.flash_control = &flash_instance.super;
   mount_data.compressor_control = &compressor_instance;
 

@@ -1,6 +1,15 @@
-/*
- * SPDX-License-Identifier: BSD-2-Clause
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
  *
+ * @ingroup DevIRQGIC
+ *
+ * @brief This source file contains the implementation of the generic GICv3
+ *   support.
+ */
+
+/*
  * Copyright (C) 2019 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +36,33 @@
 
 #include <dev/irq/arm-gicv3.h>
 
-#include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 #include <bsp/start.h>
+#include <rtems/score/processormaskimpl.h>
+
+/*
+ * The GIC architecture reserves interrupt ID numbers 1020 to 1023 for special
+ * purposes. BSP_INTERRUPT_VECTOR_COUNT up to 1020 is valid since interrupt IDs
+ * start at 0.
+ */
+#if BSP_INTERRUPT_VECTOR_COUNT > 1020
+#error "BSP_INTERRUPT_VECTOR_COUNT is too large"
+#endif
 
 void bsp_interrupt_dispatch(void)
 {
-  uint32_t icciar = READ_SR(ICC_IAR1);
-  rtems_vector_number vector = GIC_CPUIF_ICCIAR_ACKINTID_GET(icciar);
-  rtems_vector_number spurious = 1023;
+  while (true) {
+    uint32_t icciar = READ_SR(ICC_IAR1);
+    rtems_vector_number vector = GIC_CPUIF_ICCIAR_ACKINTID_GET(icciar);
+    uint32_t status;
 
-  if (vector != spurious) {
-    arm_interrupt_handler_dispatch(vector);
+    if (!bsp_interrupt_is_valid_vector(vector)) {
+      break;
+    }
+
+    status = arm_interrupt_enable_interrupts();
+    bsp_interrupt_handler_dispatch_unchecked(vector);
+    arm_interrupt_restore_interrupts(status);
 
     WRITE_SR(ICC_EOIR1, icciar);
   }
@@ -193,55 +217,55 @@ BSP_START_TEXT_SECTION void arm_gic_irq_initialize_secondary_cpu(void)
 }
 #endif
 
-rtems_status_code arm_gic_irq_set_priority(
+rtems_status_code bsp_interrupt_set_priority(
   rtems_vector_number vector,
-  uint8_t priority
+  uint32_t priority
 )
 {
-  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  uint8_t gic_priority = (uint8_t) priority;
 
-  if (bsp_interrupt_is_valid_vector(vector)) {
-    if (vector >= 32) {
-      volatile gic_dist *dist = ARM_GIC_DIST;
-      gic_id_set_priority(dist, vector, priority);
-    } else {
-      gicv3_sgi_ppi_set_priority(
-        vector,
-        priority,
-        _SMP_Get_current_processor()
-      );
-    }
-  } else {
-    sc = RTEMS_INVALID_ID;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+
+  if (gic_priority != priority) {
+    return RTEMS_INVALID_PRIORITY;
   }
 
-  return sc;
+  if (vector >= 32) {
+    volatile gic_dist *dist = ARM_GIC_DIST;
+    gic_id_set_priority(dist, vector, priority);
+  } else {
+    gicv3_sgi_ppi_set_priority(
+      vector,
+      priority,
+      _SMP_Get_current_processor()
+    );
+  }
+
+  return RTEMS_SUCCESSFUL;
 }
 
-rtems_status_code arm_gic_irq_get_priority(
+rtems_status_code bsp_interrupt_get_priority(
   rtems_vector_number vector,
-  uint8_t *priority
+  uint32_t *priority
 )
 {
-  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
 
-  if (bsp_interrupt_is_valid_vector(vector)) {
-    if (vector >= 32) {
-      volatile gic_dist *dist = ARM_GIC_DIST;
-      *priority = gic_id_get_priority(dist, vector);
-    } else {
-      *priority = gicv3_sgi_ppi_get_priority(
-        vector,
-        _SMP_Get_current_processor()
-      );
-    }
+  if (vector >= 32) {
+    volatile gic_dist *dist = ARM_GIC_DIST;
+    *priority = gic_id_get_priority(dist, vector);
   } else {
-    sc = RTEMS_INVALID_ID;
+    *priority = gicv3_sgi_ppi_get_priority(
+      vector,
+      _SMP_Get_current_processor()
+    );
   }
 
-  return sc;
+  return RTEMS_SUCCESSFUL;
 }
 
+#ifdef RTEMS_SMP
 rtems_status_code bsp_interrupt_set_affinity(
   rtems_vector_number vector,
   const Processor_mask *affinity
@@ -274,12 +298,14 @@ rtems_status_code bsp_interrupt_get_affinity(
   _Processor_mask_From_uint32_t(affinity, targets, 0);
   return RTEMS_SUCCESSFUL;
 }
+#endif
 
 void arm_gic_trigger_sgi(rtems_vector_number vector, uint32_t targets)
 {
   gicv3_trigger_sgi(vector, targets);
 }
 
+#ifdef RTEMS_SMP
 uint32_t arm_gic_irq_processor_count(void)
 {
   volatile gic_dist *dist = ARM_GIC_DIST;
@@ -296,13 +322,13 @@ uint32_t arm_gic_irq_processor_count(void)
     for (i = 0; i < CPU_MAXIMUM_PROCESSORS; ++i) {
       volatile gic_redist *redist = gicv3_get_redist(i);
 
+      ++cpu_count;
       if ((redist->icrtyper & GIC_REDIST_ICRTYPER_LAST) != 0) {
         break;
       }
-
-      ++cpu_count;
     }
   }
 
   return cpu_count;
 }
+#endif

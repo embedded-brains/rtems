@@ -50,6 +50,15 @@
 
 void *volatile prevent_compiler_optimizations;
 
+static int fs_test_failed = 0;
+extern const RTEMS_TEST_STATE rtems_test_state;
+
+void fs_test_notify_failure(void)
+{
+  fs_test_failed = 1;
+}
+
+
 /* Break out of a chroot() environment in C */
 static void break_out_of_chroot(void)
 {
@@ -76,7 +85,7 @@ rtems_task Init(
 {
   int rc=0;
 
-  TEST_BEGIN();
+  rtems_test_begin(rtems_test_name, rtems_test_state);
 
   puts( "Initializing filesystem " FILESYSTEM );
   test_initialize_filesystem();
@@ -91,6 +100,6 @@ rtems_task Init(
   puts( "\n\nShutting down filesystem " FILESYSTEM );
   test_shutdown_filesystem();
 
-  TEST_END();
+  if (!fs_test_failed) rtems_test_end(rtems_test_name);
   rtems_test_exit(0);
 }

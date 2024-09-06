@@ -1,3 +1,13 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsX8664AMD64
+ *
+ * @brief Paging initialization
+ */
+
 /*
  * This file sets up page sizes to 1GiB (i.e. huge pages, using only the PML4
  * and PDPT, skipping the PDT, and PT).
@@ -9,8 +19,7 @@
  */
 
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

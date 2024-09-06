@@ -26,7 +26,7 @@
 #include <rtems/irq-extension.h>
 #include <rtems/sysinit.h>
 #include <rtems/timecounter.h>
-#include <rtems/score/sparcimpl.h>
+#include <bsp/sparc-counter.h>
 
 extern int CLOCK_SPEED;
 
@@ -46,17 +46,15 @@ static void erc32_clock_init( void )
   rtems_timecounter_install(tc);
 }
 
-uint32_t _CPU_Counter_frequency(void)
+uint32_t _CPU_Counter_frequency( void )
 {
   return ERC32_REAL_TIME_CLOCK_FREQUENCY;
 }
 
-static void erc32_clock_at_tick( void )
+static void erc32_clock_at_tick( SPARC_Counter *counter )
 {
-  SPARC_Counter *counter;
   rtems_interrupt_level level;
 
-  counter = &_SPARC_Counter_mutable;
   rtems_interrupt_local_disable(level);
 
   ERC32_Clear_interrupt( ERC32_INTERRUPT_REAL_TIME_CLOCK );
@@ -83,7 +81,7 @@ static void erc32_clock_initialize_early( void )
     ERC32_MEC_TIMER_COUNTER_RELOAD_AT_ZERO
   );
 
-  counter = &_SPARC_Counter_mutable;
+  counter = &_SPARC_Counter;
   counter->read_isr_disabled = _SPARC_Counter_read_clock_isr_disabled;
   counter->read = _SPARC_Counter_read_clock;
   counter->counter_register = &ERC32_MEC.Real_Time_Clock_Counter,
@@ -110,7 +108,7 @@ RTEMS_SYSINIT_ITEM(
     "Clock", \
     RTEMS_INTERRUPT_SHARED, \
     _new, \
-    NULL \
+    &_SPARC_Counter \
   )
 
 #define Clock_driver_support_set_interrupt_affinity( _online_processors ) \
@@ -118,7 +116,7 @@ RTEMS_SYSINIT_ITEM(
     (void) _online_processors; \
   } while (0)
 
-#define Clock_driver_support_at_tick() erc32_clock_at_tick()
+#define Clock_driver_support_at_tick(arg) erc32_clock_at_tick(arg)
 
 #define Clock_driver_support_initialize_hardware() erc32_clock_init()
 

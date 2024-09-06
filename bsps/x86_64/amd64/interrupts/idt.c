@@ -1,6 +1,15 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsX8664AMD64
+ *
+ * @brief Interrupts support
+ */
+
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -24,13 +33,17 @@
  * SUCH DAMAGE.
  */
 
-#include <stdint.h>
+#include <apic.h>
+#include <bsp/fatal.h>
+#include <bsp/irq-generic.h>
 #include <rtems.h>
 #include <rtems/score/idt.h>
 #include <rtems/score/basedefs.h>
 #include <rtems/score/x86_64.h>
 #include <rtems/score/cpuimpl.h>
-#include <bsp/irq-generic.h>
+#include <rtems/score/processormaskimpl.h>
+
+#include <stdint.h>
 
 /*
  * The IDT maps every interrupt vector to an interrupt_descriptor based on the
@@ -38,7 +51,7 @@
  */
 interrupt_descriptor amd64_idt[IDT_SIZE] RTEMS_ALIGNED(8) = { { 0 } };
 
-struct idt_record idtr = {
+struct idt_record amd64_idtr = {
   .limit = (IDT_SIZE * 16) - 1,
   .base = (uintptr_t) amd64_idt
 };
@@ -80,7 +93,8 @@ static uintptr_t rtemsIRQs[BSP_IRQ_VECTOR_NUMBER] = {
   (uintptr_t) rtems_irq_prologue_29,
   (uintptr_t) rtems_irq_prologue_30,
   (uintptr_t) rtems_irq_prologue_31,
-  (uintptr_t) rtems_irq_prologue_32
+  (uintptr_t) rtems_irq_prologue_32,
+  (uintptr_t) rtems_irq_prologue_33
 };
 
 void lidt(struct idt_record *ptr)
@@ -136,13 +150,36 @@ void bsp_interrupt_facility_initialize(void)
     amd64_install_raw_interrupt(i, rtemsIRQs[i], &old);
   }
 
-  lidt(&idtr);
+  lidt(&amd64_idtr);
+
+  if (lapic_initialize() == false) {
+    bsp_fatal(BSP_FATAL_INTERRUPT_INITIALIZATION);
+  }
 }
 
 rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
 {
-  /* XXX */
+  /* XXX: Should be implemented once I/O APIC support is added */
   return RTEMS_SUCCESSFUL;
+}
+
+rtems_status_code bsp_interrupt_set_priority(
+  rtems_vector_number vector,
+  uint32_t priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_get_priority(
+  rtems_vector_number vector,
+  uint32_t *priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
+  return RTEMS_UNSATISFIED;
 }
 
 rtems_status_code bsp_interrupt_get_attributes(
@@ -189,6 +226,39 @@ rtems_status_code bsp_interrupt_vector_is_enabled(
 
 rtems_status_code bsp_interrupt_vector_enable(rtems_vector_number vector)
 {
-  /* XXX */
+  /* XXX: Should be implemented once I/O APIC support is added */
   return RTEMS_SUCCESSFUL;
 }
+
+#ifdef RTEMS_SMP
+/* TODO: See #5121 */
+rtems_status_code bsp_interrupt_get_affinity(
+  rtems_vector_number  vector,
+  Processor_mask      *affinity
+)
+{
+  (void) vector;
+  _Processor_mask_From_index( affinity, 0 );
+  return RTEMS_UNSATISFIED;
+}
+
+/* TODO: See #5121 */
+rtems_status_code bsp_interrupt_set_affinity(
+  rtems_vector_number   vector,
+  const Processor_mask *affinity
+)
+{
+  (void) vector;
+  (void) affinity;
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_raise_on(
+  rtems_vector_number vector,
+  uint32_t            cpu_index
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  return RTEMS_UNSATISFIED;
+}
+#endif

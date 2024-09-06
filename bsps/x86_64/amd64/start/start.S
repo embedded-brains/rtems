@@ -1,6 +1,7 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
 /*
- * SPDX-License-Identifier: BSD-2-Clause
- *
+ * Copyright (C) 2024 Matheus Pecoraro
  * Copyright (C) 2023 Karel Gardas
  * Copyright (C) 2018 embedded brains GmbH & Co. KG
  *
@@ -27,6 +28,7 @@
  */
 
 #include <bspopts.h>
+#include <gdt.h>
 
 #ifdef BSP_MULTIBOOT_SUPPORT
 #include <multiboot2.h>
@@ -39,8 +41,50 @@
 	.type	_start, @function
 _start:
 	.cfi_startproc
-	movabsq	$_ISR_Stack_area_end, %rsp
-	subq	$8, %rsp
+        movq	%rsp, %rbp
+	/*
+	 * _ISR_Stack_size is aligned to CPU_INTERRUPT_STACK_ALIGNMENT (64 bits)
+	 * by compiler directive at /cpukit/include/rtems/confdefs/percpu.h.
+	 * No reference will occur beyond the stack region since the call
+	 * instruction will decrement the %rsp and then save the value of %rip.
+	 */
+	movabsq	$_ISR_Stack_area_begin, %rsp
+        addq $_ISR_Stack_size, %rsp
+
+#ifndef BSP_USE_EFI_BOOT_SERVICES
+        /* Use our own GDT instead of the one set up by UEFI */
+        lgdt amd64_gdt_descriptor
+
+        /* Load data segment registers */
+        movw $GDT_DATA_SEG_OFFSET, %ax
+        movw %ax, %ds
+        movw %ax, %es
+        movw %ax, %ss
+        movw %ax, %fs
+
+        /* Load code segment register */
+        pushq $GDT_CODE_SEG_OFFSET
+        pushq $after_load_gdt
+        retfq
+
+after_load_gdt:
+#endif
+
+#ifndef BSP_MULTIBOOT_SUPPORT
+        /**
+         * The FreeBSD bootloader gives us control with the following stack:
+         * 0(%rsp) = 32 bit return address (cannot be used)
+         * 4(%rsp) = 32 bit modulep
+         * 8(%rsp) = 32 bit kernend
+         *
+         * We will extract the necessary info set up by the FreeBSD bootloader
+         * before dynamic memory is set up since it is stored in memory after
+         * the kernel
+         */
+        movl	4(%rbp), %edi
+        call	retrieve_info_from_freebsd_loader
+#endif
+
 	.cfi_def_cfa_offset 16
 	xorl	%edi, %edi
 #ifdef BSP_MULTIBOOT_SUPPORT
@@ -91,8 +135,9 @@ info_requests_start:
 #else
 	.long	0
 #endif
-        /* padding to 8 byte tags allignment */
-        .long   0
+        .long	MULTIBOOT_TAG_TYPE_ACPI_OLD
+        .long	MULTIBOOT_TAG_TYPE_ACPI_NEW
+        .long	0
 info_requests_end:
         /* header end*/
         .short  MULTIBOOT_HEADER_TAG_END

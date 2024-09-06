@@ -1,6 +1,7 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,9 +41,37 @@ static inline uint8_t inport_byte(uint16_t port)
   return ret;
 }
 
+static inline uint16_t inport_word(uint16_t port)
+{
+  uint16_t ret;
+  __asm__ volatile ( "inw %1, %0"
+                     : "=a" (ret)
+                     : "Nd" (port) );
+  return ret;
+}
+
+static inline uint32_t inport_long(uint16_t port)
+{
+  uint32_t ret;
+  __asm__ volatile ( "inl %1, %0"
+                     : "=a" (ret)
+                     : "Nd" (port) );
+  return ret;
+}
+
 static inline void outport_byte(uint16_t port, uint8_t val)
 {
   __asm__ volatile ( "outb %0, %1" : : "a" (val), "Nd" (port) );
+}
+
+static inline void outport_word(uint16_t port, uint16_t val)
+{
+  __asm__ volatile ( "outw %0, %1" : : "a" (val), "Nd" (port) );
+}
+
+static inline void outport_long(uint16_t port, uint32_t val)
+{
+  __asm__ volatile ( "outl %0, %1" : : "a" (val), "Nd" (port) );
 }
 
 static inline uint16_t amd64_get_cs(void)
@@ -97,6 +126,11 @@ static inline void stub_io_wait(void)
   /* XXX: This likely won't be required on any modern boards, but this function
    * exists so it's easier to find all the places it may be used.
    */
+}
+
+static inline void amd64_spinwait(void)
+{
+  __asm__ volatile("pause" : : : "memory");
 }
 
 #endif /* !ASM */

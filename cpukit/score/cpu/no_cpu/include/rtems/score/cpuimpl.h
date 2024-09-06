@@ -120,17 +120,6 @@ register struct Per_CPU_Control *_CPU_Per_CPU_current asm( "rX" );
  */
 #define _CPU_Get_thread_executing() ( _CPU_Per_CPU_current->executing )
 
-/**
- * This routine copies _error into a known place -- typically a stack
- * location or a register, optionally disables interrupts, and
- * halts/stops the CPU.
- *
- * Port Specific Information:
- *
- * XXX document implementation including references if appropriate
- */
-RTEMS_NO_RETURN void _CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
-
 /* end of Fatal Error manager macros */
 
 /**
@@ -199,6 +188,22 @@ static inline void _CPU_Use_thread_local_storage(
 )
 {
   (void) context;
+}
+
+/**
+ * @brief Gets the thread pointer of the context.
+ *
+ * The thread pointer is used to get the address of thread-local storage
+ * objects associated with a thread.
+ *
+ * @param context is the processor context containing the thread pointer.
+ */
+static inline void *_CPU_Get_TLS_thread_pointer(
+  const Context_Control *context
+)
+{
+  (void) context;
+  return NULL;
 }
 
 #ifdef __cplusplus

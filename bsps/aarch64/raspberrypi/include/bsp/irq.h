@@ -9,6 +9,7 @@
 /**
  * Copyright (c) 2013 Alan Cudmore
  * Copyright (c) 2022 Mohd Noor Aman
+ * Copyright (c) 2024 Ning Yang
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
@@ -23,13 +24,7 @@
 #ifndef ASM
 
 #include <rtems.h>
-#include <rtems/irq.h>
-#include <rtems/irq-extension.h>
 #include <dev/irq/arm-gic-irq.h>
-
-#if defined(RTEMS_SMP)
-#include <rtems/score/processormask.h>
-#endif
 
 /**
  * @defgroup raspberrypi_interrupt Interrrupt Support
@@ -39,15 +34,21 @@
  * @brief Interrupt support.
  */
 
-#define BCM2835_INTC_TOTAL_IRQ       (64 + 8)
+#define BCM2835_INTC_TOTAL_IRQ       216
 
 #define BCM2835_IRQ_SET1_MIN         0
 #define BCM2835_IRQ_SET2_MIN         32
 
-#define BCM2835_IRQ_ID_GPU_TIMER_M0  0
-#define BCM2835_IRQ_ID_GPU_TIMER_M1  1
-#define BCM2835_IRQ_ID_GPU_TIMER_M2  2
-#define BCM2835_IRQ_ID_GPU_TIMER_M3  3
+#define BCM2711_IRQ_VC_PERIPHERAL_BASE 96
+
+/* Interrupt Vectors: System Timer */
+#define BCM2835_IRQ_ID_GPU_TIMER_M0    (BCM2711_IRQ_VC_PERIPHERAL_BASE + 0)
+#define BCM2835_IRQ_ID_GPU_TIMER_M1    (BCM2711_IRQ_VC_PERIPHERAL_BASE + 1)
+#define BCM2835_IRQ_ID_GPU_TIMER_M2    (BCM2711_IRQ_VC_PERIPHERAL_BASE + 2)
+#define BCM2835_IRQ_ID_GPU_TIMER_M3    (BCM2711_IRQ_VC_PERIPHERAL_BASE + 3)
+
+/* Interrupt Vectors: SPI */
+#define BCM2711_IRQ_SPI         (BCM2711_IRQ_VC_PERIPHERAL_BASE + 54)
 
 #define BCM2835_IRQ_ID_USB           9
 #define BCM2835_IRQ_ID_AUX           29
@@ -82,28 +83,6 @@
 #define BSP_INTERRUPT_VECTOR_INVALID (UINT32_MAX)
 
 #define BSP_IRQ_COUNT               (BCM2835_INTC_TOTAL_IRQ)
-
-#if defined(RTEMS_SMP)
-static inline rtems_status_code bsp_interrupt_set_affinity(
-  rtems_vector_number   vector,
-  const Processor_mask *affinity
-)
-{
-  (void) vector;
-  (void) affinity;
-  return RTEMS_UNSATISFIED;
-}
-
-static inline rtems_status_code bsp_interrupt_get_affinity(
-  rtems_vector_number  vector,
-  Processor_mask      *affinity
-)
-{
-  (void) vector;
-  _Processor_mask_From_index( affinity, 0 );
-  return RTEMS_UNSATISFIED;
-}
-#endif
 
 #endif /* ASM */
 #endif /* LIBBSP_ARM_RASPBERRYPI_IRQ_H */

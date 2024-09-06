@@ -47,8 +47,6 @@
 
 #include <rtems/score/userextimpl.h>
 
-#include <pthread.h>
-
 User_extensions_List _User_extensions_List = {
   CHAIN_INITIALIZER_EMPTY( _User_extensions_List.Active ),
   CHAIN_ITERATOR_REGISTRY_INITIALIZER( _User_extensions_List.Iterators )
@@ -119,6 +117,8 @@ void _User_extensions_Thread_begin_visitor(
 )
 {
   User_extensions_thread_begin_extension callout = callouts->thread_begin;
+
+  (void) arg;
 
   if ( callout != NULL ) {
     (*callout)( executing );

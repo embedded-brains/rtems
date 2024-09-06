@@ -203,9 +203,9 @@ fat_free_fat_clusters_chain(
         cur_cln = next_cln;
     }
 
-        fs_info->vol.next_cl = chain;
-        if (fs_info->vol.free_cls != FAT_UNDEFINED_VALUE)
-            fs_info->vol.free_cls += freed_cls_cnt;
+    fs_info->vol.next_cl = chain;
+    if (fs_info->vol.free_cls != FAT_UNDEFINED_VALUE)
+        fs_info->vol.free_cls += freed_cls_cnt;
 
     fat_buf_release(fs_info);
     if (rc1 != RC_OK)
@@ -356,7 +356,7 @@ fat_set_fat_cluster(
                     if (rc != RC_OK)
                         return rc;
 
-                     *sec_buf &= 0x00;
+                     *sec_buf = 0x00;
 
                      *sec_buf |= (uint8_t)((fat16_clv & 0xFF00)>>8);
 
@@ -364,7 +364,7 @@ fat_set_fat_cluster(
                 }
                 else
                 {
-                    *(sec_buf + ofs + 1) &= 0x00;
+                    *(sec_buf + ofs + 1) = 0x00;
 
                     *(sec_buf + ofs + 1) |= (uint8_t  )((fat16_clv & 0xFF00)>>8);
                 }
@@ -372,7 +372,7 @@ fat_set_fat_cluster(
             else
             {
                 fat16_clv = ((uint16_t  )in_val) & FAT_FAT12_MASK;
-                *(sec_buf + ofs) &= 0x00;
+                *(sec_buf + ofs) = 0x00;
 
                 *(sec_buf + ofs) |= (uint8_t)(fat16_clv & 0x00FF);
 

@@ -5,7 +5,7 @@
  *
  * @ingroup RTEMSBSPsAArch64XilinxZynqMP
  *
- * @brief This header file provides the core BSP definitions
+ * @brief This header file provides BSP-specific interfaces.
  */
 
 /*
@@ -37,12 +37,6 @@
 #ifndef LIBBSP_AARCH64_XILINX_ZYNQMP_BSP_H
 #define LIBBSP_AARCH64_XILINX_ZYNQMP_BSP_H
 
-/**
- * @addtogroup RTEMSBSPsAArch64
- *
- * @{
- */
-
 #include <bspopts.h>
 
 #define BSP_FEATURE_IRQ_EXTENSION
@@ -53,11 +47,34 @@
 #include <bsp/start.h>
 
 #include <rtems.h>
-#include <rtems/termiostypes.h>
+
+#include <dev/serial/zynq-uart-zynqmp.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
+
+struct rtems_termios_device_context;
+
+/**
+ * @defgroup RTEMSBSPsAArch64XilinxZynqMP \
+ *   AMD Zynq UltraScale+ MPSoC and RFSoC - Application Processing Unit
+ *
+ * @ingroup RTEMSBSPsAArch64
+ *
+ * @brief This group contains the BSP for the Application Processing Unit (APU)
+ *   contained in AMD Zynq UltraScale+ MPSoC and RFSoC devices.
+ *
+ * @{
+ */
+
+/*
+ * DDRMC mapping
+ */
+LINKER_SYMBOL(bsp_r0_ram_base)
+LINKER_SYMBOL(bsp_r0_ram_end)
+LINKER_SYMBOL(bsp_r1_ram_base)
+LINKER_SYMBOL(bsp_r1_ram_end)
 
 #define BSP_ARM_GIC_CPUIF_BASE 0xf9020000
 #define BSP_ARM_GIC_DIST_BASE 0xf9010000
@@ -99,15 +116,16 @@ uint32_t zynqmp_clock_i2c1(void);
  * initialization. Provide in the application to override the defaults in the
  * BSP. This will only be called if the interface is found in the device tree.
  */
-__attribute__ ((weak))
-void zynqmp_configure_management_console(rtems_termios_device_context *base);
+void zynqmp_configure_management_console(
+  struct rtems_termios_device_context *base
+);
+
+/** @} */
 
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
 
 #endif /* ASM */
-
-/** @} */
 
 #endif /* LIBBSP_AARCH64_XILINX_ZYNQMP_BSP_H */

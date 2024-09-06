@@ -805,6 +805,122 @@ void rtems_shell_print_env(
 }
 #endif
 
+static int get_ticks_from_ms(const int timeout_ms)
+{
+  int ticks = timeout_ms * 1000;
+
+  ticks /= rtems_configuration_get_microseconds_per_tick();
+
+  return MAX(1, ticks);
+}
+
+/*
+ * Wait for the string to return or timeout.
+ */
+static bool rtems_shell_term_wait_for(const int fd,
+                                      const char* str,
+                                      const int timeout_ms)
+{
+  const int timeout_ticks = get_ticks_from_ms(timeout_ms);
+  int tick_count = timeout_ticks;
+  int i = 0;
+  while (tick_count-- > 0 && str[i] != '\0') {
+    char ch[2];
+    if (read(fd, &ch[0], 1) == 1) {
+      fflush(stdout);
+      if (ch[0] != str[i++]) {
+        return false;
+      }
+      tick_count = timeout_ticks;
+    } else {
+      rtems_task_wake_after(1);
+    }
+  }
+  if (tick_count == 0) {
+    return false;
+  }
+  return true;
+}
+
+/*
+ * Buffer a string up to the end string
+ */
+static int rtems_shell_term_buffer_until(const int fd,
+                                         char* buf,
+                                         const int size,
+                                         const char* end,
+                                         const int timeout_ms)
+{
+  const int timeout_ticks = get_ticks_from_ms(timeout_ms);
+  int tick_count = timeout_ticks;
+  int i = 0;
+  int e = 0;
+  memset(&buf[0], 0, size);
+  while (tick_count-- > 0 && i < size && end[e] != '\0') {
+    char ch[2];
+    if (read(fd, &ch[0], 1) == 1) {
+      fflush(stdout);
+      buf[i++] = ch[0];
+      if (ch[0] == end[e]) {
+        e++;
+      } else {
+        e = 0;
+      }
+      tick_count = timeout_ticks;
+    } else {
+      rtems_task_wake_after(1);
+    }
+  }
+  if (tick_count == 0 || end[e] != '\0') {
+    return -1;
+  }
+  i -= e;
+  if (i < size) {
+    buf[i] = '\0';
+  }
+  return i;
+}
+
+/*
+ * Determine if the terminal has the row and column values
+ * swapped
+ *
+ * https://github.com/tmux/tmux/issues/3457
+ *
+ * Tmux has a bug where the lines and cols are swapped. There is a lag
+ * in the time it takes to get the fix into code so see if tmux is
+ * running and which version and work around the bug.
+ *
+ * The terminal device needs to have VMIN=0, and VTIME=0
+ */
+static bool rtems_shell_term_row_column_swapped(const int fd, const int timeout) {
+  char buf[64];
+  memset(&buf[0], 0, sizeof(buf));
+  /*
+   * CSI > Ps q
+   *    Ps = 0   =>   DCS > | text ST
+   */
+  fputs("\033[>0q", stdout);
+  fflush(stdout);
+  if (rtems_shell_term_wait_for(fd, "\033P>|", timeout)) {
+    int len = rtems_shell_term_buffer_until(fd, buf, sizeof(buf), "\033\\", timeout);
+    if (len > 0) {
+      if (memcmp(buf, "tmux ", 5) == 0) {
+        static const char* bad_versions[] = {
+          "3.2", "3.2a", "3.3", "3.3a"
+        };
+        size_t i;
+        for (i = 0; i < RTEMS_ARRAY_SIZE(bad_versions); ++i) {
+          if (strcmp(bad_versions[i], buf + 5) == 0) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
 /*
  * Direct method to get the size of an XTERM window.
  *
@@ -814,11 +930,27 @@ static void rtems_shell_winsize( void )
 {
   const int fd = fileno(stdin);
   struct winsize ws;
+  const int timeout = 150;
   char buf[64];
   bool ok = false;
   int lines = 0;
   int cols = 0;
   int r;
+  const char *detect = getenv("TERM_SIZE_DETECT");
+
+  if (detect) {
+    /* Skip window size detection if set to False, false, or 0 */
+    if (strcmp(detect, "false") == 0) {
+      return;
+    }
+    if (strcmp(detect, "False") == 0) {
+      return;
+    }
+    if (strcmp(detect, "0") == 0) {
+      return;
+    }
+  }
+
   r = ioctl(fd, TIOCGWINSZ, &ws);
   if (r == 0) {
     ok = true;
@@ -831,9 +963,6 @@ static void rtems_shell_winsize( void )
       term.c_cc[VMIN] = 0;
       term.c_cc[VTIME] = 0;
       if (tcsetattr (fd, TCSADRAIN, &term) >= 0) {
-        int msec = 50;
-        int len = 0;
-        int i = 0;
         memset(&buf[0], 0, sizeof(buf));
         /*
          * https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Miscellaneous
@@ -842,34 +971,33 @@ static void rtems_shell_winsize( void )
          */
         fputs("\033[18t", stdout);
         fflush(stdout);
-        while (msec-- > 0 && len < sizeof(buf)) {
-          char ch[2];
-          if (read(fd, &ch[0], 1) == 1) {
-            buf[len++] = ch[0];
-            msec = 50;
-          } else {
-            usleep(1000);
-          }
-        }
-        while (i < len) {
-          static const char resp[] = "\033[8;";
-          if (memcmp(resp, &buf[i], sizeof(resp) - 1) == 0) {
-            i += sizeof(resp) - 1;
-            while (i < len && buf[i] != ';') {
+        if (rtems_shell_term_wait_for(fd, "\033[8;", timeout)) {
+          int len = rtems_shell_term_buffer_until(fd, buf, sizeof(buf), ";", timeout);
+          if (len > 0) {
+            int i;
+            lines = 0;
+            i = 0;
+            while (i < len) {
               lines *= 10;
               lines += buf[i++] - '0';
             }
-            cols = 0;
-            ++i;
-            while (i < len && buf[i] != 't') {
-              cols *= 10;
-              cols += buf[i++] - '0';
+            len = rtems_shell_term_buffer_until(fd, buf, sizeof(buf), "t", timeout);
+            if (len > 0) {
+              cols = 0;
+              i = 0;
+              while (i < len) {
+                cols *= 10;
+                cols += buf[i++] - '0';
+              }
+              ok = true;
             }
-          } else {
-            i++;
           }
-          ok = true;
         }
+      }
+      if (rtems_shell_term_row_column_swapped(fd, timeout)) {
+        int tmp = lines;
+        lines = cols;
+        cols = tmp;
       }
       tcsetattr (fd, TCSADRAIN, &cterm);
     }
@@ -879,6 +1007,8 @@ static void rtems_shell_winsize( void )
     setenv("LINES", buf, 1);
     snprintf(buf, sizeof(buf) - 1, "%d", cols);
     setenv("COLUMNS", buf, 1);
+  } else {
+    setenv("TERM_SIZE_DETECT", "0", 1);
   }
 }
 

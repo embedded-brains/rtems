@@ -217,6 +217,12 @@ extern "C" {
 #define XNANDPSU_NVDDR_CLK_5		((u16)100U * (u16)1000U * (u16)1000U)
 
 #define XNANDPSU_MAX_TIMING_MODE	5
+
+#ifdef __rtems__
+#define XNANDPSU_PAGE_CACHE_UNAVAILABLE	-2
+#define XNANDPSU_PAGE_CACHE_NONE	-1
+#endif
+
 /**
  * The XNandPsu_Config structure contains configuration information for NAND
  * controller.
@@ -390,6 +396,9 @@ typedef struct {
 	XNandPsu_EccCfg EccCfg;		/**< ECC configuration */
 	XNandPsu_Geometry Geometry;	/**< Flash geometry */
 	XNandPsu_Features Features;	/**< ONFI features */
+#ifdef __rtems__
+	int32_t PartialDataPageIndex;	/**< Cached page index */
+#endif
 #ifdef __ICCARM__
 	u8 PartialDataBuf[XNANDPSU_MAX_PAGE_SIZE];	/**< Partial read/write buffer */
 #pragma pack(pop)
@@ -563,6 +572,52 @@ s32 XNandPsu_SetFeature(XNandPsu *InstancePtr, u32 Target, u8 Feature,
 s32 XNandPsu_ScanBbt(XNandPsu *InstancePtr);
 
 s32 XNandPsu_MarkBlockBad(XNandPsu *InstancePtr, u32 Block);
+
+#ifdef __rtems__
+#include <stdbool.h>
+/*****************************************************************************/
+/**
+* This function changes the marking of a block in the RAM based Bad Block Table(BBT). It
+* also updates the Bad Block Table(BBT) in the flash if necessary.
+*
+* @param	InstancePtr is the pointer to the XNandPsu instance.
+* @param	Block is the block number.
+*
+* @return
+*		- XST_SUCCESS if successful.
+*		- XST_FAILURE if fail.
+*
+******************************************************************************/
+s32 XNandPsu_MarkBlock(XNandPsu *InstancePtr, u32 Block, u8 BlockMark);
+
+/*****************************************************************************/
+/**
+* This function changes the marking of a block in the RAM based Bad Block Table(BBT). It
+* does not update the Bad Block Table(BBT) in the flash.
+*
+* @param	InstancePtr is the pointer to the XNandPsu instance.
+* @param	Block is the block number.
+*
+* @return
+*		- true if the BBT needs updating.
+*		- false if the BBT does not need updating.
+*
+******************************************************************************/
+bool XNandPsu_StageBlockMark(XNandPsu *InstancePtr, u32 Block, u8 BlockMark);
+
+/*****************************************************************************/
+/**
+* This function updates the primary and mirror Bad Block Table(BBT) in the
+* flash.
+*
+* @param	InstancePtr is the pointer to the XNandPsu instance.
+* @return
+*		- XST_SUCCESS if successful.
+*		- XST_FAILURE if fail.
+*
+******************************************************************************/
+s32 XNandPsu_UpdateBbt(XNandPsu *InstancePtr, u32 Target);
+#endif
 
 void XNandPsu_EnableDmaMode(XNandPsu *InstancePtr);
 

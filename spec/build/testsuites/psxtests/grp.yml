@@ -5,9 +5,7 @@ copyrights:
 - Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
 cxxflags: []
-enabled-by:
-- BUILD_TESTS
-- BUILD_PSXTESTS
+enabled-by: BUILD_PSXTESTS
 includes:
 - testsuites/support/include
 - testsuites/psxtests/include
@@ -63,6 +61,10 @@ links:
   uid: psxaio02
 - role: build-dependency
   uid: psxaio03
+- role: build-dependency
+  uid: psxaio04
+- role: build-dependency
+  uid: psxaio05
 - role: build-dependency
   uid: psxalarm01
 - role: build-dependency

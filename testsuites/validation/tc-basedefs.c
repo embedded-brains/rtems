@@ -432,6 +432,12 @@
  *   - Checked that the RTEMS_ZERO_LENGTH_ARRAY macro produces a structure
  *     similar to a structure with one element.
  *
+ * - Use the RTEMS_DEFINE_GLOBAL_SYMBOL() macro at the beginning of this file
+ *   and assign the address of the symbol to an object.
+ *
+ *   - Check that the RTEMS_DEFINE_GLOBAL_SYMBOL() macro defines a global
+ *     symbol with the correct value.
+ *
  * @{
  */
 
@@ -527,8 +533,18 @@ RTEMS_COMPILER_PURE_ATTRIBUTE static int compiler_pure_attribute_func( void )
   return 21;
 }
 
+static int global_symbol_base;
+
 RTEMS_DEFINE_GLOBAL_SYMBOL(
-  GLOBAL_SYMBOL, GLOBAL_SYMBOL_VALULE( abc ) );
+  GLOBAL_SYMBOL,
+  RTEMS_SYMBOL_NAME( global_symbol_base ) + GLOBAL_SYMBOL_VALULE( abc )
+);
+
+RTEMS_DECLARE_GLOBAL_SYMBOL( global_symbol_2 );
+
+RTEMS_DEFINE_GLOBAL_SYMBOL( global_symbol_2, 0x123 );
+
+static const char * const volatile global_symbol_2_object = global_symbol_2;
 
 static int deprecated_func( int i ) RTEMS_DEPRECATED;
 static int deprecated_func( int i )
@@ -1055,7 +1071,11 @@ static void RtemsBasedefsValBasedefs_Action_18( void )
    * which is defined in a file different from the file in which the gobal
    * symbol is defined.
    */
-  T_step_eq_int( 45, basedefs_get_global_symbol(), 0xabc );
+  T_step_eq_uptr(
+    45,
+    basedefs_get_global_symbol() - (uintptr_t) &global_symbol_base,
+    0xabc
+  );
 }
 
 /**
@@ -1089,7 +1109,11 @@ static void RtemsBasedefsValBasedefs_Action_20( void )
    * Check that the RTEMS_DEFINE_GLOBAL_SYMBOL() macro defines a global symbol
    * with the correct value.
    */
-  T_step_eq_int( 49, (uintptr_t) global_symbol, 0xabc );
+  T_step_eq_uptr(
+    49,
+    (uintptr_t) global_symbol - (uintptr_t) &global_symbol_base,
+    0xabc
+  );
 }
 
 /**
@@ -1926,11 +1950,26 @@ static void RtemsBasedefsValBasedefs_Action_55( void )
 }
 
 /**
+ * @brief Use the RTEMS_DEFINE_GLOBAL_SYMBOL() macro at the beginning of this
+ *   file and assign the address of the symbol to an object.
+ */
+static void RtemsBasedefsValBasedefs_Action_56( void )
+{
+  /* No action */
+
+  /*
+   * Check that the RTEMS_DEFINE_GLOBAL_SYMBOL() macro defines a global symbol
+   * with the correct value.
+   */
+  T_step_eq_uptr( 129, (uintptr_t) global_symbol_2_object, 0x123 );
+}
+
+/**
  * @fn void T_case_body_RtemsBasedefsValBasedefs( void )
  */
 T_TEST_CASE( RtemsBasedefsValBasedefs )
 {
-  T_plan( 129 );
+  T_plan( 130 );
 
   RtemsBasedefsValBasedefs_Action_0();
   RtemsBasedefsValBasedefs_Action_1();
@@ -1988,6 +2027,7 @@ T_TEST_CASE( RtemsBasedefsValBasedefs )
   RtemsBasedefsValBasedefs_Action_53();
   RtemsBasedefsValBasedefs_Action_54();
   RtemsBasedefsValBasedefs_Action_55();
+  RtemsBasedefsValBasedefs_Action_56();
 }
 
 /** @} */

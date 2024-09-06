@@ -1,19 +1,17 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
 /**
  * @file
  *
- * @ingroup RTEMSBSPsX8664Amd64
+ * @ingroup RTEMSBSPsX8664AMD64
+ *
+ * @ingroup RTEMSBSPsX8664AMD64EFI
  *
  * @brief Global BSP definitions.
  */
 
-/*  bsp.h
- *
- *  This include file contains all board IO definitions.
- */
-
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Copyright (c) 1989-1999.
  * On-Line Applications Research Corporation (OAR).
@@ -44,9 +42,19 @@
 #define LIBBSP_X86_64_AMD64_BSP_H
 
 /**
- * @addtogroup RTEMSBSPsX8664
+ * @ingroup RTEMSBSPsX8664
  *
- * @{
+ * @defgroup RTEMSBSPsX8664AMD64 AMD64
+ *
+ * @brief AMD64 Board Support Package.
+ */
+
+/**
+ * @ingroup RTEMSBSPsX8664
+ *
+ * @defgroup RTEMSBSPsX8664AMD64EFI AMD64EFI
+ *
+ * @brief AMD64EFI Board Support Package.
  */
 
 #include <bspopts.h>
@@ -61,7 +69,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-
-/** @} */
 
 #endif

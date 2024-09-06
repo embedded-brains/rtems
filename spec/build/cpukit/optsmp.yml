@@ -5,6 +5,7 @@ actions:
 - define-condition: null
 build-type: option
 copyrights:
+- Copyright (C) 2023 B. Moessner
 - Copyright (C) 2020 embedded brains GmbH & Co. KG
 default:
 - enabled-by: true
@@ -12,21 +13,18 @@ default:
 description: |
   Enable the Symmetric Multiprocessing (SMP) support
 enabled-by:
-- aarch64/xilinx_zynqmp_ilp32_qemu
-- aarch64/xilinx_zynqmp_ilp32_zu3eg
-- aarch64/xilinx_zynqmp_lp64_cfc400x
-- aarch64/xilinx_zynqmp_lp64_qemu
-- aarch64/xilinx_zynqmp_lp64_zu3eg
 - arm/altcycv_devkit
 - arm/fvp_cortex_r52
 - arm/imx7
 - arm/raspberrypi2
 - arm/realview_pbx_a9_qemu
-- arm/xilinx_zynq_a9_qemu
 - arm/xilinx_zynqmp_ultra96
-- arm/xilinx_zynq_zc702
-- arm/xilinx_zynq_zc706
-- arm/xilinx_zynq_zedboard
+- bsps/aarch64/xilinx-zynqmp
+- bsps/arm/xilinx-zynq
+- i386/pc386
+- i386/pc486
+- i386/pc586
+- i386/pc686
 - powerpc/qoriq_e500
 - powerpc/qoriq_e6500_32
 - powerpc/qoriq_e6500_64
@@ -54,6 +52,7 @@ enabled-by:
 - sparc/gr712rc
 - sparc/gr740
 - sparc/leon3
+- x86_64/amd64
 links: []
 name: RTEMS_SMP
 type: build

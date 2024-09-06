@@ -3,9 +3,10 @@
 /**
  * @file
  *
- * @ingroup RTEMSBSPsARMShared
+ * @ingroup DevIRQGIC
  *
- * @brief This source file contains the implementation of ARM GICv2 support.
+ * @brief This source file contains the implementation of the generic GICv2
+ *   support.
  */
 
 /*
@@ -36,9 +37,17 @@
 #include <dev/irq/arm-gic.h>
 #include <dev/irq/arm-gic-arch.h>
 
-#include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 #include <bsp/start.h>
+#include <rtems/score/processormaskimpl.h>
+
+/*
+ * The GIC architecture reserves interrupt ID numbers 1020 to 1023 for special
+ * purposes.
+ */
+#if BSP_INTERRUPT_VECTOR_COUNT >= 1020
+#error "BSP_INTERRUPT_VECTOR_COUNT is too large"
+#endif
 
 #define GIC_CPUIF ((volatile gic_cpuif *) BSP_ARM_GIC_CPUIF_BASE)
 
@@ -47,18 +56,18 @@
 /*
  * The following variants
  *
- *  - GICv1 with Security Extensions,
- *  - GICv2 without Security Extensions, or
- *  - within Secure processor mode
+ * - GICv1 with Security Extensions,
+ * - GICv2 without Security Extensions, and
+ * - GICv2 with Security Extensions and in Secure processor mode
  *
  * have the ability to assign group 0 or 1 to individual interrupts.  Group
  * 0 interrupts can be configured to raise an FIQ exception.  This enables
  * the use of NMIs with respect to RTEMS.
  *
- * BSPs can enable this feature with the BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0
- * define.  Use arm_gic_irq_set_group() to change the group of an
- * interrupt (default group is 1, if BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0 is
- * defined).
+ * Use arm_gic_irq_set_group() to change the group of an interrupt (default
+ * group is 1, if BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0 is defined).  To use FIQ
+ * interrupts, you have to install an FIQ exception handler and enable FIQs in
+ * the Current Program Status Register (CPSR).
  */
 #ifdef BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0
 #define DIST_ICDDCR (GIC_DIST_ICDDCR_ENABLE_GRP_1 | GIC_DIST_ICDDCR_ENABLE)
@@ -74,12 +83,19 @@
 void bsp_interrupt_dispatch(void)
 {
   volatile gic_cpuif *cpuif = GIC_CPUIF;
-  uint32_t icciar = cpuif->icciar;
-  rtems_vector_number vector = GIC_CPUIF_ICCIAR_ACKINTID_GET(icciar);
-  rtems_vector_number spurious = 1023;
 
-  if (vector != spurious) {
-    arm_interrupt_handler_dispatch(vector);
+  while (true) {
+    uint32_t icciar = cpuif->icciar;
+    rtems_vector_number vector = GIC_CPUIF_ICCIAR_ACKINTID_GET(icciar);
+    uint32_t status;
+
+    if (!bsp_interrupt_is_valid_vector(vector)) {
+      break;
+    }
+
+    status = arm_interrupt_enable_interrupts();
+    bsp_interrupt_handler_dispatch_unchecked(vector);
+    arm_interrupt_restore_interrupts(status);
 
     cpuif->icceoir = icciar;
   }
@@ -184,17 +200,6 @@ static inline uint32_t get_id_count(volatile gic_dist *dist)
   return id_count;
 }
 
-static void enable_fiq(void)
-{
-#ifdef BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0
-  rtems_interrupt_level level;
-
-  rtems_interrupt_local_disable(level);
-  level &= ~ARM_PSR_F;
-  rtems_interrupt_local_enable(level);
-#endif
-}
-
 void bsp_interrupt_facility_initialize(void)
 {
   volatile gic_cpuif *cpuif = GIC_CPUIF;
@@ -224,8 +229,6 @@ void bsp_interrupt_facility_initialize(void)
   cpuif->iccicr = CPUIF_ICCICR;
 
   dist->icddcr = GIC_DIST_ICDDCR_ENABLE_GRP_1 | GIC_DIST_ICDDCR_ENABLE;
-
-  enable_fiq();
 }
 
 #ifdef RTEMS_SMP
@@ -251,45 +254,39 @@ BSP_START_TEXT_SECTION void arm_gic_irq_initialize_secondary_cpu(void)
   cpuif->iccpmr = GIC_CPUIF_ICCPMR_PRIORITY(0xff);
   cpuif->iccbpr = GIC_CPUIF_ICCBPR_BINARY_POINT(0x0);
   cpuif->iccicr = CPUIF_ICCICR;
-
-  enable_fiq();
 }
 #endif
 
-rtems_status_code arm_gic_irq_set_priority(
+rtems_status_code bsp_interrupt_set_priority(
   rtems_vector_number vector,
-  uint8_t priority
+  uint32_t priority
 )
 {
-  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  volatile gic_dist *dist = ARM_GIC_DIST;
+  uint8_t gic_priority = (uint8_t) priority;
 
-  if (bsp_interrupt_is_valid_vector(vector)) {
-    volatile gic_dist *dist = ARM_GIC_DIST;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
 
-    gic_id_set_priority(dist, vector, priority);
-  } else {
-    sc = RTEMS_INVALID_ID;
+  if (gic_priority != priority) {
+    return RTEMS_INVALID_PRIORITY;
   }
 
-  return sc;
+  gic_id_set_priority(dist, vector, gic_priority);
+  return RTEMS_SUCCESSFUL;
 }
 
-rtems_status_code arm_gic_irq_get_priority(
+rtems_status_code bsp_interrupt_get_priority(
   rtems_vector_number vector,
-  uint8_t *priority
+  uint32_t *priority
 )
 {
-  rtems_status_code sc = RTEMS_SUCCESSFUL;
+  volatile gic_dist *dist = ARM_GIC_DIST;
 
-  if (bsp_interrupt_is_valid_vector(vector)) {
-    volatile gic_dist *dist = ARM_GIC_DIST;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
 
-    *priority = gic_id_get_priority(dist, vector);
-  } else {
-    sc = RTEMS_INVALID_ID;
-  }
-
-  return sc;
+  *priority = gic_id_get_priority(dist, vector);
+  return RTEMS_SUCCESSFUL;
 }
 
 rtems_status_code arm_gic_irq_set_group(
@@ -328,6 +325,7 @@ rtems_status_code arm_gic_irq_get_group(
   return sc;
 }
 
+#ifdef RTEMS_SMP
 rtems_status_code bsp_interrupt_set_affinity(
   rtems_vector_number vector,
   const Processor_mask *affinity
@@ -387,6 +385,7 @@ rtems_status_code bsp_interrupt_get_affinity(
   _Processor_mask_From_uint32_t(affinity, targets, 0);
   return RTEMS_SUCCESSFUL;
 }
+#endif
 
 void arm_gic_trigger_sgi(rtems_vector_number vector, uint32_t targets)
 {
@@ -400,9 +399,11 @@ void arm_gic_trigger_sgi(rtems_vector_number vector, uint32_t targets)
     | GIC_DIST_ICDSGIR_SGIINTID(vector);
 }
 
+#ifdef RTEMS_SMP
 uint32_t arm_gic_irq_processor_count(void)
 {
   volatile gic_dist *dist = ARM_GIC_DIST;
 
   return GIC_DIST_ICDICTR_CPU_NUMBER_GET(dist->icdictr) + 1;
 }
+#endif

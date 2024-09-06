@@ -46,10 +46,8 @@
 #include <rtems/score/apimutex.h>
 #include <rtems/score/assert.h>
 #include <rtems/score/chainimpl.h>
-#include <rtems/score/freechainimpl.h>
 #include <rtems/score/isrlock.h>
 #include <rtems/score/schedulerimpl.h>
-#include <rtems/score/stackimpl.h>
 #include <rtems/score/sysstate.h>
 #include <rtems/score/threadqimpl.h>
 #include <rtems/score/userextimpl.h>
@@ -85,6 +83,7 @@ static Thread_Control *_Thread_Join_flush_filter(
 {
   Thread_Join_context *join_context;
 
+  (void) queue;
   join_context = (Thread_Join_context *) queue_context;
 
   the_thread->Wait.return_argument = join_context->exit_value;

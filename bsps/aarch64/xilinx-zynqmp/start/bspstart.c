@@ -36,6 +36,7 @@
 
 #include <bsp.h>
 #include <bsp/bootcard.h>
+#include <bsp/ecc_priv.h>
 #include <bsp/irq-generic.h>
 #include <bsp/linker-symbols.h>
 
@@ -56,4 +57,5 @@ void bsp_start( void )
     bsp_section_nocacheheap_begin,
     (uintptr_t) bsp_section_nocacheheap_size
   );
+  zynqmp_ecc_init();
 }

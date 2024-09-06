@@ -46,11 +46,6 @@
  */
 
 /*
- * Hack to void including bsp.h. The reset needs a better API.
- */
-extern void bsp_reset(void);
-
-/*
  * Command lookup table.
  */
 typedef int (*rtems_debugger_command)(uint8_t* buffer, int size);
@@ -1538,11 +1533,11 @@ remote_breakpoints(bool insert, uint8_t* buffer, int size)
     const char* comma2;
     comma2 = strchr(comma1 + 1, ',');
     if (comma2 != NULL) {
-      uint32_t capabilities;
-      uintptr_t  addr;
-      DB_UINT  kind;
+      uint32_t  capabilities;
+      uintptr_t addr;
+      DB_UINT   kind;
       addr = hex_decode_addr((const uint8_t*) comma1 + 1);
-      kind = hex_decode_uint((const uint8_t*)comma2 + 1);
+      kind = hex_decode_uint((const uint8_t*) comma2 + 1);
       capabilities = rtems_debugger_target_capabilities();
       switch (buffer[1]) {
       case '0':
@@ -1797,6 +1792,16 @@ rtems_debugger_session(void)
 
   if (rtems_debugger_server_flag(RTEMS_DEBUGGER_FLAG_RESET)) {
     rtems_debugger_printf("rtems-db: shutdown\n");
+    /*
+     * Wait a moment to let any disconnection protocol a transport has
+     * complete. The legacy stack needs this to close the connection
+     * to GDB and clean up.
+     */
+    sleep(2);
+    /*
+     * No special exit code, the user will asked GDB to kill the
+     * target
+     */
     rtems_fatal_error_occurred(1122);
   }
 

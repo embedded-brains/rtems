@@ -11,7 +11,7 @@
 /*
  * Copyright (C) 2019, 2023 embedded brains GmbH & Co. KG
  * Copyright (C) 2010 Gedare Bloom
- * Copyright (C) 1988, 2022 On-Line Applications Research Corporation (OAR)
+ * Copyright (C) 1988, 2023 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1792,8 +1792,8 @@
  *
  * then the event records are dumped in Base64 encoding in a fatal error
  * extension (see <a
- * href="https://docs.rtems.org/branches/master/c-user/fatal_error.html#announcing-a-fatal-error">Announcing
- * a Fatal Error</a>).
+ * href="https://docs.rtems.org/branches/master/c-user/fatal-error/background.html#terminate">System
+ * Termination Procedure</a>).
  *
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
@@ -1819,8 +1819,8 @@
  *
  * then the event records are compressed by zlib and dumped in Base64 encoding
  * in a fatal error extension (see <a
- * href="https://docs.rtems.org/branches/master/c-user/fatal_error.html#announcing-a-fatal-error">Announcing
- * a Fatal Error</a>).
+ * href="https://docs.rtems.org/branches/master/c-user/fatal-error/background.html#terminate">System
+ * Termination Procedure</a>).
  *
  * @par Default Configuration
  * If this configuration option is undefined, then the described feature is not
@@ -2475,6 +2475,34 @@
  */
 #define CONFIGURE_IMFS_MEMFILE_BYTES_PER_BLOCK
 
+/* Generated from spec:/acfg/if/jffs2-delayed-write-task-priority */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_JFFS2_DELAYED_WRITE_TASK_PRIORITY
+ *
+ * The value of this configuration option defines the JFFS2 delayed write task
+ * priority.
+ *
+ * @par Default Value
+ * The default value is 15.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * * The configuration option is not included in the pre-qualified feature set
+ *   of RTEMS.  Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the configuration option.
+ *
+ * * The value of the configuration option shall be a valid Classic API task
+ *   priority.  The set of valid task priorities depends on the scheduler
+ *   configuration.
+ * @endparblock
+ */
+#define CONFIGURE_JFFS2_DELAYED_WRITE_TASK_PRIORITY
+
 /* Generated from spec:/acfg/if/use-devfs-as-base-filesystem */
 
 /**
@@ -2773,9 +2801,16 @@
  * structures of type ::rtems_extensions_table.
  *
  * @par Notes
+ * @parblock
  * The value of this configuration option is placed before the entries of
  * #BSP_INITIAL_EXTENSION and after the entries of all other initial user
  * extensions.
+ *
+ * It is recommended that applications provide a fatal extension to customize
+ * the <a
+ * href="https://docs.rtems.org/branches/master/c-user/fatal-error/background.html#terminate">System
+ * Termination Procedure</a>.
+ * @endparblock
  */
 #define CONFIGURE_INITIAL_EXTENSIONS
 
@@ -2825,6 +2860,9 @@
  * The interrupt stacks are covered by the stack checker, see @ref
  * CONFIGURE_STACK_CHECKER_ENABLED.  However, using a too small interrupt stack
  * size may still result in undefined behaviour.
+ *
+ * The interrupt stack size may depend on the interrupt priority settings, see
+ * also rtems_interrupt_set_priority().
  *
  * In releases before RTEMS 5.1 the default value was @ref
  * CONFIGURE_MINIMUM_TASK_STACK_SIZE instead of #CPU_STACK_MINIMUM_SIZE.
@@ -3285,7 +3323,7 @@
  * The following constraints apply to this configuration option:
  *
  * * The value of the configuration option shall be greater than or equal to
- *   zero.
+ *   one.
  *
  * * The value of the configuration option shall be less than or equal to <a
  *   href="https://en.cppreference.com/w/c/types/integer">UINT32_MAX</a>.
@@ -3793,7 +3831,7 @@
  * Since a proxy is used to represent a remote task/thread which is blocking on
  * this node. This configuration parameter reflects the maximum number of
  * remote tasks/threads which can be blocked on objects on this node, see <a
- * href="https://docs.rtems.org/branches/master/c-user/multiprocessing.html#proxies">Proxies</a>.
+ * href="https://docs.rtems.org/branches/master/c-user/multiprocessing/background.html#proxies">Proxies</a>.
  *
  * This configuration option is only evaluated if @ref CONFIGURE_MP_APPLICATION
  * is defined.

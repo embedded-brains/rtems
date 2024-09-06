@@ -963,7 +963,7 @@ void _CPU_ISR_install_vector(
   CPU_ISR_handler *old_handler
 );
 
-void *_CPU_Thread_Idle_body( uintptr_t ignored );
+RTEMS_NO_RETURN void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 /**
  * @brief SPARC specific context switch.
@@ -992,6 +992,25 @@ RTEMS_NO_RETURN void _CPU_Context_switch_no_return(
  * @param[in] new_context is the context to restore
  */
 RTEMS_NO_RETURN void _CPU_Context_restore( Context_Control *new_context );
+
+#if !defined(RTEMS_SMP)
+/**
+ * @brief Starts multitasking in uniprocessor configurations.
+ *
+ * This function just sets the stack of the heir thread and then calls
+ * _CPU_Context_restore().
+ *
+ * This is causes that the window flushing and interrupts during
+ * _CPU_Context_restore() use the stack of the heir thread.  This is crucial
+ * for the interrupt handling to prevent a concurrent use of the interrupt
+ * stack (which is also the system initialization stack).
+ *
+ * @param[in] heir is the context of the heir thread.
+ */
+RTEMS_NO_RETURN void _SPARC_Start_multitasking( Context_Control *heir );
+
+#define _CPU_Start_multitasking( _heir ) _SPARC_Start_multitasking( _heir )
+#endif
 
 #if defined(RTEMS_SMP)
   uint32_t _CPU_SMP_Initialize( void );
@@ -1132,31 +1151,7 @@ typedef uint32_t CPU_Counter_ticks;
 
 uint32_t _CPU_Counter_frequency( void );
 
-typedef CPU_Counter_ticks ( *SPARC_Counter_read )( void );
-
-/*
- * The SPARC processors supported by RTEMS have no built-in CPU counter
- * support.  We have to use some hardware counter module for this purpose, for
- * example the GPTIMER instance used by the clock driver.  The BSP must provide
- * an implementation of the CPU counter read function.  This allows the use of
- * dynamic hardware enumeration.
- */
-typedef struct {
-  SPARC_Counter_read                read_isr_disabled;
-  SPARC_Counter_read                read;
-  volatile const CPU_Counter_ticks *counter_register;
-  volatile const uint32_t          *pending_register;
-  uint32_t                          pending_mask;
-  CPU_Counter_ticks                 accumulated;
-  CPU_Counter_ticks                 interval;
-} SPARC_Counter;
-
-extern const SPARC_Counter _SPARC_Counter;
-
-static inline CPU_Counter_ticks _CPU_Counter_read( void )
-{
-  return ( *_SPARC_Counter.read )();
-}
+CPU_Counter_ticks _CPU_Counter_read( void );
 
 /** Type that can store a 32-bit integer or a pointer. */
 typedef uintptr_t CPU_Uint32ptr;

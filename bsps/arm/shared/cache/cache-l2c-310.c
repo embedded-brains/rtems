@@ -56,11 +56,22 @@
 #include <bsp.h>
 #include <bsp/fatal.h>
 #include <libcpu/arm-cp15.h>
-#include <rtems/rtems/intr.h>
+#include <rtems.h>
+#include <rtems/score/smpimpl.h>
 #include <bsp/arm-release-id.h>
 #include <bsp/arm-errata.h>
 
 #include "cache-cp15.h"
+
+/**
+ * @defgroup L2C310CacheSupport L2C-310 Cache Support
+ *
+ * @ingroup RTEMSImplClassicCache
+ *
+ * @brief This group contains the L2C-310 cache support.
+ *
+ * @{
+ */
 
 /* These two defines also ensure that the rtems_cache_* functions have bodies */
 #define CPU_DATA_CACHE_ALIGNMENT ARM_CACHE_L1_CPU_DATA_ALIGNMENT
@@ -95,16 +106,6 @@
 #define L2C_310_RTL_RELEASE_R3_P3 0x9
 
 #define BSP_ARM_L2C_310_RTL_RELEASE (BSP_ARM_L2C_310_ID & L2C_310_ID_RTL_MASK)
-
-/**
- * @defgroup L2C310CacheSupport L2C-310 Cache Support
- *
- * @ingroup RTEMSBSPsARMShared
- *
- * @brief This group contains the L2C-310 cache support.
- *
- * @{
- */
 
 /**
  * @brief L2CC Register Offsets
@@ -1154,25 +1155,6 @@ l2c_310_enable( void )
 }
 
 static inline void
-l2c_310_disable( void )
-{
-  volatile L2CC               *l2cc = (volatile L2CC *) BSP_ARM_L2C_310_BASE;
-  rtems_interrupt_lock_context lock_context;
-
-  if ( l2cc->ctrl & L2C_310_CTRL_ENABLE ) {
-    /* Clean and Invalidate L2 Cache */
-    l2c_310_flush_entire();
-    rtems_interrupt_lock_acquire( &l2c_310_lock, &lock_context );
-
-    l2c_310_wait_for_background_ops( l2cc );
-
-    /* Disable the L2 cache */
-    l2cc->ctrl &= ~L2C_310_CTRL_ENABLE;
-    rtems_interrupt_lock_release( &l2c_310_lock, &lock_context );
-  }
-}
-
-static inline void
 _CPU_cache_enable_data( void )
 {
   l2c_310_enable();
@@ -1181,21 +1163,61 @@ _CPU_cache_enable_data( void )
 static inline void
 _CPU_cache_disable_data( void )
 {
-  arm_cache_l1_disable_data();
-  l2c_310_disable();
+  _Internal_error( INTERNAL_ERROR_CANNOT_DISABLE_DATA_CACHE );
+}
+
+static void l2c_310_enable_instruction( void *arg )
+{
+  rtems_interrupt_level level;
+
+  (void) arg;
+
+  rtems_interrupt_local_disable(level);
+  arm_cp15_set_control( arm_cp15_get_control() | ARM_CP15_CTRL_I );
+  rtems_interrupt_local_enable(level);
 }
 
 static inline void
 _CPU_cache_enable_instruction( void )
 {
-  l2c_310_enable();
+#ifdef RTEMS_SMP
+  rtems_interrupt_level level;
+
+  rtems_interrupt_local_disable( level );
+  _SMP_Broadcast_action( l2c_310_enable_instruction, NULL );
+  rtems_interrupt_local_enable( level );
+#else
+  l2c_310_enable_instruction( NULL );
+#endif
+}
+
+static void l2c_310_disable_instruction( void *arg )
+{
+  rtems_interrupt_level level;
+
+  (void) arg;
+
+  rtems_interrupt_local_disable(level);
+  arm_cp15_set_control( arm_cp15_get_control() & ~ARM_CP15_CTRL_I );
+  rtems_interrupt_local_enable(level);
+
+  arm_cache_l1_invalidate_entire_instruction();
 }
 
 static inline void
 _CPU_cache_disable_instruction( void )
 {
-  arm_cache_l1_disable_instruction();
-  l2c_310_disable();
+  l2c_310_flush_entire();
+
+#ifdef RTEMS_SMP
+  rtems_interrupt_level level;
+
+  rtems_interrupt_local_disable( level );
+  _SMP_Broadcast_action( l2c_310_disable_instruction, NULL );
+  rtems_interrupt_local_enable( level );
+#else
+  l2c_310_disable_instruction( NULL );
+#endif
 }
 
 static inline void
@@ -1331,5 +1353,7 @@ _CPU_cache_get_instruction_cache_size( const uint32_t level )
   }
   return size;
 }
+
+/** @} */
 
 #include "../../shared/cache/cacheimpl.h"

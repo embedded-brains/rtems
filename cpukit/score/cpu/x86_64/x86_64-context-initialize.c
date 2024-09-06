@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,12 +70,10 @@ void _CPU_Context_Initialize(
 )
 {
   uintptr_t _stack;
+  uintptr_t tcb;
 
   /* avoid warning for being unused */
   (void) is_fp;
-
-  // XXX: Should be used in the future
-  (void) tls_area;
 
   if ( new_level ) {
     the_context->rflags = CPU_EFLAGS_INTERRUPTS_OFF;
@@ -87,12 +84,17 @@ void _CPU_Context_Initialize(
 
   _stack  = ((uintptr_t) stack_area_begin) + stack_area_size;
   _stack &= ~(CPU_STACK_ALIGNMENT - 1);
-  _stack -= sizeof(uintptr_t); /* fake return address for entry_point's frame;
-                                * this allows rsp+8 to be an aligned boundary */
+  _stack -= CPU_STACK_ALIGNMENT; /* fake return address for entry_point's frame;
+                                  * this allows rsp+8 to be an aligned boundary */
   *((void (**)(void)) _stack) = entry_point;
 
   the_context->rbp     = (void *) 0;
   the_context->rsp     = (void *) _stack;
 
-  // XXX: Initialize thread-local storage area (TLS / TCB)
+  if (tls_area != NULL) {
+    tcb = (uintptr_t) _TLS_Initialize_area(tls_area);
+  } else {
+    tcb = 0;
+  }
+  the_context->fs = tcb;
 }

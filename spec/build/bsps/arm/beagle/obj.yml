@@ -21,6 +21,11 @@ install:
   - bsps/arm/beagle/include/bsp/pwmss.h
   - bsps/arm/beagle/include/bsp/qep.h
   - bsps/arm/beagle/include/bsp/spi.h
+- destination: ${BSP_INCLUDEDIR}/libcpu
+  source:
+  - bsps/arm/include/libcpu/am335x.h
+  - bsps/arm/include/libcpu/omap3.h
+  - bsps/arm/include/libcpu/omap_timer.h
 - destination: ${BSP_LIBDIR}
   source:
   - bsps/arm/beagle/start/linkcmds
@@ -47,6 +52,7 @@ source:
 - bsps/arm/shared/cp15/arm-cp15-set-exception-handler.c
 - bsps/arm/shared/cp15/arm-cp15-set-ttb-entries.c
 - bsps/arm/shared/start/bsp-start-memcpy.S
+- bsps/arm/shared/start/bspstarthook0-empty.c
 - bsps/shared/dev/btimer/btimer-cpucounter.c
 - bsps/shared/dev/cpucounter/cpucounterfrequency.c
 - bsps/shared/dev/cpucounter/cpucounterread.c
@@ -58,7 +64,6 @@ source:
 - bsps/shared/dev/serial/legacy-console.c
 - bsps/shared/irq/irq-default-handler.c
 - bsps/shared/start/bsp-fdt.c
-- bsps/shared/start/bspfatal-default.c
 - bsps/shared/start/gettargethash-default.c
 - bsps/shared/start/sbrk.c
 - bsps/shared/start/stackalloc.c

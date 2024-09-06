@@ -12,13 +12,12 @@ includes:
 - ${BSP_INCLUDES}
 install: []
 ldflags:
-- ${TEST_OPTIMIZATION_FLAGS}
 - ${COVERAGE_LINKER_FLAGS}
 links:
 - role: build-dependency
-  uid: optada
-- role: build-dependency
   uid: optall
+- role: build-dependency
+  uid: optada
 - role: build-dependency
   uid: optbenchmarks
 - role: build-dependency

@@ -82,13 +82,36 @@ int QspiPsu_NOR_Write(
 /*****************************************************************************/
 /**
  *
+ * This function performs a read. Reads are limited by the internal Xilinx flash
+ * driver buffer. Default setting is in DMA mode.
+ *
+ * @param	QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ * @param	Address contains the address to begin the read at.
+ * @param	ByteCount contains the total size to be read.
+ * @param	ReadBfrPtr is pointer to the read buffer to which valid received data
+ *		should be written
+ *
+ * @return	XST_SUCCESS if successful, else XST_FAILURE.
+ *
+ * @note	None.
+ *
+ ******************************************************************************/
+int QspiPsu_NOR_Read_Page(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u32 ByteCount,
+  u8 **ReadBfrPtr
+);
+
+/*****************************************************************************/
+/**
+ *
  * This function performs a read. Default setting is in DMA mode.
  *
  * @param	QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
- * @param	Address contains the address of the first sector which needs to
- *		be erased.
- * @param	ByteCount contains the total size to be erased.
- * @param	ReadBfrPtr is pointer to the read buffer to which valid received data
+ * @param	Address contains the address to begin the read at.
+ * @param	ByteCount contains the total size to be read.
+ * @param	ReadBfr The read buffer to which valid received data
  *		should be written
  *
  * @return	XST_SUCCESS if successful, else XST_FAILURE.
@@ -100,7 +123,7 @@ int QspiPsu_NOR_Read(
   XQspiPsu *QspiPsuPtr,
   u32 Address,
   u32 ByteCount,
-  u8 **ReadBfrPtr
+  u8 *ReadBfr
 );
 
 /*****************************************************************************/
@@ -155,3 +178,56 @@ u32 QspiPsu_NOR_Get_Device_Size(XQspiPsu *QspiPsuPtr);
  *
  ******************************************************************************/
 u32 QspiPsu_NOR_Get_Sector_Size(XQspiPsu *QspiPsuPtr);
+
+/*****************************************************************************/
+/**
+ *
+ * This function performs a read of the RDID configuration space.
+ *
+ * @param	QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ * @param	ReadBfrPtr is a pointer to a buffer to be filled with
+ * 		configuration data.
+ * @param	ReadLen is the total length of the configuration space to read.
+ *
+ * @return	XST_SUCCESS if successful, else XST_FAILURE.
+ *
+ ******************************************************************************/
+int QspiPsu_NOR_RDID(XQspiPsu *QspiPsuPtr, u8 *ReadBfrPtr, u32 ReadLen);
+
+/*****************************************************************************/
+/**
+ *
+ * This function performs a read of the SFDP configuration space.
+ *
+ * @param	QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ * @param	ReadBfrPtr is a pointer to a buffer to be filled with
+ * 		configuration data.
+ * @param	ReadLen is the total length of the configuration space to read.
+ *
+ * @return	XST_SUCCESS if successful, else XST_FAILURE.
+ *
+ ******************************************************************************/
+int QspiPsu_NOR_RDSFDP(
+  XQspiPsu *QspiPsuPtr,
+  u32 Address,
+  u32 ByteCount,
+  u8 **ReadBfrPtr
+);
+
+/**
+ * This function returns the page size of attached flash parts.
+ *
+ * @param QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ *
+ * @return The page size of attached flash in bytes.
+ ******************************************************************************/
+u32 QspiPsu_NOR_Get_Page_Size(XQspiPsu *QspiPsuPtr);
+
+/**
+ * This function returns the JEDEC ID of attached flash parts.
+ *
+ * @param QspiPsuPtr is a pointer to the QSPIPSU driver component to use.
+ *
+ * @return The JEDEC ID of attached flash in bytes.
+ ******************************************************************************/
+u32 QspiPsu_NOR_Get_JEDEC_ID(XQspiPsu *QspiPsuPtr);

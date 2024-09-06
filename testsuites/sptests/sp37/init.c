@@ -40,6 +40,8 @@
 #define CONFIGURE_INIT
 #include "system.h"
 
+#include <rtems/sysinit.h>
+
 const char rtems_test_name[] = "SP 37";
 
 /* prototypes */
@@ -66,6 +68,19 @@ rtems_timer_service_routine test_isr_in_progress(
 /* test bodies */
 
 #define TEST_ISR_EVENT RTEMS_EVENT_0
+
+static uint32_t boot_isr_level;
+
+static void set_boot_isr_level( void )
+{
+  boot_isr_level = _ISR_Get_level();
+}
+
+RTEMS_SYSINIT_ITEM(
+  set_boot_isr_level,
+  RTEMS_SYSINIT_DEVICE_DRIVERS,
+  RTEMS_SYSINIT_ORDER_MIDDLE
+);
 
 typedef struct {
   ISR_Level actual_level;
@@ -154,6 +169,9 @@ static void test_isr_level( void )
   ISR_Level current = 0;
   ISR_Level last_proper_level;
 
+  /* Interrupts shall be disabled during system initialization */
+  rtems_test_assert( boot_isr_level != 0 );
+
   _ISR_Set_level( current );
   rtems_test_assert( _ISR_Get_level() == current );
 
@@ -188,23 +206,28 @@ static void test_isr_level( void )
 
 static void test_isr_locks( void )
 {
-#if defined(RTEMS_SMP)
   static const char name[] = "test";
-#endif
   ISR_Level normal_interrupt_level = _ISR_Get_level();
+#if ISR_LOCK_NEEDS_OBJECT
   ISR_lock_Control initialized = ISR_LOCK_INITIALIZER( name );
   ISR_lock_Control zero_initialized;
   union {
     ISR_lock_Control lock;
     uint8_t bytes[ sizeof( ISR_lock_Control ) ];
   } container;
-  ISR_lock_Context lock_context;
   size_t i;
   const uint8_t *bytes;
+#endif
+  ISR_lock_Context lock_context;
   ISR_Level interrupt_level;
 
+#if ISR_LOCK_NEEDS_OBJECT
   memset( &container, 0xff, sizeof( container ) );
+#endif
+
   _ISR_lock_Initialize( &container.lock, name );
+
+#if ISR_LOCK_NEEDS_OBJECT
   bytes = (const uint8_t *) &initialized;
 
   for ( i = 0; i < sizeof( container ); ++i ) {
@@ -222,6 +245,7 @@ static void test_isr_locks( void )
       rtems_test_assert( container.bytes[ i ] == bytes[ i ] );
     }
   }
+#endif
 
   _ISR_lock_ISR_disable_and_acquire( &container.lock, &lock_context );
   rtems_test_assert( normal_interrupt_level != _ISR_Get_level() );
@@ -274,7 +298,7 @@ static void test_interrupt_locks( void )
   union {
     rtems_interrupt_lock lock;
     uint8_t bytes[ sizeof( rtems_interrupt_lock ) ];
-  } container;
+  } container = {0};
   rtems_interrupt_lock_context lock_context;
   size_t i;
   const uint8_t *initialized_bytes;

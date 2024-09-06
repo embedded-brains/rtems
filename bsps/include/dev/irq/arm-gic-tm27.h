@@ -1,11 +1,12 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @ingroup arm_gic
+ * @ingroup DevIRQGIC
  *
- *  @brief ARM GIC TM27 Support
+ * @brief This header file provides the TM27 support for the ARM Generic
+ *   Interrupt Controller (GIC).
  */
 
 /*
@@ -55,6 +56,8 @@
 #define ARM_GIC_TM27_IRQ_HIGH ARM_GIC_IRQ_SGI_13
 #endif
 
+#define TM27_INTERRUPT_VECTOR_DEFAULT ARM_GIC_TM27_IRQ_LOW
+
 #define ARM_GIC_TM27_PRIO_LOW 0x80
 
 #define ARM_GIC_TM27_PRIO_HIGH 0x00
@@ -78,7 +81,7 @@ static inline void Install_tm27_vector( rtems_interrupt_handler handler )
   );
   _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
 
-  sc = arm_gic_irq_set_priority(
+  sc = rtems_interrupt_set_priority(
     ARM_GIC_TM27_IRQ_LOW,
     ARM_GIC_TM27_PRIO_LOW
   );
@@ -97,7 +100,7 @@ static inline void Install_tm27_vector( rtems_interrupt_handler handler )
   );
   _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
 
-  sc = arm_gic_irq_set_priority(
+  sc = rtems_interrupt_set_priority(
     ARM_GIC_TM27_IRQ_HIGH,
     ARM_GIC_TM27_PRIO_HIGH
   );

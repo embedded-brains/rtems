@@ -19,7 +19,6 @@
 #include <rtems/score/armv4.h>
 
 #include <bsp.h>
-#include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 #include <bsp/raspberrypi.h>
 #include <bsp/linker-symbols.h>
@@ -206,6 +205,47 @@ rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
               bsp_vector_to_mask(vector);
   return RTEMS_SUCCESSFUL;
 }
+
+rtems_status_code bsp_interrupt_set_priority(
+  rtems_vector_number vector,
+  uint32_t priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_get_priority(
+  rtems_vector_number vector,
+  uint32_t *priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
+  return RTEMS_UNSATISFIED;
+}
+
+#if defined(RTEMS_SMP)
+rtems_status_code bsp_interrupt_get_affinity(
+  rtems_vector_number  vector,
+  Processor_mask      *affinity
+)
+{
+  (void) vector;
+  _Processor_mask_From_index( affinity, 0 );
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_set_affinity(
+  rtems_vector_number   vector,
+  const Processor_mask *affinity
+)
+{
+  (void) vector;
+  (void) affinity;
+  return RTEMS_UNSATISFIED;
+}
+#endif
 
 void bsp_interrupt_handler_default(rtems_vector_number vector)
 {

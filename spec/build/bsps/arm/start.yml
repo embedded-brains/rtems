@@ -7,7 +7,11 @@ cppflags: []
 enabled-by: true
 includes: []
 install-path: ${BSP_LIBDIR}
-links: []
+links:
+- role: build-dependency
+  uid: optstartvecaddralign
+- role: build-dependency
+  uid: optstartvecresvslot
 source:
 - bsps/arm/shared/start/start.S
 target: start.o

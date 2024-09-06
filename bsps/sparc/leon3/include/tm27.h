@@ -40,7 +40,7 @@
 #define __tm27_h
 
 #include <bsp.h>
-#include <bsp/irq.h>
+#include <bsp/irq-generic.h>
 
 #if defined(RTEMS_SMP)
 #include <rtems/score/smpimpl.h>
@@ -89,6 +89,7 @@ extern uint32_t Interrupt_nest;
 #define TEST_INTERRUPT_SOURCE 5
 #define TEST_INTERRUPT_SOURCE2 6
 #define MUST_WAIT_FOR_INTERRUPT 1
+#define TM27_INTERRUPT_VECTOR_DEFAULT TEST_INTERRUPT_SOURCE
 
 static inline void Install_tm27_vector( rtems_interrupt_handler handler )
 {

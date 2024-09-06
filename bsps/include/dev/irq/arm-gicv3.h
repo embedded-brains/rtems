@@ -3,9 +3,10 @@
 /**
  * @file
  *
- * @ingroup arm_gic
+ * @ingroup DevIRQGIC
  *
- * @brief This header file contains interfaces to access an Arm GICv3.
+ * @brief This header file provides interfaces of the ARM Generic Interrupt
+ *   Controller (GIC) support specific to the GICv3.
  */
 
 /*
@@ -43,6 +44,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @addtogroup DevIRQGIC
+ *
+ * @{
+ */
 
 #define PRIORITY_DEFAULT 127
 
@@ -364,6 +371,9 @@ static inline void gicv3_get_attributes(
   attributes->maybe_enable = true;
   attributes->maybe_disable = true;
   attributes->can_raise = true;
+  attributes->can_get_priority = true;
+  attributes->can_set_priority = true;
+  attributes->maximum_priority = 255;
 
   if ( vector <= ARM_GIC_IRQ_SGI_LAST ) {
     /*
@@ -386,6 +396,8 @@ static inline void gicv3_get_attributes(
     }
   }
 }
+
+/** @} */
 
 #ifdef __cplusplus
 }

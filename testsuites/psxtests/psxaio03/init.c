@@ -26,7 +26,7 @@
  *
  */
 
-#if !defined(OPERATION_COUNT)
+#if !defined( OPERATION_COUNT )
 #define OPERATION_COUNT 100
 #endif
 
@@ -50,38 +50,34 @@
 const char rtems_test_name[] = "PSXAIO 3";
 
 /* forward declarations to avoid warnings */
-struct aiocb *create_aiocb(int fd);
-void free_aiocb(struct aiocb *aiocbp);
+static struct aiocb *create_aiocb( int fd );
+static void free_aiocb( struct aiocb *aiocbp );
 
 #define FD_COUNT 6
 #define BUFSIZE 128
 
-struct aiocb *
-create_aiocb (int fd)
+static struct aiocb *create_aiocb( int fd )
 {
   struct aiocb *aiocbp;
 
-  aiocbp = malloc (sizeof (struct aiocb));
-  memset (aiocbp, 0, sizeof (struct aiocb));
-  aiocbp->aio_buf = malloc (BUFSIZE * sizeof (char));
+  aiocbp = malloc( sizeof( struct aiocb ) );
+  memset( aiocbp, 0, sizeof( struct aiocb ) );
+  aiocbp->aio_buf = malloc( BUFSIZE * sizeof( char ) );
   aiocbp->aio_nbytes = BUFSIZE;
   aiocbp->aio_offset = 0;
   aiocbp->aio_reqprio = 0;
   aiocbp->aio_fildes = fd;
-
+  aiocbp->aio_sigevent.sigev_notify = SIGEV_NONE;
   return aiocbp;
 }
 
-void
-free_aiocb (struct aiocb *aiocbp)
+static void free_aiocb( struct aiocb *aiocbp )
 {
-  free ((char*) aiocbp->aio_buf);
-  free (aiocbp);
+  free( (void*) aiocbp->aio_buf );
+  free( aiocbp );
 }
 
-
-void *
-POSIX_Init (void *argument)
+void *POSIX_Init( void *argument )
 {
   int fd[FD_COUNT];
   struct aiocb *aiocbp[FD_COUNT+1];
@@ -89,79 +85,74 @@ POSIX_Init (void *argument)
   char filename[BUFSIZE];
   struct sched_param param;
 
-  status = rtems_aio_init ();
-  rtems_test_assert (status == 0);
+  status = rtems_aio_init();
+  rtems_test_assert( status == 0 );
 
   param.sched_priority = 30;
-  status = pthread_setschedparam (pthread_self(), policy, &param);
-  rtems_test_assert (status == 0);
+  status = pthread_setschedparam( 
+    pthread_self(), 
+    policy, 
+    &param 
+  );
+  rtems_test_assert( status == 0 );
 
-  status = mkdir ("/tmp", S_IRWXU);
-  rtems_test_assert (!status);
+  status = mkdir( "/tmp", S_IRWXU );
+  rtems_test_assert( !status );
 
   TEST_BEGIN();
 
-  puts (" Init: Open files ");
-
-  for (i=0; i<FD_COUNT; i++)
+  for ( i=0; i<FD_COUNT; i++ )
     {
-      sprintf (filename, "/tmp/aio_fildes%d",i);
-      fd[i] = open (filename, O_RDWR|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO);
-      rtems_test_assert ( fd[i] != -1);
+      sprintf( filename, "/tmp/aio_fildes%d",i );
+      fd[i] = open( 
+        filename, 
+        O_RDWR|O_CREAT, 
+        S_IRWXU|S_IRWXG|S_IRWXO 
+      );
+      rtems_test_assert( fd[i] != -1 );
     }
 
-  puts (" Init: [WQ] aio_write on 1st file ");
-  aiocbp[0] = create_aiocb (fd[0]);
-  status = aio_write (aiocbp[0]);
-  rtems_test_assert (status != -1);
+  aiocbp[0] = create_aiocb( fd[0] );
+  status = aio_write( aiocbp[0] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [WQ] aio_write on 2nd file ");
-  aiocbp[1] = create_aiocb (fd[1]);
-  status = aio_write (aiocbp[1]);
-  rtems_test_assert (status != -1);
+  aiocbp[1] = create_aiocb( fd[1] );
+  status = aio_write( aiocbp[1] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [WQ] aio_read on 2nd file add by priority ");
-  aiocbp[2] = create_aiocb (fd[1]);
-  status = aio_read (aiocbp[2]);
-  rtems_test_assert (status != -1);
+  aiocbp[2] = create_aiocb( fd[1] );
+  status = aio_read( aiocbp[2] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [WQ] aio_write on 3rd file ");
-  aiocbp[3] = create_aiocb (fd[2]);
-  status = aio_write (aiocbp[3]);
-  rtems_test_assert (status != -1);
+  aiocbp[3] = create_aiocb( fd[2] );
+  status = aio_write( aiocbp[3] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [WQ] aio_write on 4th file ");
-  aiocbp[4] = create_aiocb (fd[3]);
-  status = aio_write (aiocbp[4]);
-  rtems_test_assert (status != -1);
+  aiocbp[4] = create_aiocb( fd[3] );
+  status = aio_write( aiocbp[4] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [WQ] aio_write on 5th file  -- [WQ] full ");
-  aiocbp[5] = create_aiocb (fd[4]);
-  status = aio_write (aiocbp[5]);
-  rtems_test_assert (status != -1);
+  aiocbp[5] = create_aiocb( fd[4] );
+  status = aio_write( aiocbp[5] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: [IQ] aio_write on 6th file ");
-  aiocbp[6] = create_aiocb (fd[5]);
-  status = aio_read (aiocbp[6]);
-  rtems_test_assert (status != -1);
+  aiocbp[6] = create_aiocb( fd[5] );
+  status = aio_read( aiocbp[6] );
+  rtems_test_assert( status != -1 );
 
-  puts (" Init: going to sleep for 5 sec ");
-  sleep (5);
-  puts (" Init: going to sleep again for 5 sec ");
-  sleep (5);
-  puts (" Init: going to sleep again for 5 sec ");
-  sleep (5);
+  sleep( 5 );
+  sleep( 5 );
+  sleep( 5 );
 
   TEST_END();
 
-  for (i = 0; i < FD_COUNT; i++)
+  for( i = 0; i < FD_COUNT; i++ )
     {
-      close (fd[i]);
-      free_aiocb (aiocbp[i]);
+      close( fd[i] );
+      free_aiocb( aiocbp[i] );
     }
-  free_aiocb (aiocbp[i]);
-  rtems_test_exit (0);
+  free_aiocb( aiocbp[i] );
+  rtems_test_exit( 0 );
 
   return NULL;
-
 }

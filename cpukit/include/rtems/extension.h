@@ -133,7 +133,8 @@ rtems_status_code rtems_extension_delete( rtems_id id );
  *
  * @par Notes
  * @parblock
- * The fatal extensions are invoked in extension forward order.
+ * The fatal extensions are invoked in extension forward order and with
+ * maskable interrupts disabled.
  *
  * The fatal extension should be extremely careful with respect to the RTEMS
  * directives it calls.  Depending on the system termination source, the system
@@ -572,16 +573,16 @@ typedef User_extensions_thread_start_extension rtems_task_start_extension;
  *
  * Where the system was built with SMP support disabled, the task switch
  * extensions are invoked before the context switch from the currently
- * executing thread to the heir thread.  The executing is a pointer to the TCB
- * of the currently executing thread. The heir is a pointer to the TCB of the
- * heir thread.  The context switch initiated through the multitasking start is
- * not covered by the task switch extensions.
+ * executing thread to the heir thread.  The ``executing`` is a pointer to the
+ * TCB of the currently executing thread. The ``heir`` is a pointer to the TCB
+ * of the heir thread.  The context switch initiated through the multitasking
+ * start is not covered by the task switch extensions.
  *
  * Where the system was built with SMP support enabled, the task switch
  * extensions are invoked after the context switch to the heir thread.  The
- * executing is a pointer to the TCB of the previously executing thread.
- * Despite the name, this is not the currently executing thread. The heir is a
- * pointer to the TCB of the newly executing thread. This is the currently
+ * ``executing`` is a pointer to the TCB of the previously executing thread.
+ * Despite the name, this is not the currently executing thread. The ``heir``
+ * is a pointer to the TCB of the newly executing thread. This is the currently
  * executing thread. The context switches initiated through the multitasking
  * start are covered by the task switch extensions. The reason for the
  * differences to uniprocessor configurations is that the context switch may

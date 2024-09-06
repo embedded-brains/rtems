@@ -217,22 +217,31 @@ rtems_debugger_target_swbreak_control(bool insert, uintptr_t addr, DB_UINT kind)
     if (loc == swbreaks[i].address) {
       size_t remaining;
       if (!insert) {
-        if (target->breakpoint_size > 4)
-          memcpy(loc, swbreaks[i].contents, target->breakpoint_size);
-        else {
-          switch (target->breakpoint_size) {
-          case 4:
-            loc[3] = swbreaks[i].contents[3];
-          case 3:
-            loc[2] = swbreaks[i].contents[2];
-          case 2:
-            loc[1] = swbreaks[i].contents[1];
-          case 1:
-            loc[0] = swbreaks[i].contents[0];
-            break;
+        if (target->code_writer != NULL) {
+          r = target->code_writer(loc,
+                                  &swbreaks[i].contents[0],
+                                  target->breakpoint_size);
+          if (r < 0) {
+            return r;
           }
+        } else {
+          if (target->breakpoint_size > 4) {
+            memcpy(loc, &swbreaks[i].contents[0], target->breakpoint_size);
+          } else {
+            switch (target->breakpoint_size) {
+            case 4:
+              loc[3] = swbreaks[i].contents[3];
+            case 3:
+              loc[2] = swbreaks[i].contents[2];
+            case 2:
+              loc[1] = swbreaks[i].contents[1];
+            case 1:
+              loc[0] = swbreaks[i].contents[0];
+              break;
+            }
+          }
+          rtems_debugger_target_cache_sync(&swbreaks[i]);
         }
-        rtems_debugger_target_cache_sync(&swbreaks[i]);
         --target->swbreaks.level;
         remaining = (target->swbreaks.level - i) * swbreak_size;
         memmove(&swbreaks[i], &swbreaks[i + 1], remaining);
@@ -287,27 +296,36 @@ rtems_debugger_target_swbreak_insert(void)
       uint8_t* loc = swbreaks[i].address;
       if (rtems_debugger_verbose())
         rtems_debugger_printf("rtems-db:  bp:  in: %p\n", swbreaks[i].address);
-      if (target->breakpoint_size > 4)
-        memcpy(loc, &target->breakpoint[0], target->breakpoint_size);
-      else {
-        if (rtems_debugger_verbose())
-          rtems_debugger_printf("rtems-db:  bp:  in: %p %p %d %d %d\n",
-                                loc, &target->breakpoint[0],
-                                (int) target->breakpoint_size,
-                                (int) i, (int) target->swbreaks.level);
-        switch (target->breakpoint_size) {
-        case 4:
-          loc[3] = target->breakpoint[3];
-        case 3:
-          loc[2] = target->breakpoint[2];
-        case 2:
-          loc[1] = target->breakpoint[1];
-        case 1:
-          loc[0] = target->breakpoint[0];
-          break;
+      if (target->code_writer != NULL) {
+        r = target->code_writer(loc,
+                                &target->breakpoint[0],
+                                target->breakpoint_size);
+        if (r < 0) {
+          return r;
         }
+      } else {
+        if (target->breakpoint_size > 4) {
+          memcpy(loc, &target->breakpoint[0], target->breakpoint_size);
+        } else {
+          if (rtems_debugger_verbose())
+            rtems_debugger_printf("rtems-db:  bp:  in: %p %p %d %d %d\n",
+                                  loc, &target->breakpoint[0],
+                                  (int) target->breakpoint_size,
+                                  (int) i, (int) target->swbreaks.level);
+          switch (target->breakpoint_size) {
+          case 4:
+            loc[3] = target->breakpoint[3];
+          case 3:
+            loc[2] = target->breakpoint[2];
+          case 2:
+            loc[1] = target->breakpoint[1];
+          case 1:
+            loc[0] = target->breakpoint[0];
+            break;
+          }
+        }
+        r = rtems_debugger_target_cache_sync(&swbreaks[i]);
       }
-      r = rtems_debugger_target_cache_sync(&swbreaks[i]);
     }
   }
   return r;
@@ -328,32 +346,36 @@ rtems_debugger_target_swbreak_remove(void)
       uint8_t* contents = &swbreaks[i].contents[0];
       if (rtems_debugger_verbose())
         rtems_debugger_printf("rtems-db:  bp: out: %p\n", swbreaks[i].address);
-      if (target->breakpoint_size > 4)
-        memcpy(loc, contents, target->breakpoint_size);
-      else {
-        switch (target->breakpoint_size) {
-        case 4:
-          loc[3] = contents[3];
-        case 3:
-          loc[2] = contents[2];
-        case 2:
-          loc[1] = contents[1];
-        case 1:
-          loc[0] = contents[0];
-          break;
+      if (target->code_writer != NULL) {
+        r = target->code_writer(loc, contents, target->breakpoint_size);
+        if (r < 0) {
+          return r;
         }
+      } else {
+        if (target->breakpoint_size > 4) {
+          memcpy(loc, contents, target->breakpoint_size);
+        } else {
+          switch (target->breakpoint_size) {
+          case 4:
+            loc[3] = contents[3];
+          case 3:
+            loc[2] = contents[2];
+          case 2:
+            loc[1] = contents[1];
+          case 1:
+            loc[0] = contents[0];
+            break;
+          }
+        }
+        r = rtems_debugger_target_cache_sync(&swbreaks[i]);
       }
-      r = rtems_debugger_target_cache_sync(&swbreaks[i]);
     }
   }
   return r;
 }
 
-uintptr_t saved_break_address = 0;
-rtems_id saved_tid = 0;
-
 static rtems_debugger_target_exc_action
-soft_step_and_continue(CPU_Exception_frame* frame)
+rtems_debugger_soft_step_and_continue(CPU_Exception_frame* frame)
 {
   uintptr_t              break_address;
   rtems_debugger_target *target = rtems_debugger->target;
@@ -378,43 +400,57 @@ soft_step_and_continue(CPU_Exception_frame* frame)
     return rtems_debugger_target_exc_cascade;
   }
 
-  /* Remove the current breakpoint */
+  /*
+   * Remove the current breakpoint
+   */
   rtems_debugger_target_swbreak_control(
     false,
     break_address,
     target->breakpoint_size
   );
 
-  /* Save off thread ID and break address for later usage */
-  saved_tid = tid;
-  saved_break_address = break_address;
+  /*
+   * Save the thread ID and break address to recover after stepping
+   */
+  target->step_tid = tid;
+  target->step_bp_address = break_address;
 
-  /* Populate the fake rtems_debugger_thread */
+  /*
+   * Populate the fake rtems_debugger_thread
+   */
   fake_debugger_thread.flags |= RTEMS_DEBUGGER_THREAD_FLAG_STEP;
   fake_debugger_thread.frame = frame;
   target_printk("rtems-db: stepping to the next instruction\n");
   rtems_debugger_target_thread_stepping(&fake_debugger_thread);
 
-  /* rtems_debugger_unlock() not called until the step is resolved */
+  /*
+   * rtems_debugger_unlock() not called until the step is resolved
+   */
   return rtems_debugger_target_exc_step;
 }
 
 rtems_debugger_target_exc_action
 rtems_debugger_target_exception(CPU_Exception_frame* frame)
 {
-  Thread_Control* thread = _Thread_Get_executing();
-  const rtems_id  tid = thread->Object.id;
+  rtems_debugger_target *target = rtems_debugger->target;
+  Thread_Control*        thread = _Thread_Get_executing();
+  const rtems_id         tid = thread->Object.id;
 
-  /* Resolve outstanding step+continue */
-  if ( saved_break_address != 0 && tid == saved_tid ) {
+  /*
+   * Resolve outstanding step+continue
+   */
+  if (target->step_bp_address != 0 && target->step_tid == tid) {
     rtems_debugger_target_swbreak_control(
       true,
-      saved_break_address,
+      target->step_bp_address,
       rtems_debugger->target->breakpoint_size
     );
-    saved_break_address = saved_tid = 0;
+    target->step_bp_address = 0;
+    target->step_tid = 0;
 
-    /* Release the debugger lock now that the step+continue is complete */
+    /*
+     * Release the debugger lock now that the step+continue is complete
+     */
     target_printk("rtems-db: resuming after step\n");
     rtems_debugger_unlock();
     return rtems_debugger_target_exc_consumed;
@@ -524,8 +560,10 @@ rtems_debugger_target_exception(CPU_Exception_frame* frame)
 
   target_printk("[} tid:%08" PRIx32 ": exception in interrupt context\n", tid);
 
-  /* soft_step_and_continue releases the debugger lock */
-  return soft_step_and_continue( frame );
+  /*
+   * Soft_step_and_continue releases the debugger lock
+   */
+  return rtems_debugger_soft_step_and_continue(frame);
 }
 
 void

@@ -3,9 +3,11 @@
 /**
  * @file
  *
- * @ingroup RTEMSBSPsShared
+ * @ingroup DevIRQGIC
  *
- * @brief This source file contains the interrupt get attribute implementation.
+ * @brief This source file contains the implementation of
+ *   bsp_interrupt_get_attributes() for the GICv2 of Xilinx Zynq UltraScale+
+ *   MPSoC and RFSoC devices.
  */
 
 /*
@@ -46,6 +48,9 @@ rtems_status_code bsp_interrupt_get_attributes(
   attributes->maybe_enable = true;
   attributes->maybe_disable = true;
   attributes->can_raise = true;
+  attributes->can_get_priority = true;
+  attributes->can_set_priority = true;
+  attributes->maximum_priority = 255;
 
   if ( vector <= ARM_GIC_IRQ_SGI_LAST ) {
     /*

@@ -246,6 +246,14 @@ done_flushing:
         mov     %g1, %psr                     ! restore status register and
                                               ! **** ENABLE TRAPS ****
 
+        /*
+         * WARNING: This code does not run with the restored stack pointer.  In
+         * SMP configurations, it uses a processor-specific stack.  In
+         * uniprocessor configurations, it uses the stack of the caller.  In
+         * this case, the caller shall ensure that it is not the interrupt
+         * stack (which is also the system initialization stack).
+         */
+
         ld      [%o1 + G5_OFFSET], %g5        ! restore the global registers
         ld      [%o1 + G7_OFFSET], %g7
 
@@ -266,7 +274,9 @@ done_flushing:
         ldd     [%o1 + I4_OFFSET], %i4
         ldd     [%o1 + I6_FP_OFFSET], %i6
 
-        ldd     [%o1 + O6_SP_OFFSET], %o6     ! restore the output registers
+        ldd     [%o1 + O6_SP_OFFSET], %o6     ! restore the non-volatile output
+                                              ! registers (stack pointer,
+                                              ! link register)
 
         jmp     %o7 + 8                       ! return
         nop                                   ! delay slot
@@ -324,6 +334,23 @@ SYM(_CPU_Context_restore):
 #endif
         ba      SYM(_CPU_Context_restore_heir)
         mov     %i0, %o1                      ! in the delay slot
+
+#if !defined(RTEMS_SMP)
+        .align 4
+        PUBLIC(_SPARC_Start_multitasking)
+SYM(_SPARC_Start_multitasking):
+        /*
+         * Restore the stack pointer right now, so that the window flushing and
+         * interrupts during _CPU_Context_restore_heir() use the stack of the
+         * heir thread.  This is crucial for the interrupt handling to prevent
+         * a concurrent use of the interrupt stack (which is also the system
+         * initialization stack).
+         */
+        ld      [%o0 + O6_SP_OFFSET], %o6
+
+        ba      SYM(_CPU_Context_restore)
+         nop
+#endif
 
 /*
  *  void _SPARC_Interrupt_trap()
@@ -496,9 +523,7 @@ dont_do_the_window:
         bnz      dont_switch_stacks      ! No, then do not switch stacks
 
 #if defined(RTEMS_PROFILING)
-         sethi   %hi(_SPARC_Counter), %o5
-        ld       [%o5 + %lo(_SPARC_Counter)], %l4
-        call     %l4
+        call     SYM(_SPARC_Counter_read_ISR_disabled)
          nop
         mov      %o0, %o5
 #else
@@ -577,7 +602,7 @@ dont_switch_stacks:
         cmp      %l7, 0
         bne      profiling_not_outer_most_exit
          nop
-        call     %l4                    ! Call _SPARC_Counter.counter_read
+        call     SYM(_SPARC_Counter_read_ISR_disabled)
          mov     %g1, %l4               ! Save previous interrupt status
         mov      %o0, %o2               ! o2 = 3rd arg = interrupt exit instant
         mov      %l3, %o1               ! o1 = 2nd arg = interrupt entry instant

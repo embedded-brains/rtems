@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2013, 2019 embedded brains GmbH & Co. KG
+ * Copyright (C) 2013, 2024 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,16 +64,29 @@ extern "C" {
  */
 
 /**
- * @brief ISR lock control.
+ * @brief If this define has a non-zero value, then the interrupt lock
+ *   operations require an object of type ::ISR_lock_Control, otherwise no
+ *   lock object is required.
  *
- * @warning Empty structures are implementation-defined in C.  GCC gives them a
- * size of zero.  In C++ empty structures have a non-zero size.
+ * @par Notes
+ * This indication can be used to avoid the space overhead for lock objects
+ * when they are not needed.  In this case, the lock operations will not use a
+ * lock objects parameter.
+ */
+#if defined( RTEMS_SMP )
+  #define ISR_LOCK_NEEDS_OBJECT 1
+#else
+  #define ISR_LOCK_NEEDS_OBJECT 0
+#endif
+
+#if ISR_LOCK_NEEDS_OBJECT
+/**
+ * @brief ISR lock control.
  */
 typedef struct {
-#if defined( RTEMS_SMP )
   SMP_lock_Control Lock;
-#endif
 } ISR_lock_Control;
+#endif
 
 /**
  * @brief Local ISR lock context for acquire and release pairs.
@@ -92,78 +105,14 @@ typedef struct {
 #endif
 } ISR_lock_Context;
 
-/**
- * @brief Defines an ISR lock member.
- *
- * Do not add a ';' after this macro.
- *
- * @param _designator The designator for the interrupt lock.
- */
-#if defined( RTEMS_SMP )
-  #define ISR_LOCK_MEMBER( _designator ) ISR_lock_Control _designator;
-#else
-  #define ISR_LOCK_MEMBER( _designator )
-#endif
-
-/**
- * @brief Declares an ISR lock variable.
- *
- * Do not add a ';' after this macro.
- *
- * @param _qualifier The qualifier for the interrupt lock, e.g. extern.
- * @param _designator The designator for the interrupt lock.
- */
-#if defined( RTEMS_SMP )
-  #define ISR_LOCK_DECLARE( _qualifier, _designator ) \
-    _qualifier ISR_lock_Control _designator;
-#else
-  #define ISR_LOCK_DECLARE( _qualifier, _designator )
-#endif
-
-/**
- * @brief Defines an ISR lock variable.
- *
- * Do not add a ';' after this macro.
- *
- * @param _qualifier The qualifier for the interrupt lock, e.g. static.
- * @param _designator The designator for the interrupt lock.
- * @param _name The name for the interrupt lock.  It must be a string.  The
- * name is only used if profiling is enabled.
- */
-#if defined( RTEMS_SMP )
-  #define ISR_LOCK_DEFINE( _qualifier, _designator, _name ) \
-    _qualifier ISR_lock_Control _designator = { SMP_LOCK_INITIALIZER( _name ) };
-#else
-  #define ISR_LOCK_DEFINE( _qualifier, _designator, _name )
-#endif
-
-/**
- * @brief Defines an ISR lock variable reference.
- *
- * Do not add a ';' after this macro.
- *
- * @param _designator The designator for the interrupt lock reference.
- * @param _target The target for the interrupt lock reference.
- */
-#if defined( RTEMS_SMP )
-  #define ISR_LOCK_REFERENCE( _designator, _target ) \
-    ISR_lock_Control *_designator = _target;
-#else
-  #define ISR_LOCK_REFERENCE( _designator, _target )
-#endif
-
-/**
- * @brief Initializer for static initialization of ISR locks.
- *
- * @param _name The name for the interrupt lock.  It must be a string.  The
- * name is only used if profiling is enabled.
- */
-#if defined( RTEMS_SMP )
-  #define ISR_LOCK_INITIALIZER( _name ) \
-    { SMP_LOCK_INITIALIZER( _name ) }
-#else
-  #define ISR_LOCK_INITIALIZER( _name ) \
-    { }
+#if ISR_LOCK_NEEDS_OBJECT
+  /**
+   * @brief Initializer for static initialization of ISR locks.
+   *
+   * @param _name The name for the interrupt lock.  It must be a string.  The
+   * name is only used if profiling is enabled.
+   */
+  #define ISR_LOCK_INITIALIZER( _name ) { SMP_LOCK_INITIALIZER( _name ) }
 #endif
 
 /**
@@ -198,7 +147,8 @@ static inline void _ISR_lock_Context_set_level(
   #define _ISR_lock_Initialize( _lock, _name ) \
     _SMP_lock_Initialize( &( _lock )->Lock, _name )
 #else
-  #define _ISR_lock_Initialize( _lock, _name )
+  #define _ISR_lock_Initialize( _lock, _name ) \
+    do { (void) _name; } while (0)
 #endif
 
 /**

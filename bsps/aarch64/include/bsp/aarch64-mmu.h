@@ -371,7 +371,7 @@ aarch64_mmu_set_translation_table_entries(
   );
 
   if ( sc != RTEMS_SUCCESSFUL ) {
-    rtems_fatal_error_occurred( sc );
+    bsp_fatal( AARCH64_FATAL_MMU_CANNOT_MAP_BLOCK );
   }
 }
 
@@ -439,7 +439,8 @@ BSP_START_TEXT_SECTION static inline void aarch64_mmu_setup( void )
   _AArch64_Write_tcr_el1(
     AARCH64_TCR_EL1_T0SZ( 0x10 ) | AARCH64_TCR_EL1_IRGN0( 0x1 ) |
     AARCH64_TCR_EL1_ORGN0( 0x1 ) | AARCH64_TCR_EL1_SH0( 0x3 ) |
-    AARCH64_TCR_EL1_TG0( 0x0 ) | AARCH64_TCR_EL1_IPS( 0x5ULL )
+    AARCH64_TCR_EL1_TG0( 0x0 ) | AARCH64_TCR_EL1_IPS( 0x5ULL ) |
+    AARCH64_TCR_EL1_EPD1
   );
 
   /* Set MAIR */

@@ -26,7 +26,6 @@ install:
   - bsps/arm/raspberrypi/include/bsp/vc.h
 links: []
 source:
-- bsps/arm/raspberrypi/clock/clockdrv.c
 - bsps/arm/raspberrypi/console/console-config.c
 - bsps/arm/raspberrypi/console/fb.c
 - bsps/arm/raspberrypi/console/fbcons.c
@@ -47,13 +46,13 @@ source:
 - bsps/arm/shared/cp15/arm-cp15-set-exception-handler.c
 - bsps/arm/shared/cp15/arm-cp15-set-ttb-entries.c
 - bsps/arm/shared/start/bsp-start-memcpy.S
+- bsps/shared/dev/clock/bcm2835-system-timer.c
 - bsps/shared/dev/cpucounter/cpucounterfrequency.c
 - bsps/shared/dev/cpucounter/cpucounterread.c
 - bsps/shared/dev/getentropy/getentropy-cpucounter.c
 - bsps/shared/dev/gpio/gpio-support.c
 - bsps/shared/dev/serial/console-termios.c
 - bsps/shared/start/bsp-fdt.c
-- bsps/shared/start/bspfatal-default.c
 - bsps/shared/start/gettargethash-default.c
 - bsps/shared/start/mallocinitone.c
 - bsps/shared/start/sbrk.c

@@ -61,6 +61,26 @@
 RTEMS_SECTION(".rtemsroset.copyright") const char _Copyright_Notice[] =
   "Copyright (C) 1989, 2021 RTEMS Project and contributors";
 
+/* 
+ * Add a custom section (.debug_gdb_scripts) to every
+ * ELF being built on RTEMS, in order to add auto-loading 
+ * support for Python scripts (specifically, GCC's pretty-printing
+ * scripts), by in-lining the Python script in the section.
+ */
+
+asm( \
+  ".pushsection \".debug_gdb_scripts\", \"MS\",@progbits,1\n" \
+  ".byte 4\n" \
+  ".ascii \"gdb.inlined-script\\n\"\n" \
+  ".ascii \"import sys\\n\"\n" \
+  ".ascii \"import os.path\\n\"\n" \
+  ".ascii \"sys.path.append(os.path.join(gdb.PYTHONDIR, 'rtems'))\\n\"\n" \
+  ".ascii \"import rtems.pprinter as pprinter\\n\"\n" \
+  ".byte 0\n" \
+  ".popsection\n" \
+  );
+
+
 static Objects_Information *
 _Internal_Objects[ OBJECTS_INTERNAL_CLASSES_LAST + 1 ];
 

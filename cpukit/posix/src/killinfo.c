@@ -47,7 +47,6 @@
 #include <rtems/posix/pthreadimpl.h>
 #include <rtems/posix/psignalimpl.h>
 #include <rtems/score/isr.h>
-#include <rtems/score/schedulerimpl.h>
 #include <rtems/score/statesimpl.h>
 #include <rtems/seterr.h>
 
@@ -142,7 +141,7 @@ int _POSIX_signals_Send(
     siginfo->si_value = *value;
   }
 
-  /* FIXME: https://devel.rtems.org/ticket/2690 */
+  /* FIXME: https://gitlab.rtems.org/rtems/rtos/rtems/-/issues/2690 */
   cpu_self = _Thread_Dispatch_disable();
 
   /*
@@ -324,7 +323,6 @@ int _POSIX_signals_Send(
    *    + sigprocmask() unblocks the signal, OR
    *    + sigaction() which changes the handler to SIG_IGN.
    */
-  the_thread = NULL;
   goto post_process_signal;
 
   /*

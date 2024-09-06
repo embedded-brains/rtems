@@ -1,7 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: script
-cflags:
-- ${TEST_OPTIMIZATION_FLAGS}
+cflags: []
 copyrights:
 - Copyright (C) 2023 On-Line Applications Research (OAR)
 cppflags: []
@@ -20,7 +19,7 @@ do-build: |
   self.link_cc(bld, bic, objs, dl11_pre)
   dl11_sym_o = path + "dl11-sym.o"
   objs.append(dl11_sym_o)
-  self.rtems_syms(bld, dl11_pre, dl11_sym_o)
+  self.rtems_syms(bld, bic, dl11_pre, dl11_sym_o)
   self.link_cc(bld, bic, objs, "testsuites/libtests/dl11.exe")
 do-configure: null
 enabled-by:
@@ -34,6 +33,7 @@ links: []
 prepare-build: null
 prepare-configure: null
 stlib: []
+target: testsuites/libtests/dl11.exe
 type: build
 use-after: []
 use-before: []

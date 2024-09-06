@@ -3,14 +3,19 @@
 /**
  * @file
  * 
- * @brief POSIX Asynchronous Input and Output Private Support
+ * @ingroup POSIX_AIO
+ *
+ * @brief POSIX Asynchronous I/O Private Support
  *
  * This defines private information for the AIO implementation.
  */
 
 /*
- * Copyright 2010, Alin Rus <alin.codejunkie@gmail.com> 
+ *  Copyright 2010, Alin Rus <alin.codejunkie@gmail.com>
  * 
+ *  COPYRIGHT (c) 1989-2011.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -36,54 +41,168 @@
 #ifndef _AIO_MISC_H
 #define _AIO_MISC_H
 
-#include <stdio.h>
 #include <string.h>
+#include <signal.h> 
 #include <aio.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <rtems.h>
 #include <rtems/chain.h>
 #include <rtems/seterr.h>
-  
-#ifdef __cplusplus
-extern "C"
-{
+
+#ifdef RTEMS_DEBUG
+#include <stdio.h>
 #endif
 
-  /* Actual request being processed */
-  typedef struct
-  {
-    rtems_chain_node next_prio; /* chain requests in order of priority */
-    int policy;                 /* If _POSIX_PRIORITIZED_IO and 
-		                   _POSIX_PRIORITY_SCHEDULING are defined */ 
-    int priority;               /* see above */
-    pthread_t caller_thread;    /* used for notification */
-    struct aiocb *aiocbp;       /* aio control block */
-  } rtems_aio_request;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  typedef struct
-  {
-    rtems_chain_node next_fd;   /* order fd chains in queue */
-    rtems_chain_control perfd;  /* chain of requests for this fd */
-    int fildes;                 /* file descriptor to be processed */
-    int new_fd;                 /* if this is a newly created chain */
-    pthread_mutex_t mutex;      
-    pthread_cond_t cond;
+/** Constants to identify op type */
 
-  } rtems_aio_request_chain;
+/** Needed by aio_fsync() */
+#define AIO_OP_READ        0
 
-  typedef struct
-  {
-    pthread_mutex_t mutex;
-    pthread_cond_t new_req;
-    pthread_attr_t attr;
+/** Needed by aio_fsync() */
+#define AIO_OP_WRITE       1
 
-    rtems_chain_control work_req; /* chains being worked by active threads */
-    rtems_chain_control idle_req; /* fd chains waiting to be processed */
-    unsigned int initialized;     /* specific value if queue is initialized */
-    int active_threads;           /* the number of active threads */
-    int idle_threads;             /* number of idle threads */
+/** Needed by aio_fsync() */
+#define AIO_OP_SYNC        2
 
-  } rtems_aio_queue;
+/** Needed by aio_fsync() */
+#define AIO_OP_DSYNC       3
+
+/*
+ * Constants to track return status
+ */
+
+/** The aio operation return value has been retrieved */
+#define AIO_RETURNED    0
+
+/** The aio operation return value has not been retrieved */
+#define AIO_NOTRETURNED 1
+
+/** Constants to identify list completion notification */
+
+/** No notification required */
+#define AIO_LIO_NO_NOTIFY  0
+
+/** Notification via sigevent */
+#define AIO_LIO_SIGEV      1
+
+/** Notification via event delivery */
+#define AIO_LIO_EVENT      2
+
+/**
+ * @brief holds a pointer to a sigevent struct or a thread id 
+ *  
+ */
+typedef union
+{
+  /** @brief pointer to the sigevent for notification */
+  struct sigevent *sigp;
+
+  /** @brief id of the thread that called lio_listio() */
+  int task_id;
+
+} lio_notification_union;
+
+/**
+ * @brief Control block for every list enqueued with lio_listio()
+ */
+typedef struct
+{
+  pthread_mutex_t mutex;
+
+  /** @brief number of requests left to complete the list */
+  int requests_left;
+
+  /** @brief type of notification */
+  int notification_type;
+
+  /** @brief event to do at list completion*/
+  lio_notification_union lio_notification;
+
+} listcb;
+
+/**
+ * @brief The request being processed
+ */
+typedef struct
+{
+  /** @brief Chain requests in order of priority */
+  rtems_chain_node next_prio;
+
+  /** @brief If _POSIX_PRIORITIZED_IO and _POSIX_PRIORITY_SCHEDULING are defined */ 
+  int policy;
+
+  /** @brief see above */
+  int priority;
+
+  /** @brief Used for notification */
+  pthread_t caller_thread;
+
+  /** @brief pointer to list control block */
+  listcb *listcbp;
+
+  /** @brief Aio control block */
+  struct aiocb *aiocbp;
+
+  /** @brief Operation type */
+  int op_type;
+
+} rtems_aio_request;
+
+/**
+ * @brief A chain of requests for the same FD
+ */
+typedef struct
+{
+  /** @brief Order fd chains in queue */
+  rtems_chain_node next_fd;
+
+  /** @brief Chain of requests for this fd */
+  rtems_chain_control perfd;
+
+  /** @brief File descriptor to be processed */
+  int fildes;
+
+  /** @brief Indicates if this is a newly created chain */
+  int new_fd;
+
+  pthread_mutex_t mutex;
+  pthread_cond_t cond;
+
+} rtems_aio_request_chain;
+
+/**
+ * @brief The queue of all the requests in progress and waiting to be processed
+ */
+typedef struct
+{
+  pthread_mutex_t mutex;
+  pthread_cond_t new_req;
+  pthread_attr_t attr;
+
+  /** @brief Chains being worked by active threads */
+  rtems_chain_control work_req;
+
+  /** @brief Chains waiting to be processed */
+  rtems_chain_control idle_req;
+  
+  /** @brief Specific value if queue is initialized */
+  unsigned int initialized;
+
+  /** @brief The number of active threads */
+  int active_threads;
+
+  /** @brief The number of idle threads */
+  int idle_threads;
+
+  /** @brief The number of queued requests*/
+  atomic_int queued_requests;
+
+} rtems_aio_queue;
 
 extern rtems_aio_queue aio_request_queue;
 
@@ -93,21 +212,113 @@ extern rtems_aio_queue aio_request_queue;
 #define AIO_MAX_THREADS 5
 #endif
 
-#ifndef AIO_MAX_QUEUE_SIZE
-#define AIO_MAX_QUEUE_SIZE 30
+#ifndef AIO_LISTIO_MAX
+#define AIO_LISTIO_MAX 20
 #endif
 
-int rtems_aio_init (void);
-int rtems_aio_enqueue (rtems_aio_request *req);
-rtems_aio_request_chain *rtems_aio_search_fd 
-(
+#ifndef RTEMS_AIO_MAX
+#define RTEMS_AIO_MAX 100
+#endif
+
+/**
+ * @brief Initialize the request queue for AIO Operations.
+ * 
+ * @retval 0 The queue has bees succesfully initialized.
+ */
+int rtems_aio_init( void );
+
+/**
+ * @brief Enqueue requests, and creates threads to process them.
+ * 
+ * @param[in,out] req A pointer to the request.
+ * 
+ * @retval 0 if the request was added to the queue, errno otherwise.
+ */
+int rtems_aio_enqueue( rtems_aio_request *req );
+
+/**
+ * @brief Search for and create a chain of requests for a given file descriptor.
+ * 
+ * @param[in,out] chain   A pointer to a chain of FD chains.
+ * @param[in] fildes The file descriptor to search for.
+ * @param[in] create  If create == 0, the function just searches for the given FD.
+ *                    If create == 1, the function creates a new chain if none is found.
+ * 
+ * @retval NULL If create == 0 and no chain is found for the given FD.
+ * @return A pointer to the chain if a chain for the given FD exists.
+ * @return A pointer to a newly created chain if create == 1 and no chain
+ *         is found for the given FD.
+ */
+rtems_aio_request_chain *rtems_aio_search_fd(
   rtems_chain_control *chain,
   int fildes,
   int create
 );
-void rtems_aio_remove_fd (rtems_aio_request_chain *r_chain);
-int rtems_aio_remove_req (rtems_chain_control *chain,
-				 struct aiocb *aiocbp);
+
+/**
+ * @brief Removes all the requests in a FD chain.
+ * 
+ * @param[in,out] r_chain A pointer to a chain of requests for a given FD
+ */
+void rtems_aio_remove_fd( rtems_aio_request_chain *r_chain );
+
+/**
+ * @brief Remove request from given chain
+ * 
+ * @param[in,out] chain  A pointer to the FD chain that may contain the request
+ * @param[in,out] aiocbp A pointer to the AIO control block of the request.
+ * 
+ * @retval AIO_CANCELED The request was canceled.
+ * @retval AIO_NOTCANCELED The request was not canceled.
+ */
+int rtems_aio_remove_req(
+  rtems_chain_control *chain,
+	struct aiocb *aiocbp
+);
+
+/**
+ * @brief Checks the validity of a sigevent struct
+ *
+ * Checks if the pointer passed as parameter points to a valid sigevent struct.
+ * 
+ * @param sigp Is a pointer to the sigevent struct to check.
+ * @retval 0 The struct is not valid.
+ * @retval 1 The struct is valid.
+ */
+int rtems_aio_check_sigevent( struct sigevent *sigp );
+
+/**
+ * @brief initializes a read rtems_aio_request
+ * 
+ * @param aiocb pointer to the aiocb describing the request
+ * @retval NULL the aiocb passed was invalid, errno indicates the error:
+ *          - 
+ * @return rtems_aio_request* a pointer to the newly created request.
+ */
+rtems_aio_request *init_write_req( struct aiocb* aiocbp );
+
+/**
+ * @brief initializes a write rtems_aio_request
+ * 
+ * @param aiocb pointer to the aiocb describing the request
+ * @retval NULL the aiocb passed was invalid, errno indicates the error:
+ *          - 
+ * @return rtems_aio_request* a pointer to the newly created request.
+ */
+rtems_aio_request *init_read_req( struct aiocb* aiocbp );
+
+/**
+ * @brief updates listcb after op completion
+ * 
+ * @param listcbp 
+ */
+void rtems_aio_completed_list_op( listcb *listcbp );
+
+/**
+ * @brief generates event at list completion to end wait in lio_listio().
+ * 
+ */
+void lio_notify_end_wait( union sigval attr );
 
 #ifdef RTEMS_DEBUG
 #include <assert.h>
@@ -119,13 +330,9 @@ int rtems_aio_remove_req (rtems_chain_control *chain,
 #define AIO_printf(_x)
 #endif
 
-#define rtems_aio_set_errno_return_minus_one( _error, _aiocbp ) \
-  do { (_aiocbp)->error_code = (_error);			\
-    (_aiocbp)->return_value = -1;				\
-    rtems_set_errno_and_return_minus_one (_error);} while(0)
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+

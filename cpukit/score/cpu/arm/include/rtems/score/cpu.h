@@ -199,7 +199,17 @@
 
 #define ARM_EXCEPTION_FRAME_SIZE 80
 
+#define ARM_EXCEPTION_FRAME_REGISTER_R8_OFFSET 32
+
 #define ARM_EXCEPTION_FRAME_REGISTER_SP_OFFSET 52
+
+#define ARM_EXCEPTION_FRAME_REGISTER_PC_OFFSET 60
+
+#if defined(ARM_MULTILIB_ARCH_V4)
+  #define ARM_EXCEPTION_FRAME_REGISTER_CPSR_OFFSET 64
+#elif defined(ARM_MULTILIB_ARCH_V6M) || defined(ARM_MULTILIB_ARCH_V7M)
+  #define ARM_EXCEPTION_FRAME_REGISTER_XPSR_OFFSET 64
+#endif
 
 #define ARM_EXCEPTION_FRAME_VFP_CONTEXT_OFFSET 72
 
@@ -571,7 +581,7 @@ uint32_t _CPU_Counter_frequency( void );
 
 CPU_Counter_ticks _CPU_Counter_read( void );
 
-void *_CPU_Thread_Idle_body( uintptr_t ignored );
+RTEMS_NO_RETURN void *_CPU_Thread_Idle_body( uintptr_t ignored );
 
 #if defined(ARM_MULTILIB_ARCH_V4)
 
@@ -585,7 +595,7 @@ typedef enum {
   ARM_EXCEPTION_IRQ = 6,
   ARM_EXCEPTION_FIQ = 7,
   MAX_EXCEPTIONS = 8,
-  ARM_EXCEPTION_MAKE_ENUM_32_BIT = 0xffffffff
+  ARM_EXCEPTION_MAKE_ENUM_32_BIT = 0x7fffffff
 } Arm_symbolic_exception_name;
 
 #endif /* defined(ARM_MULTILIB_ARCH_V4) */
@@ -657,7 +667,7 @@ typedef struct {
 
 void _CPU_Exception_frame_print( const CPU_Exception_frame *frame );
 
-void _ARM_Exception_default( CPU_Exception_frame *frame );
+RTEMS_NO_RETURN void _ARM_Exception_default( CPU_Exception_frame *frame );
 
 /** Type that can store a 32-bit integer or a pointer. */
 typedef uintptr_t CPU_Uint32ptr;

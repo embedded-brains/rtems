@@ -5,9 +5,7 @@ copyrights:
 - Copyright (C) 2020 embedded brains GmbH & Co. KG
 cppflags: []
 cxxflags: []
-enabled-by:
-- BUILD_TESTS
-- BUILD_VALIDATIONTESTS
+enabled-by: BUILD_VALIDATIONTESTS
 includes:
 - ${BSP_INCLUDES}
 - testsuites/validation
@@ -81,13 +79,15 @@ links:
 - role: build-dependency
   uid: validation-tls-1
 - role: build-dependency
+  uid: bsps/fatal-clock-xil-ttc-irq-install
+- role: build-dependency
+  uid: bsps/fatal-extension
+- role: build-dependency
   uid: bsps/fatal-sparc-leon3-cache-snooping-disabled-boot
 - role: build-dependency
   uid: bsps/fatal-sparc-leon3-cache-snooping-disabled-secondary
 - role: build-dependency
   uid: bsps/fatal-sparc-leon3-clock-initialization
-- role: build-dependency
-  uid: bsps/fatal-sparc-leon3-shutdown
 - role: build-dependency
   uid: bsps/validation-bsp-0
 type: build

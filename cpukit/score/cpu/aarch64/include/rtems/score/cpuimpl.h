@@ -61,8 +61,6 @@
 extern "C" {
 #endif
 
-RTEMS_NO_RETURN void _CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
-
 typedef struct {
   uint64_t x0;
   uint64_t register_lr_original;
@@ -172,6 +170,13 @@ static inline void _CPU_Use_thread_local_storage(
   __asm__ volatile (
     "msr TPIDR_EL0, %0" : : "r" ( context->thread_id ) : "memory"
   );
+}
+
+static inline void *_CPU_Get_TLS_thread_pointer(
+  const Context_Control *context
+)
+{
+  return (void *)(uintptr_t) context->thread_id;
 }
 
 #ifdef __cplusplus

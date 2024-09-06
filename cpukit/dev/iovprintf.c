@@ -41,15 +41,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)subr_prf.c	8.3 (Berkeley) 1/21/94
  */
 
 #include <rtems/dev/io.h>
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD: head/sys/kern/subr_prf.c 336417 2018-07-17 14:56:54Z markj $");
-
 #include <sys/param.h>
 #include <string.h>
 
@@ -78,7 +74,7 @@ hex2ascii(int hex)
  * written in the buffer (i.e., the first character of the string).
  * The buffer pointed to by `nbuf' must have length >= MAXNBUF.
  */
-static char *
+static inline char *
 ksprintn(char *nbuf, uintmax_t num, int base, int *lenp, int upper)
 {
 	char *p;
@@ -88,8 +84,7 @@ ksprintn(char *nbuf, uintmax_t num, int base, int *lenp, int upper)
 	do {
 		*++p = hex2ascii_data[upper][num % base];
 	} while (num /= base);
-	if (lenp)
-		*lenp = p - nbuf;
+	*lenp = p - nbuf;
 	return (p);
 }
 
@@ -266,6 +261,7 @@ reswitch:	switch (ch = (u_char)*fmt++) {
 			goto handle_nosign;
 		case 'X':
 			upper = 1;
+			/* FALLTHROUGH */
 		case 'x':
 			base = 16;
 			goto handle_nosign;
@@ -300,20 +296,20 @@ handle_nosign:
 handle_sign:
 			if (jflag)
 				num = va_arg(ap, intmax_t);
-#if __SIZEOF_PTRDIFF_T__ == __SIZEOF_LONG__
+#if __SIZEOF_PTRDIFF_T__ != __SIZEOF_LONG__
 			else if (tflag)
 				num = va_arg(ap, ptrdiff_t);
 #endif
 			else if (lflag)
 				num = va_arg(ap, long);
-#if __SIZEOF_SIZE_T__ == __SIZEOF_LONG__
+#if __SIZEOF_SIZE_T__ != __SIZEOF_LONG__
 			else if (zflag)
 				num = va_arg(ap, ssize_t);
 #endif
 			else if (hflag)
 				num = (short)va_arg(ap, int);
 			else if (cflag)
-				num = (char)va_arg(ap, int);
+				num = (signed char)va_arg(ap, int);
 			else
 				num = va_arg(ap, int);
 number:

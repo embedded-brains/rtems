@@ -48,7 +48,7 @@ extern "C" {
 /**
  * @defgroup aarch64_start System Start
  *
- * @ingroup RTEMSBSPsAarch64Shared
+ * @ingroup RTEMSBSPsAArch64Shared
  *
  * @brief Aarch64 system low level start.
  *
@@ -169,15 +169,10 @@ BSP_START_TEXT_SECTION static inline void bsp_start_clear_bss(void)
 BSP_START_TEXT_SECTION static inline void
 AArch64_start_set_vector_base(void)
 {
-  /*
-   * Do not use bsp_vector_table_begin == 0, since this will get optimized away.
-  */
-  if (&bsp_vector_table_end[0] != &bsp_vector_table_size[0]) {
-    __asm__ volatile (
-      "msr VBAR_EL1, %[vtable]\n"
-      : : [vtable] "r" (bsp_start_vector_table_begin)
-    );
-  }
+  __asm__ volatile (
+    "msr VBAR_EL1, %[vtable]\n"
+    : : [vtable] "r" (bsp_start_vector_table_begin)
+  );
 }
 
 /** @} */

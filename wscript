@@ -110,12 +110,9 @@ class EnvWrapper(object):
         self._env = env
 
     def __getitem__(self, name):
-        fields = name.split(":")
-        v = self._env[fields[0]]
-        try:
-            fmt = "{:" + fields[1] + "}"
-        except IndexError:
-            fmt = "{}"
+        k, c, f = name.partition(":")
+        v = self._env[k]
+        fmt = "{" + c + f + "}"
         if isinstance(v, list):
             return " ".join([fmt.format(w) for w in v])
         return fmt.format(v)
@@ -125,7 +122,7 @@ class Template(string.Template):
     idpattern = "[_A-Za-z][_A-Za-z0-9:#]*"
 
 
-_VAR_PATTERN = re.compile("\$\{?(" + Template.idpattern + ")\}?$")
+_VAR_PATTERN = re.compile("\\$\\{?(" + Template.idpattern + ")\\}?$")
 
 
 def _is_enabled_op_and(enabled, enabled_by):
@@ -307,7 +304,8 @@ class Item(object):
             target = os.path.splitext(source)[0] + ".o"
         bld(
             asflags=self.substitute(bld, self.data["asflags"]),
-            cppflags=self.substitute(bld, self.data["cppflags"]),
+            cppflags=bic.cppflags +
+            self.substitute(bld, self.data["cppflags"]),
             features="asm_explicit_target asm c",
             includes=bic.includes +
             self.substitute(bld, self.data["includes"]),
@@ -320,8 +318,9 @@ class Item(object):
         if target is None:
             target = os.path.splitext(source)[0] + ".o"
         bld(
-            cflags=self.substitute(bld, self.data["cflags"]),
-            cppflags=cppflags + self.substitute(bld, self.data["cppflags"]),
+            cflags=bic.cflags + self.substitute(bld, self.data["cflags"]),
+            cppflags=bic.cppflags + cppflags +
+            self.substitute(bld, self.data["cppflags"]),
             features="c",
             includes=bic.includes +
             self.substitute(bld, self.data["includes"]),
@@ -336,8 +335,10 @@ class Item(object):
         if target is None:
             target = os.path.splitext(source)[0] + ".o"
         bld(
-            cppflags=cppflags + self.substitute(bld, self.data["cppflags"]),
-            cxxflags=self.substitute(bld, self.data["cxxflags"]),
+            cppflags=bic.cppflags + cppflags +
+            self.substitute(bld, self.data["cppflags"]),
+            cxxflags=bic.cxxflags +
+            self.substitute(bld, self.data["cxxflags"]),
             features="cxx",
             includes=bic.includes +
             self.substitute(bld, self.data["includes"]),
@@ -353,10 +354,10 @@ class Item(object):
 
         class link(Task):
 
-            def __init__(self, item, bic, cmd, env):
+            def __init__(self, item, bic, cmd, env, ldflags):
                 super(link, self).__init__(self, env=env)
                 self.cmd = cmd
-                self.ldflags = bic.ldflags + item.data["ldflags"]
+                self.ldflags = ldflags
                 self.stlib = item.data["stlib"]
                 self.use = (item.data["use-before"] + bic.use +
                             item.data["use-after"])
@@ -382,7 +383,8 @@ class Item(object):
                     [],
                 )
 
-        tsk = link(self, bic, cmd, bld.env)
+        tsk = link(self, bic, cmd, bld.env,
+                   bic.ldflags + self.substitute(bld, self.data["ldflags"]))
         tsk.set_inputs([bld.bldnode.make_node(s) for s in source])
         tsk.set_outputs(bld.bldnode.make_node(target))
         bld.add_to_group(tsk)
@@ -513,13 +515,14 @@ class Item(object):
         bld(rule=run, source=source, target=[target_c, target_h])
         return target_c, target_h
 
-    def rtems_syms(self, bld, source, target):
+    def rtems_syms(self, bld, bic, source, target):
+        syms_source = os.path.splitext(target)[0] + ".c"
         bld(
-            rule='${RTEMS_SYMS} -e -C ${CC} -c "${CFLAGS}" -o ${TGT} ${SRC}',
+            rule='${RTEMS_SYMS} -e -S ${TGT} ${SRC}',
             source=source,
-            target=target,
+            target=syms_source,
         )
-        return target
+        return self.cc(bld, bic, syms_source, target)
 
     def rtems_rap(self, bld, base, objects, libs, target):
 
@@ -845,6 +848,13 @@ class OptionItem(Item):
                     value, self.data["name"], arg))
         return value
 
+    def _assert_in_set(self, conf, cic, value, arg):
+        if value is not None and value not in arg:
+            conf.fatal(
+                "Value '{}' for option '{}' is not an element of {}"
+                .format(value, self.data["name"], arg))
+        return value
+
     def _assert_in_interval(self, conf, cic, value, arg):
         if value is not None and (value < arg[0] or value > arg[1]):
             conf.fatal(
@@ -994,8 +1004,8 @@ class OptionItem(Item):
             cic.add_option(name)
         except configparser.NoOptionError:
             value = self.default_value(conf.env.ENABLE)
-            if value is None:
-                return value
+        if not value:
+                return None
         try:
             return eval(value)
         except Exception as e:
@@ -1014,8 +1024,14 @@ class OptionItem(Item):
         return value
 
     def _script(self, conf, cic, value, arg):
-        exec(arg)
-        return value
+        local_variables = {
+            "self": self,
+            "conf": conf,
+            "cic": cic,
+            "value": value
+        }
+        exec(arg, None, local_variables)
+        return local_variables["value"]
 
     def _test_state_benchmark(self, conf, name):
         self._do_append_test_cppflags(conf, name, "-DTEST_STATE_BENCHMARK=1")
@@ -1067,6 +1083,7 @@ class OptionItem(Item):
             "assert-eq": self._assert_eq,
             "assert-ge": self._assert_ge,
             "assert-gt": self._assert_gt,
+            "assert-in-set": self._assert_in_set,
             "assert-int8": self._assert_int8,
             "assert-int16": self._assert_int16,
             "assert-int32": self._assert_int32,

@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2014 Paval Pisa
+ * Copyright (C) 2014 Pavel Pisa
  * Copyright (C) 2011, 2013 On-Line Applications Research Corporation (OAR)
  * Copyright (C) 2009, 2023 embedded brains GmbH & Co. KG
  *
@@ -168,9 +168,9 @@ extern "C" {
  *
  * @return Returns the alignment requirement of the type.
  */
-#if __cplusplus >= 201103L
+#if defined( __cplusplus ) && __cplusplus >= 201103L
   #define RTEMS_ALIGNOF( _type_name ) alignof( _type_name )
-#elif __STDC_VERSION__ >= 201112L
+#elif defined( __STDC_VERSION__ ) && __STDC_VERSION__ >= 201112L
   #define RTEMS_ALIGNOF( _type_name ) _Alignof( _type_name )
 #else
   #define RTEMS_ALIGNOF( _type_name ) sizeof( _type_name )
@@ -376,9 +376,9 @@ extern "C" {
  * @brief Tells the compiler in a function declaration that this function does
  *   not return.
  */
-#if __cplusplus >= 201103L
+#if defined( __cplusplus ) && __cplusplus >= 201103L
   #define RTEMS_NO_RETURN [[noreturn]]
-#elif __STDC_VERSION__ >= 201112L
+#elif defined( __STDC_VERSION__ ) && __STDC_VERSION__ >= 201112L
   #define RTEMS_NO_RETURN _Noreturn
 #elif defined(__GNUC__)
   #define RTEMS_NO_RETURN __attribute__(( __noreturn__ ))
@@ -833,9 +833,9 @@ extern "C" {
  *
  * @param _msg is the error message in case the static assertion fails.
  */
-#if __cplusplus >= 201103L
+#if defined( __cplusplus ) && __cplusplus >= 201103L
   #define RTEMS_STATIC_ASSERT( _cond, _msg ) static_assert( _cond, # _msg )
-#elif __STDC_VERSION__ >= 201112L
+#elif defined( __STDC_VERSION__ ) && __STDC_VERSION__ >= 201112L
   #define RTEMS_STATIC_ASSERT( _cond, _msg ) _Static_assert( _cond, # _msg )
 #else
   #define RTEMS_STATIC_ASSERT( _cond, _msg ) \
@@ -999,11 +999,12 @@ extern "C" {
  *
  * @param _value is the value of the symbol.  On the value a macro expansion is
  *   performed and afterwards it is stringified.  It shall expand to an integer
- *   expression understood by the assembler.
+ *   expression understood by the assembler.  The value shall be representable
+ *   in the code model of the target architecture.
  *
  * This macro shall be placed at file scope.
  */
-#if defined(__USER_LABEL_PREFIX__)
+#if defined(__GNUC__)
   #define RTEMS_DEFINE_GLOBAL_SYMBOL( _name, _value ) \
     __asm__( \
       "\t.globl " RTEMS_XSTRING( RTEMS_SYMBOL_NAME( _name ) ) \

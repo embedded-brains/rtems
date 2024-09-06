@@ -244,6 +244,11 @@ s32 XNandPsu_CfgInitialize(XNandPsu *InstancePtr, XNandPsu_Config *ConfigPtr,
 	InstancePtr->DmaMode = XNANDPSU_MDMA;
 	InstancePtr->IsReady = XIL_COMPONENT_IS_READY;
 
+#ifdef __rtems__
+	/* Set page cache to unavailable */
+	InstancePtr->PartialDataPageIndex = XNANDPSU_PAGE_CACHE_UNAVAILABLE;
+#endif
+
 	/* Initialize the NAND flash targets */
 	Status = XNandPsu_FlashInit(InstancePtr);
 	if (Status != XST_SUCCESS) {
@@ -278,6 +283,11 @@ s32 XNandPsu_CfgInitialize(XNandPsu *InstancePtr, XNandPsu_Config *ConfigPtr,
 #endif
 		goto Out;
 	}
+
+#ifdef __rtems__
+	/* Set page cache to none */
+	InstancePtr->PartialDataPageIndex = XNANDPSU_PAGE_CACHE_NONE;
+#endif
 Out:
 	return Status;
 }
@@ -813,6 +823,21 @@ void XNandPsu_DisableEccMode(XNandPsu *InstancePtr)
 
 	InstancePtr->EccMode = XNANDPSU_NONE;
 }
+
+#ifdef __rtems__
+#include <rtems/rtems/clock.h>
+static void udelay( void )
+{
+	uint64_t time = rtems_clock_get_uptime_nanoseconds() + 1000;
+	while (1) {
+		uint64_t newtime = rtems_clock_get_uptime_nanoseconds();
+		if (newtime > time) {
+			break;
+		}
+	}
+}
+#define usleep(x) udelay()
+#endif
 
 /*****************************************************************************/
 /**
@@ -1439,6 +1464,12 @@ s32 XNandPsu_Write(XNandPsu *InstancePtr, u64 Offset, u64 Length, u8 *SrcBuf)
 		goto Out;
 	}
 
+#ifdef __rtems__
+	if (InstancePtr->PartialDataPageIndex != XNANDPSU_PAGE_CACHE_UNAVAILABLE) {
+		/* All writes invalidate the page cache */
+		InstancePtr->PartialDataPageIndex = XNANDPSU_PAGE_CACHE_NONE;
+	}
+#endif
 	while (LengthVar > 0U) {
 		Block = (u32) (OffsetVar/InstancePtr->Geometry.BlockSize);
 		/*
@@ -1467,7 +1498,11 @@ s32 XNandPsu_Write(XNandPsu *InstancePtr, u64 Offset, u64 Length, u8 *SrcBuf)
 		}
 
 		Target = (u32) (OffsetVar/InstancePtr->Geometry.TargetSize);
+#ifdef __rtems__
+		{
+#else
 		if (Page > InstancePtr->Geometry.NumTargetPages) {
+#endif
 			Page %= InstancePtr->Geometry.NumTargetPages;
 		}
 
@@ -1582,7 +1617,11 @@ s32 XNandPsu_Read(XNandPsu *InstancePtr, u64 Offset, u64 Length, u8 *DestBuf)
 		}
 
 		Target = (u32) (OffsetVar/InstancePtr->Geometry.TargetSize);
+#ifdef __rtems__
+		{
+#else
 		if (Page > InstancePtr->Geometry.NumTargetPages) {
+#endif
 			Page %= InstancePtr->Geometry.NumTargetPages;
 		}
 		/* Check if partial read */
@@ -1596,14 +1635,45 @@ s32 XNandPsu_Read(XNandPsu *InstancePtr, u64 Offset, u64 Length, u8 *DestBuf)
 					InstancePtr->Geometry.BytesPerPage :
 					(u32)LengthVar;
 		}
+#ifdef __rtems__
+		if (Page == InstancePtr->PartialDataPageIndex) {
+			/*
+			 * This is a whole page read for the currently cached
+			 * page. It will not be taken care of below, so perform
+			 * the copy here.
+			 */
+			if (PartialBytes == 0U) {
+				(void)Xil_MemCpy(DestBufPtr,
+						&InstancePtr->PartialDataBuf[0],
+						NumBytes);
+			}
+		} else {
+#endif
 		/* Read page */
 		Status = XNandPsu_ReadPage(InstancePtr, Target, Page, 0U,
 								BufPtr);
+#ifdef __rtems__
+			if (PartialBytes > 0U &&
+				InstancePtr->PartialDataPageIndex != XNANDPSU_PAGE_CACHE_UNAVAILABLE) {
+				/*
+				 * Partial read into page cache. Update the
+				 * cached page index.
+				 */
+				InstancePtr->PartialDataPageIndex = Page;
+			}
+		}
+#endif
 		if (Status != XST_SUCCESS) {
 			goto Out;
 		}
 		if (PartialBytes > 0U) {
 			(void)Xil_MemCpy(DestBufPtr, BufPtr + Col, NumBytes);
+#ifdef __rtems__
+			/* The destination buffer is touched by hardware, synchronize */
+			if (InstancePtr->Config.IsCacheCoherent == 0) {
+				Xil_DCacheFlushRange((INTPTR)(void *)DestBufPtr, NumBytes);
+			}
+#endif
 		}
 		DestBufPtr += NumBytes;
 		OffsetVar += NumBytes;
@@ -1693,13 +1763,21 @@ s32 XNandPsu_Erase(XNandPsu *InstancePtr, u64 Offset, u64 Length)
 
 	for (Block = StartBlock; Block < (StartBlock + NumBlocks); Block++) {
 		Target = Block/InstancePtr->Geometry.NumTargetBlocks;
+#ifdef __rtems__
+		u32 ModBlock = Block % InstancePtr->Geometry.NumTargetBlocks;
+#else
 		Block %= InstancePtr->Geometry.NumTargetBlocks;
+#endif
 		/* Don't erase bad block */
 		if (XNandPsu_IsBlockBad(InstancePtr, Block) ==
 							XST_SUCCESS)
 			continue;
 		/* Block Erase */
+#ifdef __rtems__
+		Status = XNandPsu_EraseBlock(InstancePtr, Target, ModBlock);
+#else
 		Status = XNandPsu_EraseBlock(InstancePtr, Target, Block);
+#endif
 		if (Status != XST_SUCCESS)
 			goto Out;
 
@@ -2002,6 +2080,14 @@ static s32 XNandPsu_ReadPage(XNandPsu *InstancePtr, u32 Target, u32 Page,
 
 	Status = XNandPsu_Data_ReadWrite(InstancePtr, Buf, PktCount, PktSize, 0, 1);
 
+#ifdef __rtems__
+	if (InstancePtr->DmaMode == XNANDPSU_MDMA) {
+		if (InstancePtr->Config.IsCacheCoherent == 0) {
+			Xil_DCacheInvalidateRange((INTPTR)(void *)Buf, (PktSize * PktCount));
+		}
+	}
+#endif
+
 	/* Check ECC Errors */
 	if (InstancePtr->EccMode == XNANDPSU_HWECC) {
 		/* Hamming Multi Bit Errors */
@@ -2115,6 +2201,14 @@ s32 XNandPsu_ReadSpareBytes(XNandPsu *InstancePtr, u32 Page, u8 *Buf)
 
 	Status = XNandPsu_Data_ReadWrite(InstancePtr, Buf, PktCount, PktSize, 0, 1);
 
+#ifdef __rtems__
+	if (InstancePtr->DmaMode == XNANDPSU_MDMA) {
+		if (InstancePtr->Config.IsCacheCoherent == 0) {
+			Xil_DCacheInvalidateRange((INTPTR)(void *)Buf, (PktSize * PktCount));
+		}
+	}
+#endif
+
 	return Status;
 }
 
@@ -2140,7 +2234,11 @@ s32 XNandPsu_EraseBlock(XNandPsu *InstancePtr, u32 Target, u32 Block)
 	Xil_AssertNonvoid(InstancePtr != NULL);
 	Xil_AssertNonvoid(InstancePtr->IsReady == XIL_COMPONENT_IS_READY);
 	Xil_AssertNonvoid(Target < XNANDPSU_MAX_TARGETS);
+#ifdef __rtems__
+	Xil_AssertNonvoid(Block < InstancePtr->Geometry.NumTargetBlocks);
+#else
 	Xil_AssertNonvoid(Block < InstancePtr->Geometry.NumBlocks);
+#endif
 
 	s32 Status = XST_FAILURE;
 	u32 Page;
@@ -2557,6 +2655,11 @@ static s32 XNandPsu_ChangeWriteColumn(XNandPsu *InstancePtr, u32 Target,
 	if (InstancePtr->DmaMode == XNANDPSU_MDMA) {
 		RegVal = XNANDPSU_INTR_STS_EN_TRANS_COMP_STS_EN_MASK |
 			 XNANDPSU_INTR_STS_EN_DMA_INT_STS_EN_MASK;
+#ifdef __rtems__
+		if (InstancePtr->Config.IsCacheCoherent == 0) {
+			Xil_DCacheFlushRange((INTPTR)(void *)Buf, (PktSize * PktCount));
+		}
+#endif
 		XNandPsu_Update_DmaAddr(InstancePtr, Buf);
 	} else {
 		RegVal = XNANDPSU_INTR_STS_EN_BUFF_WR_RDY_STS_EN_MASK;

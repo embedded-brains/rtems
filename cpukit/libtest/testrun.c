@@ -3,13 +3,13 @@
 /**
  * @file
  *
- * @ingroup RTEMSAPI
+ * @ingroup RTEMSTest
  *
- * @brief Implementation of rtems_test_run_default().
+ * @brief This source file provides the implementation of rtems_test_run().
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2023 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #endif
 
 #include <rtems/test-info.h>
+#include <rtems/test-printer.h>
 #include <rtems/test.h>
 
 #include <stdlib.h>
@@ -65,7 +66,7 @@ static const T_config config = {
   .buf = buffer,
   .buf_size = sizeof( buffer ),
   .putchar = T_putchar_default,
-  .verbosity = T_VERBOSE,
+  .verbosity = T_NORMAL,
   .now = T_now_clock,
   .allocate = malloc,
   .deallocate = free,
@@ -73,17 +74,33 @@ static const T_config config = {
   .actions = actions
 };
 
+static int printer(void *context, const char *fmt, va_list ap)
+{
+  (void) context;
+  return T_vprintf(fmt, ap);
+}
+
 void rtems_test_run(
   rtems_task_argument    arg,
   const RTEMS_TEST_STATE state
 )
 {
+  rtems_print_printer previous_printer;
+  int exit_code;
+
   (void) arg;
 
   rtems_test_begin( rtems_test_name, state );
   T_register();
 
-  if ( T_main( &config ) == 0 ) {
+  previous_printer = rtems_test_printer.printer;
+  rtems_test_printer.printer = printer;
+
+  exit_code = T_main( &config );
+
+  rtems_test_printer.printer = previous_printer;
+
+  if ( exit_code == 0 ) {
     rtems_test_end( rtems_test_name );
   }
 

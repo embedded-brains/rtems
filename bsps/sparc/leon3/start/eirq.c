@@ -38,9 +38,9 @@
  *
  */
 
-#include <bsp/irq.h>
 #include <bsp/irq-generic.h>
 #include <bsp/irqimpl.h>
+#include <rtems/score/processormaskimpl.h>
 
 #if !defined(LEON3_IRQAMP_EXTENDED_INTERRUPT)
 /* GRLIB extended IRQ controller IRQ number */
@@ -352,6 +352,25 @@ rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
 
   LEON3_IRQCTRL_RELEASE(&lock_context);
   return RTEMS_SUCCESSFUL;
+}
+
+rtems_status_code bsp_interrupt_set_priority(
+  rtems_vector_number vector,
+  uint32_t priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  return RTEMS_UNSATISFIED;
+}
+
+rtems_status_code bsp_interrupt_get_priority(
+  rtems_vector_number vector,
+  uint32_t *priority
+)
+{
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+  bsp_interrupt_assert(priority != NULL);
+  return RTEMS_UNSATISFIED;
 }
 
 #if defined(RTEMS_SMP)

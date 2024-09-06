@@ -223,8 +223,6 @@ register struct Per_CPU_Control *_SPARC_Per_CPU_current __asm__( "g6" );
 
 #define _CPU_Get_thread_executing() ( _SPARC_Per_CPU_current->executing )
 
-RTEMS_NO_RETURN void _CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
-
 void _CPU_Context_volatile_clobber( uintptr_t pattern );
 
 void _CPU_Context_validate( uintptr_t pattern );
@@ -250,6 +248,20 @@ static inline void _CPU_Use_thread_local_storage(
    /* Make sure that the register assignment is not optimized away */
    __asm__ volatile ( "" : : "r" ( g7 ) );
 }
+
+static inline void *_CPU_Get_TLS_thread_pointer(
+  const Context_Control *context
+)
+{
+  return (void *) context->g7;
+}
+
+#if defined(RTEMS_PROFILING)
+/**
+ * @brief Reads the CPU counter while interrupts are disabled.
+ */
+CPU_Counter_ticks _SPARC_Counter_read_ISR_disabled( void );
+#endif
 
 #ifdef __cplusplus
 }

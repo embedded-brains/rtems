@@ -14,6 +14,7 @@ install:
   source:
   - bsps/arm/edb7312/include/bsp.h
   - bsps/arm/edb7312/include/ep7312.h
+  - bsps/arm/edb7312/include/uart.h
 - destination: ${BSP_INCLUDEDIR}/bsp
   source:
   - bsps/arm/edb7312/include/bsp/irq.h
@@ -55,7 +56,6 @@ source:
 - bsps/shared/dev/serial/legacy-console-select.c
 - bsps/shared/dev/serial/legacy-console.c
 - bsps/shared/irq/irq-default-handler.c
-- bsps/shared/start/bspfatal-default.c
 - bsps/shared/start/gettargethash-default.c
 - bsps/shared/start/sbrk.c
 type: build

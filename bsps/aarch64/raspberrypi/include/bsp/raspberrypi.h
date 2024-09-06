@@ -8,6 +8,7 @@
 
 /*
  *  Copyright (c) 2022 Mohd Noor Aman
+ *  Copyright (c) 2024 Ning Yang
  *
  *  The license and distribution terms for this file may be
  *  found in the file LICENSE in this distribution or at
@@ -44,6 +45,7 @@
 
 #define BCM2711_REG(x)           (*(volatile uint64_t *)(x))
 #define BCM2711_BIT(n)           (1 << (n))
+#define BCM2835_REG(addr)        (*(volatile uint32_t*)(addr))
 
 /** @} */
 
@@ -91,7 +93,7 @@
 /** @} */
 
 /**
- * @name Power Management and Watchdog  Registers
+ * @name Power Management and Watchdog Registers
  *
  * @{
  */
@@ -122,10 +124,12 @@
 #define BCM2711_PM_RSTC_DRCFG    0x00000003
 #define BCM2711_PM_RSTC_WRCFG    0x00000030
 #define BCM2711_PM_RSTC_WRCFG_FULL   0x00000020
+#define BCM2711_PM_RSTC_WRCFG_CLR    0xffffffcf
 #define BCM2711_PM_RSTC_SRCFG    0x00000300
 #define BCM2711_PM_RSTC_QRCFG    0x00003000
 #define BCM2711_PM_RSTC_FRCFG    0x00030000
 #define BCM2711_PM_RSTC_HRCFG    0x00300000
+#define BCM2711_PM_RSTC_RESET    0x00000102
 
 #define BCM2711_PM_RSTS          (BCM2711_PM_BASE + 0x20)
 #define BCM2711_PM_RSTS_HADDRQ   0x00000001
@@ -140,6 +144,7 @@
 #define BCM2711_PM_RSTS_HADPOR   0x00001000
 
 #define BCM2711_PM_WDOG          (BCM2711_PM_BASE + 0x24)
+#define BCM2711_PM_WDOG_MASK     0x000fffff
 
 /** @} */
 
@@ -198,6 +203,26 @@
 #define BCM2711_GPU_TIMER_C2         (BCM2711_GPU_TIMER_BASE + 0x14)
 #define BCM2711_GPU_TIMER_C3         (BCM2711_GPU_TIMER_BASE + 0x18)
 
+/**
+ * NOTE: compatible with the BCM2835 system timer
+ */
+#define BCM2835_GPU_TIMER_CS_M3      BCM2711_GPU_TIMER_CS_M3
+#define BCM2835_GPU_TIMER_C3         BCM2711_GPU_TIMER_C3
+#define BCM2835_GPU_TIMER_CLO        BCM2711_GPU_TIMER_CLO
+#define BCM2835_GPU_TIMER_CS         BCM2711_GPU_TIMER_CS
+/** @} */
+
+/**
+ * @name GPIO Registers
+ *
+ * @{
+ */
+
+#define BCM2711_GPIO_BASE (RPI_PERIPHERAL_BASE + 0x200000)
+#define BCM2711_GPIO_SIZE 0xf4
+
+#define BCM2711_GPIO_PIN_COUNT 58
+
 /** @} */
 
 /**
@@ -212,6 +237,20 @@
  */
 
 #define BCM2711_EMMC_BASE           (RPI_PERIPHERAL_BASE + 0x300000)
+
+/** @} */
+
+/**
+* @name SPI Registers
+*
+* @{
+*/
+
+#define BCM2711_SPI0_BASE           (RPI_PERIPHERAL_BASE + 0x204000)
+#define BCM2711_SPI3_BASE           (RPI_PERIPHERAL_BASE + 0x204600)
+#define BCM2711_SPI4_BASE           (RPI_PERIPHERAL_BASE + 0x204800)
+#define BCM2711_SPI5_BASE           (RPI_PERIPHERAL_BASE + 0x204A00)
+#define BCM2711_SPI6_BASE           (RPI_PERIPHERAL_BASE + 0x204C00)
 
 /** @} */
 

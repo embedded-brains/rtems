@@ -921,7 +921,7 @@ static void ScoreTqReqSurrenderPriorityInherit_Pre_Suspended_Prepare(
   switch ( state ) {
     case ScoreTqReqSurrenderPriorityInherit_Pre_Suspended_Yes: {
       /*
-       * Whiel the new owner is suspended.
+       * While the new owner is suspended.
        */
       ctx->suspended = true;
       break;
@@ -929,7 +929,7 @@ static void ScoreTqReqSurrenderPriorityInherit_Pre_Suspended_Prepare(
 
     case ScoreTqReqSurrenderPriorityInherit_Pre_Suspended_No: {
       /*
-       * Whiel the new owner is not suspended.
+       * While the new owner is not suspended.
        */
       ctx->suspended = false;
       break;
@@ -2435,6 +2435,11 @@ static void ScoreTqReqSurrenderPriorityInherit_TestVariant(
 
 static T_fixture_node ScoreTqReqSurrenderPriorityInherit_Node;
 
+static T_remark ScoreTqReqSurrenderPriorityInherit_Remark = {
+  .next = NULL,
+  .remark = "ScoreTqReqSurrenderPriorityInherit"
+};
+
 void ScoreTqReqSurrenderPriorityInherit_Run( TQContext *tq_ctx )
 {
   ScoreTqReqSurrenderPriorityInherit_Context *ctx;
@@ -2510,6 +2515,7 @@ void ScoreTqReqSurrenderPriorityInherit_Run( TQContext *tq_ctx )
     }
   }
 
+  T_add_remark( &ScoreTqReqSurrenderPriorityInherit_Remark );
   T_pop_fixture();
 }
 

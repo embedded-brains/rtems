@@ -40,12 +40,17 @@
 
 #include <rtems/score/rbtreeimpl.h>
 
-RB_GENERATE_INSERT_COLOR( RBTree_Control, RBTree_Node, Node, static inline )
+RTEMS_RB_GENERATE_INSERT_COLOR(
+  RBTree_Control,
+  RBTree_Node,
+  Node,
+  static inline
+)
 
 void _RBTree_Insert_color(
   RBTree_Control *the_rbtree,
   RBTree_Node    *the_node
 )
 {
-  RBTree_Control_RB_INSERT_COLOR( the_rbtree, the_node );
+  RBTree_Control_RTEMS_RB_INSERT_COLOR( the_rbtree, the_node );
 }

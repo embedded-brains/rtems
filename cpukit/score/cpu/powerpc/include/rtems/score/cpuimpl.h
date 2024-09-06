@@ -269,8 +269,6 @@ static inline struct Per_CPU_Control *_PPC_Get_current_per_CPU_control( void )
 
 #endif /* RTEMS_SMP */
 
-RTEMS_NO_RETURN void _CPU_Fatal_halt( uint32_t source, CPU_Uint32ptr error );
-
 void _CPU_Context_volatile_clobber( uintptr_t pattern );
 
 void _CPU_Context_validate( uintptr_t pattern );
@@ -299,6 +297,13 @@ static inline void _CPU_Use_thread_local_storage(
 
    /* Make sure that the register assignment is not optimized away */
    __asm__ volatile ( "" : : "r" ( tp ) );
+}
+
+static inline void *_CPU_Get_TLS_thread_pointer(
+  const Context_Control *context
+)
+{
+  return (void *) ppc_get_context( context )->tp;
 }
 
 #ifdef __cplusplus

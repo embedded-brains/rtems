@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,6 +69,9 @@
  *
  * - Validate some interrupt lock macros.
  *
+ *   - Assert that RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT is a constant expression
+ *     which evaluates to a value of zero.
+ *
  *   - Check that RTEMS_INTERRUPT_LOCK_DECLARE() expands to white space only.
  *
  *   - Check that RTEMS_INTERRUPT_LOCK_DEFINE() expands to white space only.
@@ -79,11 +82,11 @@
  *
  *   - Check that rtems_interrupt_lock_destroy() expands to white space only.
  *
- *   - Check that RTEMS_INTERRUPT_LOCK_INITIALIZER() expands to an empty
- *     structure initializer.
+ *   - Check that RTEMS_INTERRUPT_LOCK_INITIALIZER() expands to a character
+ *     literal initializer.
  *
- *   - Check that rtems_interrupt_lock_initialize() expands to white space
- *     only.
+ *   - Check that rtems_interrupt_lock_initialize() expands to a code block
+ *     which marks the second parameter as used.
  *
  *   - Check that rtems_interrupt_lock_acquire_isr() expands to a code block
  *     which marks the second parameter as used.
@@ -100,6 +103,12 @@
 static void RtemsIntrValIntrNonSmp_Action_0( void )
 {
   const char *s;
+
+  /*
+   * Assert that RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT is a constant expression
+   * which evaluates to a value of zero.
+   */
+  RTEMS_STATIC_ASSERT( !RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT, LOCK_NEEDS_OBJECT );
 
   /*
    * Check that RTEMS_INTERRUPT_LOCK_DECLARE() expands to white space only.
@@ -132,17 +141,18 @@ static void RtemsIntrValIntrNonSmp_Action_0( void )
   T_true( IsWhiteSpaceOnly( s ) );
 
   /*
-   * Check that RTEMS_INTERRUPT_LOCK_INITIALIZER() expands to an empty
-   * structure initializer.
+   * Check that RTEMS_INTERRUPT_LOCK_INITIALIZER() expands to a character
+   * literal initializer.
    */
   s = RTEMS_XSTRING( RTEMS_INTERRUPT_LOCK_INITIALIZER( x ) );
-  T_true( IsEqualIgnoreWhiteSpace( s, "{}" ) );
+  T_true( IsEqualIgnoreWhiteSpace( s, "0" ) );
 
   /*
-   * Check that rtems_interrupt_lock_initialize() expands to white space only.
+   * Check that rtems_interrupt_lock_initialize() expands to a code block which
+   * marks the second parameter as used.
    */
   s = RTEMS_XSTRING( rtems_interrupt_lock_initialize( x, y ) );
-  T_true( IsWhiteSpaceOnly( s ) );
+  T_true( IsEqualIgnoreWhiteSpace( s, "do{(void)y;}while(0)" ) );
 
   /*
    * Check that rtems_interrupt_lock_acquire_isr() expands to a code block

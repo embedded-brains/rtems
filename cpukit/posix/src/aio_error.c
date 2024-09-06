@@ -3,14 +3,18 @@
 /**
  * @file
  *
- * @ingroup POSIXAPI
+ * @ingroup POSIX_AIO
  *
- * @brief Returns the error status for the Asynchronous I/O request
+ * @brief Returns the error status for the Asynchronous I/O request.
  */
 
 /*
- * Copyright 2010, Alin Rus <alin.codejunkie@gmail.com> 
+ *  Copyright 2010, Alin Rus <alin.codejunkie@gmail.com>
+ *  Copyright 2024, Alessandro Nardin <ale.daluch@gmail.com>
  * 
+ *  COPYRIGHT (c) 1989-2011.
+ *  On-Line Applications Research Corporation (OAR).
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -39,24 +43,18 @@
 
 #include <aio.h>
 #include <errno.h>
+#include <rtems/posix/aio_misc.h>
 
 #include <rtems/seterr.h>
 
-/*
- *  aio_error
- *
- * Retrieve errors status for an asynchronous I/O operation
- *
- *  Input parameters:
- *        aiocbp - asynchronous I/O control block
- *
- *  Output parameters:
- *        aiocbp->error_code
- */
-
-
-int
-aio_error (const struct aiocb *aiocbp)
+int aio_error( const struct aiocb *aiocbp )
 {
+  if ( aiocbp == NULL )
+    rtems_set_errno_and_return_minus_one( EINVAL );
+
+  if ( aiocbp->return_status == AIO_RETURNED )
+    rtems_set_errno_and_return_minus_one( EINVAL );
+
   return aiocbp->error_code;
 }
+

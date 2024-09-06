@@ -1,6 +1,7 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
 /*
- * Copyright (c) 2018.
- * Amaan Cheval <amaan.cheval@gmail.com>
+ * Copyright (c) 2018 Amaan Cheval <amaan.cheval@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,9 +61,8 @@ void paging_init(void);
 #define PAGE_FLAGS_GLOBAL           (1 << 8)
 #define PAGE_FLAGS_NO_EXECUTE       (1 << 63)
 
-#define PAGE_FLAGS_DEFAULTS                                              \
-  (PAGE_FLAGS_PRESENT | PAGE_FLAGS_WRITABLE | PAGE_FLAGS_USER_ACCESSIBLE \
-   | PAGE_FLAGS_WRITE_THROUGH | PAGE_FLAGS_NO_CACHE | PAGE_FLAGS_GLOBAL)
+#define PAGE_FLAGS_DEFAULTS                                      \
+  (PAGE_FLAGS_PRESENT | PAGE_FLAGS_WRITABLE | PAGE_FLAGS_NO_CACHE)
 
 #endif /* !ASM */
 #endif

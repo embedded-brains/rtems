@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2022 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2024 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -500,8 +500,53 @@ rtems_status_code rtems_interrupt_catch(
  * @ingroup RTEMSAPIClassicIntr
  *
  * @brief This structure represents an ISR lock.
+ *
+ * @par Notes
+ * @parblock
+ * Lock objects are only needed in some RTEMS build configurations, for example
+ * where the SMP support is enabled.  The #RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT
+ * constant can be used to determine whether a lock object is needed or not.
+ * This may help to reduce the memory demands of an application.  All lock
+ * operations do not use the lock object parameter if lock objects are not
+ * needed.
+ *
+ * @code
+ * #include <rtems.h>
+ *
+ * #if RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT
+ * rtems_interrupt_lock lock = RTEMS_INTERRUPT_LOCK_INITIALIZER( "name" );
+ * #endif
+ *
+ * struct s {
+ * #if RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT
+ *   rtems_interrupt_lock lock;
+ * #endif
+ *   int foobar;
+ * };
+ * @endcode
+ * @endparblock
  */
-typedef ISR_lock_Control rtems_interrupt_lock;
+#if ISR_LOCK_NEEDS_OBJECT
+  typedef ISR_lock_Control rtems_interrupt_lock;
+#else
+  typedef char rtems_interrupt_lock;
+#endif
+
+/* Generated from spec:/rtems/intr/if/lock-needs-object */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief If this define has a non-zero value, then the interrupt lock
+ *   operations require an object of type ::rtems_interrupt_lock, otherwise no
+ *   lock object is required.
+ *
+ * @par Notes
+ * This indication can be used to avoid the space overhead for lock objects
+ * when they are not needed.  In this case, the lock operations will not use a
+ * lock objects parameter.
+ */
+#define RTEMS_INTERRUPT_LOCK_NEEDS_OBJECT ISR_LOCK_NEEDS_OBJECT
 
 /* Generated from spec:/rtems/intr/if/lock-context */
 
@@ -708,7 +753,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * * The directive will not cause the calling task to be preempted.
  * @endparblock
  */
-#if defined(RTEMS_SMP)
+#if ISR_LOCK_NEEDS_OBJECT
   #define rtems_interrupt_lock_acquire_isr( _lock, _lock_context ) \
     _SMP_lock_Acquire( \
       &( _lock )->Lock, \
@@ -754,7 +799,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * * The directive will not cause the calling task to be preempted.
  * @endparblock
  */
-#if defined(RTEMS_SMP)
+#if ISR_LOCK_NEEDS_OBJECT
   #define rtems_interrupt_lock_release_isr( _lock, _lock_context ) \
     _SMP_lock_Release( \
       &( _lock )->Lock, \
@@ -805,8 +850,12 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * @par Notes
  * Do not add a ";" after this macro.
  */
-#define RTEMS_INTERRUPT_LOCK_DECLARE( _specifier, _designator ) \
-  ISR_LOCK_DECLARE( _specifier, _designator )
+#if ISR_LOCK_NEEDS_OBJECT
+  #define RTEMS_INTERRUPT_LOCK_DECLARE( _specifier, _designator ) \
+    _specifier rtems_interrupt_lock _designator;
+#else
+  #define RTEMS_INTERRUPT_LOCK_DECLARE( _specifier, _designator )
+#endif
 
 /* Generated from spec:/rtems/intr/if/lock-define */
 
@@ -832,8 +881,12 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * RTEMS_INTERRUPT_LOCK_INITIALIZER().
  * @endparblock
  */
-#define RTEMS_INTERRUPT_LOCK_DEFINE( _specifier, _designator, _name ) \
-  ISR_LOCK_DEFINE( _specifier, _designator, _name )
+#if ISR_LOCK_NEEDS_OBJECT
+  #define RTEMS_INTERRUPT_LOCK_DEFINE( _specifier, _designator, _name ) \
+    _specifier rtems_interrupt_lock _designator = ISR_LOCK_INITIALIZER( _name );
+#else
+  #define RTEMS_INTERRUPT_LOCK_DEFINE( _specifier, _designator, _name )
+#endif
 
 /* Generated from spec:/rtems/intr/if/lock-initializer */
 
@@ -850,7 +903,11 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * rtems_interrupt_lock_initialize() or statically defined by
  * RTEMS_INTERRUPT_LOCK_DEFINE().
  */
-#define RTEMS_INTERRUPT_LOCK_INITIALIZER( _name ) ISR_LOCK_INITIALIZER( _name )
+#if ISR_LOCK_NEEDS_OBJECT
+  #define RTEMS_INTERRUPT_LOCK_INITIALIZER( _name ) ISR_LOCK_INITIALIZER( _name )
+#else
+  #define RTEMS_INTERRUPT_LOCK_INITIALIZER( _name ) 0
+#endif
 
 /* Generated from spec:/rtems/intr/if/lock-member */
 
@@ -864,8 +921,12 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * @par Notes
  * Do not add a ";" after this macro.
  */
-#define RTEMS_INTERRUPT_LOCK_MEMBER( _designator ) \
-  ISR_LOCK_MEMBER( _designator )
+#if ISR_LOCK_NEEDS_OBJECT
+  #define RTEMS_INTERRUPT_LOCK_MEMBER( _designator ) \
+    rtems_interrupt_lock _designator;
+#else
+  #define RTEMS_INTERRUPT_LOCK_MEMBER( _designator )
+#endif
 
 /* Generated from spec:/rtems/intr/if/lock-reference */
 
@@ -881,8 +942,12 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  * @par Notes
  * Do not add a ";" after this macro.
  */
-#define RTEMS_INTERRUPT_LOCK_REFERENCE( _designator, _target ) \
-  ISR_LOCK_REFERENCE( _designator, _target )
+#if ISR_LOCK_NEEDS_OBJECT
+  #define RTEMS_INTERRUPT_LOCK_REFERENCE( _designator, _target ) \
+    rtems_interrupt_lock *_designator = _target;
+#else
+  #define RTEMS_INTERRUPT_LOCK_REFERENCE( _designator, _target )
+#endif
 
 /* Generated from spec:/rtems/intr/if/shared */
 
@@ -1688,6 +1753,160 @@ rtems_status_code rtems_interrupt_raise_on(
  */
 rtems_status_code rtems_interrupt_clear( rtems_vector_number vector );
 
+/* Generated from spec:/rtems/intr/if/get-priority */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief Gets the priority of the interrupt vector.
+ *
+ * @param vector is the interrupt vector number.
+ *
+ * @param[out] priority is the pointer to an uint32_t object.  When the
+ *   directive call is successful, the priority of the interrupt vector will be
+ *   stored in this object.
+ *
+ * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
+ *
+ * @retval ::RTEMS_INVALID_ADDRESS The ``priority`` parameter was NULL.
+ *
+ * @retval ::RTEMS_INVALID_ID There was no interrupt vector associated with the
+ *   number specified by ``vector``.
+ *
+ * @retval ::RTEMS_UNSATISFIED There is no priority associated with the
+ *   interrupt vector.
+ *
+ * @par Notes
+ * The rtems_interrupt_set_priority() directive may be used to set the priority
+ * associated with an interrupt vector.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive may be called from within interrupt context.
+ *
+ * * The directive may be called from within device driver initialization
+ *   context.
+ *
+ * * The directive may be called from within task context.
+ *
+ * * The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+rtems_status_code rtems_interrupt_get_priority(
+  rtems_vector_number vector,
+  uint32_t           *priority
+);
+
+/* Generated from spec:/rtems/intr/if/set-priority */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief Sets the priority of the interrupt vector.
+ *
+ * @param vector is the interrupt vector number.
+ *
+ * @param priority is the new priority for the interrupt vector.
+ *
+ * This directive sets the priority of the interrupt specified by ``vector`` to
+ * the priority specified by ``priority``.
+ *
+ * For processor-specific interrupts, the priority of the interrupt specific to
+ * a processor executing the directive call will be set.
+ *
+ * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
+ *
+ * @retval ::RTEMS_INVALID_ID There was no interrupt vector associated with the
+ *   number specified by ``vector``.
+ *
+ * @retval ::RTEMS_INVALID_PRIORITY The priority specified by ``priority`` was
+ *   not a valid new priority for the interrupt vector.
+ *
+ * @retval ::RTEMS_UNSATISFIED The request to set the priority of the interrupt
+ *   vector has not been satisfied.
+ *
+ * @par Notes
+ * @parblock
+ * The rtems_interrupt_get_priority() directive may be used to get the priority
+ * associated with an interrupt vector.
+ *
+ * The interrupt prioritization support depends on the interrupt controller of
+ * the target.  It is strongly recommended to read the relevant hardware
+ * documentation.  What happens when the priority of a pending or active
+ * interrupt is changed, depends on the interrupt controller.  In general, you
+ * should set the interrupt priority of an interrupt vector before a handler is
+ * installed.  On some interrupt controllers, setting the priority to the
+ * maximum value (lowest importance) effectively disables the interrupt.
+ *
+ * On some architectures, a range of interrupt priority values may be not
+ * disabled by the interrupt disable directives such as
+ * rtems_interrupt_disable() and rtems_interrupt_local_disable().  These
+ * interrupts are called non-maskable interrupts. Handlers of non-maskable
+ * interrupts shall not use operating system services. In addition,
+ * non-maskable interrupts may be not installable through
+ * rtems_interrupt_entry_install() or rtems_interrupt_handler_install(), and
+ * may require architecture-specific prologue and epilogue code.
+ *
+ * The interrupt priority settings affect the maximum nesting depth while
+ * servicing interrupts.  The interrupt stack size calculation needs to take
+ * this into account, see also @ref CONFIGURE_INTERRUPT_STACK_SIZE.
+ *
+ * For the ARM Generic Interrupt Controller (GIC), an 8-bit priority value is
+ * supported.  The granularity of the priority levels depends on the interrupt
+ * controller configuration.  Some low-order bits of a priority value may be
+ * read-as-zero (RAZ) and writes are ignored (WI).  Where group 0 (FIQ) and
+ * group 1 (IRQ) interrupts are used, it is recommended to use the lower half
+ * of the supported priority value range for the group 0 interrupts and the
+ * upper half for group 1 interrupts.  This ensures that group 1 interrupts
+ * cannot preempt group 0 interrupts.
+ *
+ * For the Armv7-M Nested Vector Interrupt Controller (NVIC), an 8-bit priority
+ * value is supported.  The granularity of the priority levels depends on the
+ * interrupt controller configuration.  Some lower bits of a priority value may
+ * be read-as-zero (RAZ) and writes are ignored (WI).  Interrupts with a
+ * priority value less than 128 are not disabled by the RTEMS interrupt disable
+ * directives.  Handlers of such interrupts shall not use operating system
+ * services.
+ *
+ * For the RISC-V Platform-Level Interrupt Controller (PLIC), all priority
+ * values from 0 up to and including the 0xffffffff are supported since the
+ * priority for the PLIC is defined by a write-any-read-legal (WARL) register.
+ * Please note that for this directive in contrast to the PLIC, a higher
+ * priority value is associated with a lower importance.  The maximum priority
+ * value (mapped to the value 0 for the PLIC) is reserved to mean "never
+ * interrupt" and effectively disables the interrupt.
+ *
+ * For the QorIQ Multicore Programmable Interrupt Controller (MPIC), a 4-bit
+ * priority value is supported.  Please note that for this directive in
+ * contrast to the MPIC, a higher priority value is associated with a lower
+ * importance. The maximum priority value of 15 (mapped to the value 0 for the
+ * MPIC) inhibits signalling of this interrupt.
+ *
+ * Consult the *RTEMS CPU Architecture Supplement* and the BSP documentation in
+ * the *RTEMS User Manual* for further information.
+ * @endparblock
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * * The directive may be called from within interrupt context.
+ *
+ * * The directive may be called from within device driver initialization
+ *   context.
+ *
+ * * The directive may be called from within task context.
+ *
+ * * The directive will not cause the calling task to be preempted.
+ * @endparblock
+ */
+rtems_status_code rtems_interrupt_set_priority(
+  rtems_vector_number vector,
+  uint32_t            priority
+);
+
 /* Generated from spec:/rtems/intr/if/get-affinity */
 
 /**
@@ -1965,6 +2184,29 @@ typedef struct {
    * rtems_interrupt_raise(), or rtems_interrupt_raise_on().
    */
   rtems_interrupt_signal_variant trigger_signal;
+
+  /**
+   * @brief This member is true, if the priority of the interrupt vector can be
+   *   obtained by rtems_interrupt_get_priority(), otherwise it is false.
+   */
+  bool can_get_priority;
+
+  /**
+   * @brief This member is true, if the priority of the interrupt vector can be
+   *   set by rtems_interrupt_set_priority(), otherwise it is false.
+   */
+  bool can_set_priority;
+
+  /**
+   * @brief This member represents the maximum priority value of the interrupt
+   *   vector.  By convention, the minimum priority value is zero.  Lower
+   *   priority values shall be associated with a higher importance.  The higher
+   *   the priority value, the less important is the service of the associated
+   *   interrupt vector.  Where nested interrupts are supported, interrupts with
+   *   a lower priority value may preempt other interrupts having a higher
+   *   priority value.
+   */
+  uint32_t maximum_priority;
 } rtems_interrupt_attributes;
 
 /* Generated from spec:/rtems/intr/if/get-attributes */

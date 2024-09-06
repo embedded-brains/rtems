@@ -353,7 +353,7 @@ static void ScoreTqReqSurrenderMrsp_Pre_Suspended_Prepare(
   switch ( state ) {
     case ScoreTqReqSurrenderMrsp_Pre_Suspended_Yes: {
       /*
-       * Whiel the new owner is suspended.
+       * While the new owner is suspended.
        */
       ctx->suspended = true;
       break;
@@ -361,7 +361,7 @@ static void ScoreTqReqSurrenderMrsp_Pre_Suspended_Prepare(
 
     case ScoreTqReqSurrenderMrsp_Pre_Suspended_No: {
       /*
-       * Whiel the new owner is not suspended.
+       * While the new owner is not suspended.
        */
       ctx->suspended = false;
       break;
@@ -974,6 +974,11 @@ static void ScoreTqReqSurrenderMrsp_TestVariant(
 
 static T_fixture_node ScoreTqReqSurrenderMrsp_Node;
 
+static T_remark ScoreTqReqSurrenderMrsp_Remark = {
+  .next = NULL,
+  .remark = "ScoreTqReqSurrenderMrsp"
+};
+
 void ScoreTqReqSurrenderMrsp_Run( TQContext *tq_ctx )
 {
   ScoreTqReqSurrenderMrsp_Context *ctx;
@@ -1029,6 +1034,7 @@ void ScoreTqReqSurrenderMrsp_Run( TQContext *tq_ctx )
     }
   }
 
+  T_add_remark( &ScoreTqReqSurrenderMrsp_Remark );
   T_pop_fixture();
 }
 

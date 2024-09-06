@@ -39,8 +39,7 @@
 
 #ifndef ASM
 
-#include <rtems/irq.h>
-#include <rtems/irq-extension.h>
+#include <rtems.h>
 
 #include <dev/irq/arm-gic-irq.h>
 
@@ -53,15 +52,18 @@ extern "C" {
 /* Interrupts vectors */
 #define BSP_TIMER_VIRT_PPI 27
 #define BSP_TIMER_PHYS_NS_PPI 30
+#define ZYNQMP_IRQ_OCM 42
 #define ZYNQMP_IRQ_QSPI 47
 #define ZYNQMP_IRQ_I2C_0 49
 #define ZYNQMP_IRQ_I2C_1 50
-#define ZYNQMP_IRQ_UART_0 54
-#define ZYNQMP_IRQ_UART_1 53
+#define ZYNQMP_IRQ_UART_0 53
+#define ZYNQMP_IRQ_UART_1 54
 #define ZYNQMP_IRQ_ETHERNET_0 89
 #define ZYNQMP_IRQ_ETHERNET_1 91
 #define ZYNQMP_IRQ_ETHERNET_2 93
 #define ZYNQMP_IRQ_ETHERNET_3 95
+#define ZYNQMP_IRQ_DDR 144
+#define ZYNQMP_IRQ_CACHE 183
 
 /** @} */
 

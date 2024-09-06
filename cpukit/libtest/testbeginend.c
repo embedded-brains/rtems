@@ -41,12 +41,8 @@
 #endif
 
 #include <rtems/test-info.h>
-#include <rtems/bspIo.h>
+#include <rtems/test-printer.h>
 #include <rtems/version.h>
-
-rtems_printer rtems_test_printer = {
-  .printer = rtems_printk_printer
-};
 
 static const char* const test_state_strings[] =
 {
@@ -100,27 +96,4 @@ int rtems_test_end(const char* name)
     &rtems_test_printer,
     "\n*** END OF TEST %s ***\n\n", name
   );
-}
-
-void rtems_test_exit(int status)
-{
-  (void) status;
-  rtems_shutdown_executive(0);
-}
-
-int rtems_test_printf(
-  const char* format,
-  ...
-)
-{
-  va_list ap;
-  int len;
-  va_start(ap, format);
-  len = rtems_vprintf(
-    &rtems_test_printer,
-    format,
-    ap
-  );
-  va_end(ap);
-  return len;
 }

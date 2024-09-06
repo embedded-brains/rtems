@@ -140,6 +140,7 @@ void CallWithinISRWait( const CallWithinISRRequest *request )
   }
 }
 
+#if !defined( TM27_INTERRUPT_VECTOR_DEFAULT )
 static void CallWithinISRIsHandlerInstalled(
   void                   *arg,
   const char             *info,
@@ -152,13 +153,17 @@ static void CallWithinISRIsHandlerInstalled(
   (void) option;
   (void) handler_arg;
 
-  if ( handler == CallWithinISRHandler ) {
+  if ( handler == CallWithinISRHandler && handler_arg == NULL ) {
     *(bool *) arg = true;
   }
 }
+#endif
 
 rtems_vector_number CallWithinISRGetVector( void )
 {
+#if defined( TM27_INTERRUPT_VECTOR_DEFAULT )
+  return TM27_INTERRUPT_VECTOR_DEFAULT;
+#else
   rtems_vector_number vector;
 
   for ( vector = 0; vector < BSP_INTERRUPT_VECTOR_COUNT; ++vector ) {
@@ -177,6 +182,38 @@ rtems_vector_number CallWithinISRGetVector( void )
   }
 
   return UINT32_MAX;
+#endif
+}
+
+rtems_vector_number GetSoftwareInterruptVector( void )
+{
+#if defined( TM27_INTERRUPT_VECTOR_ALTERNATIVE )
+  return TM27_INTERRUPT_VECTOR_ALTERNATIVE;
+#else
+  return UINT32_MAX;
+#endif
+}
+
+rtems_status_code RaiseSoftwareInterrupt( rtems_vector_number vector )
+{
+#if defined( TM27_INTERRUPT_VECTOR_ALTERNATIVE )
+  if ( vector == TM27_INTERRUPT_VECTOR_ALTERNATIVE ) {
+    return _TM27_Raise_alternative();
+  }
+#endif
+
+  return rtems_interrupt_raise( vector );
+}
+
+rtems_status_code ClearSoftwareInterrupt( rtems_vector_number vector )
+{
+#if defined( TM27_INTERRUPT_VECTOR_ALTERNATIVE )
+  if ( vector == TM27_INTERRUPT_VECTOR_ALTERNATIVE ) {
+    return _TM27_Clear_alternative();
+  }
+#endif
+
+  return rtems_interrupt_clear( vector );
 }
 
 static void CallWithinISRInitialize( void )

@@ -3,13 +3,17 @@
 /**
  * @file
  *
- * @ingroup POSIXAPI
+ * @ingroup POSIX_AIO
  *
- * @brief Final return status for Asynchronous I/O request pointed to by aiobcp
+ * @brief Final return status for Asynchronous I/O request.
  */
 
 /*
- * Copyright 2010, Alin Rus <alin.codejunkie@gmail.com> 
+ *  Copyright 2010, Alin Rus <alin.codejunkie@gmail.com>
+ *  Copyright 2024, Alessandro Nardin <ale.daluch@gmail.com>
+ *
+ *  COPYRIGHT (c) 1989-2011.
+ *  On-Line Applications Research Corporation (OAR).
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,23 +43,21 @@
 
 #include <aio.h>
 #include <errno.h>
-
 #include <rtems/seterr.h>
+#include <rtems/posix/aio_misc.h>
 
-/*
- *  aio_return
- *
- * Retrieve return status of an asynchronous I/O operation
- *
- *  Input parameters:
- *        aiocbp - asynchronous I/O control block
- *
- *  Output parameters:
- *        aiocbp->return_value
- */
-
-ssize_t
-aio_return (const struct aiocb *aiocbp)
+ssize_t aio_return( struct aiocb *aiocbp )
 {
-  return aiocbp->return_value;
+  if ( aiocbp == NULL )
+    rtems_set_errno_and_return_minus_one( ENOENT );
+  
+  if ( aiocbp->return_status == AIO_RETURNED )
+    rtems_set_errno_and_return_minus_one( EINVAL );
+  
+  aiocbp->return_status = AIO_RETURNED; 
+  if ( aiocbp->return_status < 0 )
+    rtems_set_errno_and_return_minus_one( aiocbp->error_code );
+  else
+    return aiocbp->return_value;
 }
+

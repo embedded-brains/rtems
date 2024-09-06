@@ -2,6 +2,7 @@
 
 /*
  * Copyright 2010, Alin Rus <alin.codejunkie@gmail.com>
+ * Copyright 2024, Alessandro Nardin <ale.daluch@gmail.com>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +38,6 @@
 #include <aio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <sched.h>
 #include <fcntl.h>
 
@@ -47,176 +47,189 @@ const char rtems_test_name[] = "PSXAIO 1";
 #define WRONG_FD 404
 
 /* forward declarations to avoid warnings */
-struct aiocb *create_aiocb(int fd);
-void free_aiocb(struct aiocb *aiocbp);
+static struct aiocb *create_aiocb( int fd );
+static void free_aiocb( struct aiocb *aiocbp );
 
-struct aiocb *
-create_aiocb (int fd)
+static struct aiocb *create_aiocb( int fd )
 {
   struct aiocb *aiocbp;
 
-  aiocbp = malloc (sizeof (struct aiocb));
-  memset (aiocbp, 0, sizeof (struct aiocb));
-  aiocbp->aio_buf = malloc (BUFSIZE * sizeof (char));
+  aiocbp = malloc( sizeof( struct aiocb ) );
+  memset( aiocbp, 0, sizeof( struct aiocb ) );
+  aiocbp->aio_buf = malloc( BUFSIZE * sizeof( char ) );
   aiocbp->aio_nbytes = BUFSIZE;
   aiocbp->aio_offset = 0;
   aiocbp->aio_reqprio = 0;
   aiocbp->aio_fildes = fd;
-
+  aiocbp->aio_sigevent.sigev_notify = SIGEV_NONE;
   return aiocbp;
 }
 
-void
-free_aiocb (struct aiocb *aiocbp)
+static void free_aiocb( struct aiocb *aiocbp )
 {
-  free ((char*) aiocbp->aio_buf);
-  free (aiocbp);
+  free( (void*) aiocbp->aio_buf );
+  free( aiocbp );
 }
 
-void *
-POSIX_Init (void *argument)
+void *POSIX_Init( void *argument )
 {
   int result, fd;
   struct aiocb *aiocbp;
   int status;
 
-  rtems_aio_init ();
+  rtems_aio_init();
 
-  status = mkdir ("/tmp", S_IRWXU);
-  rtems_test_assert (!status);
+  status = mkdir( "/tmp", S_IRWXU );
+  rtems_test_assert( !status );
   
-  fd = open ("/tmp/aio_fildes", O_RDWR|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO);
-  rtems_test_assert ( fd != -1);
+  fd = open( "/tmp/aio_fildes", O_RDWR|O_CREAT, S_IRWXU|S_IRWXG|S_IRWXO );
+  rtems_test_assert( fd != -1 );
 
   TEST_BEGIN();
 
-  puts (" Init: EBADF TESTS ");
+  /* NULL aiocbp */
 
-  aiocbp = create_aiocb (WRONG_FD);
-  status = aio_write (aiocbp);
-  rtems_test_assert (status == -1);
+  result = aio_write( NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  /* NULL aiocbp */
+
+  result = aio_read( NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  /* NULL aiocbp */
+
+  result = aio_fsync( O_SYNC, NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  /* NULL aiocbp */
+
+  result = aio_return( NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == ENOENT );
+
+  /* NULL aiocbp */
+
+  result = aio_error( NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  aiocbp = create_aiocb( WRONG_FD );
 
   /* Bad file descriptor */
-  puts ("Init: aio_write() - EBADF ");
-
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EBADF);
-
-  status = aio_read (aiocbp);
-  rtems_test_assert (status == -1);
-
-  /* Bad file descriptor */
-  puts ("Init: aio_read() - EBADF ");
-
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EBADF);
-
-  status = aio_cancel (WRONG_FD, NULL);
-  rtems_test_assert (status == -1);
-
-  /* Bad file descriptor */
-  puts ("Init: aio_cancel() - EBADF ");
   
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EBADF);
+  result = aio_write( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EBADF );
 
-  status = aio_fsync (O_SYNC, aiocbp);
-  rtems_test_assert (status == -1);
-  
   /* Bad file descriptor */
-  puts ("Init: aio_fsync() - EBADF ");
 
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EBADF);
+  result = aio_read( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EBADF );
+
+  /* Bad file descriptor */
   
-  free_aiocb (aiocbp);
+  result = aio_cancel( WRONG_FD, NULL );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EBADF );
+ 
+  /* Bad file descriptor */
+
+  result = aio_fsync( O_SYNC, aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EBADF );
+  
+  free_aiocb( aiocbp );
+
+  aiocbp = create_aiocb( fd );
+  aiocbp->aio_offset = -1;
 
   /* Invalid offset */
-  puts ("Init: aio_write() - EINVAL [aio_offset]");
 
-  aiocbp = create_aiocb (fd);
-  aiocbp->aio_offset = -1;
-  status = aio_write (aiocbp);
-  rtems_test_assert (status == -1);
+  result = aio_write( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
 
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
+  /* Invalid offset */
 
-    /* Invalid offset */
-  puts ("Init: aio_read() - EINVAL [aio_offset]");
+  result = aio_read( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
 
-  status = aio_read (aiocbp);
-  rtems_test_assert (status == -1);
+  free_aiocb( aiocbp );
 
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
-
-  free_aiocb (aiocbp);
+  aiocbp = create_aiocb( fd );
+  aiocbp->aio_reqprio = AIO_PRIO_DELTA_MAX + 1;
 
   /* Invalid request priority */
-  puts ("Init: aio_write() - EINVAL [aio_reqprio]");
 
-  aiocbp = create_aiocb (fd);
-  aiocbp->aio_reqprio = AIO_PRIO_DELTA_MAX + 1;
-  status = aio_write (aiocbp);
-  rtems_test_assert (status == -1);
+  result = aio_write( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
 
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
+  /* Invalid request priority */
 
-   /* Invalid request priority */
-  puts ("Init: aio_read() - EINVAL [aio_reqprio]");
-
-  status = aio_read (aiocbp);
-  rtems_test_assert (status == -1);
-
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
-
-  /* Invalid request aio_cancel */
-  puts ("Init: aio_cancel() - EINVAL ");
-
-  status = aio_cancel (WRONG_FD, aiocbp);
-  rtems_test_assert (status == -1);
-
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
+  result = aio_read( aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
 
   /* Invalid operation to aio_fsync */
-  puts ("Init: aio_fsync() - EINVAL ");
-  status = aio_fsync (-1, aiocbp);
-  rtems_test_assert (status == -1);
 
-  result = aio_return (aiocbp);
-  rtems_test_assert (result == -1);
-  status = aio_error (aiocbp);
-  rtems_test_assert (status == EINVAL);
+  result = aio_fsync( -1, aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
 
-  free_aiocb (aiocbp);
+  /* Invalid request aio_cancel */
+
+  aiocbp->aio_fildes = WRONG_FD;
+  result = aio_cancel( fd, aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+  aiocbp->aio_fildes = fd;
+  
+  /* Bad sigevent */
+
+  aiocbp->aio_sigevent.sigev_notify = SIGEV_SIGNAL;
+  aiocbp->aio_sigevent.sigev_notify_function = NULL;
+  result = aio_fsync( O_SYNC, aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  /* Bad sigevent */
+
+  aiocbp->aio_sigevent.sigev_notify = SIGEV_THREAD;
+  aiocbp->aio_sigevent.sigev_signo = 0;
+  result = aio_fsync( O_SYNC, aiocbp );
+  status = errno;
+  rtems_test_assert( result == -1 );
+  rtems_test_assert( status == EINVAL );
+
+  free_aiocb( aiocbp );
 
   TEST_END();
 
-  close (fd);
-  rtems_test_exit (0);
+  close( fd );
+  rtems_test_exit( 0 );
 
   return NULL;
-
 }

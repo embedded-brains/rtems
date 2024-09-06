@@ -3,9 +3,10 @@
 /**
  * @file
  *
- * @ingroup arm
+ * @ingroup RTEMSImplClassicCache
  *
- * @brief ARM cache defines and implementation.
+ * @brief This source file contains the Cache Manager implementation for
+ *   devices using the ARM CP15.
  */
 
 /*
@@ -51,6 +52,10 @@
 
 #if __ARM_ARCH >= 7
   #define CPU_CACHE_SUPPORT_PROVIDES_DISABLE_DATA
+#endif
+
+#if __ARM_ARCH == 7 && __ARM_ARCH_PROFILE == 'R'
+  #define CACHE_CP15_IS_CORTEX_R5
 #endif
 
 static inline void _CPU_cache_flush_1_data_line(const void *d_addr)
@@ -127,7 +132,9 @@ static inline void _CPU_cache_unfreeze_instruction(void)
 static inline void _CPU_cache_flush_entire_data(void)
 {
   _ARM_Data_synchronization_barrier();
-#if __ARM_ARCH >= 7
+#if defined(CACHE_CP15_IS_CORTEX_R5)
+  arm_cp15_data_cache_clean_level(0);
+#elif __ARM_ARCH >= 7
   arm_cp15_data_cache_clean_all_levels();
 #else
   arm_cp15_data_cache_clean_and_invalidate();
@@ -138,7 +145,9 @@ static inline void _CPU_cache_flush_entire_data(void)
 
 static inline void _CPU_cache_invalidate_entire_data(void)
 {
-#if __ARM_ARCH >= 7
+#if defined(CACHE_CP15_IS_CORTEX_R5)
+  arm_cp15_data_cache_all_invalidate();
+#elif __ARM_ARCH >= 7
   arm_cp15_data_cache_invalidate_all_levels();
 #else
   arm_cp15_data_cache_invalidate();
@@ -213,12 +222,12 @@ static inline size_t arm_cp15_get_cache_size(
   clidr = arm_cp15_get_cache_level_id();
   loc = arm_clidr_get_level_of_coherency(clidr);
 
-  if (level >= loc) {
-    return 0;
-  }
-
   if (level == 0) {
     level = loc - 1;
+  } else if (level - 1 >= loc) {
+    return 0;
+  } else {
+    --level;
   }
 
   ccsidr = arm_cp15_get_cache_size_id_for_level(

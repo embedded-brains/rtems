@@ -45,6 +45,7 @@
 #include <tmacros.h>
 
 const char rtems_test_name[] = "FSPERMISSION " FILESYSTEM;
+const RTEMS_TEST_STATE rtems_test_state = TEST_STATE;
 
 /*
  *  Test the umask
@@ -177,7 +178,7 @@ static void umask_test01(void )
 /*
  * Check the file mode in file and directory
  */
-static void test_premission01(void )
+static void test_permission01(void )
 {
   mode_t tmp_mode;
   struct stat statbuf;
@@ -411,7 +412,7 @@ static void test_premission01(void )
 /*
  * Test chown and chmod
  */
-static void  test_premission02(void )
+static void  test_permission02(void )
 {
   struct stat statbuf;
   int status = 0;
@@ -516,10 +517,97 @@ static void root_test(void )
   rtems_test_assert(fd==-1);
 }
 
+static void rename_search_permission_test (void)
+{
+  int fd;
+  int status;
+  int rv;
+
+  const char *name01 = "name01";
+  const char *name02 = "name02";
+
+  const char *dir01 = "dir01";
+
+  char path01[20];
+  char path02[20];
+
+  mode_t mode = S_IRWXU | S_IRWXG | S_IRWXO;
+  mode_t no_execute_access = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP
+                           | S_IROTH | S_IWOTH;
+
+  const char *wd = __func__;
+
+  /*
+   * Create a new directory and change the current directory to this
+   */
+
+  status = mkdir (wd, mode);
+  rtems_test_assert (status == 0);
+  status = chdir (wd);
+  rtems_test_assert (status == 0);
+
+  /*
+   * The new argument points to a file and
+   * the old argument points to another file,
+   * both inside a directory with no execute permission.
+   */
+
+  puts ("\nRename two files on a directory with no execute permission \n");
+
+  status = mkdir (dir01, mode);
+  rtems_test_assert (status == 0);
+
+  rv = snprintf (path01, sizeof(path01), "%s/%s", dir01, name01);
+  rtems_test_assert (rv < sizeof(path01));
+  fd = creat (path01, mode);
+  rtems_test_assert (fd >= 0);
+  status = close (fd);
+  rtems_test_assert (status == 0);
+
+  rv = snprintf (path02, sizeof(path02), "%s/%s", dir01, name02);
+  rtems_test_assert (rv < sizeof(path02));
+  fd = creat (path02, mode);
+  rtems_test_assert (fd >= 0);
+  status = close (fd);
+  rtems_test_assert (status == 0);
+
+  status = chmod (dir01, no_execute_access);
+  rtems_test_assert (status == 0);
+
+  EXPECT_ERROR (EACCES, rename, path01 , path02);
+
+  /*
+   * Clear directory
+   */
+  status = chmod (dir01, mode);
+  rtems_test_assert (status == 0);
+
+  rv = snprintf (path01, sizeof(path01), "%s/%s", dir01, name01);
+  rtems_test_assert (rv < sizeof(path01));
+  EXPECT_EQUAL (0, unlink, path01);
+  EXPECT_EQUAL (0, unlink, path02);
+  EXPECT_EQUAL (0, rmdir, dir01);
+
+  /*
+   * Go back to parent directory
+   */
+
+  status = chdir ("..");
+  rtems_test_assert (status == 0);
+
+  /*
+   * Remove test directory
+   */
+
+  status = rmdir (wd);
+  rtems_test_assert (status == 0);
+}
+
 void test(void )
 {
   umask_test01();
-  test_premission01();
-  test_premission02();
+  test_permission01();
+  test_permission02();
   root_test();
+  rename_search_permission_test();
 }

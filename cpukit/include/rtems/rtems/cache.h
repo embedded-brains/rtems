@@ -10,7 +10,7 @@
 
 /*
  * Copyright (C) 2016 Pavel Pisa
- * Copyright (C) 2014, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2014, 2024 embedded brains GmbH & Co. KG
  * Copyright (C) 2000, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <rtems/rtems/status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +90,10 @@ extern "C" {
  *
  * @param size is the size in bytes of the cache coherent memory area to add.
  *
+ * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
+ *
+ * @retval ::RTEMS_UNSATISFIED The requested operation was not successful.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
@@ -102,7 +107,7 @@ extern "C" {
  *   cause the calling task to be preempted.
  * @endparblock
  */
-void rtems_cache_coherent_add_area( void *begin, uintptr_t size );
+rtems_status_code rtems_cache_coherent_add_area( void *begin, uintptr_t size );
 
 /* Generated from spec:/rtems/cache/if/coherent-allocate */
 
@@ -572,6 +577,14 @@ void rtems_cache_enable_data( void );
  * @ingroup RTEMSAPIClassicCache
  *
  * @brief Disables the data cache.
+ *
+ * @par Notes
+ * On some targets or configurations, calling this directive may cause a fatal
+ * error with a fatal source of INTERNAL_ERROR_CORE and fatal code of
+ * INTERNAL_ERROR_CANNOT_DISABLE_DATA_CACHE.   The data cache may be necessary
+ * to provide atomic operations. In SMP configurations, the data cache may be
+ * required to ensure data coherency.  See the BSP documentation in the *RTEMS
+ * User Manual* for more information.
  *
  * @par Constraints
  * @parblock
