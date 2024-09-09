@@ -71,6 +71,7 @@ test-includes:
 - rtems/score/atomic.h
 - rtems/score/percpu.h
 - rtems/score/smpimpl.h
+- rtems/score/sysstate.h
 test-local-includes: []
 test-setup: null
 test-stop: null
@@ -116,24 +117,28 @@ test-support: |
 
   static uint32_t GetBootProcessorIndex( void )
   {
-    uint32_t cpu_max;
+    Per_CPU_Control *cpu_self;
+    uint32_t         cpu_max;
+    uint32_t         cpu_index;
+
+    cpu_self = _Per_CPU_Get();
+
+    while ( !_System_state_Is_up( _System_state_Get() ) ) {
+      _SMP_Try_to_process_message(
+        cpu_self,
+        _Atomic_Load_ulong( &cpu_self->message, ATOMIC_ORDER_RELAXED )
+      );
+    }
 
     cpu_max = _SMP_Processor_configured_maximum;
 
-    while ( true ) {
-      uint32_t cpu_index;
-
-      for ( cpu_index = 0 ; cpu_index < cpu_max; ++cpu_index ) {
-        Per_CPU_Control *cpu;
-
-        cpu = _Per_CPU_Get_by_index( cpu_index );
-        RTEMS_COMPILER_MEMORY_BARRIER();
-
-        if ( cpu->boot ) {
-          return cpu_index;
-        }
+    for ( cpu_index = 0 ; cpu_index < cpu_max; ++cpu_index ) {
+      if ( _Per_CPU_Get_by_index( cpu_index )->boot ) {
+        return cpu_index;
       }
     }
+
+    rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, 1 );
   }
 
   static void IncrementCounter( void *arg )
