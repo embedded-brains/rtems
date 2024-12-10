@@ -549,6 +549,12 @@ typedef void ( *FatalHandler )(
 
 void SetFatalHandler( FatalHandler fatal, void *arg );
 
+void ProduceAndCheckFatalError(
+  void       (*produce)( void *),
+  FatalHandler check,
+  void        *arg
+);
+
 void SetTaskSwitchExtension( rtems_task_switch_extension task_switch );
 
 typedef struct {
@@ -578,6 +584,8 @@ bool AreInterruptsEnabled( void );
 bool IsWhiteSpaceOnly( const char *s );
 
 bool IsEqualIgnoreWhiteSpace( const char *a, const char *b );
+
+bool ContainsSubstring( const char *s, const char *substring );
 
 #if defined(RTEMS_SMP)
 bool TicketLockIsAvailable( const SMP_ticket_lock_Control *lock );
