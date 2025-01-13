@@ -47,14 +47,14 @@ test-actions:
       processors to get ready for start multiprocessing.
     code: |
       T_step_eq_int( ${.:/step}, worker_state, PER_CPU_STATE_INITIAL );
-      T_step_eq_uint(
+      T_step_gt_uint(
         ${.:/step},
         _Atomic_Fetch_add_uint(
-          &start_multitasking_counter,
+          &boot_counter,
           0,
           ATOMIC_ORDER_RELAXED
         ),
-        1
+        0
       );
     links:
     - role: validation
@@ -68,10 +68,12 @@ test-description: null
 test-header: null
 test-includes:
 - rtems.h
+- rtems/dev/io.h
 - rtems/score/atomic.h
 - rtems/score/percpu.h
 - rtems/score/smpimpl.h
 - rtems/score/sysstate.h
+- rtems/sysinit.h
 test-local-includes: []
 test-setup: null
 test-stop: null
@@ -109,42 +111,61 @@ test-support: |
     .context = &job_context_1
   };
 
-  static Atomic_Uint start_multitasking_counter;
+  static Atomic_Uint boot_counter;
 
-  static Atomic_Uint worker_selection;
+  static Atomic_Uintptr worker_cpu;
 
-  static Per_CPU_State worker_state;
+  static Per_CPU_State worker_state = -1;
 
   static uint32_t GetBootProcessorIndex( void )
   {
-    Per_CPU_Control *cpu_self;
-    uint32_t         cpu_max;
-    uint32_t         cpu_index;
-
-    cpu_self = _Per_CPU_Get();
-
-    while ( !_System_state_Is_up( _System_state_Get() ) ) {
-      _SMP_Try_to_process_message(
-        cpu_self,
-        _Atomic_Load_ulong( &cpu_self->message, ATOMIC_ORDER_RELAXED )
-      );
-    }
+    uint32_t cpu_max;
 
     cpu_max = _SMP_Processor_configured_maximum;
 
-    for ( cpu_index = 0 ; cpu_index < cpu_max; ++cpu_index ) {
-      if ( _Per_CPU_Get_by_index( cpu_index )->boot ) {
-        return cpu_index;
-      }
-    }
+    while ( true ) {
+      uint32_t cpu_index;
 
-    rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, 1 );
+      for ( cpu_index = 0 ; cpu_index < cpu_max; ++cpu_index ) {
+        if ( _Per_CPU_Get_by_index( cpu_index )->boot ) {
+          return cpu_index;
+        }
+      }
+
+      _IO_Relax();
+    }
   }
 
   static void IncrementCounter( void *arg )
   {
     _Atomic_Fetch_add_uint( (Atomic_Uint *) arg, 1, ATOMIC_ORDER_RELAXED );
   }
+
+  static void PrepareRequestStartMultitasking( void )
+  {
+    Per_CPU_Control *cpu;
+
+    cpu = (Per_CPU_Control *)
+      _Atomic_Fetch_add_uintptr( &worker_cpu, 0, ATOMIC_ORDER_ACQUIRE );
+
+    if ( cpu != 0 ) {
+      /*
+       * This is _Per_CPU_Set_state() without the
+       * _Assert( cpu_self == _Per_CPU_Get() ) which would fail here.
+       */
+      _Atomic_Store_uint(
+        &cpu->state,
+        (unsigned int) PER_CPU_STATE_INITIAL,
+        ATOMIC_ORDER_RELEASE
+      );
+    }
+  }
+
+  RTEMS_SYSINIT_ITEM(
+    PrepareRequestStartMultitasking,
+    RTEMS_SYSINIT_LAST,
+    RTEMS_SYSINIT_ORDER_LAST
+  );
 
   void __real__SMP_Start_multitasking_on_secondary_processor(
     Per_CPU_Control *cpu_self
@@ -158,24 +179,41 @@ test-support: |
     Per_CPU_Control *cpu_self
   )
   {
-    unsigned int worker;
+    uintptr_t expected;
+    bool      success;
 
-    worker = _Atomic_Fetch_add_uint(
-      &worker_selection,
-      1,
+    expected = 0;
+    success = _Atomic_Compare_exchange_uintptr(
+      &worker_cpu,
+      &expected,
+      (uintptr_t) cpu_self,
+      ATOMIC_ORDER_RELEASE,
       ATOMIC_ORDER_RELAXED
     );
 
-    if ( worker == 0 ) {
+    if ( success ) {
       uint32_t cpu_boot;
 
       worker_state = cpu_self->state;
       cpu_boot = GetBootProcessorIndex();
-      _SMP_Unicast_action(
-        cpu_boot,
-        IncrementCounter,
-        &start_multitasking_counter
-      );
+
+      while ( true ) {
+        _SMP_Unicast_action( cpu_boot, IncrementCounter, &boot_counter );
+
+        if ( _System_state_Is_up( _System_state_Get() ) ) {
+          break;
+        }
+
+        /*
+         * If the system state is not up, then the boot processor probably waits
+         * in _Per_CPU_Wait_for_non_initial_state().  Let it go.  In
+         * PrepareRequestStartMultitasking() we will reset the state.
+         */
+        _Per_CPU_Set_state(
+          cpu_self,
+          PER_CPU_STATE_READY_TO_START_MULTITASKING
+        );
+      }
     }
     __real__SMP_Start_multitasking_on_secondary_processor( cpu_self );
   }
