@@ -1,5 +1,13 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSharedStartup
+ *
+ * @brief This header file provides interfaces of the device tree support.
+ */
+
 /*
  * Copyright (C) 2015, 2017 embedded brains GmbH & Co. KG
  *

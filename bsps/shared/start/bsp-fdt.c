@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsSharedStartup
+ *
+ * @brief This source file contains the implementations of bsp_fdt_copy() and
+ *   bsp_fdt_get().
+ */
+
 /*
  * Copyright (C) 2015, 2017 embedded brains GmbH & Co. KG
  *
