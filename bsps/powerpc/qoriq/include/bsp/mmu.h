@@ -5,7 +5,7 @@
  *
  * @ingroup RTEMSBSPsPowerPCQorIQMMU
  *
- * @brief MMU API.
+ * @brief This header file provides the QorIQ MMU API.
  */
 
 /*
@@ -46,11 +46,11 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * @defgroup QorIQMMU QorIQ - MMU Support
+ * @defgroup RTEMSBSPsPowerPCQorIQMMU QorIQ - MMU Support
  *
  * @ingroup RTEMSBSPsPowerPCQorIQ
  *
- * @brief MMU support.
+ * @brief This group contains the QorIQ MMU support.
  *
  * @{
  */

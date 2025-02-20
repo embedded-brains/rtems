@@ -5,7 +5,8 @@
  *
  * @ingroup RTEMSBSPsPowerPCQorIQMMU
  *
- * @brief MMU implementation.
+ * @brief This source file contains the implementation of the QorIQ MMU
+ *   configuration.
  */
 
 /*
