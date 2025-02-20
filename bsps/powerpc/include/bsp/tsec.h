@@ -1,9 +1,12 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
-/*
- * RTEMS support for MPC83xx
+/**
+ * @file
  *
- * This file declares the MPC83xx TSEC networking driver.
+ * @ingroup RTEMSBSPsPowerPCShared
+ *
+ * @brief This header file provides interfaces of the Three-Speed Ethernet
+ *   Controller (TSEC) driver.
  */
 
 /*

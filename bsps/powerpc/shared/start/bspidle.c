@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
+/**
+ * @file
+ *
+ * @ingroup RTEMSBSPsPowerPCShared
+ *
+ * @brief This source file contains the implementation of bsp_idle_thread()
+ *   using the low power support provided by processor register HID0.
+ */
+
 /*
  *  Moved to bsps/powerpc/shared by Joel Sherrill (9 Sept 09).
  */

@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * #ingroup RTEMSBSPsPowerPCShared
+ * @ingroup RTEMSBSPsPowerPCShared
  *
  * @brief Header file for the Cache Manager PowerPC support.
  *
