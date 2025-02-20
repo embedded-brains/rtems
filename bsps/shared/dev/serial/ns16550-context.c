@@ -1,14 +1,11 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
- *  
- *  This file contains the TTY driver for the National Semiconductor NS16550.
+ * @file
  *
- *  This part is widely cloned and second sourced.  It is found in a number
- *  of "Super IO" controllers.
+ * @ingroup RTEMSDeviceSerialNS16550
  *
- *  This driver uses the termios pseudo driver.
+ * @brief This source file contains parts of the NS16550 UART support.
  */
 
 /*

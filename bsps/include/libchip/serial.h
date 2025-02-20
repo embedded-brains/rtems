@@ -3,7 +3,10 @@
 /**
  * @file
  *
- * @brief  The generic libchip serial driver interface
+ * @ingroup RTEMSDeviceConsole
+ *
+ * @brief This header file provides interfaces for generic console device
+ *   drivers.
  */
 
 

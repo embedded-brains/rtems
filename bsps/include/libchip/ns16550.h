@@ -1,8 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0+-with-RTEMS-exception */
 
 /**
- *  @file
- *  
+ * @file
+ *
+ * @ingroup RTEMSDeviceSerialNS16550
+ *
+ * @brief This header file provides NS16550 UART interfaces.
  */
 
 /*
@@ -35,6 +38,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @defgroup RTEMSDeviceSerialNS16550 NS16550 UART Support
+ *
+ * @ingroup RTEMSDeviceConsole
+ *
+ * @brief This group contains the NS16550 UART support.
+ *
+ * @{
+ */
 
 /*
  * Driver function table
@@ -105,6 +118,8 @@ int ns16550_polled_output_char(rtems_termios_device_context *base, int c);
 int ns16550_polled_getchar(rtems_termios_device_context *base);
 
 bool ns16550_probe(rtems_termios_device_context *base);
+
+/** @} */
 
 #ifdef __cplusplus
 }

@@ -1,8 +1,11 @@
 /* SPDX-License-Identifier: GPL-2.0+-with-RTEMS-exception */
 
 /**
- *  @file
- *  
+ * @file
+ *
+ * @ingroup RTEMSDeviceSerialNS16550
+ *
+ * @brief This header file provides private NS16550 UART interfaces.
  */
 
 /*
