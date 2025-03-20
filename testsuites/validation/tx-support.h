@@ -176,6 +176,11 @@ void SetScheduler(
 
 void SetSelfScheduler( rtems_id scheduler_id, rtems_task_priority priority );
 
+void SetSelfSchedulerByProcessor(
+  uint32_t cpu_index,
+  rtems_task_priority priority
+);
+
 void GetAffinity( rtems_id id, cpu_set_t *set );
 
 void GetSelfAffinity( cpu_set_t *set );
