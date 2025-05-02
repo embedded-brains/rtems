@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: ../if/group
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${/glossary/userextensions:/term} in a
+  ${/glossary/userextensiontable:/term} may be ${/c/if/null:/name}.
+type: requirement

@@ -27,12 +27,16 @@ test-actions:
       CheckForward( THREAD_SWITCH, 1, 1, executing, thread );
     links:
     - role: validation
+      uid: ../req/optional
+    - role: validation
       uid: ../req/thread-switch-order
   - brief: |
       Check that the thread begin extensions were invoked in the right order.
     code: |
       CheckForward( THREAD_BEGIN, 8, 1, thread, NULL );
     links:
+    - role: validation
+      uid: ../req/optional
     - role: validation
       uid: ../req/thread-begin-iterate-remove
     - role: validation
@@ -77,6 +81,8 @@ test-actions:
     code: |
       CheckForward( THREAD_CREATE, 1, 1, executing, thread );
     links:
+    - role: validation
+      uid: ../req/optional
     - role: validation
       uid: ../req/thread-create-iterate-remove
     - role: validation
@@ -131,6 +137,8 @@ test-actions:
       CheckReverse( THREAD_DELETE, 1, 1, executing, thread );
     links:
     - role: validation
+      uid: ../req/optional
+    - role: validation
       uid: ../req/thread-delete-iterate-remove
     - role: validation
       uid: ../req/thread-delete-order
@@ -181,6 +189,8 @@ test-actions:
       CheckForward( THREAD_EXITTED, 1, 1, thread, NULL );
     links:
     - role: validation
+      uid: ../req/optional
+    - role: validation
       uid: ../req/thread-exitted
     - role: validation
       uid: ../req/thread-exitted-iterate-remove
@@ -224,6 +234,8 @@ test-actions:
     code: |
       CheckForward( THREAD_RESTART, 1, 1, thread, thread );
     links:
+    - role: validation
+      uid: ../req/optional
     - role: validation
       uid: ../req/thread-restart-iterate-remove
     - role: validation
@@ -270,6 +282,8 @@ test-actions:
       CheckForward( THREAD_START, 1, 1, executing, thread );
     links:
     - role: validation
+      uid: ../req/optional
+    - role: validation
       uid: ../req/thread-start-iterate-remove
     - role: validation
       uid: ../req/thread-start-order
@@ -313,6 +327,8 @@ test-actions:
       CheckReverse( THREAD_TERMINATE, 1, 1, thread, NULL );
     links:
     - role: validation
+      uid: ../req/optional
+    - role: validation
       uid: ../req/thread-terminate-iterate-remove
     - role: validation
       uid: ../req/thread-terminate-order
@@ -355,6 +371,8 @@ test-actions:
     code: |
       CheckForward( THREAD_EXITTED, 1, 1, thread, NULL );
     links:
+    - role: validation
+      uid: ../req/optional
     - role: validation
       uid: ../req/thread-exitted
     - role: validation
