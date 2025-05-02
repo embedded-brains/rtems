@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,12 +71,25 @@ const char rtems_test_name[] = "TestsuitesUserext";
 
 #define CONFIGURE_MAXIMUM_PROCESSORS 2
 
+/*
+ * Split the first extension set across two tables to show that extensions
+ * are optional.
+ */
 #define CONFIGURE_INITIAL_EXTENSIONS \
   { \
     .thread_begin = ThreadBeginExtension0, \
     .thread_create = ThreadCreateExtension0, \
     .thread_delete = ThreadDeleteExtension0, \
     .thread_exitted = ThreadExittedExtension0, \
+    .thread_restart = NULL, \
+    .thread_start = NULL, \
+    .thread_switch = NULL, \
+    .thread_terminate = NULL \
+  }, { \
+    .thread_begin = NULL, \
+    .thread_create = NULL, \
+    .thread_delete = NULL, \
+    .thread_exitted = NULL, \
     .thread_restart = ThreadRestartExtension0, \
     .thread_start = ThreadStartExtension0, \
     .thread_switch = ThreadSwitchExtension0, \
