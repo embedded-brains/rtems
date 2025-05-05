@@ -68,6 +68,7 @@ source:
 - testsuites/validation/tc-ratemon-get-status.c
 - testsuites/validation/tc-ratemon-ident.c
 - testsuites/validation/tc-ratemon-period.c
+- testsuites/validation/tc-ratemon-reset-statistics.c
 - testsuites/validation/tc-ratemon-timeout.c
 - testsuites/validation/tc-scheduler-add-processor.c
 - testsuites/validation/tc-scheduler.c
