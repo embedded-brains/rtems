@@ -61,6 +61,7 @@ source:
 - testsuites/validation/tc-part-get.c
 - testsuites/validation/tc-part-ident.c
 - testsuites/validation/tc-part-return.c
+- testsuites/validation/tc-ratemon.c
 - testsuites/validation/tc-ratemon-cancel.c
 - testsuites/validation/tc-ratemon-create.c
 - testsuites/validation/tc-ratemon-delete.c
