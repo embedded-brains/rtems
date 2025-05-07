@@ -5,11 +5,12 @@
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Interrupt API.
+ * @brief This header file provides interfaces of the interrupt controller
+ *   support.
  */
 
 /*
- * Copyright (C) 2010, 2015 embedded brains GmbH & Co. KG
+ * Copyright (C) 2010, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -160,7 +161,7 @@ extern "C" {
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief P1020 internal interrupt sources.
+ * @brief This group contains P1020 internal interrupt sources.
  *
  * @{
  */
@@ -184,7 +185,7 @@ extern "C" {
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief P2020 internal interrupt sources.
+ * @brief This group contains P2020 internal interrupt sources.
  *
  * @{
  */
@@ -210,7 +211,7 @@ extern "C" {
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Internal interrupt sources.
+ * @brief This group contains internal interrupt sources.
  *
  * @{
  */
@@ -258,7 +259,7 @@ extern "C" {
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief External interrupt sources.
+ * @brief This group contains external interrupt sources.
  *
  * @{
  */
@@ -285,7 +286,7 @@ extern "C" {
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Interprocessor interrupts.
+ * @brief This group contains interprocessor interrupts.
  *
  * @{
  */
@@ -299,11 +300,11 @@ extern "C" {
 /** @} */
 
 /**
- * @defgroup QoriqInterruptIPI QorIQ - Message Interrupts
+ * @defgroup QoriqInterruptMI QorIQ - Message Interrupts
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Message interrupts.
+ * @brief This group contains message interrupts.
  *
  * @{
  */
@@ -321,11 +322,11 @@ extern "C" {
 /** @} */
 
 /**
- * @defgroup QoriqInterruptIPI QorIQ - Shared Message Signaled Interrupts
+ * @defgroup QoriqInterruptMSI QorIQ - Shared Message Signaled Interrupts
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Shared message signaled interrupts.
+ * @brief This group contains shared message signaled interrupts.
  *
  * @{
  */
@@ -343,11 +344,11 @@ extern "C" {
 /** @} */
 
 /**
- * @defgroup QoriqInterruptIPI QorIQ - Global Timer Interrupts
+ * @defgroup QoriqInterruptGT QorIQ - Global Timer Interrupts
  *
  * @ingroup RTEMSBSPsPowerPCQorIQInterrupt
  *
- * @brief Global Timer interrupts.
+ * @brief This group contains Global Timer interrupts.
  *
  * @{
  */
@@ -385,11 +386,11 @@ extern "C" {
 #endif /* QORIQ_IS_HYPERVISOR_GUEST */
 
 /**
- * @defgroup RTEMSBSPsPowerPCQorIQInterrupt QorIQ - Interrupt Support
+ * @defgroup RTEMSBSPsPowerPCQorIQInterrupt QorIQ - Interrupt Controller Support
  *
  * @ingroup RTEMSBSPsPowerPCQorIQ
  *
- * @brief Interrupt support.
+ * @brief This group contains the interrupt controller support.
  *
  * @{
  */

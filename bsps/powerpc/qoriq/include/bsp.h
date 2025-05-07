@@ -5,7 +5,8 @@
  *
  * @ingroup RTEMSBSPsPowerPCQorIQ
  *
- * @brief Global BSP definitions.
+ * @brief This header file provides interfaces specific to the NXP QorIQ system
+ *   on a chip.
  */
 
 /*
@@ -41,7 +42,7 @@
  *
  * @ingroup RTEMSBSPsPowerPC
  *
- * @brief NXP QorIQ Board Support Package.
+ * @brief This group contains the NXP QorIQ Board Support Package interfaces.
  *
  * @{
  */
