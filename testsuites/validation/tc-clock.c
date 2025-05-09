@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021, 2022 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -88,6 +88,11 @@
  *   - Check that rtems_clock_get_ticks_per_second() actually returns 1us /
  *     CONFIGURE_MICROSECONDS_PER_TICK.
  *
+ * - Use the rtems_clock_get_uptime_nanoseconds() directive before and after
+ *   exactly one timecounter tick.
+ *
+ *   - Check that about 1ms elapsed.
+ *
  * @{
  */
 
@@ -166,16 +171,40 @@ static void RtemsClockValClock_Action_3( void )
 }
 
 /**
+ * @brief Use the rtems_clock_get_uptime_nanoseconds() directive before and
+ *   after exactly one timecounter tick.
+ */
+static void RtemsClockValClock_Action_4( void )
+{
+  uint64_t result_0;
+  uint64_t result_1;
+
+  result_0 = rtems_clock_get_uptime_nanoseconds();
+  TimecounterTick();
+  result_1 = rtems_clock_get_uptime_nanoseconds();
+
+  /*
+   * Check that about 1ms elapsed.
+   */
+  T_step_eq_u32(
+    4,
+    ( result_1 - result_0 + 499999 ) / 1000000,
+    rtems_configuration_get_milliseconds_per_tick()
+  );
+}
+
+/**
  * @fn void T_case_body_RtemsClockValClock( void )
  */
 T_TEST_CASE( RtemsClockValClock )
 {
-  T_plan( 4 );
+  T_plan( 5 );
 
   RtemsClockValClock_Action_0();
   RtemsClockValClock_Action_1();
   RtemsClockValClock_Action_2();
   RtemsClockValClock_Action_3();
+  RtemsClockValClock_Action_4();
 }
 
 /** @} */
