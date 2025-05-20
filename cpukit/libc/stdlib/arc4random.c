@@ -40,6 +40,7 @@
 
 #define KEYSTREAM_ONLY
 #define CHACHA_KEYSETUP_KBITS (KEYSZ * 8)
+#define CHACHA_COUNTER_MAX (RSBUFSZ - KEYSZ - IVSZ)
 #include "chacha_private.h"
 
 #define minimum(a, b) ((a) < (b) ? (a) : (b))

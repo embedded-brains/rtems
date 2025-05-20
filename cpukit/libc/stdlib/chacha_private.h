@@ -187,10 +187,12 @@ chacha_encrypt_bytes(chacha_ctx *x,const u8 *m,u8 *c,u32 bytes)
 #endif
 
     j12 = PLUSONE(j12);
+#if CHACHA_COUNTER_MAX > 0xffffffff
     if (!j12) {
       j13 = PLUSONE(j13);
       /* stopping at 2^70 bytes per nonce is user's responsibility */
     }
+#endif
 
     U32TO8_LITTLE(c + 0,x0);
     U32TO8_LITTLE(c + 4,x1);
