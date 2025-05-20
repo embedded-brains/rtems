@@ -142,6 +142,7 @@ static ScoreSemReqSurrender_Context
 static const char * const ScoreSemReqSurrender_PreDesc_Variant[] = {
   "Binary",
   "Counting",
+  "CountingModulo",
   "NA"
 };
 
@@ -193,6 +194,16 @@ static void ScoreSemReqSurrender_Pre_Variant_Prepare(
        * Where the semaphore is a counting semaphore.
        */
       if ( ctx->tq_ctx->variant != TQ_SEM_COUNTING ) {
+        ctx->Map.skip = true;
+      }
+      break;
+    }
+
+    case ScoreSemReqSurrender_Pre_Variant_CountingModulo: {
+      /*
+       * Where the semaphore is a counting modulo semaphore.
+       */
+      if ( ctx->tq_ctx->variant != TQ_SEM_COUNTING_MODULO ) {
         ctx->Map.skip = true;
       }
       break;
@@ -413,6 +424,9 @@ static void ScoreSemReqSurrender_Action( ScoreSemReqSurrender_Context *ctx )
 static const ScoreSemReqSurrender_Entry
 ScoreSemReqSurrender_Entries[] = {
   { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_Ok,
+    ScoreSemReqSurrender_Post_Surrender_NA,
+    ScoreSemReqSurrender_Post_Count_PlusOne },
+  { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_Ok,
     ScoreSemReqSurrender_Post_Surrender_NA, ScoreSemReqSurrender_Post_Count_One },
   { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_Ok,
     ScoreSemReqSurrender_Post_Surrender_FIFO,
@@ -420,16 +434,13 @@ ScoreSemReqSurrender_Entries[] = {
   { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_Ok,
     ScoreSemReqSurrender_Post_Surrender_Priority,
     ScoreSemReqSurrender_Post_Count_Zero },
-  { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_Ok,
-    ScoreSemReqSurrender_Post_Surrender_NA,
-    ScoreSemReqSurrender_Post_Count_PlusOne },
   { 0, 0, 0, 0, ScoreSemReqSurrender_Post_Status_MaxCountExceeded,
     ScoreSemReqSurrender_Post_Surrender_NA, ScoreSemReqSurrender_Post_Count_Nop }
 };
 
 static const uint8_t
 ScoreSemReqSurrender_Map[] = {
-  0, 0, 1, 0, 0, 2, 3, 4, 1, 3, 4, 2
+  1, 1, 2, 1, 1, 3, 0, 4, 2, 0, 4, 3, 0, 0, 2, 0, 0, 3
 };
 
 static size_t ScoreSemReqSurrender_Scope( void *arg, char *buf, size_t n )

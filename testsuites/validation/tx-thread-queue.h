@@ -443,7 +443,8 @@ rtems_tcb *TQGetOwnerClassicSem( TQContext *ctx );
 
 typedef enum {
   TQ_SEM_BINARY,
-  TQ_SEM_COUNTING
+  TQ_SEM_COUNTING,
+  TQ_SEM_COUNTING_MODULO
 } TQSemVariant;
 
 typedef struct TQSemContext {

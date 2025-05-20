@@ -66,6 +66,7 @@ extern "C" {
 typedef enum {
   ScoreSemReqSurrender_Pre_Variant_Binary,
   ScoreSemReqSurrender_Pre_Variant_Counting,
+  ScoreSemReqSurrender_Pre_Variant_CountingModulo,
   ScoreSemReqSurrender_Pre_Variant_NA
 } ScoreSemReqSurrender_Pre_Variant;
 
