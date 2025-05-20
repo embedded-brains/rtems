@@ -1,0 +1,61 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: fatal-error
+links:
+- role: requirement-refinement
+  uid: /testsuites/validation
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: interface-function
+  uid: /score/interr/if/internal-error-core
+- role: interface-function
+  uid: /score/interr/if/no-memory-for-idle-task-storage
+rationale: null
+references: []
+requirement-type: functional
+test-brief: |
+  This validation test suite contains a test case which triggers a fatal error
+  during system initialization.
+test-description: null
+test-case-code: |
+  T_eq_int( source, INTERNAL_ERROR_CORE );
+  T_eq_ulong( code, INTERNAL_ERROR_NO_MEMORY_FOR_IDLE_TASK_STORAGE );
+test-includes:
+- rtems.h
+- rtems/malloc.h
+- rtems/sysinit.h
+- rtems/score/wkspace.h
+test-local-includes: []
+test-support: |
+  void *_Workspace_Allocate( size_t size )
+  {
+    (void) size;
+    return NULL;
+  }
+
+  static void StackDeallocate( void *unused )
+  {
+    (void) unused;
+    rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, 0 );
+  }
+
+  #define CONFIGURE_TASK_STACK_ALLOCATOR_AVOIDS_WORK_SPACE
+
+  #define CONFIGURE_TASK_STACK_ALLOCATOR rtems_malloc
+
+  #define CONFIGURE_TASK_STACK_DEALLOCATOR StackDeallocate
+
+  #define CONFIGURE_TASK_STACK_FROM_ALLOCATOR( _stack_size ) 0
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  #define CONFIGURE_IDLE_TASK_INITIALIZES_APPLICATION
+test-target: testsuites/validation/ts-fatal-no-memory-for-idle-task-storage.c
+text: |
+  If the allocation of an ${/glossary/idletask:/term} fails, then the system
+  shall terminate with the ${/score/interr/if/internal-error-core:/name} fatal
+  source and the ${/score/interr/if/no-memory-for-idle-task-storage:/name}
+  fatal code.
+type: requirement
