@@ -37,6 +37,8 @@ links:
 - role: build-dependency
   uid: fatal-mandatory-processor-not-present
 - role: build-dependency
+  uid: fatal-no-memory-for-idle-task-storage
+- role: build-dependency
   uid: fatal-scheduler-requires-exactly-one-processor
 - role: build-dependency
   uid: fatal-smp

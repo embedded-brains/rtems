@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes: []
+ldflags:
+- -Wl,--wrap=rtems_malloc
+links: []
+source:
+- testsuites/validation/ts-fatal-no-memory-for-idle-task-storage.c
+stlib: []
+target: testsuites/validation/ts-fatal-no-memory-for-idle-task-storage.exe
+type: build
+use-after: []
+use-before: []
