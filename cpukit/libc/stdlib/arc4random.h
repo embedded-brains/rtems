@@ -70,15 +70,15 @@ _getentropy_fail(void)
 #endif
 }
 
-static inline int
+static inline void
 _rs_allocate(struct _rs **rsp, struct _rsx **rsxp)
 {
 #ifdef _ARC4RANDOM_ALLOCATE
-	_ARC4RANDOM_ALLOCATE(rsp, rsxp);
+	if (_ARC4RANDOM_ALLOCATE(rsp, rsxp) == -1)
+		_exit(1);
 #else
 	*rsp = &_arc4random_data.rs;
 	*rsxp = &_arc4random_data.rsx;
-	return (0);
 #endif
 }
 

@@ -69,7 +69,7 @@ static struct _rsx {
 	u_char		rs_buf[RSBUFSZ];	/* keystream blocks */
 } *rsx;
 
-static inline int _rs_allocate(struct _rs **, struct _rsx **);
+static inline void _rs_allocate(struct _rs **, struct _rsx **);
 static inline void _rs_forkdetect(void);
 #include "arc4random.h"
 
@@ -82,8 +82,7 @@ _rs_init(u_char *buf, size_t n)
 		return;
 
 	if (rs == NULL) {
-		if (_rs_allocate(&rs, &rsx) == -1)
-			_exit(1);
+		_rs_allocate(&rs, &rsx);
 	}
 
 	chacha_keysetup(&rsx->rs_chacha, buf, KEYSZ * 8);
