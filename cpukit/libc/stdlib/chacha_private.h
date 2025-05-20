@@ -47,11 +47,14 @@ typedef struct
   a = PLUS(a,b); d = ROTATE(XOR(d,a), 8); \
   c = PLUS(c,d); b = ROTATE(XOR(b,c), 7);
 
+#if CHACHA_KEYSETUP_KBITS == 256
 static const char sigma[16] = "expand 32-byte k";
+#else
 static const char tau[16] = "expand 16-byte k";
+#endif
 
 static void
-chacha_keysetup(chacha_ctx *x,const u8 *k,u32 kbits)
+chacha_keysetup(chacha_ctx *x,const u8 *k)
 {
   const char *constants;
 
@@ -59,12 +62,14 @@ chacha_keysetup(chacha_ctx *x,const u8 *k,u32 kbits)
   x->input[5] = U8TO32_LITTLE(k + 4);
   x->input[6] = U8TO32_LITTLE(k + 8);
   x->input[7] = U8TO32_LITTLE(k + 12);
-  if (kbits == 256) { /* recommended */
-    k += 16;
-    constants = sigma;
-  } else { /* kbits == 128 */
-    constants = tau;
-  }
+#if CHACHA_KEYSETUP_KBITS == 256
+  /* recommended */
+  k += 16;
+  constants = sigma;
+#else
+  /* kbits == 128 */
+  constants = tau;
+#endif
   x->input[8] = U8TO32_LITTLE(k + 0);
   x->input[9] = U8TO32_LITTLE(k + 4);
   x->input[10] = U8TO32_LITTLE(k + 8);

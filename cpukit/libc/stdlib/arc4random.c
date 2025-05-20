@@ -33,7 +33,13 @@
 #include <sys/types.h>
 #include <sys/time.h>
 
+#define KEYSZ	32
+#define IVSZ	8
+#define BLOCKSZ	64
+#define RSBUFSZ	(16*BLOCKSZ)
+
 #define KEYSTREAM_ONLY
+#define CHACHA_KEYSETUP_KBITS (KEYSZ * 8)
 #include "chacha_private.h"
 
 #define minimum(a, b) ((a) < (b) ? (a) : (b))
@@ -43,11 +49,6 @@
 #else				/* __GNUC__ || _MSC_VER */
 #define inline
 #endif				/* !__GNUC__ && !_MSC_VER */
-
-#define KEYSZ	32
-#define IVSZ	8
-#define BLOCKSZ	64
-#define RSBUFSZ	(16*BLOCKSZ)
 
 #if SIZE_MAX <= 65535
 #define REKEY_BASE	(  32*1024) /* NB. should be a power of 2 */
@@ -85,7 +86,7 @@ _rs_init(u_char *buf, size_t n)
 		_rs_allocate(&rs, &rsx);
 	}
 
-	chacha_keysetup(&rsx->rs_chacha, buf, KEYSZ * 8);
+	chacha_keysetup(&rsx->rs_chacha, buf);
 	chacha_ivsetup(&rsx->rs_chacha, buf + KEYSZ);
 }
 
