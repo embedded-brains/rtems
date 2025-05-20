@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/nanoseconds-to-ticks
+- role: interface-function
+  uid: ../if/ticks
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/nanoseconds-to-ticks:/name} directive shall return the
+  ${../if/nanoseconds-to-ticks:/params[0]/name} parameter value in nanoseconds
+  converted to RTEMS counter ticks.
+type: requirement

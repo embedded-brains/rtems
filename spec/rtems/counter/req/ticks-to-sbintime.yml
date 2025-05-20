@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/ticks-to-sbintime
+- role: interface-function
+  uid: ../if/ticks
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/ticks-to-sbintime:/name} directive shall return the
+  ${../if/ticks-to-sbintime:/params[0]/name} parameter value in RTEMS
+  counter ticks converted to signed binary time.
+type: requirement

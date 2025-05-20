@@ -1,0 +1,142 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Validate the RTEMS counter directives.
+  action-code: |
+    rtems_counter_ticks ticks[ 10 ];
+    rtems_counter_ticks max;
+    rtems_counter_ticks interval_ticks;
+    uint32_t            frequency;
+    size_t              i;
+    uint64_t            t0;
+    uint64_t            t1;
+    uint64_t            interval_ns;
+
+    max = (rtems_counter_ticks) - 1;
+    frequency = rtems_counter_frequency();
+    interval_ticks = frequency / 123;
+    interval_ns = UINT64_C( 1000000000 ) / 123;
+  checks:
+  - brief: |
+      Check that ${../if/difference:/name} returns the expected value.
+    code: |
+      T_eq_ulong( rtems_counter_difference( 2, 1 ), 1 );
+    links:
+    - role: validation
+      uid: ../req/difference
+  - brief: |
+      Check that ${../if/frequency:/name} returns a valid frequency.
+    code: |
+      T_gt_u32( frequency, 0 );
+    links:
+    - role: validation
+      uid: ../req/frequency
+  - brief: |
+      Check that ${../if/read:/name} returns monotonically increasing values.
+    code: |
+      ticks[ 0 ] = rtems_counter_read();
+
+      for ( i = 1; i < RTEMS_ARRAY_SIZE( ticks ); ++i ) {
+        rtems_counter_ticks delta;
+
+        do {
+          ticks[ i ] = rtems_counter_read();
+        } while ( ticks[ i - 1 ] == ticks[ i ] );
+
+        delta = ticks[ i ] - ticks[ i - 1 ];
+        T_lt_ulong( delta, max / 2 );
+      }
+    links:
+    - role: validation
+      uid: ../req/read
+  - brief: |
+      Check that ${../if/ticks-to-nanoseconds:/name} returns the expected
+      value.
+    code: |
+      T_le_u32(
+        rtems_counter_ticks_to_nanoseconds( frequency ) -
+          UINT32_C( 1000000000 ),
+        1
+      );
+    links:
+    - role: validation
+      uid: ../req/ticks-to-nanoseconds
+  - brief: |
+      Check that ${../if/nanoseconds-to-ticks:/name} returns the expected
+      value.
+    code: |
+      T_le_ulong(
+        rtems_counter_nanoseconds_to_ticks( UINT32_C( 1000000000 ) ) -
+          frequency,
+        1
+      );
+    links:
+    - role: validation
+      uid: ../req/nanoseconds-to-ticks
+  - brief: |
+      Check that ${../if/ticks-to-sbintime:/name} returns the expected
+      value.
+    code: |
+      T_le_i64(
+        rtems_counter_ticks_to_sbintime( frequency ) -
+          INT64_C( 0x100000000 ),
+        1
+      );
+    links:
+    - role: validation
+      uid: ../req/ticks-to-sbintime
+  - brief: |
+      Check that ${../if/sbintime-to-ticks:/name} returns the expected
+      value.
+    code: |
+      T_le_ulong(
+        rtems_counter_sbintime_to_ticks( INT64_C( 0x100000000 ) ) -
+          frequency,
+        1
+      );
+    links:
+    - role: validation
+      uid: ../req/sbintime-to-ticks
+  - brief: |
+      Check that during a ${../if/delay-ticks:/name} call the expected amount
+      of time elapsed.
+    code: |
+      t0 = rtems_clock_get_uptime_nanoseconds();
+      rtems_counter_delay_ticks( interval_ticks );
+      t1 = rtems_clock_get_uptime_nanoseconds();
+      T_ge_u64( t1 - t0, interval_ns );
+    links:
+    - role: validation
+      uid: ../req/delay-ticks
+  - brief: |
+      Check that during a ${../if/delay-nanoseconds:/name} call the expected amount
+      of time elapsed.
+    code: |
+      t0 = rtems_clock_get_uptime_nanoseconds();
+      rtems_counter_delay_nanoseconds( interval_ns );
+      t1 = rtems_clock_get_uptime_nanoseconds();
+      T_ge_u64( t1 - t0, interval_ns );
+    links:
+    - role: validation
+      uid: ../req/delay-nanoseconds
+  links: []
+test-brief: |
+  Tests the RTEMS counter.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/counter.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+test-target: testsuites/validation/tc-counter.c
+test-teardown: null
+type: test-case

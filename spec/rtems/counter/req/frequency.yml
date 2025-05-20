@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/frequency
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/frequency:/name} directive shall return the RTEMS counter
+  frequency in Hz.
+type: requirement
