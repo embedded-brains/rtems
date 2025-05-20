@@ -80,6 +80,13 @@ pre-conditions:
       }
     text: |
       Where the semaphore is a counting semaphore.
+  - name: CountingModulo
+    test-code: |
+      if ( ctx->tq_ctx->variant != TQ_SEM_COUNTING_MODULO ) {
+        ${.:skip}
+      }
+    text: |
+      Where the semaphore is a counting modulo semaphore.
   test-epilogue: null
   test-prologue: null
 - name: Discipline
@@ -228,8 +235,7 @@ transition-map:
     - specified-by: Discipline
     Count: Zero
   pre-conditions:
-    Variant:
-    - Binary
+    Variant: all
     Discipline: all
     Count:
     - Blocked
@@ -258,13 +264,13 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: Ok
-    Surrender:
-    - specified-by: Discipline
-    Count: Zero
+    Surrender: N/A
+    Count: PlusOne
   pre-conditions:
     Variant:
-    - Counting
+    - CountingModulo
     Discipline: all
     Count:
-    - Blocked
+    - LessMax
+    - Max
 type: requirement
