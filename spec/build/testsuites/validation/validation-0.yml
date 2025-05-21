@@ -12,6 +12,7 @@ ldflags: []
 links: []
 source:
 - testsuites/validation/tc-acfg-appl-needs-clock-driver.c
+- testsuites/validation/tc-counter.c
 - testsuites/validation/tc-event-send-receive.c
 - testsuites/validation/tc-mem-rtems-calloc.c
 - testsuites/validation/tc-mem-rtems-malloc.c
