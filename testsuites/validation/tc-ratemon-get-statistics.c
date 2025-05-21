@@ -248,10 +248,13 @@ static void TickWorker( rtems_task_argument arg )
   }
 }
 
-static void TimespecEq( const struct timespec *ts, long ms )
+static void TimespecEq( const struct timespec *ts, rtems_interval ticks )
 {
   T_eq_ll( ts->tv_sec, 0 );
-  T_eq_long( ( ts->tv_nsec + 499999L ) / 1000000L, ms );
+  T_eq_long(
+    ( ts->tv_nsec + 499999L ) / 1000000L,
+    ticks * rtems_configuration_get_milliseconds_per_tick()
+  );
 }
 
 static void TimespecNop( const struct timespec *ts )

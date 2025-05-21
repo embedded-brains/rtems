@@ -54,6 +54,8 @@
 
 #include <rtems.h>
 #include <string.h>
+#include <rtems/bspIo.h>
+#include <rtems/printer.h>
 
 #include "tx-support.h"
 
@@ -75,6 +77,18 @@
  *   - Check that the statistics are in the reset state.
  *
  *   - Delete the rate-monotonic object.
+ *
+ * - Reset the rate-monotonic statistics.  Create an active period object.
+ *   Create an inactive period object.
+ *
+ *   - Call rtems_rate_monotonic_report_statistics().  Check that the expected
+ *     report was produced.
+ *
+ *   - Initialize a printer.  Call
+ *     rtems_rate_monotonic_report_statistics_with_plugin(). Check that the
+ *     expected report was produced.
+ *
+ *   - Delete the rate-monotonic objects.
  *
  * @{
  */
@@ -123,20 +137,37 @@ static void TimespecMax( const struct timespec *ts )
   T_eq_long( ts->tv_nsec, 999999999L );
 }
 
-static void TimespecEq( const struct timespec *ts, long ms )
+static void TimespecEq( const struct timespec *ts, rtems_interval ticks )
 {
   T_eq_ll( ts->tv_sec, 0 );
-  T_eq_long( ( ts->tv_nsec + 499999L ) / 1000000L, ms );
+  T_eq_long(
+    ( ts->tv_nsec + 499999L ) / 1000000L,
+    ticks * rtems_configuration_get_milliseconds_per_tick()
+  );
 }
 
-static rtems_id CreatePeriod( void )
+static rtems_id CreatePeriod( rtems_name name, uint32_t index )
 {
-  rtems_id                               id;
+  while ( true ) {
+    rtems_id          id;
+    rtems_status_code sc;
+
+    sc = rtems_rate_monotonic_create( name, &id );
+    T_rsc_success( sc );
+
+    if ( rtems_object_id_get_index( id ) == index ) {
+      return id;
+    }
+
+    sc = rtems_rate_monotonic_delete( id );
+    T_rsc_success( sc );
+  }
+}
+
+static void InitializePeriod( rtems_id id )
+{
   rtems_rate_monotonic_period_statistics stats;
   rtems_status_code                      sc;
-
-  sc = rtems_rate_monotonic_create( OBJECT_NAME, &id );
-  T_rsc_success( sc );
 
   sc = rtems_rate_monotonic_period( id, 3 );
   T_rsc_success( sc );
@@ -173,8 +204,52 @@ static rtems_id CreatePeriod( void )
   TimespecEq( &stats.min_wall_time, 1 );
   TimespecEq( &stats.max_wall_time, 4 );
   TimespecEq( &stats.total_wall_time, 7 );
+}
 
-  return id;
+static const char expected_report[] =
+  "Period information by period\r\n"
+  "--- CPU times are in seconds ---\r\n"
+  "--- Wall times are in seconds ---\r\n"
+  "   ID     OWNER COUNT MISSED          CPU TIME                  WALL TIME\r\n"
+  "                                    MIN/MAX/AVG                MIN/MAX/AVG\r\n"
+  "0x42010002 RUN      3      1 0.0*****/0.0*****/0.0***** 0.0*****/0.0*****/0.0*****\r\n"
+  "0x42010003 RUN      0      0 \r\n";
+
+static char actual_report[ sizeof( expected_report ) ];
+
+static bool CheckReport( void )
+{
+  size_t i;
+
+  for ( i = 0; i < sizeof( expected_report ); ++i ) {
+    char expected;
+
+    expected = expected_report[ i ];
+
+    if ( expected == '*' ) {
+      continue;
+    }
+
+    if ( expected != actual_report[ i ] ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+static size_t report_index;
+
+static void OutputChar( char c )
+{
+  size_t index;
+
+  index = report_index;
+
+  if ( index < sizeof( actual_report ) ) {
+    report_index = index + 1;
+    actual_report[ index ] = c;
+  }
 }
 
 static void RtemsRatemonValRatemon_Setup( RtemsRatemonValRatemon_Context *ctx )
@@ -227,7 +302,8 @@ static void RtemsRatemonValRatemon_Action_0( void )
   rtems_rate_monotonic_period_statistics stats;
   rtems_status_code                      sc;
 
-  id = CreatePeriod();
+  id = CreatePeriod( OBJECT_NAME, 2 );
+  InitializePeriod( id );
   rtems_rate_monotonic_reset_all_statistics();
 
   sc = rtems_rate_monotonic_get_statistics( id, &stats );
@@ -253,11 +329,68 @@ static void RtemsRatemonValRatemon_Action_0( void )
 }
 
 /**
+ * @brief Reset the rate-monotonic statistics.  Create an active period object.
+ *   Create an inactive period object.
+ */
+static void RtemsRatemonValRatemon_Action_1( void )
+{
+  rtems_id                      active;
+  rtems_id                      inactive;
+  rtems_status_code             sc;
+  rtems_printer                 printer;
+  BSP_output_char_function_type output_char;
+
+  rtems_rate_monotonic_reset_all_statistics();
+
+  active = CreatePeriod( rtems_build_name( 'A', 'C', 'T', 'V' ), 2 );
+  InitializePeriod( active );
+
+  inactive = CreatePeriod( rtems_build_name( 'I', 'A', 'C', 'T' ), 3 );
+
+  /*
+   * Call rtems_rate_monotonic_report_statistics().  Check that the expected
+   * report was produced.
+   */
+  report_index = 0;
+  output_char = BSP_output_char;
+  BSP_output_char = OutputChar;
+  rtems_rate_monotonic_report_statistics();
+  BSP_output_char = output_char;
+
+  T_true( CheckReport() );
+
+  /*
+   * Initialize a printer.  Call
+   * rtems_rate_monotonic_report_statistics_with_plugin(). Check that the
+   * expected report was produced.
+   */
+  rtems_print_printer_printk( &printer );
+
+  report_index = 0;
+  output_char = BSP_output_char;
+  BSP_output_char = OutputChar;
+  rtems_rate_monotonic_report_statistics_with_plugin( &printer );
+  BSP_output_char = output_char;
+
+  T_true( CheckReport() );
+
+  /*
+   * Delete the rate-monotonic objects.
+   */
+  sc = rtems_rate_monotonic_delete( active );
+  T_rsc_success( sc );
+
+  sc = rtems_rate_monotonic_delete( inactive );
+  T_rsc_success( sc );
+}
+
+/**
  * @fn void T_case_body_RtemsRatemonValRatemon( void )
  */
 T_TEST_CASE_FIXTURE( RtemsRatemonValRatemon, &RtemsRatemonValRatemon_Fixture )
 {
   RtemsRatemonValRatemon_Action_0();
+  RtemsRatemonValRatemon_Action_1();
 }
 
 /** @} */
