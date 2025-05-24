@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Installs the interrupt entry at the interrupt vector.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -32,6 +32,21 @@ description: |
 
   If the option ${option-shared:/name} is set, then multiple handlers may be
   installed for the interrupt vector.
+
+  One of the following mutually exclusive options
+
+  * ${option-enable:/name} and
+
+  * ${option-no-enable:/name}
+
+  may be set in the ${.:/params[2]/name} parameter.
+
+  If the option ${option-enable:/name} is set and the first entry or handler is
+  installed, then the interrupt vector is enabled.  This is also the default
+  behaviour.
+
+  If the option ${option-no-enable:/name} is set, then the interrupt vector is
+  not enabled by the directive call.
 enabled-by: true
 index-entries: []
 interface-type: function

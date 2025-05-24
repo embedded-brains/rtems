@@ -1,11 +1,15 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/entry-install
+- role: interface-function
+  uid: ../if/option-enable
+- role: interface-function
+  uid: ../if/option-no-enable
 - role: interface-function
   uid: ../if/option-replace
 - role: interface-function
