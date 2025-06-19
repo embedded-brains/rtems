@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: Returns the board support package name.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: const char *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_board_support_package
+notes: null
+params: []
+return:
+  return: The board support package name.
+  return-values: []
+type: interface

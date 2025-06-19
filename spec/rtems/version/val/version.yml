@@ -1,0 +1,99 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Validate the version directives.
+  action-code: |
+    char buf[ 128 ];
+  checks:
+  - brief: |
+      Check that ${../if/board-support-package:/name} returns the expected value.
+    code: |
+      T_ne_str( rtems_board_support_package(), "" );
+    links:
+    - role: validation
+      uid: ../req/board-support-package
+  - brief: |
+      Check that ${../if/control-key-is-valid:/name} returns the expected value.
+    code: |
+      T_ne_str( rtems_version_control_key(), "" );
+    links:
+    - role: validation
+      uid: ../req/control-key-is-valid
+  - brief: |
+      Check that ${../if/control-key:/name} returns the expected value.
+    code: |
+      T_true( rtems_version_control_key_is_valid( rtems_version_control_key() ) );
+    links:
+    - role: validation
+      uid: ../req/control-key
+  - brief: |
+      Check that ${../if/major:/name} returns the expected value.
+    code: |
+      T_eq_int( rtems_version_major(), 7 );
+    links:
+    - role: validation
+      uid: ../req/major
+  - brief: |
+      Check that ${../if/minor:/name} returns the expected value.
+    code: |
+      T_eq_int( rtems_version_minor(), 0 );
+    links:
+    - role: validation
+      uid: ../req/minor
+  - brief: |
+      Check that ${../if/release-label-is-valid:/name} returns the expected value.
+    code: |
+      T_true( rtems_version_release_label_is_valid() );
+    links:
+    - role: validation
+      uid: ../req/release-label-is-valid
+  - brief: |
+      Check that ${../if/release-label:/name} returns the expected value.
+    code: |
+      T_ne_str( rtems_version_release_label(), "" );
+    links:
+    - role: validation
+      uid: ../req/release-label
+  - brief: |
+      Check that ${../if/revision:/name} returns the expected value.
+    code: |
+      T_eq_int( rtems_version_revision(), 0 );
+    links:
+    - role: validation
+      uid: ../req/revision
+  - brief: |
+      Check that ${../if/version:/name} returns the expected value.
+    code: |
+      T_snprintf(
+        buf,
+        sizeof( buf ),
+        "%i.%i.%i.%s",
+        rtems_version_major(),
+        rtems_version_minor(),
+        rtems_version_revision(),
+        rtems_version_control_key()
+      );
+      T_eq_str( rtems_version(), buf );
+    links:
+    - role: validation
+      uid: ../req/version
+  links: []
+test-brief: |
+  Tests the RTEMS version API.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/version.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+test-target: testsuites/validation/tc-version.c
+test-teardown: null
+type: test-case

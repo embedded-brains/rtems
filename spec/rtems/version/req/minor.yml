@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/minor
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/minor:/name} directive shall return the zero.
+type: requirement

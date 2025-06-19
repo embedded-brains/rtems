@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/control-key
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/control-key:/name} directive shall return the Git commit hash of
+  the RTEMS sources.
+type: requirement

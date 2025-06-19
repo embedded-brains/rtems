@@ -1,0 +1,29 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: Returns the revision label for the current version of code that has been built.
+copyrights:
+- Copyright (C) 2017 Chris Johns
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: const char *
+  variants: []
+description: The release label is a string of characters. Only the RTEMS project released
+  sources can have an empty release label.  Use ${release-label-is-valid:/name}
+  to check if the release label is valid.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_version_release_label
+notes: null
+params: []
+return:
+  return: The release label.
+  return-values: []
+type: interface
