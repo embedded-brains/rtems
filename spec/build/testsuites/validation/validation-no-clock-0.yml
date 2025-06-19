@@ -135,6 +135,7 @@ source:
 - testsuites/validation/tc-userext-create.c
 - testsuites/validation/tc-userext-delete.c
 - testsuites/validation/tc-userext-ident.c
+- testsuites/validation/tc-version.c
 - testsuites/validation/tr-event-constant.c
 - testsuites/validation/tr-io-kernel-printflike.c
 - testsuites/validation/tr-mtx-seize-try.c
