@@ -15,11 +15,14 @@ test-actions:
     uint64_t            t0;
     uint64_t            t1;
     uint64_t            interval_ns;
+    uint32_t            clock_resolution_ns;
+    uint64_t            delta_ns;
 
     max = (rtems_counter_ticks) - 1;
     frequency = rtems_counter_frequency();
     interval_ticks = frequency / 123;
     interval_ns = UINT64_C( 1000000000 ) / 123;
+    clock_resolution_ns = ( UINT32_C( 1000000000 ) + frequency - 1 ) / frequency;
   checks:
   - brief: |
       Check that ${../if/difference:/name} returns the expected value.
@@ -108,7 +111,11 @@ test-actions:
       t0 = rtems_clock_get_uptime_nanoseconds();
       rtems_counter_delay_ticks( interval_ticks );
       t1 = rtems_clock_get_uptime_nanoseconds();
-      T_ge_u64( t1 - t0, interval_ns );
+      delta_ns = t1 - t0;
+
+      if ( delta_ns < interval_ns ) {
+        T_lt_u64( interval_ns - delta_ns, clock_resolution_ns );
+      }
     links:
     - role: validation
       uid: ../req/delay-ticks
@@ -119,7 +126,11 @@ test-actions:
       t0 = rtems_clock_get_uptime_nanoseconds();
       rtems_counter_delay_nanoseconds( interval_ns );
       t1 = rtems_clock_get_uptime_nanoseconds();
-      T_ge_u64( t1 - t0, interval_ns );
+      delta_ns = t1 - t0;
+
+      if ( delta_ns < interval_ns ) {
+        T_lt_u64( interval_ns - delta_ns, clock_resolution_ns );
+      }
     links:
     - role: validation
       uid: ../req/delay-nanoseconds
