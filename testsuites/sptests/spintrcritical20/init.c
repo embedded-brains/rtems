@@ -53,7 +53,6 @@ typedef struct {
   bool status_was_successful;
   bool status_was_timeout;
   volatile bool early;
-  volatile bool late;
 } test_context;
 
 static void semaphore_task(rtems_task_argument arg)
@@ -87,18 +86,16 @@ static T_interrupt_test_state interrupt(void *arg)
   sc = rtems_semaphore_release(ctx->semaphore_id);
   T_quiet_rsc_success(sc);
 
-  if ( ctx->early ) {
-    state = T_INTERRUPT_TEST_EARLY;
-  } else if ( ctx->late ) {
-    state = T_INTERRUPT_TEST_LATE;
-  } else if (
+  if (
     ctx->thread_queue_was_null
       && ctx->status_was_successful
       && ctx->status_was_timeout
   ) {
     state = T_INTERRUPT_TEST_DONE;
+  } else if ( ctx->early ) {
+    state = T_INTERRUPT_TEST_EARLY;
   } else {
-    state = T_INTERRUPT_TEST_CONTINUE;
+    state = T_INTERRUPT_TEST_LATE;
   }
 
   return state;
@@ -109,7 +106,6 @@ static void prepare(void *arg)
   test_context *ctx = arg;
 
   ctx->early = true;
-  ctx->late = false;
 }
 
 static void action(void *arg)
@@ -143,7 +139,6 @@ static void action(void *arg)
       break;
   }
 
-  ctx->late = true;
   _Thread_Dispatch_enable(cpu_self);
 
   T_interrupt_test_busy_wait_for_interrupt();
