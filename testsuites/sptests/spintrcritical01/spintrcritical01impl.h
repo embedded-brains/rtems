@@ -96,6 +96,10 @@ static T_interrupt_test_state interrupt( void *arg )
   Thread_Wait_flags       flags;
   rtems_status_code       status;
 
+  if (T_interrupt_test_get_state() != T_INTERRUPT_TEST_ACTION) {
+    return T_INTERRUPT_TEST_CONTINUE;
+  }
+
   ctx = arg;
   flags = _Thread_Wait_flags_get( ctx->thread ) & THREAD_WAIT_MASK;
 
