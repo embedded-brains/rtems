@@ -47,7 +47,6 @@ typedef struct {
   rtems_task_priority priority_task;
   rtems_task_priority priority_interrupt;
   volatile bool early;
-  volatile bool late;
 } test_context;
 
 static T_interrupt_test_state interrupt(void *arg)
@@ -94,10 +93,8 @@ static T_interrupt_test_state interrupt(void *arg)
 
     if ( ctx->early ) {
       state = T_INTERRUPT_TEST_EARLY;
-    } else if ( ctx->late ) {
-      state = T_INTERRUPT_TEST_LATE;
     } else {
-      state = T_INTERRUPT_TEST_CONTINUE;
+      state = T_INTERRUPT_TEST_LATE;
     }
   }
 
@@ -109,7 +106,6 @@ static void prepare(void *arg)
   test_context *ctx = arg;
 
   ctx->early = true;
-  ctx->late = false;
 }
 
 static void action(void *arg)
@@ -140,7 +136,6 @@ static void action(void *arg)
   );
   T_quiet_rsc_success(RTEMS_SUCCESSFUL);
   T_quiet_eq_u32(previous, priority_last);
-  ctx->late = true;
 
   if (T_interrupt_test_get_state() == T_INTERRUPT_TEST_DONE) {
     sc = rtems_task_set_priority(
