@@ -967,7 +967,6 @@ source:
 - cpukit/rtems/src/rtemsobjectgetapiname.c
 - cpukit/rtems/src/rtemsobjectgetclassicname.c
 - cpukit/rtems/src/rtemsobjectgetclassinfo.c
-- cpukit/rtems/src/rtemsobjectgetname.c
 - cpukit/rtems/src/rtemsobjectidapimaximum.c
 - cpukit/rtems/src/rtemsobjectidapiminimum.c
 - cpukit/rtems/src/rtemsobjectidgetapi.c
@@ -1061,7 +1060,6 @@ source:
 - cpukit/score/src/objectfree.c
 - cpukit/score/src/objectgetinfo.c
 - cpukit/score/src/objectgetinfoid.c
-- cpukit/score/src/objectgetnameasstring.c
 - cpukit/score/src/objectgetnext.c
 - cpukit/score/src/objectidtoname.c
 - cpukit/score/src/objectnamespaceremove.c

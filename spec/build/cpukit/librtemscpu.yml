@@ -380,6 +380,7 @@ source:
 - cpukit/rtems/src/rtemsnametoid.c
 - cpukit/rtems/src/rtemsbuildname.c
 - cpukit/rtems/src/rtemsmaxprio.c
+- cpukit/rtems/src/rtemsobjectgetname.c
 - cpukit/rtems/src/rtemstimer.c
 - cpukit/rtems/src/scheduleraddprocessor.c
 - cpukit/rtems/src/schedulergetmaxprio.c
@@ -478,6 +479,7 @@ source:
 - cpukit/score/src/objectfreenothing.c
 - cpukit/score/src/objectfreestatic.c
 - cpukit/score/src/objectgetlocal.c
+- cpukit/score/src/objectgetnameasstring.c
 - cpukit/score/src/objectgetnoprotection.c
 - cpukit/score/src/objectinitializeinformation.c
 - cpukit/score/src/objectnametoid.c
