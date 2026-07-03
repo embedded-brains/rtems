@@ -473,7 +473,6 @@ source:
 - cpukit/libcsupport/src/printerfprintfputc.c
 - cpukit/libcsupport/src/printertask.c
 - cpukit/libcsupport/src/printf_plugin.c
-- cpukit/libcsupport/src/printk.c
 - cpukit/libcsupport/src/printk_plugin.c
 - cpukit/libcsupport/src/privateenv.c
 - cpukit/libcsupport/src/putk.c
@@ -536,7 +535,6 @@ source:
 - cpukit/libcsupport/src/utimensat.c
 - cpukit/libcsupport/src/utimes.c
 - cpukit/libcsupport/src/utsname.c
-- cpukit/libcsupport/src/vprintk.c
 - cpukit/libcsupport/src/write.c
 - cpukit/libcsupport/src/write_r.c
 - cpukit/libcsupport/src/writev.c
