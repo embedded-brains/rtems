@@ -511,6 +511,7 @@ source:
 - cpukit/score/src/schedulerpriorityyield.c
 - cpukit/score/src/schedulersetaffinity.c
 - cpukit/score/src/stackallocatorforidle.c
+- cpukit/score/src/stackallocatorforidlewkspace.c
 - cpukit/score/src/thread.c
 - cpukit/score/src/threadchangepriority.c
 - cpukit/score/src/threadclearstate.c
