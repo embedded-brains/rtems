@@ -80,9 +80,8 @@
  *
  *   - Check that the all counter is equal to the count of tasks.  Check that
  *     the calling task was visited exacly once.  Firstly, this shows that
- *     rtems_task_iterate() used the parameters specified by ``visitor`` and
- *     ``arg``. Secondly, this shows that the iteration was done over all
- *     tasks.
+ *     rtems_task_iterate() used the parameters specified by `visitor` and
+ *     `arg`. Secondly, this shows that the iteration was done over all tasks.
  *
  *   - Check that the object alloctor mutex was not owned before and after the
  *     call.  Check that the object alloctor mutex was owned during the
@@ -190,8 +189,8 @@ static void RtemsTaskValTask_Action_1( void )
   /*
    * Check that the all counter is equal to the count of tasks.  Check that the
    * calling task was visited exacly once.  Firstly, this shows that
-   * rtems_task_iterate() used the parameters specified by ``visitor`` and
-   * ``arg``. Secondly, this shows that the iteration was done over all tasks.
+   * rtems_task_iterate() used the parameters specified by `visitor` and `arg`.
+   * Secondly, this shows that the iteration was done over all tasks.
    */
   T_step_eq_u32( 1, iter_ctx.counter_all, task_count );
   T_step_eq_u32( 2, iter_ctx.counter_self, 1 );

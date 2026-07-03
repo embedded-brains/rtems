@@ -146,7 +146,7 @@ typedef struct {
   rtems_vector_number some_vector;
 
   /**
-   * @brief This member provides the object referenced by the ``affinity``
+   * @brief This member provides the object referenced by the `affinity`
    *   parameter.
    */
   cpu_set_t cpuset_obj[ 2 ];
@@ -158,18 +158,17 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief If this member is true, then the ``vector`` parameter shall be
-   *   valid.
+   * @brief If this member is true, then the `vector` parameter shall be valid.
    */
   bool valid_vector;
 
   /**
-   * @brief This member specifies if the ``affinity_size`` parameter value.
+   * @brief This member specifies if the `affinity_size` parameter value.
    */
   size_t cpusetsize;
 
   /**
-   * @brief This member specifies if the ``affinity`` parameter value.
+   * @brief This member specifies if the `affinity` parameter value.
    */
   cpu_set_t *cpuset;
 
@@ -308,7 +307,7 @@ static void RtemsIntrReqSetAffinity_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqSetAffinity_Pre_Vector_Valid: {
       /*
-       * While the ``vector`` parameter is associated with an interrupt vector.
+       * While the `vector` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -316,7 +315,7 @@ static void RtemsIntrReqSetAffinity_Pre_Vector_Prepare(
 
     case RtemsIntrReqSetAffinity_Pre_Vector_Invalid: {
       /*
-       * While the ``vector`` parameter is not associated with an interrupt
+       * While the `vector` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -336,8 +335,8 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetSize_Prepare(
   switch ( state ) {
     case RtemsIntrReqSetAffinity_Pre_CPUSetSize_Askew: {
       /*
-       * While the ``affinity_size`` parameter is not an integral multiple of
-       * the size of long.
+       * While the `affinity_size` parameter is not an integral multiple of the
+       * size of long.
        */
       ctx->cpusetsize = SIZE_MAX;
       break;
@@ -345,8 +344,8 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetSize_Prepare(
 
     case RtemsIntrReqSetAffinity_Pre_CPUSetSize_Normal: {
       /*
-       * While the ``affinity_size`` parameter is an integral multiple of the
-       * size of long, while the ``affinity_size`` parameter is less than or
+       * While the `affinity_size` parameter is an integral multiple of the
+       * size of long, while the `affinity_size` parameter is less than or
        * equal to the maximum processor set size storable in the system.
        */
       ctx->cpusetsize = sizeof( ctx->cpuset_obj[ 0 ] );
@@ -355,9 +354,9 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetSize_Prepare(
 
     case RtemsIntrReqSetAffinity_Pre_CPUSetSize_Huge: {
       /*
-       * While the ``affinity_size`` parameter is an integral multiple of the
-       * size of long, while the ``affinity_size`` parameter is greater than
-       * the maximum processor set size storable in the system.
+       * While the `affinity_size` parameter is an integral multiple of the
+       * size of long, while the `affinity_size` parameter is greater than the
+       * maximum processor set size storable in the system.
        */
       ctx->cpusetsize = sizeof( ctx->cpuset_obj );
       break;
@@ -377,10 +376,10 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetOnline_Prepare(
     case RtemsIntrReqSetAffinity_Pre_CPUSetOnline_Valid: {
       /*
        * While the intersection of the processor set specified by the
-       * ``affinity_size`` and ``affinity`` parameters and the set of online
+       * `affinity_size` and `affinity` parameters and the set of online
        * processors is not empty, while the intersection of the processor set
-       * specified by the ``affinity_size`` and ``affinity`` parameters and the
-       * set of online processors is a processor affinity set supported by the
+       * specified by the `affinity_size` and `affinity` parameters and the set
+       * of online processors is a processor affinity set supported by the
        * interrupt vector.
        */
       /* Already prepared */
@@ -390,7 +389,7 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetOnline_Prepare(
     case RtemsIntrReqSetAffinity_Pre_CPUSetOnline_Empty: {
       /*
        * While the intersection of the processor set specified by the
-       * ``affinity_size`` and ``affinity`` parameters and the set of online
+       * `affinity_size` and `affinity` parameters and the set of online
        * processors is empty.
        */
       CPU_ZERO( &ctx->cpuset_obj[ 0 ] );
@@ -410,8 +409,8 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetHuge_Prepare(
   switch ( state ) {
     case RtemsIntrReqSetAffinity_Pre_CPUSetHuge_NotZero: {
       /*
-       * While the processor set specified by the ``affinity_size`` and
-       * ``affinity`` parameters contains at least one processor which is not
+       * While the processor set specified by the `affinity_size` and
+       * `affinity` parameters contains at least one processor which is not
        * storable in a processor set supported by the system.
        */
       /* Already prepared */
@@ -420,9 +419,9 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSetHuge_Prepare(
 
     case RtemsIntrReqSetAffinity_Pre_CPUSetHuge_Zero: {
       /*
-       * While the processor set specified by the ``affinity_size`` and
-       * ``affinity`` parameters contains no processor which is not storable in
-       * a processor set supported by the system.
+       * While the processor set specified by the `affinity_size` and
+       * `affinity` parameters contains no processor which is not storable in a
+       * processor set supported by the system.
        */
       CPU_ZERO( &ctx->cpuset_obj[ 1 ] );
       break;
@@ -441,8 +440,7 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSet_Prepare(
   switch ( state ) {
     case RtemsIntrReqSetAffinity_Pre_CPUSet_Valid: {
       /*
-       * While the ``affinity`` parameter references an object of type
-       * cpu_set_t.
+       * While the `affinity` parameter references an object of type cpu_set_t.
        */
       ctx->cpuset = &ctx->cpuset_obj[ 0 ];
       break;
@@ -450,7 +448,7 @@ static void RtemsIntrReqSetAffinity_Pre_CPUSet_Prepare(
 
     case RtemsIntrReqSetAffinity_Pre_CPUSet_Null: {
       /*
-       * While the ``affinity`` parameter is equal to NULL.
+       * While the `affinity` parameter is equal to NULL.
        */
       ctx->cpuset = NULL;
       break;
@@ -469,7 +467,7 @@ static void RtemsIntrReqSetAffinity_Pre_CanSetAffinity_Prepare(
     case RtemsIntrReqSetAffinity_Pre_CanSetAffinity_Yes: {
       /*
        * While setting the affinity for the interrupt vector specified by
-       * ``vector`` parameter is supported.
+       * `vector` parameter is supported.
        */
       /* Validation done by CheckSetAffinity() for each interrupt vector */
       break;
@@ -478,7 +476,7 @@ static void RtemsIntrReqSetAffinity_Pre_CanSetAffinity_Prepare(
     case RtemsIntrReqSetAffinity_Pre_CanSetAffinity_No: {
       /*
        * While setting the affinity for the interrupt vector specified by
-       * ``vector`` parameter is not supported.
+       * `vector` parameter is not supported.
        */
       /* Validation done by CheckSetAffinity() for each interrupt vector */
       break;
@@ -552,9 +550,9 @@ static void RtemsIntrReqSetAffinity_Post_SetAffinity_Check(
   switch ( state ) {
     case RtemsIntrReqSetAffinity_Post_SetAffinity_Set: {
       /*
-       * The affinity set of the interrupt specified by ``vector`` shall be set
-       * to the processor set specified by ``affinity_size`` and ``affinity``
-       * at some point during the rtems_interrupt_set_affinity() call.
+       * The affinity set of the interrupt specified by `vector` shall be set
+       * to the processor set specified by `affinity_size` and `affinity` at
+       * some point during the rtems_interrupt_set_affinity() call.
        */
       /* Validation done by CheckSetAffinity() for each interrupt vector */
       break;
@@ -562,7 +560,7 @@ static void RtemsIntrReqSetAffinity_Post_SetAffinity_Check(
 
     case RtemsIntrReqSetAffinity_Post_SetAffinity_Nop: {
       /*
-       * The affinity set of the interrupt specified by ``vector`` shall not be
+       * The affinity set of the interrupt specified by `vector` shall not be
        * modified by the rtems_interrupt_set_affinity() call.
        */
       /*

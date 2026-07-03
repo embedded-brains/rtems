@@ -249,17 +249,17 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the ``task_id`` parameter value.
+   * @brief This member specifies if the `task_id` parameter value.
    */
   rtems_id task_id;
 
   /**
-   * @brief This member specifies if the ``scheduler_id`` parameter value.
+   * @brief This member specifies if the `scheduler_id` parameter value.
    */
   rtems_id scheduler_id;
 
   /**
-   * @brief This member specifies if the ``priority`` parameter value.
+   * @brief This member specifies if the `priority` parameter value.
    */
   rtems_task_priority priority;
 
@@ -465,7 +465,7 @@ static void RtemsTaskReqSetScheduler_Pre_TaskId_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_TaskId_Task: {
       /*
-       * While the ``task_id`` parameter is associated with a task.
+       * While the `task_id` parameter is associated with a task.
        */
       ctx->task_id = ctx->worker_id[ 0 ];
       break;
@@ -473,7 +473,7 @@ static void RtemsTaskReqSetScheduler_Pre_TaskId_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_TaskId_Invalid: {
       /*
-       * While the ``task_id`` parameter is not associated with a task.
+       * While the `task_id` parameter is not associated with a task.
        */
       ctx->task_id = INVALID_ID;
       break;
@@ -492,8 +492,8 @@ static void RtemsTaskReqSetScheduler_Pre_Scheduler_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_Scheduler_Home: {
       /*
-       * While the scheduler specified by the ``scheduler_id`` parameter is the
-       * home scheduler of the task specified by the ``task_id`` parameter.
+       * While the scheduler specified by the `scheduler_id` parameter is the
+       * home scheduler of the task specified by the `task_id` parameter.
        */
       ctx->scheduler_to_set_id = ctx->scheduler_a_id;
       break;
@@ -501,8 +501,8 @@ static void RtemsTaskReqSetScheduler_Pre_Scheduler_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_Scheduler_Other: {
       /*
-       * While the scheduler specified by the ``scheduler_id`` parameter is not
-       * the home scheduler of the task specified by the ``task_id`` parameter.
+       * While the scheduler specified by the `scheduler_id` parameter is not
+       * the home scheduler of the task specified by the `task_id` parameter.
        */
       ctx->scheduler_to_set_id = ctx->scheduler_b_id;
       break;
@@ -521,8 +521,8 @@ static void RtemsTaskReqSetScheduler_Pre_SchedulerHasCPU_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_SchedulerHasCPU_Yes: {
       /*
-       * While the scheduler specified by the ``scheduler_id`` parameter owns
-       * at least one processor.
+       * While the scheduler specified by the `scheduler_id` parameter owns at
+       * least one processor.
        */
       /* Already set by Scheduler pre-condition */
       break;
@@ -530,8 +530,8 @@ static void RtemsTaskReqSetScheduler_Pre_SchedulerHasCPU_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_SchedulerHasCPU_No: {
       /*
-       * While the scheduler specified by the ``scheduler_id`` parameter owns
-       * no processor.
+       * While the scheduler specified by the `scheduler_id` parameter owns no
+       * processor.
        */
       ctx->scheduler_to_set_id = ctx->scheduler_d_id;
       break;
@@ -550,7 +550,7 @@ static void RtemsTaskReqSetScheduler_Pre_SchedulerId_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_SchedulerId_Scheduler: {
       /*
-       * While the ``scheduler_id`` parameter is associated with a scheduler.
+       * While the `scheduler_id` parameter is associated with a scheduler.
        */
       ctx->scheduler_id = ctx->scheduler_to_set_id;
       break;
@@ -558,8 +558,7 @@ static void RtemsTaskReqSetScheduler_Pre_SchedulerId_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_SchedulerId_Invalid: {
       /*
-       * While the ``scheduler_id`` parameter is not associated with a
-       * scheduler.
+       * While the `scheduler_id` parameter is not associated with a scheduler.
        */
       ctx->scheduler_id = INVALID_ID;
       break;
@@ -578,8 +577,8 @@ static void RtemsTaskReqSetScheduler_Pre_Priority_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_Priority_Valid: {
       /*
-       * While the task priority specified by the ``priority`` parameter is
-       * valid with respect to the scheduler specified by the ``scheduler_id``
+       * While the task priority specified by the `priority` parameter is valid
+       * with respect to the scheduler specified by the `scheduler_id`
        * parameter.
        */
       ctx->priority = PRIO_VERY_LOW;
@@ -588,9 +587,9 @@ static void RtemsTaskReqSetScheduler_Pre_Priority_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_Priority_Invalid: {
       /*
-       * While the task priority specified by the ``priority`` parameter is
-       * invalid with respect to the scheduler specified by the
-       * ``scheduler_id`` parameter.
+       * While the task priority specified by the `priority` parameter is
+       * invalid with respect to the scheduler specified by the `scheduler_id`
+       * parameter.
        */
       ctx->priority = PRIO_INVALID;
       break;
@@ -609,7 +608,7 @@ static void RtemsTaskReqSetScheduler_Pre_HomePriority_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_HomePriority_Real: {
       /*
-       * While the current priority of the task specified by the ``task_id``
+       * While the current priority of the task specified by the `task_id`
        * parameter consists only of the real priority.
        */
       ctx->additional_home_priority = false;
@@ -618,7 +617,7 @@ static void RtemsTaskReqSetScheduler_Pre_HomePriority_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_HomePriority_More: {
       /*
-       * While the current priority of the task specified by the ``task_id``
+       * While the current priority of the task specified by the `task_id`
        * parameter consists of more than the real priority.
        */
       ctx->additional_home_priority = true;
@@ -639,7 +638,7 @@ static void RtemsTaskReqSetScheduler_Pre_EligiblePriorities_Prepare(
     case RtemsTaskReqSetScheduler_Pre_EligiblePriorities_OnlyOne: {
       /*
        * While the set of eligible priorities of the task specified by the
-       * ``task_id`` parameter consists of exactly the current priority.
+       * `task_id` parameter consists of exactly the current priority.
        */
       ctx->second_eligible_scheduler = false;
       break;
@@ -648,7 +647,7 @@ static void RtemsTaskReqSetScheduler_Pre_EligiblePriorities_Prepare(
     case RtemsTaskReqSetScheduler_Pre_EligiblePriorities_More: {
       /*
        * While the set of eligible priorities of the task specified by the
-       * ``task_id`` parameter consists of more than the current priority.
+       * `task_id` parameter consists of more than the current priority.
        */
       ctx->second_eligible_scheduler = true;
       break;
@@ -667,7 +666,7 @@ static void RtemsTaskReqSetScheduler_Pre_Pinned_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_Pinned_Yes: {
       /*
-       * While the task specified by the ``task_id`` parameter is pinned.
+       * While the task specified by the `task_id` parameter is pinned.
        */
       ctx->pinned = true;
       break;
@@ -675,7 +674,7 @@ static void RtemsTaskReqSetScheduler_Pre_Pinned_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_Pinned_No: {
       /*
-       * While the task specified by the ``task_id`` parameter is not pinned.
+       * While the task specified by the `task_id` parameter is not pinned.
        */
       ctx->pinned = false;
       break;
@@ -694,7 +693,7 @@ static void RtemsTaskReqSetScheduler_Pre_TaskState_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_TaskState_Ready: {
       /*
-       * While the task specified by the ``task_id`` parameter is ready.
+       * While the task specified by the `task_id` parameter is ready.
        */
       ctx->blocked = false;
       ctx->enqueued = false;
@@ -703,9 +702,9 @@ static void RtemsTaskReqSetScheduler_Pre_TaskState_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_TaskState_Blocked: {
       /*
-       * While the task specified by the ``task_id`` parameter is blocked,
-       * while the task specified by the ``task_id`` parameter is not enqueued
-       * on a wait queue.
+       * While the task specified by the `task_id` parameter is blocked, while
+       * the task specified by the `task_id` parameter is not enqueued on a
+       * wait queue.
        */
       ctx->blocked = true;
       ctx->enqueued = false;
@@ -714,9 +713,9 @@ static void RtemsTaskReqSetScheduler_Pre_TaskState_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_TaskState_Enqueued: {
       /*
-       * While the task specified by the ``task_id`` parameter is blocked,
-       * while the task specified by the ``task_id`` parameter is enqueued on a
-       * wait queue.
+       * While the task specified by the `task_id` parameter is blocked, while
+       * the task specified by the `task_id` parameter is enqueued on a wait
+       * queue.
        */
       ctx->blocked = true;
       ctx->enqueued = true;
@@ -736,9 +735,9 @@ static void RtemsTaskReqSetScheduler_Pre_AffinitySupported_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Pre_AffinitySupported_Yes: {
       /*
-       * While the affinity set of the task specified by the ``task_id``
+       * While the affinity set of the task specified by the `task_id`
        * parameter is supported by the scheduler specified by the
-       * ``scheduler_id`` parameter.
+       * `scheduler_id` parameter.
        */
       ctx->affinity_supported = true;
       break;
@@ -746,9 +745,9 @@ static void RtemsTaskReqSetScheduler_Pre_AffinitySupported_Prepare(
 
     case RtemsTaskReqSetScheduler_Pre_AffinitySupported_No: {
       /*
-       * While the affinity set of the task specified by the ``task_id``
+       * While the affinity set of the task specified by the `task_id`
        * parameter is not supported by the scheduler specified by the
-       * ``scheduler_id`` parameter.
+       * `scheduler_id` parameter.
        */
       ctx->affinity_supported = false;
       break;
@@ -832,8 +831,8 @@ static void RtemsTaskReqSetScheduler_Post_Scheduler_Check(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Post_Scheduler_Set: {
       /*
-       * The home scheduler of the task specified by the ``task_id`` parameter
-       * shall be set to the scheduler specified by the ``scheduler_id``
+       * The home scheduler of the task specified by the `task_id` parameter
+       * shall be set to the scheduler specified by the `scheduler_id`
        * parameter at some point during the rtems_task_set_scheduler() call.
        */
       T_eq_u32( ctx->new_scheduler, ctx->scheduler_to_set_id );
@@ -862,9 +861,9 @@ static void RtemsTaskReqSetScheduler_Post_Priority_Check(
   switch ( state ) {
     case RtemsTaskReqSetScheduler_Post_Priority_Set: {
       /*
-       * The real priority of the task specified by the ``task_id`` parameter
-       * shall be set to the priority specified by the ``priority`` parameter
-       * at some point during the rtems_task_set_scheduler() call.
+       * The real priority of the task specified by the `task_id` parameter
+       * shall be set to the priority specified by the `priority` parameter at
+       * some point during the rtems_task_set_scheduler() call.
        */
       if ( ctx->scheduler_to_set_id == ctx->scheduler_a_id ) {
         T_eq_u32( ctx->new_priority[ 0 ], PRIO_VERY_LOW );

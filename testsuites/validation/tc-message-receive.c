@@ -225,27 +225,27 @@ typedef struct {
   size_t receive_size;
 
   /**
-   * @brief This member specifies the ``id`` parameter for the action.
+   * @brief This member specifies the `id` parameter for the action.
    */
   rtems_id id_param;
 
   /**
-   * @brief This member specifies the ``buffer`` parameter for the action.
+   * @brief This member specifies the `buffer` parameter for the action.
    */
   void *buffer_param;
 
   /**
-   * @brief This member specifies the ``size`` parameter for the action.
+   * @brief This member specifies the `size` parameter for the action.
    */
   size_t *size_param;
 
   /**
-   * @brief This member specifies the ``option_set`` parameter for the action.
+   * @brief This member specifies the `option_set` parameter for the action.
    */
   rtems_option option_set_param;
 
   /**
-   * @brief This member specifies the ``timeout`` parameter for the action.
+   * @brief This member specifies the `timeout` parameter for the action.
    */
   rtems_interval timeout_param;
 
@@ -676,8 +676,8 @@ static void RtemsMessageReqReceive_Pre_Buffer_Prepare(
   switch ( state ) {
     case RtemsMessageReqReceive_Pre_Buffer_Valid: {
       /*
-       * While the ``buffer`` parameter references a memory area able to store
-       * a message up to the maximum size permitted in this message queue.
+       * While the `buffer` parameter references a memory area able to store a
+       * message up to the maximum size permitted in this message queue.
        */
       ctx->buffer_param = ctx->receive_buffer;
       break;
@@ -685,7 +685,7 @@ static void RtemsMessageReqReceive_Pre_Buffer_Prepare(
 
     case RtemsMessageReqReceive_Pre_Buffer_Null: {
       /*
-       * While the ``buffer`` parameter is NULL.
+       * While the `buffer` parameter is NULL.
        */
       ctx->buffer_param = NULL;
       break;
@@ -704,7 +704,7 @@ static void RtemsMessageReqReceive_Pre_Size_Prepare(
   switch ( state ) {
     case RtemsMessageReqReceive_Pre_Size_Valid: {
       /*
-       * While the ``size`` parameter references an object of type `size_t`.
+       * While the `size` parameter references an object of type `size_t`.
        */
       ctx->size_param = &ctx->receive_size;
       break;
@@ -712,7 +712,7 @@ static void RtemsMessageReqReceive_Pre_Size_Prepare(
 
     case RtemsMessageReqReceive_Pre_Size_Null: {
       /*
-       * While the ``size`` parameter is NULL.
+       * While the `size` parameter is NULL.
        */
       ctx->size_param = NULL;
       break;
@@ -731,7 +731,7 @@ static void RtemsMessageReqReceive_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsMessageReqReceive_Pre_Id_Valid: {
       /*
-       * While the ``id`` parameter is valid.
+       * While the `id` parameter is valid.
        */
       ctx->id_param = 1;
       break;
@@ -739,7 +739,7 @@ static void RtemsMessageReqReceive_Pre_Id_Prepare(
 
     case RtemsMessageReqReceive_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is invalid.
+       * While the `id` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -825,7 +825,7 @@ static void RtemsMessageReqReceive_Pre_Wait_Prepare(
   switch ( state ) {
     case RtemsMessageReqReceive_Pre_Wait_No: {
       /*
-       * While the ``option_set`` parameter indicates the RTEMS_NO_WAIT option.
+       * While the `option_set` parameter indicates the RTEMS_NO_WAIT option.
        */
       ctx->tq_ctx.wait =      TQ_NO_WAIT;
       ctx->option_set_param = RTEMS_NO_WAIT;
@@ -835,8 +835,8 @@ static void RtemsMessageReqReceive_Pre_Wait_Prepare(
 
     case RtemsMessageReqReceive_Pre_Wait_Timeout: {
       /*
-       * While the ``option_set`` parameter indicates the RTEMS_WAIT option,
-       * while the ``timeout`` parameter is not equal to RTEMS_NO_TIMEOUT.
+       * While the `option_set` parameter indicates the RTEMS_WAIT option,
+       * while the `timeout` parameter is not equal to RTEMS_NO_TIMEOUT.
        */
       ctx->tq_ctx.wait =      TQ_WAIT_TIMED;
       ctx->option_set_param = RTEMS_WAIT;
@@ -846,8 +846,8 @@ static void RtemsMessageReqReceive_Pre_Wait_Prepare(
 
     case RtemsMessageReqReceive_Pre_Wait_Forever: {
       /*
-       * While the ``option_set`` parameter indicates the RTEMS_WAIT option,
-       * while the ``timeout`` parameter is equal to RTEMS_NO_TIMEOUT.
+       * While the `option_set` parameter indicates the RTEMS_WAIT option,
+       * while the `timeout` parameter is equal to RTEMS_NO_TIMEOUT.
        */
       ctx->tq_ctx.wait =      TQ_WAIT_FOREVER;
       ctx->option_set_param = RTEMS_WAIT;
@@ -1030,9 +1030,9 @@ static void RtemsMessageReqReceive_Post_Size_Check(
   switch ( state ) {
     case RtemsMessageReqReceive_Post_Size_First: {
       /*
-       * The value of the object referenced by the ``size`` parameter shall be
+       * The value of the object referenced by the `size` parameter shall be
        * set to the size of the first message (the same value as provided by
-       * parameter ``size`` of the rtems_message_queue_send() or
+       * parameter `size` of the rtems_message_queue_send() or
        * rtems_message_queue_urgent() directive which added the message to the
        * queue) after the return of the rtems_message_queue_receive() call.
        */
@@ -1046,7 +1046,7 @@ static void RtemsMessageReqReceive_Post_Size_Check(
 
     case RtemsMessageReqReceive_Post_Size_Nop: {
       /*
-       * Objects referenced by the ``size`` parameter in past calls to
+       * Objects referenced by the `size` parameter in past calls to
        * rtems_message_queue_receive() shall not be accessed by the
        * rtems_message_queue_receive() call (see also Nop).
        */
@@ -1067,10 +1067,10 @@ static void RtemsMessageReqReceive_Post_Msg_Check(
   switch ( state ) {
     case RtemsMessageReqReceive_Post_Msg_First: {
       /*
-       * The bytes 0 till ``size`` - 1 of the object referenced by the
-       * ``option_set`` parameter shall contain a copy of the content of the
+       * The bytes 0 till `size` - 1 of the object referenced by the
+       * `option_set` parameter shall contain a copy of the content of the
        * first message (all bytes unchanged and in the same order as provided
-       * by parameter ``buffer`` of the rtems_message_queue_send() or
+       * by parameter `buffer` of the rtems_message_queue_send() or
        * rtems_message_queue_urgent() directive which added the message to the
        * queue) after the return of the rtems_message_queue_receive() call.
        */
@@ -1084,7 +1084,7 @@ static void RtemsMessageReqReceive_Post_Msg_Check(
 
     case RtemsMessageReqReceive_Post_Msg_Nop: {
       /*
-       * Objects referenced by the ``option_set`` parameter in past calls to
+       * Objects referenced by the `option_set` parameter in past calls to
        * rtems_message_queue_receive() shall not be accessed by the
        * rtems_message_queue_receive() call (see also Nop).
        */
@@ -1128,7 +1128,7 @@ static void RtemsMessageReqReceive_Post_MsgQueue_Check(
 
     case RtemsMessageReqReceive_Post_MsgQueue_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past calls to
+       * Objects referenced by the `id` parameter in past calls to
        * rtems_message_queue_receive() shall not be accessed by the
        * rtems_message_queue_receive() call (see also Nop).
        */

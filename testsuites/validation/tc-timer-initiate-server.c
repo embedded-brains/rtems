@@ -161,12 +161,12 @@ typedef struct {
   bool before_has_floating_point;
 
   /**
-   * @brief The ``priority`` parameter for the action.
+   * @brief The `priority` parameter for the action.
    */
   rtems_task_priority priority;
 
   /**
-   * @brief The ``stack_size`` parameter for the action.
+   * @brief The `stack_size` parameter for the action.
    */
   size_t stack_size;
 
@@ -301,7 +301,7 @@ static void RtemsTimerReqInitiateServer_Pre_Priority_Prepare(
   switch ( state ) {
     case RtemsTimerReqInitiateServer_Pre_Priority_Valid: {
       /*
-       * While the ``priority`` parameter is valid.
+       * While the `priority` parameter is valid.
        */
       ctx->priority = 13;
       break;
@@ -309,7 +309,7 @@ static void RtemsTimerReqInitiateServer_Pre_Priority_Prepare(
 
     case RtemsTimerReqInitiateServer_Pre_Priority_Default: {
       /*
-       * While the ``priority`` parameter is equal to
+       * While the `priority` parameter is equal to
        * RTEMS_TIMER_SERVER_DEFAULT_PRIORITY.
        */
       ctx->priority = RTEMS_TIMER_SERVER_DEFAULT_PRIORITY;
@@ -318,7 +318,7 @@ static void RtemsTimerReqInitiateServer_Pre_Priority_Prepare(
 
     case RtemsTimerReqInitiateServer_Pre_Priority_Invalid: {
       /*
-       * While the ``priority`` parameter is invalid.
+       * While the `priority` parameter is invalid.
        */
       ctx->priority = PRIO_INVALID;
       break;
@@ -337,8 +337,8 @@ static void RtemsTimerReqInitiateServer_Pre_Stack_Prepare(
   switch ( state ) {
     case RtemsTimerReqInitiateServer_Pre_Stack_Allocatable: {
       /*
-       * While the ``stack_size`` parameter specifies a task stack size which
-       * is allocatable by the system.
+       * While the `stack_size` parameter specifies a task stack size which is
+       * allocatable by the system.
        */
       ctx->stack_size = RTEMS_MINIMUM_STACK_SIZE;
       break;
@@ -346,8 +346,8 @@ static void RtemsTimerReqInitiateServer_Pre_Stack_Prepare(
 
     case RtemsTimerReqInitiateServer_Pre_Stack_TooLarge: {
       /*
-       * While the ``stack_size`` parameter specifies a task stack size which
-       * is not allocatable by the system.
+       * While the `stack_size` parameter specifies a task stack size which is
+       * not allocatable by the system.
        */
       ctx->stack_size = SIZE_MAX;
       break;
@@ -516,7 +516,7 @@ static void RtemsTimerReqInitiateServer_Post_TaskPrio_Check(
     case RtemsTimerReqInitiateServer_Post_TaskPrio_Set: {
       /*
        * The priority of the Timer Server task shall be equal to the priority
-       * specified by the ``priority`` parameter in the
+       * specified by the `priority` parameter in the
        * rtems_timer_initiate_server() call.
        */
       if ( ctx->priority == RTEMS_TIMER_SERVER_DEFAULT_PRIORITY ) {
@@ -550,7 +550,7 @@ static void RtemsTimerReqInitiateServer_Post_TaskStack_Check(
     case RtemsTimerReqInitiateServer_Post_TaskStack_Set: {
       /*
        * The stack size of the Timer Server task shall be greater than or equal
-       * to the stack size specified by the ``stack_size`` parameter in the
+       * to the stack size specified by the `stack_size` parameter in the
        * rtems_timer_initiate_server() call.
        */
       T_ge_sz( GetTimerServerStackSize(), ctx->stack_size );
@@ -580,7 +580,7 @@ static void RtemsTimerReqInitiateServer_Post_TaskAttr_Check(
     case RtemsTimerReqInitiateServer_Post_TaskAttr_Set: {
       /*
        * The task attributes of the Timer Server task shall be specified by the
-       * ``attribute_set`` parameter in the rtems_timer_initiate_server() call.
+       * `attribute_set` parameter in the rtems_timer_initiate_server() call.
        */
       T_true( HasTimerServerFloatingPoint() );
       break;

@@ -203,7 +203,7 @@ static void RtemsBarrierReqDelete_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsBarrierReqDelete_Pre_Id_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with a barrier.
+       * While the `id` parameter is not associated with a barrier.
        */
       ctx->id = 0;
       break;
@@ -211,7 +211,7 @@ static void RtemsBarrierReqDelete_Pre_Id_Prepare(
 
     case RtemsBarrierReqDelete_Pre_Id_Barrier: {
       /*
-       * While the ``id`` parameter is associated with a barrier.
+       * While the `id` parameter is associated with a barrier.
        */
       ctx->id = ctx->barrier_id;
       break;

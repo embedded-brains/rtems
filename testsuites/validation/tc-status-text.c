@@ -145,7 +145,7 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the ``status_code`` parameter value.
+   * @brief This member specifies the `status_code` parameter value.
    */
   rtems_status_code code;
 
@@ -235,7 +235,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
   switch ( state ) {
     case RtemsStatusReqText_Pre_Code_AlreadySuspended: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_ALREADY_SUSPENDED.
        */
       ctx->code = RTEMS_ALREADY_SUSPENDED;
@@ -244,7 +244,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_CalledFromIsr: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_CALLED_FROM_ISR.
        */
       ctx->code = RTEMS_CALLED_FROM_ISR;
@@ -253,7 +253,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_IllegalOnRemoteObject: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_ILLEGAL_ON_REMOTE_OBJECT.
        */
 
@@ -262,7 +262,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_IllegalOnSelf: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_ILLEGAL_ON_SELF.
        */
       ctx->code = RTEMS_ILLEGAL_ON_SELF;
@@ -271,7 +271,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_IncorrectState: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INCORRECT_STATE.
        */
       ctx->code = RTEMS_INCORRECT_STATE;
@@ -280,7 +280,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InternalError: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INTERNAL_ERROR.
        */
       ctx->code = RTEMS_INTERNAL_ERROR;
@@ -289,8 +289,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_Interrupted: {
       /*
-       * While the ``status_code`` parameter value is equal to
-       * RTEMS_INTERRUPTED.
+       * While the `status_code` parameter value is equal to RTEMS_INTERRUPTED.
        */
       ctx->code = RTEMS_INTERRUPTED;
       break;
@@ -298,7 +297,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidAddress: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_ADDRESS.
        */
       ctx->code = RTEMS_INVALID_ADDRESS;
@@ -307,7 +306,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidClock: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_CLOCK.
        */
       ctx->code = RTEMS_INVALID_CLOCK;
@@ -316,8 +315,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidId: {
       /*
-       * While the ``status_code`` parameter value is equal to
-       * RTEMS_INVALID_ID.
+       * While the `status_code` parameter value is equal to RTEMS_INVALID_ID.
        */
       ctx->code = RTEMS_INVALID_ID;
       break;
@@ -325,7 +323,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidName: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_NAME.
        */
       ctx->code = RTEMS_INVALID_NAME;
@@ -334,7 +332,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidNode: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_NODE.
        */
       ctx->code = RTEMS_INVALID_NODE;
@@ -343,7 +341,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidNumber: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_NUMBER.
        */
       ctx->code = RTEMS_INVALID_NUMBER;
@@ -352,7 +350,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidPriority: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_PRIORITY.
        */
       ctx->code = RTEMS_INVALID_PRIORITY;
@@ -361,7 +359,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_InvalidSize: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_INVALID_SIZE.
        */
       ctx->code = RTEMS_INVALID_SIZE;
@@ -370,7 +368,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_IoError: {
       /*
-       * While the ``status_code`` parameter value is equal to RTEMS_IO_ERROR.
+       * While the `status_code` parameter value is equal to RTEMS_IO_ERROR.
        */
       ctx->code = RTEMS_IO_ERROR;
       break;
@@ -378,7 +376,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_MpNotConfigured: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_MP_NOT_CONFIGURED.
        */
       ctx->code = RTEMS_MP_NOT_CONFIGURED;
@@ -387,7 +385,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NoMemory: {
       /*
-       * While the ``status_code`` parameter value is equal to RTEMS_NO_MEMORY.
+       * While the `status_code` parameter value is equal to RTEMS_NO_MEMORY.
        */
       ctx->code = RTEMS_NO_MEMORY;
       break;
@@ -395,7 +393,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NotConfigured: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_NOT_CONFIGURED.
        */
       ctx->code = RTEMS_NOT_CONFIGURED;
@@ -404,8 +402,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NotDefined: {
       /*
-       * While the ``status_code`` parameter value is equal to
-       * RTEMS_NOT_DEFINED.
+       * While the `status_code` parameter value is equal to RTEMS_NOT_DEFINED.
        */
       ctx->code = RTEMS_NOT_DEFINED;
       break;
@@ -413,7 +410,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NotImplemented: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_NOT_IMPLEMENTED.
        */
       ctx->code = RTEMS_NOT_IMPLEMENTED;
@@ -422,7 +419,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NotOwnerOfResource: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_NOT_OWNER_OF_RESOURCE.
        */
       ctx->code = RTEMS_NOT_OWNER_OF_RESOURCE;
@@ -431,7 +428,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_ObjectWasDeleted: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_OBJECT_WAS_DELETED.
        */
       ctx->code = RTEMS_OBJECT_WAS_DELETED;
@@ -440,7 +437,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_ProxyBlocking: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_PROXY_BLOCKING.
        */
       ctx->code = RTEMS_PROXY_BLOCKING;
@@ -449,7 +446,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_ResourceInUse: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_RESOURCE_IN_USE.
        */
       ctx->code = RTEMS_RESOURCE_IN_USE;
@@ -458,8 +455,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_Successful: {
       /*
-       * While the ``status_code`` parameter value is equal to
-       * RTEMS_SUCCESSFUL.
+       * While the `status_code` parameter value is equal to RTEMS_SUCCESSFUL.
        */
       ctx->code = RTEMS_SUCCESSFUL;
       break;
@@ -467,7 +463,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_TaskExitted: {
       /*
-       * While the ``status_code`` parameter value is equal to
+       * While the `status_code` parameter value is equal to
        * RTEMS_TASK_EXITTED.
        */
       ctx->code = RTEMS_TASK_EXITTED;
@@ -476,7 +472,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_Timeout: {
       /*
-       * While the ``status_code`` parameter value is equal to RTEMS_TIMEOUT.
+       * While the `status_code` parameter value is equal to RTEMS_TIMEOUT.
        */
       ctx->code = RTEMS_TIMEOUT;
       break;
@@ -484,7 +480,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_TooMany: {
       /*
-       * While the ``status_code`` parameter value is equal to RTEMS_TOO_MANY.
+       * While the `status_code` parameter value is equal to RTEMS_TOO_MANY.
        */
       ctx->code = RTEMS_TOO_MANY;
       break;
@@ -492,8 +488,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_Unsatisfied: {
       /*
-       * While the ``status_code`` parameter value is equal to
-       * RTEMS_UNSATISFIED.
+       * While the `status_code` parameter value is equal to RTEMS_UNSATISFIED.
        */
       ctx->code = RTEMS_UNSATISFIED;
       break;
@@ -501,7 +496,7 @@ static void RtemsStatusReqText_Pre_Code_Prepare(
 
     case RtemsStatusReqText_Pre_Code_NotAStatusCode: {
       /*
-       * While the ``status_code`` parameter is not equal to an enumerator of
+       * While the `status_code` parameter is not equal to an enumerator of
        * rtems_status_code.
        */
       ctx->code = (rtems_status_code) 123;

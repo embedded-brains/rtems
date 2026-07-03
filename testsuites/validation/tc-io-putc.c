@@ -97,7 +97,7 @@ typedef struct {
   size_t output_count;
 
   /**
-   * @brief This member specifies if the ``c`` parameter value.
+   * @brief This member specifies if the `c` parameter value.
    */
   char character;
 
@@ -179,7 +179,7 @@ static void RtemsIoReqPutc_Pre_Char_Prepare(
   switch ( state ) {
     case RtemsIoReqPutc_Pre_Char_Nl: {
       /*
-       * While the ``c`` parameter is equal to `NL`.
+       * While the `c` parameter is equal to `NL`.
        */
       ctx->character = '\n';
       break;
@@ -187,7 +187,7 @@ static void RtemsIoReqPutc_Pre_Char_Prepare(
 
     case RtemsIoReqPutc_Pre_Char_Other: {
       /*
-       * While the ``c`` parameter is not equal to `NL`.
+       * While the `c` parameter is not equal to `NL`.
        */
       ctx->character = (char) 0xff;
       break;
@@ -218,7 +218,7 @@ static void RtemsIoReqPutc_Post_Output_Check(
     case RtemsIoReqPutc_Post_Output_Other: {
       /*
        * The function referenced by BSP_output_char shall be called with the
-       * character specified by ``c``.
+       * character specified by `c`.
        */
       T_eq_int( ctx->output[ 0 ], 0xff );
       T_eq_sz( ctx->output_count, 1 );

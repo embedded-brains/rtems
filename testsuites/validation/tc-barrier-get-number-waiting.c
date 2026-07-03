@@ -173,7 +173,7 @@ static void RtemsBarrierReqGetNumberWaiting_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsBarrierReqGetNumberWaiting_Pre_Id_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with a barrier.
+       * While the `id` parameter is not associated with a barrier.
        */
       ctx->id = 0xffffffff;
       break;
@@ -181,7 +181,7 @@ static void RtemsBarrierReqGetNumberWaiting_Pre_Id_Prepare(
 
     case RtemsBarrierReqGetNumberWaiting_Pre_Id_Barrier: {
       /*
-       * While the ``id`` parameter is associated with a barrier.
+       * While the `id` parameter is associated with a barrier.
        */
       ctx->id = ctx->barrier_id;
       break;
@@ -200,7 +200,7 @@ static void RtemsBarrierReqGetNumberWaiting_Pre_Waiting_Prepare(
   switch ( state ) {
     case RtemsBarrierReqGetNumberWaiting_Pre_Waiting_Valid: {
       /*
-       * While the ``waiting`` parameter references an object of type uint32_t.
+       * While the `waiting` parameter references an object of type uint32_t.
        */
       ctx->waiting = &ctx->waiting_obj;
       break;
@@ -208,7 +208,7 @@ static void RtemsBarrierReqGetNumberWaiting_Pre_Waiting_Prepare(
 
     case RtemsBarrierReqGetNumberWaiting_Pre_Waiting_Null: {
       /*
-       * While the ``waiting`` parameter is equal to NULL.
+       * While the `waiting` parameter is equal to NULL.
        */
       ctx->waiting = NULL;
       break;
@@ -265,8 +265,8 @@ static void RtemsBarrierReqGetNumberWaiting_Post_Waiting_Check(
   switch ( state ) {
     case RtemsBarrierReqGetNumberWaiting_Post_Waiting_Waiting: {
       /*
-       * The object referenced by the ``id`` parameter shall be set to the
-       * number of tasks waiting at the barrier at some time point during the
+       * The object referenced by the `id` parameter shall be set to the number
+       * of tasks waiting at the barrier at some time point during the
        * directive call.
        */
       T_eq_u32( ctx->waiting_obj, 0 );
@@ -275,7 +275,7 @@ static void RtemsBarrierReqGetNumberWaiting_Post_Waiting_Check(
 
     case RtemsBarrierReqGetNumberWaiting_Post_Waiting_Nop: {
       /*
-       * The object referenced by the ``id`` parameter shall be not be modified
+       * The object referenced by the `id` parameter shall be not be modified
        * by the directive call.
        */
       T_eq_u32( ctx->waiting_obj, 0xffffffff );

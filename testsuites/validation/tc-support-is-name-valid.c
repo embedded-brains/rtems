@@ -93,7 +93,7 @@ typedef struct {
   bool result;
 
   /**
-   * @brief This member specifies if the ``name`` parameter value.
+   * @brief This member specifies if the `name` parameter value.
    */
   rtems_name name;
 
@@ -148,7 +148,7 @@ static void RtemsSupportReqIsNameValid_Pre_Name_Prepare(
   switch ( state ) {
     case RtemsSupportReqIsNameValid_Pre_Name_Valid: {
       /*
-       * While the ``name`` parameter is not equal to zero.
+       * While the `name` parameter is not equal to zero.
        */
       ctx->name = 1;
       break;
@@ -156,7 +156,7 @@ static void RtemsSupportReqIsNameValid_Pre_Name_Prepare(
 
     case RtemsSupportReqIsNameValid_Pre_Name_Invalid: {
       /*
-       * While the ``name`` parameter is equal to zero.
+       * While the `name` parameter is equal to zero.
        */
       ctx->name = 0;
       break;

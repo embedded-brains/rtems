@@ -178,7 +178,7 @@ typedef struct {
   rtems_id timer_id;
 
   /**
-   * @brief This member specifies the ``id`` parameter for the action.
+   * @brief This member specifies the `id` parameter for the action.
    */
   rtems_id id_param;
 
@@ -407,7 +407,7 @@ static void RtemsTimerReqReset_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTimerReqReset_Pre_Id_Valid: {
       /*
-       * While the ``id`` parameter is valid.
+       * While the `id` parameter is valid.
        */
       ctx->id_param = ctx->timer_id;
       break;
@@ -415,7 +415,7 @@ static void RtemsTimerReqReset_Pre_Id_Prepare(
 
     case RtemsTimerReqReset_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is invalid.
+       * While the `id` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -655,7 +655,7 @@ static void RtemsTimerReqReset_Post_Context_Check(
 
     case RtemsTimerReqReset_Post_Context_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_reset() shall not be accessed by the rtems_timer_reset()
        * call. See also Nop.
        */
@@ -706,7 +706,7 @@ static void RtemsTimerReqReset_Post_Clock_Check(
 
     case RtemsTimerReqReset_Post_Clock_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_reset() shall not be accessed by the rtems_timer_reset()
        * call.
        */
@@ -736,7 +736,7 @@ static void RtemsTimerReqReset_Post_State_Check(
 
     case RtemsTimerReqReset_Post_State_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_reset() shall not be accessed by the rtems_timer_reset()
        * call.
        */

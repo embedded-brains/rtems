@@ -134,7 +134,7 @@ typedef struct {
   T_scheduler_log_2 scheduler_log;
 
   /**
-   * @brief This member provides the object referenced by the ``cpuset``
+   * @brief This member provides the object referenced by the `cpuset`
    *   parameter.
    */
   cpu_set_t cpuset_obj[ 2 ];
@@ -146,17 +146,17 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the ``id`` parameter value.
+   * @brief This member specifies if the `id` parameter value.
    */
   rtems_id id;
 
   /**
-   * @brief This member specifies if the ``cpusetsize`` parameter value.
+   * @brief This member specifies if the `cpusetsize` parameter value.
    */
   size_t cpusetsize;
 
   /**
-   * @brief This member specifies if the ``cpuset`` parameter value.
+   * @brief This member specifies if the `cpuset` parameter value.
    */
   cpu_set_t *cpuset;
 
@@ -246,7 +246,7 @@ static void RtemsTaskReqSetAffinity_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetAffinity_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is not associated with a task.
+       * While the `id` parameter is not associated with a task.
        */
       ctx->id = INVALID_ID;
       break;
@@ -254,7 +254,7 @@ static void RtemsTaskReqSetAffinity_Pre_Id_Prepare(
 
     case RtemsTaskReqSetAffinity_Pre_Id_Task: {
       /*
-       * While the ``id`` parameter is associated with a task.
+       * While the `id` parameter is associated with a task.
        */
       ctx->id = RTEMS_SELF;
       break;
@@ -273,7 +273,7 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetSize_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetAffinity_Pre_CPUSetSize_Askew: {
       /*
-       * While the ``cpusetsize`` parameter is not an integral multiple of the
+       * While the `cpusetsize` parameter is not an integral multiple of the
        * size of long.
        */
       ctx->cpusetsize = SIZE_MAX;
@@ -282,9 +282,9 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetSize_Prepare(
 
     case RtemsTaskReqSetAffinity_Pre_CPUSetSize_Normal: {
       /*
-       * While the ``cpusetsize`` parameter is an integral multiple of the size
-       * of long, while the ``cpusetsize`` parameter is less than or equal to
-       * the maximum processor set size storable in the system.
+       * While the `cpusetsize` parameter is an integral multiple of the size
+       * of long, while the `cpusetsize` parameter is less than or equal to the
+       * maximum processor set size storable in the system.
        */
       ctx->cpusetsize = sizeof( ctx->cpuset_obj[ 0 ] );
       break;
@@ -292,9 +292,9 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetSize_Prepare(
 
     case RtemsTaskReqSetAffinity_Pre_CPUSetSize_Huge: {
       /*
-       * While the ``cpusetsize`` parameter is an integral multiple of the size
-       * of long, while the ``cpusetsize`` parameter is greater than the
-       * maximum processor set size storable in the system.
+       * While the `cpusetsize` parameter is an integral multiple of the size
+       * of long, while the `cpusetsize` parameter is greater than the maximum
+       * processor set size storable in the system.
        */
       ctx->cpusetsize = sizeof( ctx->cpuset_obj );
       break;
@@ -314,9 +314,9 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetOnline_Prepare(
     case RtemsTaskReqSetAffinity_Pre_CPUSetOnline_Supported: {
       /*
        * While the intersection of the processor set specified by the
-       * ``cpusetsize`` and ``cpuset`` parameters and the set of online
-       * processors represents an affinity set supported by the home scheduler
-       * of the task specified by the ``id`` parameter at some point during the
+       * `cpusetsize` and `cpuset` parameters and the set of online processors
+       * represents an affinity set supported by the home scheduler of the task
+       * specified by the `id` parameter at some point during the
        * rtems_task_set_affinity() call.
        */
       /* Already prepared */
@@ -326,10 +326,10 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetOnline_Prepare(
     case RtemsTaskReqSetAffinity_Pre_CPUSetOnline_Unsupported: {
       /*
        * While the intersection of the processor set specified by the
-       * ``cpusetsize`` and ``cpuset`` parameters and the set of online
-       * processors represents an affinity set not supported by the home
-       * scheduler of the task specified by the ``id`` parameter at some point
-       * during the rtems_task_set_affinity() call.
+       * `cpusetsize` and `cpuset` parameters and the set of online processors
+       * represents an affinity set not supported by the home scheduler of the
+       * task specified by the `id` parameter at some point during the
+       * rtems_task_set_affinity() call.
        */
       CPU_CLR( 0, &ctx->cpuset_obj[ 0 ] );
       break;
@@ -348,7 +348,7 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetHuge_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetAffinity_Pre_CPUSetHuge_NotZero: {
       /*
-       * While the processor set specified by the ``cpusetsize`` and ``cpuset``
+       * While the processor set specified by the `cpusetsize` and `cpuset`
        * parameters contains at least one processor which is not storable in a
        * processor set supported by the system.
        */
@@ -358,7 +358,7 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSetHuge_Prepare(
 
     case RtemsTaskReqSetAffinity_Pre_CPUSetHuge_Zero: {
       /*
-       * While the processor set specified by the ``cpusetsize`` and ``cpuset``
+       * While the processor set specified by the `cpusetsize` and `cpuset`
        * parameters contains no processor which is not storable in a processor
        * set supported by the system.
        */
@@ -379,7 +379,7 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSet_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetAffinity_Pre_CPUSet_Valid: {
       /*
-       * While the ``cpuset`` parameter references an object of type cpu_set_t.
+       * While the `cpuset` parameter references an object of type cpu_set_t.
        */
       ctx->cpuset = &ctx->cpuset_obj[ 0 ];
       break;
@@ -387,7 +387,7 @@ static void RtemsTaskReqSetAffinity_Pre_CPUSet_Prepare(
 
     case RtemsTaskReqSetAffinity_Pre_CPUSet_Null: {
       /*
-       * While the ``cpuset`` parameter is equal to NULL.
+       * While the `cpuset` parameter is equal to NULL.
        */
       ctx->cpuset = NULL;
       break;
@@ -453,8 +453,8 @@ static void RtemsTaskReqSetAffinity_Post_SetAffinity_Check(
   switch ( state ) {
     case RtemsTaskReqSetAffinity_Post_SetAffinity_Set: {
       /*
-       * The affinity set of the task specified by the ``id`` parameter shall
-       * be set with respect to the home scheduler of the task at some point
+       * The affinity set of the task specified by the `id` parameter shall be
+       * set with respect to the home scheduler of the task at some point
        * during the rtems_task_set_affinity() call.
        */
       #if defined(RTEMS_SMP)

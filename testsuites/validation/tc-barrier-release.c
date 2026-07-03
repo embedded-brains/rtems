@@ -228,7 +228,7 @@ static void RtemsBarrierReqRelease_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsBarrierReqRelease_Pre_Id_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with a barrier.
+       * While the `id` parameter is not associated with a barrier.
        */
       ctx->id = 0xffffffff;
       break;
@@ -236,8 +236,7 @@ static void RtemsBarrierReqRelease_Pre_Id_Prepare(
 
     case RtemsBarrierReqRelease_Pre_Id_Manual: {
       /*
-       * While the ``id`` parameter is associated with a manual release
-       * barrier.
+       * While the `id` parameter is associated with a manual release barrier.
        */
       ctx->id = ctx->manual_release_id;
       break;
@@ -245,7 +244,7 @@ static void RtemsBarrierReqRelease_Pre_Id_Prepare(
 
     case RtemsBarrierReqRelease_Pre_Id_Auto: {
       /*
-       * While the ``id`` parameter is associated with an automatic release
+       * While the `id` parameter is associated with an automatic release
        * barrier.
        */
       ctx->id = ctx->auto_release_id;
@@ -267,8 +266,7 @@ static void RtemsBarrierReqRelease_Pre_Released_Prepare(
   switch ( state ) {
     case RtemsBarrierReqRelease_Pre_Released_Valid: {
       /*
-       * While the ``released`` parameter references an object of type
-       * uint32_t.
+       * While the `released` parameter references an object of type uint32_t.
        */
       ctx->released = &ctx->released_value;
       break;
@@ -276,7 +274,7 @@ static void RtemsBarrierReqRelease_Pre_Released_Prepare(
 
     case RtemsBarrierReqRelease_Pre_Released_Null: {
       /*
-       * While the ``released`` parameter is NULL.
+       * While the `released` parameter is NULL.
        */
       ctx->released = NULL;
       break;
@@ -361,7 +359,7 @@ static void RtemsBarrierReqRelease_Post_ReleasedVar_Check(
   switch ( state ) {
     case RtemsBarrierReqRelease_Post_ReleasedVar_Set: {
       /*
-       * The value of the object referenced by the ``released`` parameter shall
+       * The value of the object referenced by the `released` parameter shall
        * be set to the number of released tasks after the return of the
        * rtems_barrier_release() call.
        */
@@ -371,7 +369,7 @@ static void RtemsBarrierReqRelease_Post_ReleasedVar_Check(
 
     case RtemsBarrierReqRelease_Post_ReleasedVar_Nop: {
       /*
-       * Objects referenced by the ``released`` parameter in past calls to
+       * Objects referenced by the `released` parameter in past calls to
        * rtems_barrier_release() shall not be accessed by the
        * rtems_barrier_release() call.
        */

@@ -168,7 +168,7 @@ static void RtemsUserextReqDelete_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsUserextReqDelete_Pre_Id_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with an extension set.
+       * While the `id` parameter is not associated with an extension set.
        */
       /* Already set by prologue */
       break;
@@ -176,7 +176,7 @@ static void RtemsUserextReqDelete_Pre_Id_Prepare(
 
     case RtemsUserextReqDelete_Pre_Id_ExtTdSw: {
       /*
-       * While the ``id`` parameter is associated with an extension set with a
+       * While the `id` parameter is associated with an extension set with a
        * thread switch extension.
        */
       valid_id = true;
@@ -186,8 +186,8 @@ static void RtemsUserextReqDelete_Pre_Id_Prepare(
 
     case RtemsUserextReqDelete_Pre_Id_ExtNoTdSw: {
       /*
-       * While the ``id`` parameter is associated with an extension set without
-       * a thread switch extension.
+       * While the `id` parameter is associated with an extension set without a
+       * thread switch extension.
        */
       valid_id = true;
       ctx->table.thread_switch = NULL;

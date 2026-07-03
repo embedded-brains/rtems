@@ -125,8 +125,7 @@ typedef struct {
   rtems_vector_number vector;
 
   /**
-   * @brief If this member is true, then the ``vector`` parameter shall be
-   *   valid.
+   * @brief If this member is true, then the `vector` parameter shall be valid.
    */
   bool valid_vector;
 
@@ -373,7 +372,7 @@ static void RtemsIntrReqVectorDisable_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorDisable_Pre_Vector_Valid: {
       /*
-       * While the ``vector`` parameter is associated with an interrupt vector.
+       * While the `vector` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -381,7 +380,7 @@ static void RtemsIntrReqVectorDisable_Pre_Vector_Prepare(
 
     case RtemsIntrReqVectorDisable_Pre_Vector_Invalid: {
       /*
-       * While the ``vector`` parameter is not associated with an interrupt
+       * While the `vector` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -400,7 +399,7 @@ static void RtemsIntrReqVectorDisable_Pre_IsEnabled_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorDisable_Pre_IsEnabled_Yes: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter is
+       * While the interrupt vector associated with the `vector` parameter is
        * enabled.
        */
       /*
@@ -412,7 +411,7 @@ static void RtemsIntrReqVectorDisable_Pre_IsEnabled_Prepare(
 
     case RtemsIntrReqVectorDisable_Pre_IsEnabled_No: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter is
+       * While the interrupt vector associated with the `vector` parameter is
        * disabled.
        */
       /*
@@ -434,8 +433,8 @@ static void RtemsIntrReqVectorDisable_Pre_CanDisable_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorDisable_Pre_CanDisable_Yes: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
-       * can be disabled.
+       * While the interrupt vector associated with the `vector` parameter can
+       * be disabled.
        */
       /*
        * This pre-condition depends on the attributes of an interrupt vector,
@@ -446,8 +445,8 @@ static void RtemsIntrReqVectorDisable_Pre_CanDisable_Prepare(
 
     case RtemsIntrReqVectorDisable_Pre_CanDisable_Maybe: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
-       * may be disabled.
+       * While the interrupt vector associated with the `vector` parameter may
+       * be disabled.
        */
       /*
        * This pre-condition depends on the attributes of an interrupt vector,
@@ -458,7 +457,7 @@ static void RtemsIntrReqVectorDisable_Pre_CanDisable_Prepare(
 
     case RtemsIntrReqVectorDisable_Pre_CanDisable_No: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
+       * While the interrupt vector associated with the `vector` parameter
        * cannot be disabled.
        */
       /*
@@ -524,8 +523,8 @@ static void RtemsIntrReqVectorDisable_Post_IsEnabled_Check(
   switch ( state ) {
     case RtemsIntrReqVectorDisable_Post_IsEnabled_Nop: {
       /*
-       * The enabled status of the interrupt vector specified by ``vector``
-       * shall not be modified by the rtems_interrupt_vector_disable() call.
+       * The enabled status of the interrupt vector specified by `vector` shall
+       * not be modified by the rtems_interrupt_vector_disable() call.
        */
       /*
        * Validation is done by CheckUnsatisfied() for each interrupt
@@ -536,7 +535,7 @@ static void RtemsIntrReqVectorDisable_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorDisable_Post_IsEnabled_No: {
       /*
-       * The interrupt vector specified by ``vector`` shall be disabled.
+       * The interrupt vector specified by `vector` shall be disabled.
        */
       /*
        * Validation is done by CheckVectorDisable() for each interrupt
@@ -547,7 +546,7 @@ static void RtemsIntrReqVectorDisable_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorDisable_Post_IsEnabled_Maybe: {
       /*
-       * The interrupt vector specified by ``vector`` may be disabled.
+       * The interrupt vector specified by `vector` may be disabled.
        */
       /*
        * Validation is done by CheckVectorDisable() for each interrupt

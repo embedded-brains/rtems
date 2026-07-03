@@ -150,7 +150,7 @@ typedef struct {
   TaskTimerInfo timer_info;
 
   /**
-   * @brief This member provides the object referenced by the ``time_buffer``
+   * @brief This member provides the object referenced by the `time_buffer`
    *   parameter.
    */
   rtems_time_of_day tod_obj;
@@ -162,7 +162,7 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies the ``time_buffer`` parameter value.
+   * @brief This member specifies the `time_buffer` parameter value.
    */
   const rtems_time_of_day *tod;
 
@@ -301,7 +301,7 @@ static void RtemsTaskReqWakeWhen_Pre_TOD_Prepare(
   switch ( state ) {
     case RtemsTaskReqWakeWhen_Pre_TOD_Valid: {
       /*
-       * While the ``time_buffer`` parameter references an object of type
+       * While the `time_buffer` parameter references an object of type
        * rtems_time_of_day.
        */
       ctx->tod = &ctx->tod_obj;
@@ -310,7 +310,7 @@ static void RtemsTaskReqWakeWhen_Pre_TOD_Prepare(
 
     case RtemsTaskReqWakeWhen_Pre_TOD_Null: {
       /*
-       * While the ``time_buffer`` parameter is equal to NULL.
+       * While the `time_buffer` parameter is equal to NULL.
        */
       ctx->tod = NULL;
       break;
@@ -329,8 +329,8 @@ static void RtemsTaskReqWakeWhen_Pre_TODObj_Prepare(
   switch ( state ) {
     case RtemsTaskReqWakeWhen_Pre_TODObj_Future: {
       /*
-       * While the object referenced by the ``time_buffer`` parameter specifies
-       * a valid time of day in the future.
+       * While the object referenced by the `time_buffer` parameter specifies a
+       * valid time of day in the future.
        */
       SetTOD( &ctx->tod_obj, 2010 );
       break;
@@ -338,8 +338,8 @@ static void RtemsTaskReqWakeWhen_Pre_TODObj_Prepare(
 
     case RtemsTaskReqWakeWhen_Pre_TODObj_PastOrNow: {
       /*
-       * While the object referenced by the ``time_buffer`` parameter specifies
-       * a valid time of day in the past or at the time of the
+       * While the object referenced by the `time_buffer` parameter specifies a
+       * valid time of day in the past or at the time of the
        * rtems_task_wake_when() call.
        */
       SetTOD( &ctx->tod_obj, 1990 );
@@ -348,7 +348,7 @@ static void RtemsTaskReqWakeWhen_Pre_TODObj_Prepare(
 
     case RtemsTaskReqWakeWhen_Pre_TODObj_Invalid: {
       /*
-       * While the object referenced by the ``time_buffer`` parameter specifies
+       * While the object referenced by the `time_buffer` parameter specifies
        * an invalid time of day.
        */
       memset( &ctx->tod_obj, 0xff, sizeof( ctx->tod_obj ) );
@@ -443,7 +443,7 @@ static void RtemsTaskReqWakeWhen_Post_Expire_Check(
     case RtemsTaskReqWakeWhen_Post_Expire_Absolute: {
       /*
        * The timer of the calling task shall expire at the time point specified
-       * by the ``time_buffer`` parameter.
+       * by the `time_buffer` parameter.
        */
       T_eq_i64( ctx->timer_info.expire_timespec.tv_sec, 1262304000 );
       T_eq_long( ctx->timer_info.expire_timespec.tv_nsec, 0 );

@@ -113,7 +113,7 @@ typedef struct {
   rtems_id scheduler_id;
 
   /**
-   * @brief This member provides the object referenced by the ``priority``
+   * @brief This member provides the object referenced by the `priority`
    *   parameter.
    */
   rtems_task_priority priority_obj;
@@ -125,12 +125,12 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the ``scheduler_id`` parameter value.
+   * @brief This member specifies if the `scheduler_id` parameter value.
    */
   rtems_id id;
 
   /**
-   * @brief This member specifies if the ``priority`` parameter value.
+   * @brief This member specifies if the `priority` parameter value.
    */
   rtems_task_priority *priority;
 
@@ -192,8 +192,7 @@ static void RtemsSchedulerReqGetMaximumPriority_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsSchedulerReqGetMaximumPriority_Pre_Id_Invalid: {
       /*
-       * While the ``scheduler_id`` parameter is not associated with a
-       * scheduler.
+       * While the `scheduler_id` parameter is not associated with a scheduler.
        */
       ctx->id = INVALID_ID;
       break;
@@ -201,7 +200,7 @@ static void RtemsSchedulerReqGetMaximumPriority_Pre_Id_Prepare(
 
     case RtemsSchedulerReqGetMaximumPriority_Pre_Id_Scheduler: {
       /*
-       * While the ``scheduler_id`` parameter is associated with a scheduler.
+       * While the `scheduler_id` parameter is associated with a scheduler.
        */
       ctx->id = ctx->scheduler_id;
       break;
@@ -220,7 +219,7 @@ static void RtemsSchedulerReqGetMaximumPriority_Pre_Prio_Prepare(
   switch ( state ) {
     case RtemsSchedulerReqGetMaximumPriority_Pre_Prio_Valid: {
       /*
-       * While the ``priority`` parameter references an object of type
+       * While the `priority` parameter references an object of type
        * rtems_task_priority.
        */
       ctx->priority = &ctx->priority_obj;
@@ -229,7 +228,7 @@ static void RtemsSchedulerReqGetMaximumPriority_Pre_Prio_Prepare(
 
     case RtemsSchedulerReqGetMaximumPriority_Pre_Prio_Null: {
       /*
-       * While the ``priority`` parameter is equal to NULL.
+       * While the `priority` parameter is equal to NULL.
        */
       ctx->priority = NULL;
       break;
@@ -286,9 +285,9 @@ static void RtemsSchedulerReqGetMaximumPriority_Post_PrioObj_Check(
   switch ( state ) {
     case RtemsSchedulerReqGetMaximumPriority_Post_PrioObj_Set: {
       /*
-       * The value of the object referenced by the ``priority`` parameter shall
+       * The value of the object referenced by the `priority` parameter shall
        * be set to the maximum priority value of the scheduler specified by the
-       * ``scheduler_id`` parameter after the return of the
+       * `scheduler_id` parameter after the return of the
        * rtems_scheduler_get_maximum_priority() call.
        */
       #if defined(RTEMS_SMP)
@@ -301,7 +300,7 @@ static void RtemsSchedulerReqGetMaximumPriority_Post_PrioObj_Check(
 
     case RtemsSchedulerReqGetMaximumPriority_Post_PrioObj_Nop: {
       /*
-       * Objects referenced by the ``priority`` parameter in past calls to
+       * Objects referenced by the `priority` parameter in past calls to
        * rtems_scheduler_get_maximum_priority() shall not be accessed by the
        * rtems_scheduler_get_maximum_priority() call.
        */

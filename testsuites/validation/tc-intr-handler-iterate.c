@@ -160,12 +160,12 @@ typedef struct {
   rtems_interrupt_entry entry;
 
   /**
-   * @brief This member specifies if the ``vector`` parameter value.
+   * @brief This member specifies if the `vector` parameter value.
    */
   rtems_vector_number vector;
 
   /**
-   * @brief This member specifies if the ``routine`` parameter value.
+   * @brief This member specifies if the `routine` parameter value.
    */
   rtems_interrupt_per_handler_routine routine;
 
@@ -311,7 +311,7 @@ static void RtemsIntrReqHandlerIterate_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqHandlerIterate_Pre_Vector_Valid: {
       /*
-       * While the ``vector`` parameter is associated with an interrupt vector.
+       * While the `vector` parameter is associated with an interrupt vector.
        */
       ctx->vector = ctx->test_vector;
       break;
@@ -319,7 +319,7 @@ static void RtemsIntrReqHandlerIterate_Pre_Vector_Prepare(
 
     case RtemsIntrReqHandlerIterate_Pre_Vector_Invalid: {
       /*
-       * While the ``vector`` parameter is not associated with an interrupt
+       * While the `vector` parameter is not associated with an interrupt
        * vector.
        */
       ctx->vector = BSP_INTERRUPT_VECTOR_COUNT;
@@ -339,7 +339,7 @@ static void RtemsIntrReqHandlerIterate_Pre_Routine_Prepare(
   switch ( state ) {
     case RtemsIntrReqHandlerIterate_Pre_Routine_Valid: {
       /*
-       * While the visitor routine specified by the ``routine`` parameter is
+       * While the visitor routine specified by the `routine` parameter is
        * valid.
        */
       ctx->routine = VisitorRoutine;
@@ -348,7 +348,7 @@ static void RtemsIntrReqHandlerIterate_Pre_Routine_Prepare(
 
     case RtemsIntrReqHandlerIterate_Pre_Routine_Null: {
       /*
-       * While the visitor routine specified by the ``routine`` parameter is
+       * While the visitor routine specified by the `routine` parameter is
        * equal to NULL.
        */
       ctx->routine = NULL;
@@ -481,10 +481,10 @@ static void RtemsIntrReqHandlerIterate_Post_Visit_Check(
     case RtemsIntrReqHandlerIterate_Post_Visit_Yes: {
       /*
        * For each interrupt entry installed at the interrupt vector specified
-       * by ``vector`` the visitor routine specified by ``routine`` shall be
-       * called with the argument specified by ``arg``, the entry information,
-       * the entry install options, the entry handler routine, and the entry
-       * handler argument.
+       * by `vector` the visitor routine specified by `routine` shall be called
+       * with the argument specified by `arg`, the entry information, the entry
+       * install options, the entry handler routine, and the entry handler
+       * argument.
        */
       T_eq_u32( ctx->visited_entries, 1 );
       break;
@@ -492,7 +492,7 @@ static void RtemsIntrReqHandlerIterate_Post_Visit_Check(
 
     case RtemsIntrReqHandlerIterate_Post_Visit_Nop: {
       /*
-       * The visitor routine specified by ``routine`` shall not be called.
+       * The visitor routine specified by `routine` shall not be called.
        */
       T_eq_u32( ctx->visited_entries, 0 );
       break;

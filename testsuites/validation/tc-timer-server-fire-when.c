@@ -210,17 +210,17 @@ typedef struct {
   rtems_id timer_id;
 
   /**
-   * @brief This member specifies the ``id`` parameter for the action.
+   * @brief This member specifies the `id` parameter for the action.
    */
   rtems_id id_param;
 
   /**
-   * @brief This member specifies the ``wall_time`` parameter for the action.
+   * @brief This member specifies the `wall_time` parameter for the action.
    */
   const rtems_time_of_day *wall_time_param;
 
   /**
-   * @brief This member specifies the ``routine`` parameter for the action.
+   * @brief This member specifies the `routine` parameter for the action.
    */
   rtems_timer_service_routine_entry routine_param;
 
@@ -499,7 +499,7 @@ static void RtemsTimerReqServerFireWhen_Pre_Routine_Prepare(
   switch ( state ) {
     case RtemsTimerReqServerFireWhen_Pre_Routine_Valid: {
       /*
-       * While the ``routine`` parameter references an object of type
+       * While the `routine` parameter references an object of type
        * rtems_timer_service_routine_entry.
        */
       ctx->routine_param = TimerServiceRoutine;
@@ -508,7 +508,7 @@ static void RtemsTimerReqServerFireWhen_Pre_Routine_Prepare(
 
     case RtemsTimerReqServerFireWhen_Pre_Routine_Null: {
       /*
-       * While the ``routine`` parameter is NULL..
+       * While the `routine` parameter is NULL..
        */
       ctx->routine_param = NULL;
       break;
@@ -527,9 +527,9 @@ static void RtemsTimerReqServerFireWhen_Pre_WallTime_Prepare(
   switch ( state ) {
     case RtemsTimerReqServerFireWhen_Pre_WallTime_Valid: {
       /*
-       * While the ``wall_time`` parameter references a time at least one
-       * second in the future but not later than the last second of the year
-       * 2105. (Times after 2105 are invalid.)
+       * While the `wall_time` parameter references a time at least one second
+       * in the future but not later than the last second of the year 2105.
+       * (Times after 2105 are invalid.)
        */
       ctx->wall_time_param = &tod_schedule;
       break;
@@ -537,7 +537,7 @@ static void RtemsTimerReqServerFireWhen_Pre_WallTime_Prepare(
 
     case RtemsTimerReqServerFireWhen_Pre_WallTime_Invalid: {
       /*
-       * While the ``wall_time`` parameter is invalid.
+       * While the `wall_time` parameter is invalid.
        */
       ctx->wall_time_param = &tod_invalid;
       break;
@@ -545,7 +545,7 @@ static void RtemsTimerReqServerFireWhen_Pre_WallTime_Prepare(
 
     case RtemsTimerReqServerFireWhen_Pre_WallTime_Past: {
       /*
-       * While the ``wall_time`` parameter references a time in the current
+       * While the `wall_time` parameter references a time in the current
        * second or in the past but not earlier than 1988. (Times before 1988
        * are invalid.)
        */
@@ -555,7 +555,7 @@ static void RtemsTimerReqServerFireWhen_Pre_WallTime_Prepare(
 
     case RtemsTimerReqServerFireWhen_Pre_WallTime_Null: {
       /*
-       * While the ``wall_time`` parameter is 0.
+       * While the `wall_time` parameter is 0.
        */
       ctx->wall_time_param = NULL;
       break;
@@ -574,7 +574,7 @@ static void RtemsTimerReqServerFireWhen_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTimerReqServerFireWhen_Pre_Id_Valid: {
       /*
-       * While the ``id`` parameter is valid.
+       * While the `id` parameter is valid.
        */
       ctx->id_param = ctx->timer_id;
       break;
@@ -582,7 +582,7 @@ static void RtemsTimerReqServerFireWhen_Pre_Id_Prepare(
 
     case RtemsTimerReqServerFireWhen_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is invalid.
+       * While the `id` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -950,7 +950,7 @@ static void RtemsTimerReqServerFireWhen_Post_WallTime_Check(
       /*
        * The Timer Service Routine shall be invoked at the wall time (see
        * realtime clock) (ignoring ticks), which was provided by the
-       * ``wall_time`` parameter in the past call to
+       * `wall_time` parameter in the past call to
        * rtems_timer_server_fire_when().
        */
       T_eq_mem(
@@ -991,7 +991,7 @@ static void RtemsTimerReqServerFireWhen_Post_Routine_Check(
     case RtemsTimerReqServerFireWhen_Post_Routine_Param: {
       /*
        * The function reference used to invoke the Timer Service Routine when
-       * the timer will fire shall be the one provided by the ``routine``
+       * the timer will fire shall be the one provided by the `routine`
        * parameter in the past call to rtems_timer_server_fire_when().
        */
       T_eq_int( ctx->invocations, 1 );
@@ -1025,8 +1025,8 @@ static void RtemsTimerReqServerFireWhen_Post_UserData_Check(
     case RtemsTimerReqServerFireWhen_Post_UserData_Param: {
       /*
        * The user data argument for invoking the Timer Service Routine when the
-       * timer will fire shall be the one provided by the ``user_data``
-       * parameter in the past call to rtems_timer_server_fire_when().
+       * timer will fire shall be the one provided by the `user_data` parameter
+       * in the past call to rtems_timer_server_fire_when().
        */
       T_eq_ptr( ctx->routine_user_data, ctx );
       break;

@@ -193,7 +193,7 @@ static void RtemsPartReqGetBuffer_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsPartReqGetBuffer_Pre_Id_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with a partition.
+       * While the `id` parameter is not associated with a partition.
        */
       ctx->id = 0xffffffff;
       break;
@@ -201,7 +201,7 @@ static void RtemsPartReqGetBuffer_Pre_Id_Prepare(
 
     case RtemsPartReqGetBuffer_Pre_Id_Part: {
       /*
-       * While the ``id`` parameter is associated with a partition.
+       * While the `id` parameter is associated with a partition.
        */
       ctx->id = ctx->id_value;
       break;
@@ -220,7 +220,7 @@ static void RtemsPartReqGetBuffer_Pre_Buf_Prepare(
   switch ( state ) {
     case RtemsPartReqGetBuffer_Pre_Buf_Valid: {
       /*
-       * While the ``buffer`` parameter references an object of type `void *`.
+       * While the `buffer` parameter references an object of type `void *`.
        */
       ctx->buffer = &ctx->buffer_pointer;
       break;
@@ -228,7 +228,7 @@ static void RtemsPartReqGetBuffer_Pre_Buf_Prepare(
 
     case RtemsPartReqGetBuffer_Pre_Buf_Null: {
       /*
-       * While the ``buffer`` parameter is NULL.
+       * While the `buffer` parameter is NULL.
        */
       ctx->buffer = NULL;
       break;
@@ -327,10 +327,9 @@ static void RtemsPartReqGetBuffer_Post_BufVar_Check(
   switch ( state ) {
     case RtemsPartReqGetBuffer_Post_BufVar_Set: {
       /*
-       * The value of the object referenced by the ``starting_address``
-       * parameter shall be set to the object identifier of the begin address
-       * of the returned buffer after the return of the
-       * rtems_partition_create() call.
+       * The value of the object referenced by the `starting_address` parameter
+       * shall be set to the object identifier of the begin address of the
+       * returned buffer after the return of the rtems_partition_create() call.
        */
       T_eq_ptr( ctx->buffer, &ctx->buffer_pointer );
       T_eq_ptr( ctx->buffer_pointer, buffers );
@@ -339,7 +338,7 @@ static void RtemsPartReqGetBuffer_Post_BufVar_Check(
 
     case RtemsPartReqGetBuffer_Post_BufVar_Nop: {
       /*
-       * Objects referenced by the ``buffer`` parameter in past calls to
+       * Objects referenced by the `buffer` parameter in past calls to
        * rtems_partition_get_buffer() shall not be accessed by the
        * rtems_partition_get_buffer() call.
        */

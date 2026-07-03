@@ -121,8 +121,7 @@ typedef struct {
   rtems_vector_number vector;
 
   /**
-   * @brief If this member is true, then the ``vector`` parameter shall be
-   *   valid.
+   * @brief If this member is true, then the `vector` parameter shall be valid.
    */
   bool valid_vector;
 
@@ -222,21 +221,12 @@ static void Disable( const Context *ctx )
   T_rsc_success( sc );
 }
 
-static void Raise(
-  const Context                    *ctx,
-  const rtems_interrupt_attributes *attr
-)
+static void Raise( const Context *ctx )
 {
   rtems_status_code sc;
 
-  if ( !attr->can_raise ) {
-    return;
-  }
-
   sc = rtems_interrupt_raise( ctx->vector );
   T_rsc_success( sc );
-
-  T_true( IsPending( ctx ) );
 }
 
 static void Clear( const Context *ctx )
@@ -333,7 +323,8 @@ static void CheckClear(
 
       if ( attr->can_disable ) {
         Disable( ctx );
-        Raise( ctx, attr );
+        Raise( ctx );
+        T_true( IsPending( ctx ) );
         Clear( ctx );
         T_false( IsPending( ctx ) );
 
@@ -346,7 +337,8 @@ static void CheckClear(
       T_false( IsPending( ctx ) );
 
       rtems_interrupt_local_disable( level );
-      Raise( ctx, attr );
+      Raise( ctx );
+      T_true( IsPending( ctx ) );
       Clear( ctx );
       T_false( IsPending( ctx ) );
       rtems_interrupt_local_enable( level );
@@ -369,7 +361,7 @@ static void RtemsIntrReqClear_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqClear_Pre_Vector_Valid: {
       /*
-       * While the ``vector`` parameter is associated with an interrupt vector.
+       * While the `vector` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -377,7 +369,7 @@ static void RtemsIntrReqClear_Pre_Vector_Prepare(
 
     case RtemsIntrReqClear_Pre_Vector_Invalid: {
       /*
-       * While the ``vector`` parameter is not associated with an interrupt
+       * While the `vector` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -396,8 +388,8 @@ static void RtemsIntrReqClear_Pre_CanClear_Prepare(
   switch ( state ) {
     case RtemsIntrReqClear_Pre_CanClear_Yes: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
-       * can be cleard.
+       * While the interrupt vector associated with the `vector` parameter can
+       * be cleard.
        */
       /*
        * This pre-condition depends on the attributes of an interrupt vector,
@@ -408,7 +400,7 @@ static void RtemsIntrReqClear_Pre_CanClear_Prepare(
 
     case RtemsIntrReqClear_Pre_CanClear_No: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
+       * While the interrupt vector associated with the `vector` parameter
        * cannot be cleard.
        */
       /*
@@ -469,7 +461,7 @@ static void RtemsIntrReqClear_Post_Cleared_Check(
     case RtemsIntrReqClear_Post_Cleared_Yes: {
       /*
        * The pending state of the interrupt associated with the interrupt
-       * vector specified by ``vector`` shall be cleared for the processor
+       * vector specified by `vector` shall be cleared for the processor
        * executing the rtems_interrupt_clear() call at some time point during
        * the call.
        */
@@ -480,7 +472,7 @@ static void RtemsIntrReqClear_Post_Cleared_Check(
     case RtemsIntrReqClear_Post_Cleared_No: {
       /*
        * The pending state of the interrupt associated with the interrupt
-       * vector specified by ``vector`` shall not be cleared by the
+       * vector specified by `vector` shall not be cleared by the
        * rtems_interrupt_clear() call.
        */
       /* Validation is done by CheckClear() for each interrupt vector */

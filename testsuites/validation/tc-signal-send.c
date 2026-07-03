@@ -375,7 +375,7 @@ static void RtemsSignalReqSend_Pre_Task_Prepare(
   switch ( state ) {
     case RtemsSignalReqSend_Pre_Task_NoObj: {
       /*
-       * While the ``id`` parameter is not associated with a task.
+       * While the `id` parameter is not associated with a task.
        */
       ctx->id = 0xffffffff;
       break;
@@ -383,7 +383,7 @@ static void RtemsSignalReqSend_Pre_Task_Prepare(
 
     case RtemsSignalReqSend_Pre_Task_Self: {
       /*
-       * While the ``id`` parameter is associated with the calling task.
+       * While the `id` parameter is associated with the calling task.
        */
       ctx->id = RTEMS_SELF;
       break;
@@ -391,7 +391,7 @@ static void RtemsSignalReqSend_Pre_Task_Prepare(
 
     case RtemsSignalReqSend_Pre_Task_Other: {
       /*
-       * While the ``id`` parameter is associated with a task other than the
+       * While the `id` parameter is associated with a task other than the
        * calling task.
        */
       ctx->id = ctx->worker_id;
@@ -411,7 +411,7 @@ static void RtemsSignalReqSend_Pre_Set_Prepare(
   switch ( state ) {
     case RtemsSignalReqSend_Pre_Set_Zero: {
       /*
-       * While the ``signal_set`` parameter is zero.
+       * While the `signal_set` parameter is zero.
        */
       ctx->signal_set = 0;
       break;
@@ -419,7 +419,7 @@ static void RtemsSignalReqSend_Pre_Set_Prepare(
 
     case RtemsSignalReqSend_Pre_Set_NonZero: {
       /*
-       * While the ``signal_set`` parameter is non-zero.
+       * While the `signal_set` parameter is non-zero.
        */
       ctx->signal_set = 0xdeadbeef;
       break;

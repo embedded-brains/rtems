@@ -453,7 +453,7 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the ``id`` parameter value.
+   * @brief This member specifies if the `id` parameter value.
    */
   rtems_id id;
 
@@ -940,7 +940,7 @@ static void Cleanup( Context *ctx )
 
   if (
     ctx->id == INVALID_ID ||
-    ( ctx->calls.thread_terminate == 0 &&
+    ( ctx->calls.thread_terminate == 0 && 
     !( ctx->dormant && ctx->status != RTEMS_CALLED_FROM_ISR ) )
   ) {
     DeleteTask( ctx->worker_id );
@@ -963,7 +963,7 @@ static void RtemsTaskReqDelete_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Id_Executing: {
       /*
-       * While the ``id`` parameter is associated with the calling task.
+       * While the `id` parameter is associated with the calling task.
        */
       ctx->id = RTEMS_SELF;
       break;
@@ -971,7 +971,7 @@ static void RtemsTaskReqDelete_Pre_Id_Prepare(
 
     case RtemsTaskReqDelete_Pre_Id_Other: {
       /*
-       * While the ``id`` parameter is associated with a task other than the
+       * While the `id` parameter is associated with a task other than the
        * calling task.
        */
       ctx->id = ctx->worker_id;
@@ -980,7 +980,7 @@ static void RtemsTaskReqDelete_Pre_Id_Prepare(
 
     case RtemsTaskReqDelete_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is not associated with a task.
+       * While the `id` parameter is not associated with a task.
        */
       ctx->id = INVALID_ID;
       break;
@@ -1056,7 +1056,7 @@ static void RtemsTaskReqDelete_Pre_CallerPriority_Prepare(
     case RtemsTaskReqDelete_Pre_CallerPriority_Vital: {
       /*
        * While at least one priority of the calling task is higher than the
-       * highest priority of the task specified by the ``id`` parameter.
+       * highest priority of the task specified by the `id` parameter.
        */
       ctx->vital_deleter_priority = true;
       break;
@@ -1065,7 +1065,7 @@ static void RtemsTaskReqDelete_Pre_CallerPriority_Prepare(
     case RtemsTaskReqDelete_Pre_CallerPriority_Dispensable: {
       /*
        * While all priorities of the calling task are lower than or equal to
-       * the highest priority of the task specified by the ``id`` parameter.
+       * the highest priority of the task specified by the `id` parameter.
        */
       ctx->vital_deleter_priority = false;
       break;
@@ -1084,7 +1084,7 @@ static void RtemsTaskReqDelete_Pre_Dormant_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Dormant_No: {
       /*
-       * While the task specified by the ``id`` parameter is not dormant.
+       * While the task specified by the `id` parameter is not dormant.
        */
       ctx->dormant = false;
       break;
@@ -1092,7 +1092,7 @@ static void RtemsTaskReqDelete_Pre_Dormant_Prepare(
 
     case RtemsTaskReqDelete_Pre_Dormant_Yes: {
       /*
-       * While the task specified by the ``id`` parameter is dormant.
+       * While the task specified by the `id` parameter is dormant.
        */
       ctx->dormant = true;
       break;
@@ -1111,7 +1111,7 @@ static void RtemsTaskReqDelete_Pre_Suspended_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Suspended_Yes: {
       /*
-       * While the task specified by the ``id`` parameter is suspended.
+       * While the task specified by the `id` parameter is suspended.
        */
       ctx->suspended = true;
       break;
@@ -1119,7 +1119,7 @@ static void RtemsTaskReqDelete_Pre_Suspended_Prepare(
 
     case RtemsTaskReqDelete_Pre_Suspended_No: {
       /*
-       * While the task specified by the ``id`` parameter is not suspended.
+       * While the task specified by the `id` parameter is not suspended.
        */
       ctx->suspended = false;
       break;
@@ -1138,7 +1138,7 @@ static void RtemsTaskReqDelete_Pre_Restarting_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Restarting_No: {
       /*
-       * While the task specified by the ``id`` parameter is not restarting.
+       * While the task specified by the `id` parameter is not restarting.
        */
       ctx->restarting = false;
       break;
@@ -1146,7 +1146,7 @@ static void RtemsTaskReqDelete_Pre_Restarting_Prepare(
 
     case RtemsTaskReqDelete_Pre_Restarting_Yes: {
       /*
-       * While the task specified by the ``id`` parameter is restarting.
+       * While the task specified by the `id` parameter is restarting.
        */
       ctx->restarting = true;
       break;
@@ -1165,7 +1165,7 @@ static void RtemsTaskReqDelete_Pre_Terminating_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Terminating_No: {
       /*
-       * While the task specified by the ``id`` parameter is not terminating.
+       * While the task specified by the `id` parameter is not terminating.
        */
       ctx->terminating = false;
       break;
@@ -1173,7 +1173,7 @@ static void RtemsTaskReqDelete_Pre_Terminating_Prepare(
 
     case RtemsTaskReqDelete_Pre_Terminating_Yes: {
       /*
-       * While the task specified by the ``id`` parameter is terminating.
+       * While the task specified by the `id` parameter is terminating.
        */
       ctx->terminating = true;
       break;
@@ -1192,7 +1192,7 @@ static void RtemsTaskReqDelete_Pre_Protected_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Protected_Yes: {
       /*
-       * While thread life of the task specified by the ``id`` parameter is
+       * While thread life of the task specified by the `id` parameter is
        * protected.
        */
       ctx->protected = true;
@@ -1201,7 +1201,7 @@ static void RtemsTaskReqDelete_Pre_Protected_Prepare(
 
     case RtemsTaskReqDelete_Pre_Protected_No: {
       /*
-       * While thread life of the task specified by the ``id`` parameter is not
+       * While thread life of the task specified by the `id` parameter is not
        * protected.
        */
       ctx->protected = false;
@@ -1221,7 +1221,7 @@ static void RtemsTaskReqDelete_Pre_State_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_State_Enqueued: {
       /*
-       * While the task specified by the ``id`` parameter is enqueued on a wait
+       * While the task specified by the `id` parameter is enqueued on a wait
        * queue.
        */
       ctx->blocked = true;
@@ -1231,7 +1231,7 @@ static void RtemsTaskReqDelete_Pre_State_Prepare(
 
     case RtemsTaskReqDelete_Pre_State_Ready: {
       /*
-       * While the task specified by the ``id`` parameter is a ready task or a
+       * While the task specified by the `id` parameter is a ready task or a
        * scheduled task.
        */
       ctx->blocked = false;
@@ -1241,7 +1241,7 @@ static void RtemsTaskReqDelete_Pre_State_Prepare(
 
     case RtemsTaskReqDelete_Pre_State_Blocked: {
       /*
-       * While the task specified by the ``id`` parameter is blocked.
+       * While the task specified by the `id` parameter is blocked.
        */
       ctx->blocked = true;
       ctx->enqueued = false;
@@ -1261,7 +1261,7 @@ static void RtemsTaskReqDelete_Pre_Timer_Prepare(
   switch ( state ) {
     case RtemsTaskReqDelete_Pre_Timer_Inactive: {
       /*
-       * While timer of the task specified by the ``id`` parameter is inactive.
+       * While timer of the task specified by the `id` parameter is inactive.
        */
       ctx->timer_active = false;
       break;
@@ -1269,7 +1269,7 @@ static void RtemsTaskReqDelete_Pre_Timer_Prepare(
 
     case RtemsTaskReqDelete_Pre_Timer_Active: {
       /*
-       * While timer of the task specified by the ``id`` parameter is active.
+       * While timer of the task specified by the `id` parameter is active.
        */
       ctx->timer_active = true;
       break;
@@ -1361,8 +1361,8 @@ static void RtemsTaskReqDelete_Post_Zombie_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Zombie_Yes: {
       /*
-       * The task specified by the ``id`` parameter shall be in the zombie
-       * state after the rtems_task_delete() call.
+       * The task specified by the `id` parameter shall be in the zombie state
+       * after the rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_ZOMBIE, STATES_ZOMBIE )
       break;
@@ -1370,7 +1370,7 @@ static void RtemsTaskReqDelete_Post_Zombie_Check(
 
     case RtemsTaskReqDelete_Post_Zombie_No: {
       /*
-       * The task specified by the ``id`` parameter shall not be in the zombie
+       * The task specified by the `id` parameter shall not be in the zombie
        * state after the rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_ZOMBIE, 0 )
@@ -1391,8 +1391,8 @@ static void RtemsTaskReqDelete_Post_TaskPriority_Check(
     case RtemsTaskReqDelete_Post_TaskPriority_Raise: {
       /*
        * Each priority of the calling task which is higher than the highest
-       * priority of the task specified by the ``id`` parameter shall be made
-       * the highest priority of the task.
+       * priority of the task specified by the `id` parameter shall be made the
+       * highest priority of the task.
        */
       T_eq_u32( ctx->worker_priority, PRIO_ULTRA_HIGH );
       break;
@@ -1400,7 +1400,7 @@ static void RtemsTaskReqDelete_Post_TaskPriority_Check(
 
     case RtemsTaskReqDelete_Post_TaskPriority_Nop: {
       /*
-       * The priorities of the task specified by the ``id`` parameter shall not
+       * The priorities of the task specified by the `id` parameter shall not
        * be changed by the rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_priority, PRIO_NORMAL );
@@ -1469,7 +1469,7 @@ static void RtemsTaskReqDelete_Post_Dormant_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Dormant_Yes: {
       /*
-       * The task specified by the ``id`` parameter shall be dormant after the
+       * The task specified by the `id` parameter shall be dormant after the
        * rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_DORMANT, STATES_DORMANT )
@@ -1478,7 +1478,7 @@ static void RtemsTaskReqDelete_Post_Dormant_Check(
 
     case RtemsTaskReqDelete_Post_Dormant_No: {
       /*
-       * The task specified by the ``id`` parameter shall not be dormant after
+       * The task specified by the `id` parameter shall not be dormant after
        * the rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_DORMANT, 0 )
@@ -1498,8 +1498,8 @@ static void RtemsTaskReqDelete_Post_Suspended_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Suspended_Yes: {
       /*
-       * The task specified by the ``id`` parameter shall be suspended after
-       * the rtems_task_delete() call.
+       * The task specified by the `id` parameter shall be suspended after the
+       * rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_SUSPENDED, STATES_SUSPENDED )
       break;
@@ -1507,8 +1507,8 @@ static void RtemsTaskReqDelete_Post_Suspended_Check(
 
     case RtemsTaskReqDelete_Post_Suspended_No: {
       /*
-       * The task specified by the ``id`` parameter shall not be suspended
-       * after the rtems_task_delete() call.
+       * The task specified by the `id` parameter shall not be suspended after
+       * the rtems_task_delete() call.
        */
       T_eq_u32( ctx->worker_state & STATES_SUSPENDED, 0 )
       break;
@@ -1527,8 +1527,8 @@ static void RtemsTaskReqDelete_Post_Restarting_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Restarting_Yes: {
       /*
-       * The task specified by the ``id`` parameter shall be restarting after
-       * the rtems_task_delete() call.
+       * The task specified by the `id` parameter shall be restarting after the
+       * rtems_task_delete() call.
        */
       T_ne_int( ctx->worker_life_state & THREAD_LIFE_RESTARTING, 0 );
       break;
@@ -1536,8 +1536,8 @@ static void RtemsTaskReqDelete_Post_Restarting_Check(
 
     case RtemsTaskReqDelete_Post_Restarting_No: {
       /*
-       * The task specified by the ``id`` parameter shall not be restarting
-       * after the rtems_task_delete() call.
+       * The task specified by the `id` parameter shall not be restarting after
+       * the rtems_task_delete() call.
        */
       T_eq_int( ctx->worker_life_state & THREAD_LIFE_RESTARTING, 0 );
       break;
@@ -1556,7 +1556,7 @@ static void RtemsTaskReqDelete_Post_Terminating_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Terminating_Yes: {
       /*
-       * The task specified by the ``id`` parameter shall be terminating after
+       * The task specified by the `id` parameter shall be terminating after
        * the rtems_task_delete() call.
        */
       T_ne_int( ctx->worker_life_state & THREAD_LIFE_TERMINATING, 0 );
@@ -1565,7 +1565,7 @@ static void RtemsTaskReqDelete_Post_Terminating_Check(
 
     case RtemsTaskReqDelete_Post_Terminating_No: {
       /*
-       * The task specified by the ``id`` parameter shall not be terminating
+       * The task specified by the `id` parameter shall not be terminating
        * after the rtems_task_delete() call.
        */
       T_eq_int( ctx->worker_life_state & THREAD_LIFE_TERMINATING, 0 );
@@ -1585,7 +1585,7 @@ static void RtemsTaskReqDelete_Post_Protected_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Protected_Yes: {
       /*
-       * The thread life of the task specified by the ``id`` parameter be
+       * The thread life of the task specified by the `id` parameter be
        * protected after the rtems_task_delete() call.
        */
       T_ne_int( ctx->worker_life_state & THREAD_LIFE_PROTECTED, 0 );
@@ -1594,8 +1594,8 @@ static void RtemsTaskReqDelete_Post_Protected_Check(
 
     case RtemsTaskReqDelete_Post_Protected_No: {
       /*
-       * The thread life of the task specified by the ``id`` parameter shall
-       * not be protected after the rtems_task_delete() call.
+       * The thread life of the task specified by the `id` parameter shall not
+       * be protected after the rtems_task_delete() call.
        */
       T_eq_int( ctx->worker_life_state & THREAD_LIFE_PROTECTED, 0 );
       break;
@@ -1614,7 +1614,7 @@ static void RtemsTaskReqDelete_Post_State_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_State_Enqueued: {
       /*
-       * The task specified by the ``id`` parameter shall be enqueued on a wait
+       * The task specified by the `id` parameter shall be enqueued on a wait
        * queue and blocked.
        */
       T_ne_u32( ctx->worker_state & STATES_BLOCKED, 0 )
@@ -1624,7 +1624,7 @@ static void RtemsTaskReqDelete_Post_State_Check(
 
     case RtemsTaskReqDelete_Post_State_Ready: {
       /*
-       * The task specified by the ``id`` parameter shall not be enqueued on a
+       * The task specified by the `id` parameter shall not be enqueued on a
        * wait queue and not blocked.
        */
       T_eq_u32( ctx->worker_state & STATES_BLOCKED, 0 )
@@ -1634,7 +1634,7 @@ static void RtemsTaskReqDelete_Post_State_Check(
 
     case RtemsTaskReqDelete_Post_State_Blocked: {
       /*
-       * The task specified by the ``id`` parameter shall be not enqueued on a
+       * The task specified by the `id` parameter shall be not enqueued on a
        * wait queue and blocked.
        */
       T_ne_u32( ctx->worker_state & STATES_BLOCKED, 0 )
@@ -1655,8 +1655,8 @@ static void RtemsTaskReqDelete_Post_Timer_Check(
   switch ( state ) {
     case RtemsTaskReqDelete_Post_Timer_Active: {
       /*
-       * The timer of the task specified by the ``id`` parameter shall be
-       * active after the rtems_task_delete() call.
+       * The timer of the task specified by the `id` parameter shall be active
+       * after the rtems_task_delete() call.
        */
       T_eq_int( ctx->worker_timer_info.state, TASK_TIMER_TICKS );
       break;
@@ -1664,7 +1664,7 @@ static void RtemsTaskReqDelete_Post_Timer_Check(
 
     case RtemsTaskReqDelete_Post_Timer_Inactive: {
       /*
-       * The timer of the task specified by the ``id`` parameter shall be
+       * The timer of the task specified by the `id` parameter shall be
        * inactive after the rtems_task_delete() call.
        */
       T_eq_int( ctx->worker_timer_info.state, TASK_TIMER_INACTIVE );

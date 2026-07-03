@@ -125,8 +125,7 @@ typedef struct {
   rtems_vector_number vector;
 
   /**
-   * @brief If this member is true, then the ``vector`` parameter shall be
-   *   valid.
+   * @brief If this member is true, then the `vector` parameter shall be valid.
    */
   bool valid_vector;
 
@@ -377,7 +376,7 @@ static void RtemsIntrReqVectorEnable_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorEnable_Pre_Vector_Valid: {
       /*
-       * While the ``vector`` parameter is associated with an interrupt vector.
+       * While the `vector` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -385,7 +384,7 @@ static void RtemsIntrReqVectorEnable_Pre_Vector_Prepare(
 
     case RtemsIntrReqVectorEnable_Pre_Vector_Invalid: {
       /*
-       * While the ``vector`` parameter is not associated with an interrupt
+       * While the `vector` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -404,7 +403,7 @@ static void RtemsIntrReqVectorEnable_Pre_IsEnabled_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorEnable_Pre_IsEnabled_Yes: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter is
+       * While the interrupt vector associated with the `vector` parameter is
        * enabled.
        */
       /*
@@ -416,7 +415,7 @@ static void RtemsIntrReqVectorEnable_Pre_IsEnabled_Prepare(
 
     case RtemsIntrReqVectorEnable_Pre_IsEnabled_No: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter is
+       * While the interrupt vector associated with the `vector` parameter is
        * disabled.
        */
       /*
@@ -438,8 +437,8 @@ static void RtemsIntrReqVectorEnable_Pre_CanEnable_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorEnable_Pre_CanEnable_Yes: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
-       * can be enabled.
+       * While the interrupt vector associated with the `vector` parameter can
+       * be enabled.
        */
       /*
        * This pre-condition depends on the attributes of an interrupt vector,
@@ -450,8 +449,8 @@ static void RtemsIntrReqVectorEnable_Pre_CanEnable_Prepare(
 
     case RtemsIntrReqVectorEnable_Pre_CanEnable_Maybe: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
-       * may be enabled.
+       * While the interrupt vector associated with the `vector` parameter may
+       * be enabled.
        */
       /*
        * This pre-condition depends on the attributes of an interrupt vector,
@@ -462,7 +461,7 @@ static void RtemsIntrReqVectorEnable_Pre_CanEnable_Prepare(
 
     case RtemsIntrReqVectorEnable_Pre_CanEnable_No: {
       /*
-       * While the interrupt vector associated with the ``vector`` parameter
+       * While the interrupt vector associated with the `vector` parameter
        * cannot be enabled.
        */
       /*
@@ -528,8 +527,8 @@ static void RtemsIntrReqVectorEnable_Post_IsEnabled_Check(
   switch ( state ) {
     case RtemsIntrReqVectorEnable_Post_IsEnabled_Nop: {
       /*
-       * The enabled status of the interrupt vector specified by ``vector``
-       * shall not be modified by the rtems_interrupt_vector_enable() call.
+       * The enabled status of the interrupt vector specified by `vector` shall
+       * not be modified by the rtems_interrupt_vector_enable() call.
        */
       /*
        * Validation is done by CheckUnsatisfied() for each interrupt
@@ -540,7 +539,7 @@ static void RtemsIntrReqVectorEnable_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorEnable_Post_IsEnabled_Yes: {
       /*
-       * The interrupt vector specified by ``vector`` shall be enabled.
+       * The interrupt vector specified by `vector` shall be enabled.
        */
       /*
        * Validation is done by CheckVectorEnable() for each interrupt
@@ -551,7 +550,7 @@ static void RtemsIntrReqVectorEnable_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorEnable_Post_IsEnabled_Maybe: {
       /*
-       * The interrupt vector specified by ``vector`` may be enabled.
+       * The interrupt vector specified by `vector` may be enabled.
        */
       /*
        * Validation is done by CheckVectorEnable() for each interrupt

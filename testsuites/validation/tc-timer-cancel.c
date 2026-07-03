@@ -149,7 +149,7 @@ typedef struct {
   rtems_id timer_id;
 
   /**
-   * @brief This member specifies the ``id`` parameter for the action.
+   * @brief This member specifies the `id` parameter for the action.
    */
   rtems_id id_param;
 
@@ -289,7 +289,7 @@ static void RtemsTimerReqCancel_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTimerReqCancel_Pre_Id_Valid: {
       /*
-       * While the ``id`` parameter is valid.
+       * While the `id` parameter is valid.
        */
       ctx->id_param = ctx->timer_id;
       break;
@@ -297,7 +297,7 @@ static void RtemsTimerReqCancel_Pre_Id_Prepare(
 
     case RtemsTimerReqCancel_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is invalid.
+       * While the `id` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -522,7 +522,7 @@ static void RtemsTimerReqCancel_Post_Context_Check(
 
     case RtemsTimerReqCancel_Post_Context_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_cancel() shall not be accessed by the rtems_timer_cancel()
        * call. See also Nop.
        */
@@ -573,7 +573,7 @@ static void RtemsTimerReqCancel_Post_Clock_Check(
 
     case RtemsTimerReqCancel_Post_Clock_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_cancel() shall not be accessed by the rtems_timer_cancel()
        * call.
        */
@@ -604,7 +604,7 @@ static void RtemsTimerReqCancel_Post_State_Check(
 
     case RtemsTimerReqCancel_Post_State_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in past call to
+       * Objects referenced by the `id` parameter in past call to
        * rtems_timer_cancel() shall not be accessed by the rtems_timer_cancel()
        * call.
        */

@@ -199,22 +199,22 @@ typedef struct {
   rtems_status_code receive_status[ NUMBER_OF_WORKERS ];
 
   /**
-   * @brief This member specifies the ``id`` parameter of the action.
+   * @brief This member specifies the `id` parameter of the action.
    */
   rtems_id id_param;
 
   /**
-   * @brief This member specifies the ``buffer`` parameter of the action.
+   * @brief This member specifies the `buffer` parameter of the action.
    */
   const void *buffer_param;
 
   /**
-   * @brief This member specifies the ``size`` parameter of the action.
+   * @brief This member specifies the `size` parameter of the action.
    */
   size_t size_param;
 
   /**
-   * @brief This member specifies the ``count`` parameter of the action.
+   * @brief This member specifies the `count` parameter of the action.
    */
   uint32_t *count_param;
 
@@ -224,8 +224,8 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member contains the value returned in parameter ``count`` of
-   *   the action.
+   * @brief This member contains the value returned in parameter `count` of the
+   *   action.
    */
   uint32_t count;
 
@@ -453,7 +453,7 @@ static void RtemsMessageReqBroadcast_Pre_SendBuffer_Prepare(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Pre_SendBuffer_Valid: {
       /*
-       * While the ``buffer`` parameter references a memory area where the
+       * While the `buffer` parameter references a memory area where the
        * message to be sent is stored.
        */
       ctx->buffer_param = &message;
@@ -462,7 +462,7 @@ static void RtemsMessageReqBroadcast_Pre_SendBuffer_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_SendBuffer_Null: {
       /*
-       * While the ``buffer`` parameter is NULL.
+       * While the `buffer` parameter is NULL.
        */
       ctx->buffer_param = NULL;
       break;
@@ -481,7 +481,7 @@ static void RtemsMessageReqBroadcast_Pre_Count_Prepare(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Pre_Count_Valid: {
       /*
-       * While the ``count`` parameter references an `uint32_t` object.
+       * While the `count` parameter references an `uint32_t` object.
        */
       ctx->count_param = &ctx->count;
       break;
@@ -489,7 +489,7 @@ static void RtemsMessageReqBroadcast_Pre_Count_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_Count_Null: {
       /*
-       * While the ``count`` parameter is NULL.
+       * While the `count` parameter is NULL.
        */
       ctx->count_param = NULL;
       break;
@@ -508,7 +508,7 @@ static void RtemsMessageReqBroadcast_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Pre_Id_Valid: {
       /*
-       * While the ``id`` parameter is valid.
+       * While the `id` parameter is valid.
        */
       ctx->id_param = ctx->message_queue_id;
       break;
@@ -516,7 +516,7 @@ static void RtemsMessageReqBroadcast_Pre_Id_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_Id_Invalid: {
       /*
-       * While the ``id`` parameter is invalid.
+       * While the `id` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -535,7 +535,7 @@ static void RtemsMessageReqBroadcast_Pre_MsgSize_Prepare(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Pre_MsgSize_Zero: {
       /*
-       * While the ``size`` parameter is 0.
+       * While the `size` parameter is 0.
        */
       ctx->size_param = 0;
       break;
@@ -543,7 +543,7 @@ static void RtemsMessageReqBroadcast_Pre_MsgSize_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_MsgSize_SomeSize: {
       /*
-       * While the ``size`` parameter has a value between 0 and the maximum
+       * While the `size` parameter has a value between 0 and the maximum
        * message size.
        */
       ctx->size_param = MAXIMUM_MESSAGE_SIZE / 2 + 1;
@@ -552,7 +552,7 @@ static void RtemsMessageReqBroadcast_Pre_MsgSize_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_MsgSize_MaxSize: {
       /*
-       * While the ``size`` parameter has a value of the maximum message size.
+       * While the `size` parameter has a value of the maximum message size.
        */
       ctx->size_param = MAXIMUM_MESSAGE_SIZE;
       break;
@@ -560,7 +560,7 @@ static void RtemsMessageReqBroadcast_Pre_MsgSize_Prepare(
 
     case RtemsMessageReqBroadcast_Pre_MsgSize_TooLarge: {
       /*
-       * While the ``size`` parameter has a value greater than the maximum
+       * While the `size` parameter has a value greater than the maximum
        * message size.
        */
       ctx->size_param = MAXIMUM_MESSAGE_SIZE + 1;
@@ -708,7 +708,7 @@ static void RtemsMessageReqBroadcast_Post_Count_Check(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Post_Count_Zero: {
       /*
-       * The value of the object referenced by the ``count`` parameter shall be
+       * The value of the object referenced by the `count` parameter shall be
        * set to 0 after the return of the rtems_message_queue_broadcast() call.
        */
       T_eq_u32( ctx->count, 0 );
@@ -717,7 +717,7 @@ static void RtemsMessageReqBroadcast_Post_Count_Check(
 
     case RtemsMessageReqBroadcast_Post_Count_Set: {
       /*
-       * The value of the object referenced by the ``count`` parameter shall be
+       * The value of the object referenced by the `count` parameter shall be
        * set to the number of tasks unblocked (see unblock) by the call to
        * directive rtems_message_queue_broadcast() after the return of the
        * rtems_message_queue_broadcast() call.
@@ -728,7 +728,7 @@ static void RtemsMessageReqBroadcast_Post_Count_Check(
 
     case RtemsMessageReqBroadcast_Post_Count_Nop: {
       /*
-       * The value of the object referenced by the ``count`` parameter in past
+       * The value of the object referenced by the `count` parameter in past
        * call to rtems_message_queue_broadcast() shall not be accessed by the
        * rtems_message_queue_broadcast() call (see also Nop).
        */
@@ -749,7 +749,7 @@ static void RtemsMessageReqBroadcast_Post_MsgQueue_Check(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Post_MsgQueue_Nop: {
       /*
-       * Objects referenced by the ``id`` parameter in the past call to
+       * Objects referenced by the `id` parameter in the past call to
        * rtems_message_queue_broadcast() shall not be accessed by that call
        * (see also Nop).
        */
@@ -814,10 +814,10 @@ static void RtemsMessageReqBroadcast_Post_RecSize_Check(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Post_RecSize_Message: {
       /*
-       * The values of the objects referenced by the ``size`` parameter in all
+       * The values of the objects referenced by the `size` parameter in all
        * calls to rtems_message_queue_receive() which are unblocked (see
        * unblock) by the rtems_message_queue_broadcast() call shall be set to
-       * the same value as provided by parameter ``size`` of the
+       * the same value as provided by parameter `size` of the
        * rtems_message_queue_broadcast() call after the return of the
        * rtems_message_queue_broadcast() call.
        */
@@ -834,7 +834,7 @@ static void RtemsMessageReqBroadcast_Post_RecSize_Check(
 
     case RtemsMessageReqBroadcast_Post_RecSize_Nop: {
       /*
-       * Objects referenced by the ``size`` parameter in past calls to
+       * Objects referenced by the `size` parameter in past calls to
        * rtems_message_queue_receive() shall not be accessed by the
        * rtems_message_queue_broadcast() call (see also Nop).
        */
@@ -859,11 +859,11 @@ static void RtemsMessageReqBroadcast_Post_RecBuffer_Check(
   switch ( state ) {
     case RtemsMessageReqBroadcast_Post_RecBuffer_Message: {
       /*
-       * Bytes 0 till ``size`` - 1 of the object referenced by the ``buffer``
+       * Bytes 0 till `size` - 1 of the object referenced by the `buffer`
        * parameter in all calls to rtems_message_queue_receive() which are
        * unblocked (see unblock) by the rtems_message_queue_broadcast() call
-       * shall be set to the same values as bytes 0 till ``size`` - 1 of the
-       * object referenced by parameter ``buffer`` of the
+       * shall be set to the same values as bytes 0 till `size` - 1 of the
+       * object referenced by parameter `buffer` of the
        * rtems_message_queue_broadcast() call after the return of the
        * rtems_message_queue_receive() call.
        */
@@ -880,7 +880,7 @@ static void RtemsMessageReqBroadcast_Post_RecBuffer_Check(
 
     case RtemsMessageReqBroadcast_Post_RecBuffer_Nop: {
       /*
-       * Objects referenced by the ``buffer`` parameter in past calls to
+       * Objects referenced by the `buffer` parameter in past calls to
        * rtems_message_queue_receive() shall not be accessed by the
        * rtems_message_queue_broadcast() call (see also Nop).
        */
