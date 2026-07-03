@@ -345,6 +345,7 @@ source:
 - cpukit/rtems/src/clockgettickspersecond.c
 - cpukit/rtems/src/clockgettod.c
 - cpukit/rtems/src/clockgetuptime.c
+- cpukit/rtems/src/clockgetuptimenanoseconds.c
 - cpukit/rtems/src/clockset.c
 - cpukit/rtems/src/clocktodtoseconds.c
 - cpukit/rtems/src/clocktodvalidate.c
@@ -541,6 +542,7 @@ source:
 - cpukit/score/src/threadtimeout.c
 - cpukit/score/src/threadyield.c
 - cpukit/score/src/timespecdividebyinteger.c
+- cpukit/score/src/timespecgetasnanoseconds.c
 - cpukit/score/src/tlsallocsize.c
 - cpukit/score/src/userext.c
 - cpukit/score/src/userextaddset.c
