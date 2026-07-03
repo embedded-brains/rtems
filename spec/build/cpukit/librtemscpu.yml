@@ -323,6 +323,7 @@ source:
 - contrib/cpukit/posix-newlib/mktime.c
 - cpukit/dev/iorelax.c
 - cpukit/libcsupport/src/getchark.c
+- cpukit/libcsupport/src/print_printf.c
 - cpukit/libcsupport/src/printk.c
 - cpukit/libcsupport/src/rtemscalloc.c
 - cpukit/libcsupport/src/rtems_put_char.c
