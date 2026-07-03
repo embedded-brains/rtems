@@ -940,7 +940,7 @@ static void Cleanup( Context *ctx )
 
   if (
     ctx->id == INVALID_ID ||
-    ( ctx->calls.thread_terminate == 0 && 
+    ( ctx->calls.thread_terminate == 0 &&
     !( ctx->dormant && ctx->status != RTEMS_CALLED_FROM_ISR ) )
   ) {
     DeleteTask( ctx->worker_id );
