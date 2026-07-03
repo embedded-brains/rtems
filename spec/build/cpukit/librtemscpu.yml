@@ -325,6 +325,7 @@ source:
 - cpukit/libcsupport/src/getchark.c
 - cpukit/libcsupport/src/print_printf.c
 - cpukit/libcsupport/src/printk.c
+- cpukit/libcsupport/src/printk_plugin.c
 - cpukit/libcsupport/src/rtemscalloc.c
 - cpukit/libcsupport/src/rtems_put_char.c
 - cpukit/libcsupport/src/rtems_putc.c
@@ -372,9 +373,13 @@ source:
 - cpukit/rtems/src/ratemoncancel.c
 - cpukit/rtems/src/ratemoncreate.c
 - cpukit/rtems/src/ratemondelete.c
+- cpukit/rtems/src/ratemongetstatistics.c
 - cpukit/rtems/src/ratemongetstatus.c
 - cpukit/rtems/src/ratemonident.c
 - cpukit/rtems/src/ratemonperiod.c
+- cpukit/rtems/src/ratemonreportstatistics.c
+- cpukit/rtems/src/ratemonresetall.c
+- cpukit/rtems/src/ratemonresetstatistics.c
 - cpukit/rtems/src/ratemontimeout.c
 - cpukit/rtems/src/region.c
 - cpukit/rtems/src/rtemsnametoid.c
@@ -535,6 +540,7 @@ source:
 - cpukit/score/src/threadstartmultitasking.c
 - cpukit/score/src/threadtimeout.c
 - cpukit/score/src/threadyield.c
+- cpukit/score/src/timespecdividebyinteger.c
 - cpukit/score/src/tlsallocsize.c
 - cpukit/score/src/userext.c
 - cpukit/score/src/userextaddset.c

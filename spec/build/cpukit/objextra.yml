@@ -472,7 +472,6 @@ source:
 - cpukit/libcsupport/src/printerfprintfputc.c
 - cpukit/libcsupport/src/printertask.c
 - cpukit/libcsupport/src/printf_plugin.c
-- cpukit/libcsupport/src/printk_plugin.c
 - cpukit/libcsupport/src/privateenv.c
 - cpukit/libcsupport/src/putk.c
 - cpukit/libcsupport/src/pwdgrp.c
@@ -945,10 +944,6 @@ source:
 - cpukit/rtems/src/intrcatch.c
 - cpukit/rtems/src/modes.c
 - cpukit/rtems/src/msgqcreate.c
-- cpukit/rtems/src/ratemongetstatistics.c
-- cpukit/rtems/src/ratemonreportstatistics.c
-- cpukit/rtems/src/ratemonresetall.c
-- cpukit/rtems/src/ratemonresetstatistics.c
 - cpukit/rtems/src/regioncreate.c
 - cpukit/rtems/src/regiondelete.c
 - cpukit/rtems/src/regionextend.c
@@ -1133,7 +1128,6 @@ source:
 - cpukit/score/src/threadyield.c
 - cpukit/score/src/timespecaddto.c
 - cpukit/score/src/timespecdivide.c
-- cpukit/score/src/timespecdividebyinteger.c
 - cpukit/score/src/timespecfromticks.c
 - cpukit/score/src/timespecgetasnanoseconds.c
 - cpukit/score/src/timespecisnonnegative.c
