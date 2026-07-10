@@ -257,6 +257,11 @@ transition-map:
     ReleasedVar:
     - if:
         pre-conditions:
+          Released:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Id:
           - Manual
           Released:
