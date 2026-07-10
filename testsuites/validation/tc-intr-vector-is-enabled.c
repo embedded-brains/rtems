@@ -135,12 +135,13 @@ typedef struct {
   bool enabled_obj;
 
   /**
-   * @brief If this member is true, then the `vector` parameter shall be valid.
+   * @brief If this member is true, then the ``vector`` parameter shall be
+   *   valid.
    */
   bool valid_vector;
 
   /**
-   * @brief This member specifies if the `enabled` parameter value.
+   * @brief This member specifies if the ``enabled`` parameter value.
    */
   bool *enabled;
 
@@ -373,7 +374,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorIsEnabled_Pre_Vector_Valid: {
       /*
-       * While the `vector` parameter is associated with an interrupt vector.
+       * While the ``vector`` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -381,7 +382,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_Vector_Prepare(
 
     case RtemsIntrReqVectorIsEnabled_Pre_Vector_Invalid: {
       /*
-       * While the `vector` parameter is not associated with an interrupt
+       * While the ``vector`` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -401,7 +402,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_Enabled_Prepare(
   switch ( state ) {
     case RtemsIntrReqVectorIsEnabled_Pre_Enabled_Obj: {
       /*
-       * While the `enabled` parameter references an object of type `bool`.
+       * While the ``enabled`` parameter references an object of type `bool`.
        */
       ctx->enabled = &ctx->enabled_obj;
       break;
@@ -409,7 +410,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_Enabled_Prepare(
 
     case RtemsIntrReqVectorIsEnabled_Pre_Enabled_Null: {
       /*
-       * While the `enabled` parameter is equal to NULL.
+       * While the ``enabled`` parameter is equal to NULL.
        */
       ctx->enabled = NULL;
       break;
@@ -429,7 +430,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_IsEnabled_Prepare(
     case RtemsIntrReqVectorIsEnabled_Pre_IsEnabled_Yes: {
       /*
        * While the interrupt associated with the interrupt vector specified by
-       * `vector` was enabled for the processor executing the
+       * ``vector`` was enabled for the processor executing the
        * rtems_interrupt_vector_is_enabled() call at some time point during the
        * call.
        */
@@ -441,7 +442,7 @@ static void RtemsIntrReqVectorIsEnabled_Pre_IsEnabled_Prepare(
     case RtemsIntrReqVectorIsEnabled_Pre_IsEnabled_No: {
       /*
        * While the interrupt associated with the interrupt vector specified by
-       * `vector` was disabled for the processor executing the
+       * ``vector`` was disabled for the processor executing the
        * rtems_interrupt_vector_is_enabled() call at some time point during the
        * call.
        */
@@ -501,7 +502,7 @@ static void RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Check(
   switch ( state ) {
     case RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Nop: {
       /*
-       * Objects referenced by the `enabled` parameter in past calls to
+       * Objects referenced by the ``enabled`` parameter in past calls to
        * rtems_interrupt_vector_is_enabled() shall not be accessed by the
        * rtems_interrupt_vector_is_enabled() call.
        */
@@ -511,8 +512,8 @@ static void RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Yes: {
       /*
-       * The value of the object referenced by the `enabled` parameter shall be
-       * set to true.
+       * The value of the object referenced by the ``enabled`` parameter shall
+       * be set to true.
        */
       /* Validation is done by WhileIsEnabled() for each interrupt vector */
       break;
@@ -520,8 +521,8 @@ static void RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Check(
 
     case RtemsIntrReqVectorIsEnabled_Post_IsEnabled_No: {
       /*
-       * The value of the object referenced by the `enabled` parameter shall be
-       * set to false.
+       * The value of the object referenced by the ``enabled`` parameter shall
+       * be set to false.
        */
       /* Validation is done by WhileIsDisabled() for each interrupt vector */
       break;
@@ -580,11 +581,11 @@ static void RtemsIntrReqVectorIsEnabled_Action(
 static const RtemsIntrReqVectorIsEnabled_Entry
 RtemsIntrReqVectorIsEnabled_Entries[] = {
   { 0, 0, 0, 0, RtemsIntrReqVectorIsEnabled_Post_Status_InvAddr,
-    RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Nop },
+    RtemsIntrReqVectorIsEnabled_Post_IsEnabled_NA },
   { 0, 0, 0, 1, RtemsIntrReqVectorIsEnabled_Post_Status_InvId,
     RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Nop },
   { 0, 0, 0, 1, RtemsIntrReqVectorIsEnabled_Post_Status_InvAddr,
-    RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Nop },
+    RtemsIntrReqVectorIsEnabled_Post_IsEnabled_NA },
   { 0, 0, 0, 0, RtemsIntrReqVectorIsEnabled_Post_Status_Ok,
     RtemsIntrReqVectorIsEnabled_Post_IsEnabled_Yes },
   { 0, 0, 0, 0, RtemsIntrReqVectorIsEnabled_Post_Status_Ok,
