@@ -1,0 +1,33 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+archive-file: ${.:/component/workspace-directory}/src/qemu-11.0.2.tar.xz
+archive-hash: I9ZNBTgervyIlLsOziIT0GhZS0JgCTHEsy63pchR4FOZd0SfsPmUD1ivZIm7FaotyPJ0cuT6LX3omDIyE27tAA==
+archive-patches: []
+archive-url: https://download.qemu.org/qemu-11.0.2.tar.xz
+copyrights:
+- Copyright (C) 2020, 2025 embedded brains GmbH & Co. KG
+copyrights-by-license:
+  description: |
+    The Qemu sources are used to provide host tools to simulate
+    ${/glossary/target:/plural}.
+  files:
+  - LICENSE
+description: |
+  Qemu sources.
+destination-directory: ${.:/component/deployment-directory}/src
+enabled-by:
+- pkg.arch.aarch64
+- pkg.arch.arm
+- pkg.arch.riscv
+links:
+- hash: null
+  name: component
+  role: input
+  uid: ../component
+- hash: null
+  name: member
+  role: input-to
+  uid: ../deployment/archive
+pkg-type: workspace
+symbolic-links: []
+type: pkg
+workspace-type: archive
