@@ -190,18 +190,27 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Name: Invalid
-    Flush: 'Yes'
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Barrier
+      then: Ok
+    - else: InvId
+    Name:
+    - if:
+        pre-conditions:
+          Id:
+          - Barrier
+      then: Invalid
+    - else: Valid
+    Flush:
+    - if:
+        pre-conditions:
+          Id:
+          - Barrier
+      then: 'Yes'
+    - else: 'No'
   pre-conditions:
-    Id:
-    - Barrier
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Name: Valid
-    Flush: 'No'
-  pre-conditions:
-    Id:
-    - NoObj
+    Id: all
 type: requirement
