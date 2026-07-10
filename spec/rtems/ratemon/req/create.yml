@@ -192,47 +192,57 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: InvName
-    Name: Invalid
-    IdVar: Nop
-  pre-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+          Name:
+          - Valid
+      then: InvAddr
+    - if:
+        pre-conditions:
+          Free:
+          - 'Yes'
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          Free:
+          - 'No'
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: TooMany
+    - else: InvName
     Name:
-    - Invalid
+    - if:
+        pre-conditions:
+          Free:
+          - 'Yes'
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Valid
+    - else: Invalid
+    IdVar:
+    - if:
+        pre-conditions:
+          Free:
+          - 'Yes'
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Set
+    - else: Nop
+  pre-conditions:
+    Name: all
     Id: all
     Free: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Name: Invalid
-    IdVar: Nop
-  pre-conditions:
-    Name:
-    - Valid
-    Id:
-    - 'Null'
-    Free: all
-- enabled-by: true
-  post-conditions:
-    Status: TooMany
-    Name: Invalid
-    IdVar: Nop
-  pre-conditions:
-    Name:
-    - Valid
-    Id:
-    - Valid
-    Free:
-    - 'No'
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Name: Valid
-    IdVar: Set
-  pre-conditions:
-    Name:
-    - Valid
-    Id:
-    - Valid
-    Free:
-    - 'Yes'
 type: requirement
