@@ -1,0 +1,283 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getname-np
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/getname-np:/name} shall be equal to
+      zero.
+  - name: ESRCH
+    test-code: |
+      T_eq_int( ctx->status, ESRCH );
+    text: |
+      The return value of ${../if/getname-np:/name} shall be equal to
+      ${/c/errno/if/esrch:/name}.
+  - name: ERANGE
+    test-code: |
+      T_eq_int( ctx->status, ERANGE );
+    text: |
+      The return value of ${../if/getname-np:/name} shall be equal to
+      ${/c/errno/if/erange:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Empty
+    test-code: |
+      T_eq_str( ctx->name_buf, "" );
+    text: |
+      The string referenced by the ``name`` parameter shall contain the empty
+      string.
+  - name: PartialObject
+    test-code: |
+      T_eq_str( ctx->name_buf, "W" );
+    text: |
+      The string referenced by the ``name`` parameter shall contain the first
+      up to ``len`` parameter value minus one characters of the thread object
+      name.
+  - name: FullObject
+    test-code: |
+      T_eq_str( ctx->name_buf, "WORK" );
+    text: |
+      The string referenced by the ``name`` parameter shall contain the thread
+      object name.
+  - name: PartialString
+    test-code: |
+      T_eq_str( ctx->name_buf, "s" );
+    text: |
+      The string referenced by the ``name`` parameter shall contain the first
+      up to ``len`` parameter value minus one characters of the thread string
+      name.
+  - name: FullString
+    test-code: |
+      T_eq_str( ctx->name_buf, "string" );
+    text: |
+      The string referenced by the ``name`` parameter shall contain the thread
+      string name.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Thread
+  states:
+  - name: NoObj
+    test-code: |
+      ctx->thread = 0xffffffff;
+    text: |
+      While the ``thread`` parameter is not associated with a thread.
+  - name: Valid
+    test-code: |
+      ctx->thread = ctx->worker_id;
+    text: |
+      While the ``thread`` parameter is associated with a thread.
+  test-epilogue: null
+  test-prologue: null
+- name: ThreadName
+  states:
+  - name: Empty
+    test-code: |
+      eno = pthread_setname_np( ctx->worker_id, "" );
+      T_eno_success( eno );
+    text: |
+      While the thread has the empty string name.
+  - name: NonEmpty
+    test-code: |
+      eno = pthread_setname_np( ctx->worker_id, "string" );
+      T_eno_success( eno );
+    text: |
+      While the thread has a non-empty string name.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+- name: NameLen
+  states:
+  - name: NullZero
+    test-code: |
+      ctx->name = NULL;
+      ctx->len = 0;
+    text: |
+      While the ``name`` parameter is
+      ${/c/if/null:/name},
+      while the ``len`` parameter is zero.
+  - name: ValidZero
+    test-code: |
+      ctx->name = ctx->name_buf;
+      ctx->len = 0;
+    text: |
+      While the ``name`` parameter references a
+      buffer,
+      while the ``len`` parameter is zero.
+  - name: Valid
+    test-code: |
+      ctx->name = ctx->name_buf;
+      ctx->len = RTEMS_ARRAY_SIZE( ctx->name_buf );
+    text: |
+      While the ``name`` parameter references a
+      buffer,
+      while the ``len`` parameter is greater than
+      zero,
+      while the ``len`` parameter is equal to the
+      size in bytes of the buffer referenced by the
+      ``name`` parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: ThreadNameLength
+  states:
+  - name: Fits
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the thread name fits into the buffer referenced by the
+      ``name`` parameter.
+  - name: TooLong
+    test-code: |
+      if ( ctx->len > 0 ) {
+        ctx->len = 2;
+      }
+    text: |
+      While the thread name does not fit into the buffer referenced by the
+      ``name`` parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_getname_np( ctx->thread, ctx->name, ctx->len );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides a task with a name.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member provides a buffer for the thread name.
+  description: null
+  member: |
+    char name_buf[ 7 ];
+- brief: |
+    This member contains the expected name.
+  description: null
+  member: |
+    char expected_name[ 5 ];
+- brief: |
+    This member provides the ``thread`` parameter value.
+  description: null
+  member: |
+    pthread_t thread
+- brief: |
+    This member provides the ``name`` parameter value.
+  description: null
+  member: |
+    char *name
+- brief: |
+    This member provides the ``len`` parameter value.
+  description: null
+  member: |
+    size_t len
+- brief: |
+    This member contains the returned status.
+  description: null
+  member: |
+    int status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: memset( ctx->name_buf, 0xff, sizeof( ctx->name_buf ) );
+test-setup:
+  brief: null
+  code: |
+    ctx->worker_id = CreateTask( "WORK", GetSelfPriority() );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-getname-np.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+  description: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: ESRCH
+    - if:
+        pre-conditions:
+          NameLen: Valid
+          Thread: Valid
+          ThreadNameLength: Fits
+      then: Zero
+    - else: ERANGE
+    Name:
+    - if:
+        pre-conditions:
+          NameLen: Valid
+          Thread: NoObj
+      then: Empty
+    - if:
+        pre-conditions:
+          NameLen: Valid
+          Thread: Valid
+          ThreadName: Empty
+          ThreadNameLength: TooLong
+      then: PartialObject
+    - if:
+        pre-conditions:
+          NameLen: Valid
+          Thread: Valid
+          ThreadName: NonEmpty
+          ThreadNameLength: TooLong
+      then: PartialString
+    - if:
+        pre-conditions:
+          Thread: Valid
+          ThreadName: Empty
+          ThreadNameLength: Fits
+      then: FullObject
+    - if:
+        pre-conditions:
+          Thread: Valid
+          ThreadName: NonEmpty
+          ThreadNameLength: Fits
+      then: FullString
+    - else: N/A
+  pre-conditions:
+    Thread: all
+    ThreadName:
+      applicable:
+        pre-conditions:
+          Thread: Valid
+    NameLen: all
+    ThreadNameLength:
+      applicable:
+      - pre-conditions:
+          Thread: Valid
+          ThreadNameLength: TooLong
+      - pre-conditions:
+          NameLen: Valid
+          Thread: Valid
+type: requirement
