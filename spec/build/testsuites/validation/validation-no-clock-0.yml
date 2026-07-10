@@ -3,13 +3,17 @@ build-type: test-program
 cflags: []
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
-cppflags: []
+cppflags:
+- -D_GNU_SOURCE
 cxxflags: []
 enabled-by: true
 features: c cprogram
 includes: []
-ldflags: []
+ldflags:
+- -Wl,--wrap=getentropy
 links:
+- role: build-dependency
+  uid: objnobuiltin
 - role: build-dependency
   uid: objnodebug
 - role: build-dependency
@@ -27,7 +31,6 @@ source:
 - testsuites/validation/tc-barrier-wait.c
 - testsuites/validation/tc-basedefs.c
 - testsuites/validation/tc-basedefs-pendant.c
-- testsuites/validation/tc-c.c
 - testsuites/validation/tc-clock.c
 - testsuites/validation/tc-clock-get-tod.c
 - testsuites/validation/tc-clock-get-uptime.c
@@ -36,7 +39,6 @@ source:
 - testsuites/validation/tc-cpuuse.c
 - testsuites/validation/tc-events.c
 - testsuites/validation/tc-fatal.c
-- testsuites/validation/tc-flsl.c
 - testsuites/validation/tc-futex-wait.c
 - testsuites/validation/tc-futex-wake.c
 - testsuites/validation/tc-io.c

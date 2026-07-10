@@ -72,7 +72,15 @@
  *
  * - Call memchr() for a sample set of buffers and characters to locate.
  *
+ * - Call strchr() for a sample set of buffers and characters to locate.
+ *
+ * - Call strrchr() for a sample set of buffers and characters to locate.
+ *
  * - Call memcmp() for a sample set of buffers.
+ *
+ * - Call strcmp() for a sample set of buffers.
+ *
+ * - Call strncmp() for a sample set of buffers.
  *
  * - Call memcpy() for a sample set of buffers.
  *
@@ -80,7 +88,11 @@
  *
  * - Call memset() for a sample set of buffers.
  *
+ * - Call explicit_bzero() for a sample set of buffers.
+ *
  * - Call strlen() for a sample set of strings.
+ *
+ * - Call strlcpy() for a sample set of strings.
  *
  * - Call assert() with an expression which evaluates to true.  We expect that
  *   nothing will happen.
@@ -95,18 +107,28 @@
  * @{
  */
 
-static void Clear( volatile uint8_t *b, const volatile uint8_t *e )
+static void Clear( volatile void *v, const volatile void *w )
 {
+  volatile uint8_t       *b;
+  const volatile uint8_t *e;
+
+  b = v;
+  e = w;
+
   while ( b != e ) {
     *b = 0;
     ++b;
   }
 }
 
-static void Fill( volatile uint8_t *b, const volatile uint8_t *e )
+static void Fill( volatile void *v, const volatile void *w )
 {
-  uint8_t chr;
+  volatile uint8_t       *b;
+  const volatile uint8_t *e;
+  uint8_t                 chr;
 
+  b = v;
+  e = w;
   chr = 1;
 
   while ( b != e ) {
@@ -167,7 +189,7 @@ static void AssertFalse( void *arg )
  */
 static void CValC_Action_0( void )
 {
-  uint8_t  mem[sizeof( long ) * 10];
+  uint8_t  mem[ sizeof( long ) * 10 ];
   uint8_t *aligned_mem;
   size_t   offset_mem;
 
@@ -198,12 +220,90 @@ static void CValC_Action_0( void )
 }
 
 /**
- * @brief Call memcmp() for a sample set of buffers.
+ * @brief Call strchr() for a sample set of buffers and characters to locate.
  */
 static void CValC_Action_1( void )
 {
-  uint8_t  mem_a[sizeof( long ) * 10];
-  uint8_t  mem_b[sizeof( long ) * 10];
+  char    mem[ sizeof( long ) * 11 ];
+  char   *aligned_mem;
+  size_t  offset_mem;
+
+  aligned_mem = (char *) RTEMS_ALIGN_UP( (uintptr_t) mem, sizeof( long ) );
+
+  for ( offset_mem = 0; offset_mem < sizeof( long ); ++offset_mem  ) {
+    size_t size;
+
+    for ( size = 0; size < sizeof( long ) * 8; ++size ) {
+      char  chr;
+      char *m;
+      char *e;
+      void *p;
+
+      m = aligned_mem + offset_mem;
+      e = m + size;
+      Fill( m, e );
+      *e = '\0';
+
+      for ( chr = 0; (unsigned char) chr < size; ++chr ) {
+        p = strchr( m, chr + 1 );
+        T_eq_ptr( p, m + chr );
+      }
+
+      p = strchr( m, size + 1 );
+      T_null( p );
+
+      p = strchr( m, 0 );
+      T_eq_ptr( p, e );
+    }
+  }
+}
+
+/**
+ * @brief Call strrchr() for a sample set of buffers and characters to locate.
+ */
+static void CValC_Action_2( void )
+{
+  char    mem[ sizeof( long ) * 11 ];
+  char   *aligned_mem;
+  size_t  offset_mem;
+
+  aligned_mem = (char *) RTEMS_ALIGN_UP( (uintptr_t) mem, sizeof( long ) );
+
+  for ( offset_mem = 0; offset_mem < sizeof( long ); ++offset_mem  ) {
+    size_t size;
+
+    for ( size = 0; size < sizeof( long ) * 8; ++size ) {
+      char  chr;
+      char *m;
+      char *e;
+      void *p;
+
+      m = aligned_mem + offset_mem;
+      e = m + size;
+      Fill( m, e );
+      *e = '\0';
+
+      for ( chr = 0; (unsigned char) chr < size; ++chr ) {
+        p = strrchr( m, chr + 1 );
+        T_eq_ptr( p, m + chr );
+      }
+
+      p = strrchr( m, size + 1 );
+      T_null( p );
+
+      p = strrchr( m, 0 );
+      T_eq_ptr( p, e );
+    }
+  }
+}
+
+/**
+ * @brief Call memcmp() for a sample set of buffers.
+ */
+static void CValC_Action_3( void )
+{
+  uint8_t  mem_a[ sizeof( long ) * 10 ];
+  uint8_t  mem_b[ sizeof( long ) * 10 ];
   uint8_t *aligned_mem_a;
   uint8_t *aligned_mem_b;
   size_t   offset_mem_a;
@@ -254,12 +354,169 @@ static void CValC_Action_1( void )
 }
 
 /**
+ * @brief Call strcmp() for a sample set of buffers.
+ */
+static void CValC_Action_4( void )
+{
+  char    str_a[ sizeof( long ) * 10 ];
+  char    str_b[ sizeof( long ) * 10 ];
+  char   *aligned_str_a;
+  char   *aligned_str_b;
+  size_t  offset_str_a;
+
+  memset( str_a, 0x85, sizeof( str_a ) );
+  memset( str_b, 0x85, sizeof( str_b ) );
+  aligned_str_a = (char *) RTEMS_ALIGN_UP( (uintptr_t) str_a, sizeof( long ) );
+  aligned_str_b = (char *) RTEMS_ALIGN_UP( (uintptr_t) str_b, sizeof( long ) );
+
+  for ( offset_str_a = 0; offset_str_a < sizeof( long ); ++offset_str_a  ) {
+    size_t offset_str_b;
+
+    for ( offset_str_b = 0; offset_str_b < sizeof( long ); ++offset_str_b  ) {
+      size_t size_a;
+
+      for ( size_a = 0; size_a < sizeof( long ) * 8; ++size_a ) {
+        size_t size_b;
+
+        for ( size_b = 0; size_b < sizeof( long ) * 8; ++size_b ) {
+          char   *a;
+          char   *b;
+          int    c;
+          size_t defect;
+
+          a = aligned_str_a + offset_str_a;
+          b = aligned_str_b + offset_str_b;
+          Fill( a, a + size_a );
+          a[ size_a ] = '\0';
+          Fill( b, b + size_b );
+          b[ size_b ] = '\0';
+
+          c = strcmp( a, b );
+
+          if ( size_a < size_b ) {
+            T_lt_int( c, 0 );
+          } else if ( size_a == size_b ) {
+            T_eq_int( c, 0 );
+
+            for ( defect = 1; defect < size_b; ++defect ) {
+              Fill( b, b + size_b );
+              b[ defect ] += defect;
+
+              c = strcmp( a, b );
+              T_lt_int( c, 0 );
+            }
+
+            for ( defect = 1; defect < size_b; ++defect ) {
+              Fill( b, b + size_b );
+              b[ defect ] -= defect;
+
+              c = strcmp( a, b );
+              T_gt_int( c, 0 );
+            }
+          } else {
+            T_gt_int( c, 0 );
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * @brief Call strncmp() for a sample set of buffers.
+ */
+static void CValC_Action_5( void )
+{
+  char    str_a[ sizeof( long ) * 10 ];
+  char    str_b[ sizeof( long ) * 10 ];
+  char   *aligned_str_a;
+  char   *aligned_str_b;
+  size_t  offset_str_a;
+
+  memset( str_a, 0x85, sizeof( str_a ) );
+  memset( str_b, 0x85, sizeof( str_b ) );
+  aligned_str_a = (char *) RTEMS_ALIGN_UP( (uintptr_t) str_a, sizeof( long ) );
+  aligned_str_b = (char *) RTEMS_ALIGN_UP( (uintptr_t) str_b, sizeof( long ) );
+
+  for ( offset_str_a = 0; offset_str_a < sizeof( long ); ++offset_str_a  ) {
+    size_t offset_str_b;
+
+    for ( offset_str_b = 0; offset_str_b < sizeof( long ); ++offset_str_b  ) {
+      size_t size_a;
+
+      for ( size_a = 0; size_a < sizeof( long ) * 8; ++size_a ) {
+        size_t size_b;
+
+        for ( size_b = 0; size_b < sizeof( long ) * 8; ++size_b ) {
+          char   *a;
+          char   *b;
+          int    c;
+          size_t defect;
+
+          a = aligned_str_a + offset_str_a;
+          b = aligned_str_b + offset_str_b;
+          Fill( a, a + size_a );
+          a[ size_a ] = '\0';
+          Fill( b, b + size_b );
+          b[ size_b ] = '\0';
+
+          c = strncmp( a, b, size_a );
+
+          if ( size_a > size_b ) {
+            T_gt_int( c, 0 );
+            T_eq_int( strncmp( a, b, size_b ), 0 );
+
+            for ( defect = 1; defect < size_b; ++defect ) {
+              Fill( b, b + size_b );
+              b[ defect ] += defect;
+
+              c = strncmp( a, b, size_a );
+              T_lt_int( c, 0 );
+            }
+
+            for ( defect = 1; defect < size_b; ++defect ) {
+              Fill( b, b + size_b );
+              b[ defect ] -= defect;
+
+              c = strncmp( a, b, size_a );
+              T_gt_int( c, 0 );
+            }
+          } else if ( size_a == size_b ) {
+            T_eq_int( c, 0 );
+            T_eq_int( strncmp( a, b, size_a + sizeof(long) ), 0 );
+          } else {
+            T_eq_int( c, 0 );
+            T_lt_int( strncmp( a, b, size_b ), 0 );
+
+            for ( defect = 1; defect < size_a; ++defect ) {
+              Fill( a, a + size_a );
+              a[ defect ] += defect;
+
+              c = strncmp( a, b, size_b );
+              T_gt_int( c, 0 );
+            }
+
+            for ( defect = 1; defect < size_a; ++defect ) {
+              Fill( a, a + size_a );
+              a[ defect ] -= defect;
+
+              c = strncmp( a, b, size_b );
+              T_lt_int( c, 0 );
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
  * @brief Call memcpy() for a sample set of buffers.
  */
-static void CValC_Action_2( void )
+static void CValC_Action_6( void )
 {
-  uint8_t  src[sizeof( long ) * 10];
-  uint8_t  dst[sizeof( long ) * 10];
+  uint8_t  src[ sizeof( long ) * 10 ];
+  uint8_t  dst[ sizeof( long ) * 10 ];
   uint8_t *begin;
   uint8_t *end;
   uint8_t *aligned_src;
@@ -300,10 +557,10 @@ static void CValC_Action_2( void )
 /**
  * @brief Call memmove() for a sample set of buffers.
  */
-static void CValC_Action_3( void )
+static void CValC_Action_7( void )
 {
-  uint8_t  src[sizeof( long ) * 18];
-  uint8_t  dst[sizeof( long ) * 10];
+  uint8_t  src[ sizeof( long ) * 18 ];
+  uint8_t  dst[ sizeof( long ) * 10 ];
   uint8_t *begin;
   uint8_t *end;
   uint8_t *aligned_src;
@@ -395,9 +652,9 @@ static void CValC_Action_3( void )
 /**
  * @brief Call memset() for a sample set of buffers.
  */
-static void CValC_Action_4( void )
+static void CValC_Action_8( void )
 {
-  uint8_t  dst[sizeof( long ) * 10];
+  uint8_t  dst[ sizeof( long ) * 10 ];
   uint8_t *begin;
   uint8_t *end;
   uint8_t *aligned;
@@ -427,11 +684,45 @@ static void CValC_Action_4( void )
 }
 
 /**
+ * @brief Call explicit_bzero() for a sample set of buffers.
+ */
+static void CValC_Action_9( void )
+{
+  uint8_t  dst[ sizeof( long ) * 10 ];
+  uint8_t *begin;
+  uint8_t *end;
+  uint8_t *aligned;
+  size_t   offset;
+
+  begin = dst;
+  end = begin + sizeof( dst );
+  aligned = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) dst, sizeof( long ) );
+
+  for ( offset = 0; offset < sizeof( long ); ++offset  ) {
+    size_t size;
+
+    for ( size = 0; size < sizeof( long ) * 8; ++size ) {
+      uint8_t *d;
+      uint8_t *e;
+
+      d = aligned + offset;
+      e = d + size;
+
+      Clear( begin, end );
+      explicit_bzero( d, size );
+      T_true( Compare( begin, d, 0 ) );
+      T_true( Compare( d, e, 0 ) );
+      T_true( Compare( e, end, 0 ) );
+    }
+  }
+}
+
+/**
  * @brief Call strlen() for a sample set of strings.
  */
-static void CValC_Action_5( void )
+static void CValC_Action_10( void )
 {
-  char    str[sizeof( long ) * 10];
+  char    str[ sizeof( long ) * 10 ];
   char   *aligned_str;
   size_t  offset;
 
@@ -446,7 +737,7 @@ static void CValC_Action_5( void )
       s = aligned_str + offset;
 
       memset( s, 0x85, size );
-      s[size] = '\0';
+      s[ size ] = '\0';
       RTEMS_OBFUSCATE_VARIABLE( s );
       T_eq_sz( strlen( s ), size );
     }
@@ -454,10 +745,38 @@ static void CValC_Action_5( void )
 }
 
 /**
+ * @brief Call strlcpy() for a sample set of strings.
+ */
+static void CValC_Action_11( void )
+{
+  char   dst[ 4 ];
+
+  memset( dst, 0xff, sizeof( dst ) );
+  T_eq_sz( strlcpy( dst, "1", 0 ), 1 );
+  T_eq_int( (unsigned char) dst[ 0 ], 0xff );
+
+  memset( dst, 0xff, sizeof( dst ) );
+  T_eq_sz( strlcpy( dst, "1", 1 ), 1 );
+  T_eq_str( dst, "" );
+
+  memset( dst, 0xff, sizeof( dst ) );
+  T_eq_sz( strlcpy( dst, "12", 1 ), 2 );
+  T_eq_str( dst, "" );
+
+  memset( dst, 0xff, sizeof( dst ) );
+  T_eq_sz( strlcpy( dst, "12", 3 ), 2 );
+  T_eq_str( dst, "12" );
+
+  memset( dst, 0xff, sizeof( dst ) );
+  T_eq_sz( strlcpy( dst, "12", 4 ), 2 );
+  T_eq_str( dst, "12" );
+}
+
+/**
  * @brief Call assert() with an expression which evaluates to true.  We expect
  *   that nothing will happen.
  */
-static void CValC_Action_6( void )
+static void CValC_Action_12( void )
 {
   assert( 1 );
 }
@@ -466,7 +785,7 @@ static void CValC_Action_6( void )
  * @brief Call assert() with an expression which evaluates to false. Check that
  *   the expected fatal error happened.
  */
-static void CValC_Action_7( void )
+static void CValC_Action_13( void )
 {
   ProduceAndCheckFatalError( AssertFalse, CheckAssert, NULL );
 }
@@ -474,7 +793,7 @@ static void CValC_Action_7( void )
 /**
  * @brief Check that errno has a signed integer type.
  */
-static void CValC_Action_8( void )
+static void CValC_Action_14( void )
 {
   errno = -1;
   T_eq_int( errno, -1 );
@@ -484,7 +803,7 @@ static void CValC_Action_8( void )
 /**
  * @brief Check that errno has thread storage duration.
  */
-static void CValC_Action_9( void )
+static void CValC_Action_15( void )
 {
   T_true( IsTLSObjectOfThread( RTEMS_SELF, &errno ) );
 }
@@ -504,6 +823,12 @@ T_TEST_CASE( CValC )
   CValC_Action_7();
   CValC_Action_8();
   CValC_Action_9();
+  CValC_Action_10();
+  CValC_Action_11();
+  CValC_Action_12();
+  CValC_Action_13();
+  CValC_Action_14();
+  CValC_Action_15();
 }
 
 /** @} */
