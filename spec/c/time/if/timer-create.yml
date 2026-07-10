@@ -1,0 +1,48 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Create a per-process timer using the clock specified by ${.:/params[0]/name}
+  and the signal event referenced by ${.:/params[1]/name}, and store the timer ID
+  in the object referenced by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/clockid_t:/name} ${.:/params[0]/name}
+    - struct sigevent *${.:/params[1]/name}
+    - ${/c/if/timer_t:/name} *${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: timer_create
+notes: |
+  See [POSIX.1-2024, System Interfaces, timer_create()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/timer_create.html).
+params:
+- description: |
+    is the clock ID.
+  dir: null
+  name: clockid
+- description: |
+    is the pointer to the sigevent object.
+  dir: in
+  name: evp
+- description: |
+    is the pointer to the timer ID object.
+  dir: out
+  name: timerid
+return:
+  return: null
+  return-values: []
+type: interface

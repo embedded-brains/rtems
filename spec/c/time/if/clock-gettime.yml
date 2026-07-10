@@ -1,7 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Set the time of the clock specified by ${.:/params[0]/name} to the value
-  referenced by ${.:/params[1]/name}.
+  Get the time of the clock specified by ${.:/params[0]/name} and store it in the
+  object referenced by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -10,7 +10,7 @@ definition:
     body: null
     params:
     - ${/c/if/clockid_t:/name} ${.:/params[0]/name}
-    - const ${/c/if/timespec:/name} *${.:/params[1]/name}
+    - ${/c/if/timespec:/name} *${.:/params[1]/name}
     return: int
   variants: []
 description: null
@@ -23,31 +23,25 @@ links:
 - role: interface-ingroup
   uid: group
 - description: |
-    This error number indicates the following error conditions:
-
-    - The ${.:/params[0]/name} is not valid.
-    - The time value is invalid.
+    The ${/rtems/timer/glossary/clock:/term} specified by ${.:/params[0]/name} is
+    not valid.
   role: errno
   uid: /c/errno/if/einval
 - description: |
     ${.:/params[1]/name} points outside the accessible address space.
   role: errno
   uid: /c/errno/if/efault
-- description: |
-    The caller does not have the privilege to set the time of the specified clock.
-  role: errno
-  uid: /c/errno/if/eperm
-name: clock_settime
+name: clock_gettime
 notes: |
-  See [POSIX.1-2024, System Interfaces, clock_settime()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/clock_settime.html).
+  See [POSIX.1-2024, System Interfaces, clock_gettime()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/clock_gettime.html).
 params:
 - description: |
     is the clock identifier.
   dir: null
   name: clock_id
 - description: |
-    is the pointer to the timespec object containing the new time.
-  dir: in
+    is the pointer to the timespec object to store the time.
+  dir: out
   name: tp
 return:
   return: null

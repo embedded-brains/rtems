@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Format the broken-down time referenced by ${.:/params[3]/name} according to the
+  format specified by ${.:/params[2]/name} and store the result in the object
+  referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - char *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    - const char *${.:/params[2]/name}
+    - const ${/c/time/if/tm:/name} *${.:/params[3]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: strftime
+notes: |
+  See [POSIX.1-2024, System Interfaces, strftime()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/strftime.html).
+params:
+- description: |
+    is the pointer to the buffer to store the result.
+  dir: out
+  name: s
+- description: |
+    is the maximum number of characters to store.
+  dir: null
+  name: maxsize
+- description: |
+    is the pointer to the format string.
+  dir: in
+  name: format
+- description: |
+    is the pointer to the broken-down time object.
+  dir: in
+  name: timeptr
+return:
+  return: null
+  return-values: []
+type: interface

@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the time resolution based on the time base specified by
+  ${.:/params[1]/name} and store it in the object referenced by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/timespec:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: timespec_getres
+notes: |
+  See [POSIX.1-2024, System Interfaces, timespec_getres()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/timespec_getres.html).
+params:
+- description: |
+    is the pointer to the timespec object.
+  dir: out
+  name: ts
+- description: |
+    is the time base.
+  dir: null
+  name: base
+return:
+  return: null
+  return-values: []
+type: interface

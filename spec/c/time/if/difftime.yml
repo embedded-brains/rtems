@@ -1,0 +1,42 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the difference in seconds between the time specified by
+  ${.:/params[0]/name} and the time specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/time_t:/name} ${.:/params[0]/name}
+    - ${/c/if/time_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: difftime
+notes: |
+  See [POSIX.1-2024, System Interfaces, difftime()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/difftime.html).
+params:
+- description: |
+    is the first time.
+  dir: null
+  name: time1
+- description: |
+    is the second time.
+  dir: null
+  name: time0
+return:
+  return: null
+  return-values: []
+type: interface

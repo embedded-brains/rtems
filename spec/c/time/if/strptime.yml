@@ -1,0 +1,48 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Parse the string specified by ${.:/params[0]/name} according to the format
+  specified by ${.:/params[1]/name} and store the resulting broken-down time in
+  the object referenced by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    - ${/c/time/if/tm:/name} *${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: strptime
+notes: |
+  See [POSIX.1-2024, System Interfaces, strptime()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/strptime.html).
+params:
+- description: |
+    is the pointer to the string to parse.
+  dir: in
+  name: buf
+- description: |
+    is the pointer to the format string.
+  dir: in
+  name: format
+- description: |
+    is the pointer to the tm object to store the result.
+  dir: inout
+  name: tm
+return:
+  return: null
+  return-values: []
+type: interface

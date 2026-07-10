@@ -1,0 +1,23 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This specification item is a stub.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: _ImplementationDefined
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: typedef
+links:
+- role: interface-placement
+  uid: /c/time/if/header
+- role: interface-ingroup
+  uid: /c/time/if/group
+name: timer_t
+notes: |
+  See [POSIX.1-2024, System Interfaces, timer_t()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/timer_t.html).
+params: []
+return: null
+type: interface
