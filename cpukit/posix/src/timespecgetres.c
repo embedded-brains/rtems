@@ -1,16 +1,7 @@
-/* SPDX-License-Identifier: BSD-2-Clause */
-
-/**
- * @file
- *
- * @ingroup POSIXAPI
- *
- * @brief This source file contains the implementation of timespec_get().
- */
+/* SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause */
 
 /*
- *
- * Copyright (C) 2025 Mazen Adel Elmessady
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,15 +32,24 @@
 #include <time.h>
 
 #include <rtems/score/todimpl.h>
+#include <rtems/score/timecounter.h>
+#include <rtems/config.h>
 
-int timespec_get( struct timespec *ts, int base )
+int timespec_getres( struct timespec *res, int base )
 {
   if ( base != TIME_UTC ) {
     return 0;
   }
 
-  if ( ts != NULL ) {
-    _TOD_Get( ts );
+  if ( res != NULL ) {
+    uint64_t freq = _Timecounter_Get_frequency();
+    
+    res->tv_sec = 0;
+    res->tv_nsec = (uint32_t) ( TOD_NANOSECONDS_PER_SECOND / freq );
+    
+    if ( res->tv_nsec == 0 ) {
+      res->tv_nsec = 1;
+    }
   }
 
   return base;
