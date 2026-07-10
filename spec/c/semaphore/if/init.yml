@@ -1,0 +1,63 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initialize the unnamed ${../glossary/semaphore:/term} referenced by
+  ${.:/params[0]/name} with the process-shared flag specified by
+  ${.:/params[1]/name} and the initial value specified by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/sem_t:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - unsigned int ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The ${.:/params[2]/name} argument exceeds ${/c/limits/if/sem-value-max:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} argument is non-zero, but the system does not support
+    process-shared ${../glossary/semaphore:/plural}.
+  role: errno
+  uid: /c/errno/if/enosys
+name: sem_init
+notes: |
+  See [POSIX.1-2024, System Interfaces, sem_init()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_init.html).
+params:
+- description: |
+    is the pointer to the ${../glossary/semaphore:/term}.
+  dir: out
+  name: sem
+- description: |
+    is the process-shared flag.
+  dir: null
+  name: pshared
+- description: |
+    is the initial value of the ${../glossary/semaphore:/term}.
+  dir: null
+  name: value
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

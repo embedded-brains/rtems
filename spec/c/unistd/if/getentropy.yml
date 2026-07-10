@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Fills a buffer with random bytes.
+  Fill the buffer referenced by ${.:/params[0]/name} with random bytes for the
+  number of bytes specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -30,7 +31,8 @@ links:
   role: errno
   uid: /c/errno/if/eio
 name: getentropy
-notes: null
+notes: |
+  See [FreeBSD Manual Pages, getentropy()](https://man.freebsd.org/cgi/man.cgi?query=getentropy&sektion=3).
 params:
 - description: |
     is the pointer to the buffer to receive entropy.
@@ -47,7 +49,6 @@ return:
       Returns zero on success.
     value: 0
   - description: |
-      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate
-      the error.
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
     value: -1
 type: interface

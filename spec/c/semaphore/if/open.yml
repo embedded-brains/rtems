@@ -1,0 +1,94 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initialize and open a named ${../glossary/semaphore:/term} with the name
+  specified by ${.:/params[0]/name} and the access modes specified by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - '...'
+    return: ${/c/if/sem_t:/name} *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The ${../glossary/semaphore:/term} exists and the permissions specified by
+    ${.:/params[1]/name} are denied.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    ${/c/fcntl/if/o-creat:/name} and ${/c/fcntl/if/o-excl:/name} are set and the
+    named ${../glossary/semaphore:/term} already exists.
+  role: errno
+  uid: /c/errno/if/eexist
+- description: |
+    The call was interrupted by a signal.
+  role: errno
+  uid: /c/errno/if/eintr
+- description: |
+    The ${.:/params[0]/name} argument is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    This error number indicates the following error conditions:
+
+    - Too many ${../glossary/semaphore:/plural} are open.
+    - Too many file descriptors are open.
+  role: errno
+  uid: /c/errno/if/emfile
+- description: |
+    The ${.:/params[0]/name} argument is too long.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    Too many ${../glossary/semaphore:/plural} are open in the system.
+  role: errno
+  uid: /c/errno/if/enfile
+- description: |
+    ${/c/fcntl/if/o-creat:/name} is not set and the named
+    ${../glossary/semaphore:/term} does not exist.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    There is insufficient memory.
+  role: errno
+  uid: /c/errno/if/enomem
+name: sem_open
+notes: |
+  See [POSIX.1-2024, System Interfaces, sem_open()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_open.html).
+params:
+- description: |
+    is the pointer to the ${../glossary/semaphore:/term} name.
+  dir: in
+  name: name
+- description: |
+    is the open flags.
+  dir: null
+  name: oflag
+- description: |
+    are optional arguments depending on the open flags.
+  dir: null
+  name: '...'
+return:
+  return: |
+    Returns the address of the ${../glossary/semaphore:/term} on success.
+  return-values:
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: ${failed:/name}
+type: interface
