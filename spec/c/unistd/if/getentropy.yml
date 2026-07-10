@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Fills a buffer with random bytes.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eio
+name: getentropy
+notes: null
+params:
+- description: |
+    is the pointer to the buffer to receive entropy.
+  dir: out
+  name: buffer
+- description: |
+    is the number of bytes of entropy to read.
+  dir: null
+  name: length
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate
+      the error.
+    value: -1
+type: interface
