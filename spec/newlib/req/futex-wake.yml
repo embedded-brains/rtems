@@ -162,15 +162,12 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Result: Count
-    Flush: 'No'
+    Flush:
+    - if:
+        pre-conditions:
+          Count: Positive
+      then: 'Yes'
+    - else: 'No'
   pre-conditions:
-    Count:
-    - NegativeOrZero
-- enabled-by: true
-  post-conditions:
-    Result: Count
-    Flush: 'Yes'
-  pre-conditions:
-    Count:
-    - Positive
+    Count: all
 type: requirement
