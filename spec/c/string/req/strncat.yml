@@ -7,62 +7,258 @@ links:
 - role: interface-function
   uid: ../if/strncat
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: SameAsDst
     test-code: |
-      /* TODOD */
+      T_eq_ptr( ctx->retval, ctx->dest_buf + ctx->offset );
     text: |
-      TODO
+      The return value of ${../if/strncat:/name} shall be equal to the
+      initial value of ${../if/strncat:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
-pre-conditions:
-- name: Status
+- name: DstArea
   states:
-  - name: Ok
+  - name: Unchanged
     test-code: |
-      /* TODOD */
+      T_eq_uint( ctx->dest_buf[ ctx->term_pos ], 0 );
+      ctx->content_end = ctx->term_pos + 1;
     text: |
-      TODO
+      The string referenced by ${../if/strncat:/params[0]/name} shall not
+      be modified.
+  - name: AppendedFull
+    test-code: |
+      size_t len = strlen( ctx->src );
+
+      T_eq_nstr(
+        (const char *) &ctx->dest_buf[ ctx->term_pos ],
+        ctx->src,
+        len + 1
+      );
+      ctx->content_end = ctx->term_pos + len + 1;
+    text: |
+      The string referenced by ${../if/strncat:/params[1]/name}, including
+      its terminating null character, shall be appended to the string
+      referenced by ${../if/strncat:/params[0]/name}, overwriting its
+      terminating null character.
+  - name: AppendedTruncated
+    test-code: |
+      T_eq_nstr(
+        (const char *) &ctx->dest_buf[ ctx->term_pos ],
+        ctx->src,
+        ctx->n
+      );
+      T_eq_uint( ctx->dest_buf[ ctx->term_pos + ctx->n ], 0 );
+      ctx->content_end = ctx->term_pos + ctx->n + 1;
+    text: |
+      The first bytes specified by ${../if/strncat:/params[2]/name} of the
+      string referenced by ${../if/strncat:/params[1]/name} shall be
+      appended to the string referenced by
+      ${../if/strncat:/params[0]/name}, overwriting its terminating null
+      character, followed by a terminating null character.
+  test-epilogue: |
+    for ( size_t i = 0; i < ctx->offset; ++i ) {
+      T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+    }
+
+    for ( size_t i = ctx->content_end; i < sizeof( ctx->dest_buf ); ++i ) {
+      T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+    }
+  test-prologue: null
+pre-conditions:
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->offset = sizeof( long );
+      ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+    text: |
+      While the ${../if/strncat:/params[0]/name} parameter is aligned on a
+      `long` integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+    text: |
+      While the ${../if/strncat:/params[0]/name} parameter is not aligned
+      on a `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: DstLength
+  states:
+  - name: Empty
+    test-code: |
+      ctx->dest_buf[ ctx->offset ] = 0;
+      ctx->term_pos = ctx->offset;
+    text: |
+      While the string referenced by ${../if/strncat:/params[0]/name} is
+      empty.
+  - name: NonEmpty
+    test-code: |
+      ctx->dest_buf[ ctx->offset ] = 'P';
+      ctx->dest_buf[ ctx->offset + 1 ] = 'P';
+      ctx->dest_buf[ ctx->offset + 2 ] = 0;
+      ctx->term_pos = ctx->offset + 2;
+    text: |
+      While the string referenced by ${../if/strncat:/params[0]/name} is
+      not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: DstMatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->dest_buf[ ctx->term_pos ] = 'P';
+      ctx->term_pos = ctx->offset + 3;
+      ctx->dest_buf[ ctx->term_pos ] = 0;
+    text: |
+      While the terminating null character occurs within the first
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strncat:/params[0]/name}.
+  - name: SecondChunk
+    test-code: |
+      for ( size_t i = 2; i < sizeof( long ) + 3; ++i ) {
+        ctx->dest_buf[ ctx->offset + i ] = 'P';
+      }
+      ctx->term_pos = ctx->offset + sizeof( long ) + 3;
+      ctx->dest_buf[ ctx->term_pos ] = 0;
+    text: |
+      While the terminating null character occurs within the second
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strncat:/params[0]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+    text: |
+      While the size specified by ${../if/strncat:/params[2]/name} is
+      equal to zero.
+  - name: Positive
+    test-code: |
+      /* The exact positive value is determined by the Fit pre-condition */
+    text: |
+      While the size specified by ${../if/strncat:/params[2]/name} is
+      greater than zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: Fits
+    test-code: |
+      strcpy( ctx->src_buf, "AB" );
+      ctx->n = 8;
+    text: |
+      While the length of the string referenced by
+      ${../if/strncat:/params[1]/name} is less than the size specified by
+      ${../if/strncat:/params[2]/name}.
+  - name: Truncate
+    test-code: |
+      strcpy( ctx->src_buf, "ABCDE" );
+      ctx->n = 3;
+    text: |
+      While the length of the string referenced by
+      ${../if/strncat:/params[1]/name} is greater than or equal to the
+      size specified by ${../if/strncat:/params[2]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = strncat( ctx->dest, ctx->src, ctx->n );
+test-action: |
+  ctx->retval = strncat( ctx->dest, ctx->src, ctx->n );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/strncat:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/strncat:/params[0]/name} parameter value.
   description: null
-  member: char * dest
-- brief: This member specifies the ${../if/strncat:/params[1]/name} parameter value.
+  member: char *dest
+- brief: |
+    This member specifies the ${../if/strncat:/params[1]/name} parameter value.
   description: null
-  member: const char * src
-- brief: This member specifies the ${../if/strncat:/params[2]/name} parameter value.
+  member: const char *src
+- brief: |
+    This member specifies the ${../if/strncat:/params[2]/name} parameter value.
   description: null
   member: size_t n
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: char *retval
+- brief: |
+    This member contains the offset of the guarded ${../if/strncat:/params[0]/name} region from the start of the destination buffer.
+  description: null
+  member: size_t offset
+- brief: |
+    This member contains the position of the terminating null character of the ${../if/strncat:/params[0]/name} string before the trigger action.
+  description: null
+  member: size_t term_pos
+- brief: |
+    This member contains the position immediately following the last byte modified by the trigger action, used to verify the trailing guard.
+  description: null
+  member: size_t content_end
+- brief: |
+    This member provides the destination buffer.
+  description: null
+  member: unsigned char dest_buf[ 8 * sizeof( long ) + 16 ] RTEMS_ALIGNED( sizeof(
+    long ) )
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: char src_buf[ 16 ]
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->dest_buf, 0xaa, sizeof( ctx->dest_buf ) );
+  memset( ctx->src_buf, 0, sizeof( ctx->src_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+  ctx->src = ctx->src_buf;
+  ctx->retval = NULL;
+  ctx->n = 0;
+  ctx->term_pos = ctx->offset;
+  ctx->content_end = ctx->offset;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-string-strncat.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result: SameAsDst
+    DstArea:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Unchanged
+    - if:
+        pre-conditions:
+          Fit: Fits
+      then: AppendedFull
+    - else: AppendedTruncated
   pre-conditions:
-    Status: all
+    Alignment: all
+    DstLength: all
+    DstMatchPosition:
+      applicable:
+        pre-conditions:
+          Alignment: Aligned
+          DstLength: NonEmpty
+    N: all
+    Fit:
+      applicable:
+        pre-conditions:
+          N: Positive
 type: requirement
