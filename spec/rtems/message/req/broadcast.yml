@@ -317,7 +317,7 @@ test-action: |
   FinalClockTick();
 test-brief: null
 test-cleanup: |
-    T_rsc_success( rtems_message_queue_delete( ctx->message_queue_id ) );
+  T_rsc_success( rtems_message_queue_delete( ctx->message_queue_id ) );
 test-context:
 - brief: |
     This member contains a valid ${/glossary/id:/term} of a
@@ -563,7 +563,6 @@ test-support: |
     );
     T_rsc_success( status );
   }
-
 test-target: testsuites/validation/tc-message-broadcast.c
 test-teardown:
   brief: null
@@ -577,200 +576,194 @@ test-teardown:
   description: null
 text: ${.:text-template}
 transition-map:
-
-# ---- Ok Case ----
-
 - enabled-by: true
   post-conditions:
     Status: Ok
     Count:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Set
-      - else: Zero
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Set
+    - else: Zero
     MsgQueue: Nop
     Receivers:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Unblocked
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Unblocked
+    - else: N/A
     RecSize:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Message
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Message
+    - else: N/A
     RecBuffer:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Message
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Message
+    - else: N/A
   pre-conditions:
     SendBuffer:
-      - Valid
+    - Valid
     Count:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     MsgSize:
-      - Zero
-      - SomeSize
-      - MaxSize
+    - Zero
+    - SomeSize
+    - MaxSize
     MsgQueue: all
     Receivers: all
     Storage: all
-
-# ---- InvAddr: SendBuffer ----
-
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Count: Nop
-    MsgQueue: Nop
+    MsgQueue:
+    - if:
+        pre-conditions:
+          Id:
+          - Invalid
+      then: N/A
+    - else: Nop
     Receivers:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecSize:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecBuffer:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
   pre-conditions:
     SendBuffer:
-      - 'Null'
+    - 'Null'
     Count: all
     Id: all
     MsgSize: all
     MsgQueue: all
     Receivers: all
     Storage: all
-
-# ---- InvAddr: Count ----
-
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Count: Nop
-    MsgQueue: Nop
+    MsgQueue:
+    - if:
+        pre-conditions:
+          Id:
+          - Invalid
+      then: N/A
+    - else: Nop
     Receivers:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecSize:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecBuffer:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
   pre-conditions:
     SendBuffer:
-      - Valid
+    - Valid
     Count:
-      - 'Null'
+    - 'Null'
     Id: all
     MsgSize: all
     MsgQueue: all
     Receivers: all
     Storage: all
-
-# ---- InvId ----
-
 - enabled-by: true
   post-conditions:
     Status: InvId
     Count: Nop
-    MsgQueue: Nop
+    MsgQueue: N/A
     Receivers:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecSize:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecBuffer:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
   pre-conditions:
     SendBuffer:
-      - Valid
+    - Valid
     Count:
-      - Valid
+    - Valid
     Id:
-      - Invalid
+    - Invalid
     MsgSize: all
     MsgQueue: all
     Receivers: all
     Storage: all
-
-# ---- InvSize ----
-
 - enabled-by: true
   post-conditions:
     Status: InvSize
     Count: Nop
     MsgQueue: Nop
     Receivers:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecSize:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
     RecBuffer:
-      - if:
-          pre-conditions:
-            Receivers: Waiting
-        then: Nop
-      - else: N/A
+    - if:
+        pre-conditions:
+          Receivers: Waiting
+      then: Nop
+    - else: N/A
   pre-conditions:
     SendBuffer:
-      - Valid
+    - Valid
     Count:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     MsgSize:
-      - TooLarge
+    - TooLarge
     MsgQueue: all
     Receivers: all
     Storage: all
-
-# ---- Impossible Cases ----
-
 - enabled-by: true
   post-conditions: NoWait
   pre-conditions:
@@ -779,9 +772,8 @@ transition-map:
     Id: all
     MsgSize: all
     MsgQueue:
-      - Several
+    - Several
     Receivers:
-      - Waiting
+    - Waiting
     Storage: all
-
 type: requirement
