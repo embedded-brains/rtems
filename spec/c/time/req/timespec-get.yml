@@ -1,0 +1,143 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/timespec-get
+post-conditions:
+- name: Result
+  states:
+  - name: Base
+    test-code: |
+      T_eq_int( ctx->result, TIME_UTC );
+    text: |
+      The return value of ${../if/timespec-get:/name} shall be equal to
+      ${/c/time/if/time-utc:/name}.
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The return value of ${../if/timespec-get:/name} shall be equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: TsObj
+  states:
+  - name: Set
+    test-code: |
+      T_gt_i64( ctx->ts_obj.tv_sec, 0 );
+    text: |
+      The object referenced by the ${../if/timespec-get:/params[0]/name} parameter
+      shall be set to the current time based on ${/c/time/if/time-utc:/name}.
+  - name: Unchanged
+    test-code: |
+      T_eq_long( ctx->ts_obj.tv_sec, -1 );
+      T_eq_long( ctx->ts_obj.tv_nsec, -1 );
+    text: |
+      The object referenced by the ${../if/timespec-get:/params[0]/name} parameter
+      shall not be changed by the directive call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Ts
+  states:
+  - name: Valid
+    test-code: |
+      ctx->ts = &ctx->ts_obj;
+    text: |
+      While the ${../if/timespec-get:/params[0]/name} parameter references an object
+      of type ${/c/if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->ts = NULL;
+    text: |
+      While the ${../if/timespec-get:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Base
+  states:
+  - name: TimeUtc
+    test-code: |
+      ctx->base = TIME_UTC;
+    text: |
+      While the ${../if/timespec-get:/params[1]/name} parameter is equal to
+      ${/c/time/if/time-utc:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->base = -1;
+    text: |
+      While the ${../if/timespec-get:/params[1]/name} parameter is not equal to
+      ${/c/time/if/time-utc:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = timespec_get( ctx->ts, ctx->base );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/timespec-get:/name} call.
+  description: null
+  member: |
+    int result
+- brief: |
+    This member specifies the ${../if/timespec-get:/params[0]/name} parameter value.
+  description: null
+  member: |
+    struct timespec *ts
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timespec-get:/params[0]/name} parameter.
+  description: null
+  member: |
+    struct timespec ts_obj
+- brief: |
+    This member specifies the ${../if/timespec-get:/params[1]/name} parameter value.
+  description: null
+  member: |
+    int base
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- time.h
+test-local-includes: []
+test-prepare: |
+  ctx->result = -1;
+  ctx->ts_obj.tv_sec = -1;
+  ctx->ts_obj.tv_nsec = -1;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-time-timespec-get.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Base: Invalid
+      then: Zero
+    - else: Base
+    TsObj:
+    - if:
+        pre-conditions:
+          Base: Invalid
+      then: Unchanged
+    - if:
+        pre-conditions:
+          Ts: 'Null'
+      then: N/A
+    - else: Set
+  pre-conditions:
+    Ts: all
+    Base: all
+type: requirement
