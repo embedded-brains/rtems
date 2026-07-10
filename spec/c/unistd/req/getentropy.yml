@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/getentropy
+functional-type: function
+rationale: |
+  This requirement is quite weak and reflects not what users of this function
+  expect.  It should be refined for a specific ${/glossary/target:/term}.
+references: []
+requirement-type: functional
+text: |
+  The ${../if/getentropy:/name} function shall copy a number of bytes specified
+  by the ``buflen`` parameter into the buffer referenced by the ``buf``
+  parameter.
+type: requirement

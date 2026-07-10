@@ -1,0 +1,59 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Call ${../if/getentropy:/name} for a sample set of buffers.
+  action-code: |
+    uint8_t  buf[ 32 ];
+    uint32_t same;
+    size_t   i;
+
+    same = 0;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( buf ); ++i ) {
+      size_t j;
+
+      memset( buf, 0xff, sizeof( buf ) );
+      T_eq_int( getentropy( buf, i ), 0 );
+
+      for ( j = 0; j < i ; ++j ) {
+        if ( buf[ j ] == 0xff ) {
+          ++same;
+        }
+      }
+
+      for ( j = i; j < RTEMS_ARRAY_SIZE( buf ) ; ++j ) {
+        T_eq_u8( buf[ j ], 0xff );
+      }
+    }
+  checks:
+  - brief: |
+      Check that the buffer was filled with data.
+    code: |
+      /* Failure should be unlikely */
+      T_lt_u32( same, 10 );
+    links:
+    - role: validation
+      uid: ../req/getentropy
+  links:
+  - role: validation
+    uid: ../req/getentropy-success
+test-brief: |
+  Tests C library functions providing random numbers.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- stdlib.h
+test-local-includes:
+- tx-support.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-random.c
+test-teardown: null
+type: test-case
