@@ -1,0 +1,257 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/clock-getres
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/clock-getres:/name} shall be equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The return value of ${../if/clock-getres:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Unchanged
+    test-code: |
+      T_eq_int( errno, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the directive call.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( errno, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be equal to ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: ResObj
+  states:
+  - name: Set
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, 0 );
+      T_gt_long( ctx->res_obj.tv_nsec, 0 );
+    text: |
+      The object referenced by the ${../if/clock-getres:/params[1]/name} parameter
+      shall be set to the resolution of the clock.
+  - name: Unchanged
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, -1 );
+      T_eq_long( ctx->res_obj.tv_nsec, -1 );
+    text: |
+      The object referenced by the ${../if/clock-getres:/params[1]/name} parameter
+      shall not be changed by the directive call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: ClockId
+  states:
+  - name: Realtime
+    test-code: |
+      ctx->clock_id = CLOCK_REALTIME;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-realtime:/name}.
+  - name: ProcessCPUTime
+    test-code: |
+      ctx->clock_id = CLOCK_PROCESS_CPUTIME_ID;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-process-cputime-id:/name}.
+  - name: ThreadCPUTime
+    test-code: |
+      ctx->clock_id = CLOCK_THREAD_CPUTIME_ID;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is equal to
+      ${../if/clock-thread-cputime-id:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->clock_id = INT_MAX;
+    text: |
+      While the ${../if/clock-getres:/params[0]/name} parameter is an invalid clock
+      identifier.
+  test-epilogue: null
+  test-prologue: null
+- name: Res
+  states:
+  - name: Valid
+    test-code: |
+      ctx->res = &ctx->res_obj;
+    text: |
+      While the ${../if/clock-getres:/params[1]/name} parameter references an object
+      of type ${/c/if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->res = NULL;
+    text: |
+      While the ${../if/clock-getres:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: TimecounterFreq
+  states:
+  - name: Low
+    test-code: |
+      /* Use default software timecounter frequency (1000000 Hz), which is
+       * low enough so TOD_NANOSECONDS_PER_SECOND / freq > 0. */
+    text: |
+      While the timecounter frequency is low enough such that
+      `TOD_NANOSECONDS_PER_SECOND` divided by the frequency is greater than zero.
+  - name: High
+    test-code: |
+      ctx->tc.base.tc_frequency = UINT64_C( 2000000000 );
+      rtems_timecounter_install( &ctx->tc.base );
+    text: |
+      While the timecounter frequency is high enough such that
+      `TOD_NANOSECONDS_PER_SECOND` divided by the frequency equals zero.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = clock_getres( ctx->clock_id, ctx->res );
+test-brief: null
+test-cleanup: |
+  if ( ctx->tc_installed ) {
+    ctx->original_tc.base.tc_frequency = SOFTWARE_TIMECOUNTER_FREQUENCY;
+    rtems_timecounter_install( &ctx->original_tc.base );
+    ctx->tc_installed = false;
+  }
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/clock-getres:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member specifies the ${../if/clock-getres:/params[0]/name} parameter value.
+  description: null
+  member: |
+    clockid_t clock_id
+- brief: |
+    This member specifies the ${../if/clock-getres:/params[1]/name} parameter value.
+  description: null
+  member: |
+    struct timespec *res
+- brief: |
+    This member provides the object referenced by the
+    ${../if/clock-getres:/params[1]/name} parameter.
+  description: null
+  member: |
+    struct timespec res_obj
+- brief: |
+    This member provides the high-frequency timecounter used to reach the
+    `tv_nsec == 0` branch.
+  description: null
+  member: |
+    struct {
+      struct timecounter base;
+    } tc
+- brief: |
+    This member provides the restored timecounter after a high-frequency test.
+  description: null
+  member: |
+    struct {
+      struct timecounter base;
+    } original_tc
+- brief: |
+    If this member is true, then a custom timecounter was installed.
+  description: null
+  member: |
+    bool tc_installed
+test-context-support: |
+  #include <rtems/timecounter.h>
+
+  static uint32_t GetTimecountHigh( struct timecounter *tc )
+  {
+    (void) tc;
+    return 0;
+  }
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- limits.h
+- string.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  errno = -1;
+  ctx->status = -1;
+  ctx->res_obj.tv_sec = -1;
+  ctx->res_obj.tv_nsec = -1;
+  ctx->tc_installed = false;
+  memset( &ctx->tc, 0, sizeof( ctx->tc ) );
+  ctx->tc.base.tc_get_timecount = GetTimecountHigh;
+  ctx->tc.base.tc_counter_mask = 0xffffffff;
+  ctx->tc.base.tc_quality = RTEMS_TIMECOUNTER_QUALITY_CLOCK_DRIVER + 1;
+test-setup:
+  brief: null
+  code: null
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-time-clock-getres.c
+test-teardown:
+  brief: null
+  code: null
+  description: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Res: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          ClockId: Invalid
+      then: MinusOne
+    - else: Zero
+    Errno:
+    - if:
+        pre-conditions:
+          Res: 'Null'
+      then: EINVAL
+    - if:
+        pre-conditions:
+          ClockId: Invalid
+      then: EINVAL
+    - else: Unchanged
+    ResObj:
+    - if:
+        pre-conditions:
+          Res: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          ClockId: Invalid
+      then: Unchanged
+    - else: Set
+  pre-conditions:
+    ClockId: all
+    Res: all
+    TimecounterFreq:
+      applicable:
+        pre-conditions:
+          Res: Valid
+          ClockId:
+          - Realtime
+          - ProcessCPUTime
+          - ThreadCPUTime
+type: requirement
