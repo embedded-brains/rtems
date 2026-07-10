@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup CReqClockNanosleep
+ * @ingroup CTimeReqClockNanosleep
  */
 
 /*
@@ -64,7 +64,7 @@
 #include <rtems/test.h>
 
 /**
- * @defgroup CReqClockNanosleep spec:/c/req/clock-nanosleep
+ * @defgroup CTimeReqClockNanosleep spec:/c/time/req/clock-nanosleep
  *
  * @ingroup TestsuitesValidationNoClock0
  *
@@ -72,77 +72,77 @@
  */
 
 typedef enum {
-  CReqClockNanosleep_Pre_ClockId_Monotonic,
-  CReqClockNanosleep_Pre_ClockId_Realtime,
-  CReqClockNanosleep_Pre_ClockId_Invalid,
-  CReqClockNanosleep_Pre_ClockId_NA
-} CReqClockNanosleep_Pre_ClockId;
+  CTimeReqClockNanosleep_Pre_ClockId_Monotonic,
+  CTimeReqClockNanosleep_Pre_ClockId_Realtime,
+  CTimeReqClockNanosleep_Pre_ClockId_Invalid,
+  CTimeReqClockNanosleep_Pre_ClockId_NA
+} CTimeReqClockNanosleep_Pre_ClockId;
 
 typedef enum {
-  CReqClockNanosleep_Pre_Abstime_Yes,
-  CReqClockNanosleep_Pre_Abstime_No,
-  CReqClockNanosleep_Pre_Abstime_NA
-} CReqClockNanosleep_Pre_Abstime;
+  CTimeReqClockNanosleep_Pre_Abstime_Yes,
+  CTimeReqClockNanosleep_Pre_Abstime_No,
+  CTimeReqClockNanosleep_Pre_Abstime_NA
+} CTimeReqClockNanosleep_Pre_Abstime;
 
 typedef enum {
-  CReqClockNanosleep_Pre_RQTp_Valid,
-  CReqClockNanosleep_Pre_RQTp_Null,
-  CReqClockNanosleep_Pre_RQTp_NA
-} CReqClockNanosleep_Pre_RQTp;
+  CTimeReqClockNanosleep_Pre_RQTp_Valid,
+  CTimeReqClockNanosleep_Pre_RQTp_Null,
+  CTimeReqClockNanosleep_Pre_RQTp_NA
+} CTimeReqClockNanosleep_Pre_RQTp;
 
 typedef enum {
-  CReqClockNanosleep_Pre_RQTpNSec_Valid,
-  CReqClockNanosleep_Pre_RQTpNSec_Invalid,
-  CReqClockNanosleep_Pre_RQTpNSec_NA
-} CReqClockNanosleep_Pre_RQTpNSec;
+  CTimeReqClockNanosleep_Pre_RQTpNSec_Valid,
+  CTimeReqClockNanosleep_Pre_RQTpNSec_Invalid,
+  CTimeReqClockNanosleep_Pre_RQTpNSec_NA
+} CTimeReqClockNanosleep_Pre_RQTpNSec;
 
 typedef enum {
-  CReqClockNanosleep_Pre_RQTpSec_Negative,
-  CReqClockNanosleep_Pre_RQTpSec_FarFuture,
-  CReqClockNanosleep_Pre_RQTpSec_Future,
-  CReqClockNanosleep_Pre_RQTpSec_PastOrNow,
-  CReqClockNanosleep_Pre_RQTpSec_NA
-} CReqClockNanosleep_Pre_RQTpSec;
+  CTimeReqClockNanosleep_Pre_RQTpSec_Negative,
+  CTimeReqClockNanosleep_Pre_RQTpSec_FarFuture,
+  CTimeReqClockNanosleep_Pre_RQTpSec_Future,
+  CTimeReqClockNanosleep_Pre_RQTpSec_PastOrNow,
+  CTimeReqClockNanosleep_Pre_RQTpSec_NA
+} CTimeReqClockNanosleep_Pre_RQTpSec;
 
 typedef enum {
-  CReqClockNanosleep_Pre_RMTp_Valid,
-  CReqClockNanosleep_Pre_RMTp_Null,
-  CReqClockNanosleep_Pre_RMTp_NA
-} CReqClockNanosleep_Pre_RMTp;
+  CTimeReqClockNanosleep_Pre_RMTp_Valid,
+  CTimeReqClockNanosleep_Pre_RMTp_Null,
+  CTimeReqClockNanosleep_Pre_RMTp_NA
+} CTimeReqClockNanosleep_Pre_RMTp;
 
 typedef enum {
-  CReqClockNanosleep_Post_Status_Zero,
-  CReqClockNanosleep_Post_Status_ENOTSUP,
-  CReqClockNanosleep_Post_Status_EINVAL,
-  CReqClockNanosleep_Post_Status_NA
-} CReqClockNanosleep_Post_Status;
+  CTimeReqClockNanosleep_Post_Status_Zero,
+  CTimeReqClockNanosleep_Post_Status_ENOTSUP,
+  CTimeReqClockNanosleep_Post_Status_EINVAL,
+  CTimeReqClockNanosleep_Post_Status_NA
+} CTimeReqClockNanosleep_Post_Status;
 
 typedef enum {
-  CReqClockNanosleep_Post_Timer_Inactive,
-  CReqClockNanosleep_Post_Timer_Monotonic,
-  CReqClockNanosleep_Post_Timer_Realtime,
-  CReqClockNanosleep_Post_Timer_NA
-} CReqClockNanosleep_Post_Timer;
+  CTimeReqClockNanosleep_Post_Timer_Inactive,
+  CTimeReqClockNanosleep_Post_Timer_Monotonic,
+  CTimeReqClockNanosleep_Post_Timer_Realtime,
+  CTimeReqClockNanosleep_Post_Timer_NA
+} CTimeReqClockNanosleep_Post_Timer;
 
 typedef enum {
-  CReqClockNanosleep_Post_Expire_Last,
-  CReqClockNanosleep_Post_Expire_Absolute,
-  CReqClockNanosleep_Post_Expire_Relative,
-  CReqClockNanosleep_Post_Expire_NA
-} CReqClockNanosleep_Post_Expire;
+  CTimeReqClockNanosleep_Post_Expire_Last,
+  CTimeReqClockNanosleep_Post_Expire_Absolute,
+  CTimeReqClockNanosleep_Post_Expire_Relative,
+  CTimeReqClockNanosleep_Post_Expire_NA
+} CTimeReqClockNanosleep_Post_Expire;
 
 typedef enum {
-  CReqClockNanosleep_Post_Scheduler_Block,
-  CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-  CReqClockNanosleep_Post_Scheduler_Nop,
-  CReqClockNanosleep_Post_Scheduler_NA
-} CReqClockNanosleep_Post_Scheduler;
+  CTimeReqClockNanosleep_Post_Scheduler_Block,
+  CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+  CTimeReqClockNanosleep_Post_Scheduler_Nop,
+  CTimeReqClockNanosleep_Post_Scheduler_NA
+} CTimeReqClockNanosleep_Post_Scheduler;
 
 typedef enum {
-  CReqClockNanosleep_Post_RMTp_Zero,
-  CReqClockNanosleep_Post_RMTp_Nop,
-  CReqClockNanosleep_Post_RMTp_NA
-} CReqClockNanosleep_Post_RMTp;
+  CTimeReqClockNanosleep_Post_RMTp_Zero,
+  CTimeReqClockNanosleep_Post_RMTp_Nop,
+  CTimeReqClockNanosleep_Post_RMTp_NA
+} CTimeReqClockNanosleep_Post_RMTp;
 
 typedef struct {
   uint32_t Skip : 1;
@@ -157,10 +157,10 @@ typedef struct {
   uint32_t Post_Expire : 2;
   uint32_t Post_Scheduler : 2;
   uint32_t Post_RMTp : 2;
-} CReqClockNanosleep_Entry;
+} CTimeReqClockNanosleep_Entry;
 
 /**
- * @brief Test context for spec:/c/req/clock-nanosleep test case.
+ * @brief Test context for spec:/c/time/req/clock-nanosleep test case.
  */
 typedef struct {
   /**
@@ -251,7 +251,7 @@ typedef struct {
     /**
      * @brief This member contains the current transition map entry.
      */
-    CReqClockNanosleep_Entry entry;
+    CTimeReqClockNanosleep_Entry entry;
 
     /**
      * @brief If this member is true, then the current transition variant
@@ -259,37 +259,37 @@ typedef struct {
      */
     bool skip;
   } Map;
-} CReqClockNanosleep_Context;
+} CTimeReqClockNanosleep_Context;
 
-static CReqClockNanosleep_Context
-  CReqClockNanosleep_Instance;
+static CTimeReqClockNanosleep_Context
+  CTimeReqClockNanosleep_Instance;
 
-static const char * const CReqClockNanosleep_PreDesc_ClockId[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_ClockId[] = {
   "Monotonic",
   "Realtime",
   "Invalid",
   "NA"
 };
 
-static const char * const CReqClockNanosleep_PreDesc_Abstime[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_Abstime[] = {
   "Yes",
   "No",
   "NA"
 };
 
-static const char * const CReqClockNanosleep_PreDesc_RQTp[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_RQTp[] = {
   "Valid",
   "Null",
   "NA"
 };
 
-static const char * const CReqClockNanosleep_PreDesc_RQTpNSec[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_RQTpNSec[] = {
   "Valid",
   "Invalid",
   "NA"
 };
 
-static const char * const CReqClockNanosleep_PreDesc_RQTpSec[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_RQTpSec[] = {
   "Negative",
   "FarFuture",
   "Future",
@@ -297,23 +297,23 @@ static const char * const CReqClockNanosleep_PreDesc_RQTpSec[] = {
   "NA"
 };
 
-static const char * const CReqClockNanosleep_PreDesc_RMTp[] = {
+static const char * const CTimeReqClockNanosleep_PreDesc_RMTp[] = {
   "Valid",
   "Null",
   "NA"
 };
 
-static const char * const * const CReqClockNanosleep_PreDesc[] = {
-  CReqClockNanosleep_PreDesc_ClockId,
-  CReqClockNanosleep_PreDesc_Abstime,
-  CReqClockNanosleep_PreDesc_RQTp,
-  CReqClockNanosleep_PreDesc_RQTpNSec,
-  CReqClockNanosleep_PreDesc_RQTpSec,
-  CReqClockNanosleep_PreDesc_RMTp,
+static const char * const * const CTimeReqClockNanosleep_PreDesc[] = {
+  CTimeReqClockNanosleep_PreDesc_ClockId,
+  CTimeReqClockNanosleep_PreDesc_Abstime,
+  CTimeReqClockNanosleep_PreDesc_RQTp,
+  CTimeReqClockNanosleep_PreDesc_RQTpNSec,
+  CTimeReqClockNanosleep_PreDesc_RQTpSec,
+  CTimeReqClockNanosleep_PreDesc_RMTp,
   NULL
 };
 
-typedef CReqClockNanosleep_Context Context;
+typedef CTimeReqClockNanosleep_Context Context;
 
 static void Worker( rtems_task_argument arg )
 {
@@ -349,13 +349,13 @@ static void Worker( rtems_task_argument arg )
   }
 }
 
-static void CReqClockNanosleep_Pre_ClockId_Prepare(
-  CReqClockNanosleep_Context    *ctx,
-  CReqClockNanosleep_Pre_ClockId state
+static void CTimeReqClockNanosleep_Pre_ClockId_Prepare(
+  CTimeReqClockNanosleep_Context    *ctx,
+  CTimeReqClockNanosleep_Pre_ClockId state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_ClockId_Monotonic: {
+    case CTimeReqClockNanosleep_Pre_ClockId_Monotonic: {
       /*
        * While the `clock_id` parameter is equal to CLOCK_MONOTONIC.
        */
@@ -363,7 +363,7 @@ static void CReqClockNanosleep_Pre_ClockId_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_ClockId_Realtime: {
+    case CTimeReqClockNanosleep_Pre_ClockId_Realtime: {
       /*
        * While the `clock_id` parameter is equal to CLOCK_REALTIME.
        */
@@ -371,7 +371,7 @@ static void CReqClockNanosleep_Pre_ClockId_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_ClockId_Invalid: {
+    case CTimeReqClockNanosleep_Pre_ClockId_Invalid: {
       /*
        * While the `clock_id` parameter is an invalid clock identifier.
        */
@@ -379,18 +379,18 @@ static void CReqClockNanosleep_Pre_ClockId_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_ClockId_NA:
+    case CTimeReqClockNanosleep_Pre_ClockId_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Pre_Abstime_Prepare(
-  CReqClockNanosleep_Context    *ctx,
-  CReqClockNanosleep_Pre_Abstime state
+static void CTimeReqClockNanosleep_Pre_Abstime_Prepare(
+  CTimeReqClockNanosleep_Context    *ctx,
+  CTimeReqClockNanosleep_Pre_Abstime state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_Abstime_Yes: {
+    case CTimeReqClockNanosleep_Pre_Abstime_Yes: {
       /*
        * While the `flags` parameter indicates an absolute time.
        */
@@ -398,7 +398,7 @@ static void CReqClockNanosleep_Pre_Abstime_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_Abstime_No: {
+    case CTimeReqClockNanosleep_Pre_Abstime_No: {
       /*
        * While the `flags` parameter does not indicate an absolute time.
        */
@@ -406,18 +406,18 @@ static void CReqClockNanosleep_Pre_Abstime_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_Abstime_NA:
+    case CTimeReqClockNanosleep_Pre_Abstime_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Pre_RQTp_Prepare(
-  CReqClockNanosleep_Context *ctx,
-  CReqClockNanosleep_Pre_RQTp state
+static void CTimeReqClockNanosleep_Pre_RQTp_Prepare(
+  CTimeReqClockNanosleep_Context *ctx,
+  CTimeReqClockNanosleep_Pre_RQTp state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_RQTp_Valid: {
+    case CTimeReqClockNanosleep_Pre_RQTp_Valid: {
       /*
        * While the `rqtp` parameter references an object of type struct
        * timespec.
@@ -426,7 +426,7 @@ static void CReqClockNanosleep_Pre_RQTp_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTp_Null: {
+    case CTimeReqClockNanosleep_Pre_RQTp_Null: {
       /*
        * While the `rqtp` parameter is equal to NULL.
        */
@@ -434,18 +434,18 @@ static void CReqClockNanosleep_Pre_RQTp_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTp_NA:
+    case CTimeReqClockNanosleep_Pre_RQTp_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Pre_RQTpNSec_Prepare(
-  CReqClockNanosleep_Context     *ctx,
-  CReqClockNanosleep_Pre_RQTpNSec state
+static void CTimeReqClockNanosleep_Pre_RQTpNSec_Prepare(
+  CTimeReqClockNanosleep_Context     *ctx,
+  CTimeReqClockNanosleep_Pre_RQTpNSec state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_RQTpNSec_Valid: {
+    case CTimeReqClockNanosleep_Pre_RQTpNSec_Valid: {
       /*
        * While the `tv_nsec` member of the object referenced by the `rqtp`
        * parameter is a valid nanoseconds value.
@@ -454,7 +454,7 @@ static void CReqClockNanosleep_Pre_RQTpNSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpNSec_Invalid: {
+    case CTimeReqClockNanosleep_Pre_RQTpNSec_Invalid: {
       /*
        * While the `tv_nsec` member of the object referenced by the `rqtp`
        * parameter is an invalid nanoseconds value.
@@ -463,18 +463,18 @@ static void CReqClockNanosleep_Pre_RQTpNSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpNSec_NA:
+    case CTimeReqClockNanosleep_Pre_RQTpNSec_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Pre_RQTpSec_Prepare(
-  CReqClockNanosleep_Context    *ctx,
-  CReqClockNanosleep_Pre_RQTpSec state
+static void CTimeReqClockNanosleep_Pre_RQTpSec_Prepare(
+  CTimeReqClockNanosleep_Context    *ctx,
+  CTimeReqClockNanosleep_Pre_RQTpSec state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_RQTpSec_Negative: {
+    case CTimeReqClockNanosleep_Pre_RQTpSec_Negative: {
       /*
        * While the `tv_sec` member of the object referenced by the `rqtp`
        * parameter is negative.
@@ -483,7 +483,7 @@ static void CReqClockNanosleep_Pre_RQTpSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpSec_FarFuture: {
+    case CTimeReqClockNanosleep_Pre_RQTpSec_FarFuture: {
       /*
        * While the `tv_sec` member of the object referenced by the `rqtp`
        * parameter specifies a time point which is past the implementation
@@ -493,7 +493,7 @@ static void CReqClockNanosleep_Pre_RQTpSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpSec_Future: {
+    case CTimeReqClockNanosleep_Pre_RQTpSec_Future: {
       /*
        * While the `tv_sec` member of the object referenced by the `rqtp`
        * parameter specifies a time point which is after the current time of
@@ -504,7 +504,7 @@ static void CReqClockNanosleep_Pre_RQTpSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpSec_PastOrNow: {
+    case CTimeReqClockNanosleep_Pre_RQTpSec_PastOrNow: {
       /*
        * While the `tv_sec` member of the object referenced by the `rqtp`
        * parameter is non-negative and specifies a time point which is before
@@ -519,18 +519,18 @@ static void CReqClockNanosleep_Pre_RQTpSec_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RQTpSec_NA:
+    case CTimeReqClockNanosleep_Pre_RQTpSec_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Pre_RMTp_Prepare(
-  CReqClockNanosleep_Context *ctx,
-  CReqClockNanosleep_Pre_RMTp state
+static void CTimeReqClockNanosleep_Pre_RMTp_Prepare(
+  CTimeReqClockNanosleep_Context *ctx,
+  CTimeReqClockNanosleep_Pre_RMTp state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Pre_RMTp_Valid: {
+    case CTimeReqClockNanosleep_Pre_RMTp_Valid: {
       /*
        * While the `rmtp` parameter references an object of type struct
        * timespec.
@@ -539,7 +539,7 @@ static void CReqClockNanosleep_Pre_RMTp_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RMTp_Null: {
+    case CTimeReqClockNanosleep_Pre_RMTp_Null: {
       /*
        * While the `rmtp` parameter is equal to NULL.
        */
@@ -547,18 +547,18 @@ static void CReqClockNanosleep_Pre_RMTp_Prepare(
       break;
     }
 
-    case CReqClockNanosleep_Pre_RMTp_NA:
+    case CTimeReqClockNanosleep_Pre_RMTp_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Post_Status_Check(
-  CReqClockNanosleep_Context    *ctx,
-  CReqClockNanosleep_Post_Status state
+static void CTimeReqClockNanosleep_Post_Status_Check(
+  CTimeReqClockNanosleep_Context    *ctx,
+  CTimeReqClockNanosleep_Post_Status state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Post_Status_Zero: {
+    case CTimeReqClockNanosleep_Post_Status_Zero: {
       /*
        * The return value of clock_nanosleep() shall be equal to zero.
        */
@@ -566,7 +566,7 @@ static void CReqClockNanosleep_Post_Status_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Status_ENOTSUP: {
+    case CTimeReqClockNanosleep_Post_Status_ENOTSUP: {
       /*
        * The return value of clock_nanosleep() shall be equal to ENOTSUP.
        */
@@ -574,7 +574,7 @@ static void CReqClockNanosleep_Post_Status_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Status_EINVAL: {
+    case CTimeReqClockNanosleep_Post_Status_EINVAL: {
       /*
        * The return value of clock_nanosleep() shall be equal to EINVAL.
        */
@@ -582,18 +582,18 @@ static void CReqClockNanosleep_Post_Status_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Status_NA:
+    case CTimeReqClockNanosleep_Post_Status_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Post_Timer_Check(
-  CReqClockNanosleep_Context   *ctx,
-  CReqClockNanosleep_Post_Timer state
+static void CTimeReqClockNanosleep_Post_Timer_Check(
+  CTimeReqClockNanosleep_Context   *ctx,
+  CTimeReqClockNanosleep_Post_Timer state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Post_Timer_Inactive: {
+    case CTimeReqClockNanosleep_Post_Timer_Inactive: {
       /*
        * The timer of the calling task shall be inactive.
        */
@@ -601,7 +601,7 @@ static void CReqClockNanosleep_Post_Timer_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Timer_Monotonic: {
+    case CTimeReqClockNanosleep_Post_Timer_Monotonic: {
       /*
        * The timer of the calling task shall be active using the
        * CLOCK_MONOTONIC.
@@ -610,7 +610,7 @@ static void CReqClockNanosleep_Post_Timer_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Timer_Realtime: {
+    case CTimeReqClockNanosleep_Post_Timer_Realtime: {
       /*
        * The timer of the calling task shall be active using the
        * CLOCK_REALTIME.
@@ -619,20 +619,20 @@ static void CReqClockNanosleep_Post_Timer_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Timer_NA:
+    case CTimeReqClockNanosleep_Post_Timer_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Post_Expire_Check(
-  CReqClockNanosleep_Context    *ctx,
-  CReqClockNanosleep_Post_Expire state
+static void CTimeReqClockNanosleep_Post_Expire_Check(
+  CTimeReqClockNanosleep_Context    *ctx,
+  CTimeReqClockNanosleep_Post_Expire state
 )
 {
   struct timespec expire;
 
   switch ( state ) {
-    case CReqClockNanosleep_Post_Expire_Last: {
+    case CTimeReqClockNanosleep_Post_Expire_Last: {
       /*
        * The timer of the calling task shall expire at the last valid time
        * point of the clock specified by the `clock_id` parameter.
@@ -641,7 +641,7 @@ static void CReqClockNanosleep_Post_Expire_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Expire_Absolute: {
+    case CTimeReqClockNanosleep_Post_Expire_Absolute: {
       /*
        * The timer of the calling task shall expire at the time point specified
        * by the `rqtp` parameter.
@@ -654,7 +654,7 @@ static void CReqClockNanosleep_Post_Expire_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Expire_Relative: {
+    case CTimeReqClockNanosleep_Post_Expire_Relative: {
       /*
        * The timer of the calling task shall expire at the time point specified
        * by the sum of the current time of the clock specified by
@@ -674,18 +674,18 @@ static void CReqClockNanosleep_Post_Expire_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Expire_NA:
+    case CTimeReqClockNanosleep_Post_Expire_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Post_Scheduler_Check(
-  CReqClockNanosleep_Context       *ctx,
-  CReqClockNanosleep_Post_Scheduler state
+static void CTimeReqClockNanosleep_Post_Scheduler_Check(
+  CTimeReqClockNanosleep_Context       *ctx,
+  CTimeReqClockNanosleep_Post_Scheduler state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Post_Scheduler_Block: {
+    case CTimeReqClockNanosleep_Post_Scheduler_Block: {
       /*
        * The calling task shall be blocked by the scheduler exactly once by the
        * clock_nanosleep() call.
@@ -698,7 +698,7 @@ static void CReqClockNanosleep_Post_Scheduler_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Scheduler_BlockUnblock: {
+    case CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock: {
       /*
        * The calling task shall be blocked exactly once by the scheduler and
        * then unblocked in the same thread dispatch critical section by the
@@ -716,7 +716,7 @@ static void CReqClockNanosleep_Post_Scheduler_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Scheduler_Nop: {
+    case CTimeReqClockNanosleep_Post_Scheduler_Nop: {
       /*
        * The calling task shall not be altered by the scheduler by the
        * clock_nanosleep() call.
@@ -725,18 +725,18 @@ static void CReqClockNanosleep_Post_Scheduler_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_Scheduler_NA:
+    case CTimeReqClockNanosleep_Post_Scheduler_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Post_RMTp_Check(
-  CReqClockNanosleep_Context  *ctx,
-  CReqClockNanosleep_Post_RMTp state
+static void CTimeReqClockNanosleep_Post_RMTp_Check(
+  CTimeReqClockNanosleep_Context  *ctx,
+  CTimeReqClockNanosleep_Post_RMTp state
 )
 {
   switch ( state ) {
-    case CReqClockNanosleep_Post_RMTp_Zero: {
+    case CTimeReqClockNanosleep_Post_RMTp_Zero: {
       /*
        * The object referenced by the `rmtp` parameter shall be cleared to zero
        * after the return of the clock_nanosleep() call.
@@ -746,7 +746,7 @@ static void CReqClockNanosleep_Post_RMTp_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_RMTp_Nop: {
+    case CTimeReqClockNanosleep_Post_RMTp_Nop: {
       /*
        * Objects referenced by the `rmtp` parameter in past calls to
        * clock_nanosleep() shall not be accessed by the clock_nanosleep() call.
@@ -756,12 +756,12 @@ static void CReqClockNanosleep_Post_RMTp_Check(
       break;
     }
 
-    case CReqClockNanosleep_Post_RMTp_NA:
+    case CTimeReqClockNanosleep_Post_RMTp_NA:
       break;
   }
 }
 
-static void CReqClockNanosleep_Setup( CReqClockNanosleep_Context *ctx )
+static void CTimeReqClockNanosleep_Setup( CTimeReqClockNanosleep_Context *ctx )
 {
   rtems_time_of_day now = { 1988, 1, 1, 0, 0, 0, 0 };
   T_rsc_success( rtems_clock_set( &now ) );
@@ -770,31 +770,35 @@ static void CReqClockNanosleep_Setup( CReqClockNanosleep_Context *ctx )
   StartTask( ctx->worker_id, Worker, ctx );
 }
 
-static void CReqClockNanosleep_Setup_Wrap( void *arg )
+static void CTimeReqClockNanosleep_Setup_Wrap( void *arg )
 {
-  CReqClockNanosleep_Context *ctx;
+  CTimeReqClockNanosleep_Context *ctx;
 
   ctx = arg;
   ctx->Map.in_action_loop = false;
-  CReqClockNanosleep_Setup( ctx );
+  CTimeReqClockNanosleep_Setup( ctx );
 }
 
-static void CReqClockNanosleep_Teardown( CReqClockNanosleep_Context *ctx )
+static void CTimeReqClockNanosleep_Teardown(
+  CTimeReqClockNanosleep_Context *ctx
+)
 {
   DeleteTask( ctx->worker_id );
   RestoreRunnerPriority();
 }
 
-static void CReqClockNanosleep_Teardown_Wrap( void *arg )
+static void CTimeReqClockNanosleep_Teardown_Wrap( void *arg )
 {
-  CReqClockNanosleep_Context *ctx;
+  CTimeReqClockNanosleep_Context *ctx;
 
   ctx = arg;
   ctx->Map.in_action_loop = false;
-  CReqClockNanosleep_Teardown( ctx );
+  CTimeReqClockNanosleep_Teardown( ctx );
 }
 
-static void CReqClockNanosleep_Prepare( CReqClockNanosleep_Context *ctx )
+static void CTimeReqClockNanosleep_Prepare(
+  CTimeReqClockNanosleep_Context *ctx
+)
 {
   ctx->status = -1;
   ctx->flags = 0;
@@ -802,7 +806,9 @@ static void CReqClockNanosleep_Prepare( CReqClockNanosleep_Context *ctx )
   ctx->rmtp_obj.tv_nsec = -1;
 }
 
-static void CReqClockNanosleep_Action( CReqClockNanosleep_Context *ctx )
+static void CTimeReqClockNanosleep_Action(
+  CTimeReqClockNanosleep_Context *ctx
+)
 {
   ResumeTask( ctx->worker_id );
   (void) T_scheduler_record( NULL );
@@ -811,73 +817,92 @@ static void CReqClockNanosleep_Action( CReqClockNanosleep_Context *ctx )
   FinalClockTick();
 }
 
-static const CReqClockNanosleep_Entry
-CReqClockNanosleep_Entries[] = {
-  { 0, 0, 0, 0, 1, 1, 0, CReqClockNanosleep_Post_Status_EINVAL,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 1, 1, 0, CReqClockNanosleep_Post_Status_ENOTSUP,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_Nop, CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_EINVAL,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 1, 1, 0, CReqClockNanosleep_Post_Status_EINVAL,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Zero },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_ENOTSUP,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_Nop, CReqClockNanosleep_Post_RMTp_Nop },
-  { 1, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_NA,
-    CReqClockNanosleep_Post_Timer_NA, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_NA, CReqClockNanosleep_Post_RMTp_NA },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_EINVAL,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Zero },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Monotonic,
-    CReqClockNanosleep_Post_Expire_Last,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Monotonic,
-    CReqClockNanosleep_Post_Expire_Absolute,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Monotonic,
-    CReqClockNanosleep_Post_Expire_Last,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Zero },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Monotonic,
-    CReqClockNanosleep_Post_Expire_Relative,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Zero },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Monotonic,
-    CReqClockNanosleep_Post_Expire_Relative,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Inactive, CReqClockNanosleep_Post_Expire_NA,
-    CReqClockNanosleep_Post_Scheduler_BlockUnblock,
-    CReqClockNanosleep_Post_RMTp_Zero },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Realtime,
-    CReqClockNanosleep_Post_Expire_Last,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, CReqClockNanosleep_Post_Status_Zero,
-    CReqClockNanosleep_Post_Timer_Realtime,
-    CReqClockNanosleep_Post_Expire_Absolute,
-    CReqClockNanosleep_Post_Scheduler_Block, CReqClockNanosleep_Post_RMTp_Nop }
+static const CTimeReqClockNanosleep_Entry
+CTimeReqClockNanosleep_Entries[] = {
+  { 0, 0, 0, 0, 1, 1, 0, CTimeReqClockNanosleep_Post_Status_EINVAL,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 1, 1, 0, CTimeReqClockNanosleep_Post_Status_ENOTSUP,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_Nop,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_EINVAL,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 1, 1, 0, CTimeReqClockNanosleep_Post_Status_EINVAL,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Zero },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_ENOTSUP,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_Nop,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 1, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_NA,
+    CTimeReqClockNanosleep_Post_Timer_NA,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_NA,
+    CTimeReqClockNanosleep_Post_RMTp_NA },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_EINVAL,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Zero },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Monotonic,
+    CTimeReqClockNanosleep_Post_Expire_Last,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Monotonic,
+    CTimeReqClockNanosleep_Post_Expire_Absolute,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Monotonic,
+    CTimeReqClockNanosleep_Post_Expire_Last,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Zero },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Monotonic,
+    CTimeReqClockNanosleep_Post_Expire_Relative,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Zero },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Monotonic,
+    CTimeReqClockNanosleep_Post_Expire_Relative,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Inactive,
+    CTimeReqClockNanosleep_Post_Expire_NA,
+    CTimeReqClockNanosleep_Post_Scheduler_BlockUnblock,
+    CTimeReqClockNanosleep_Post_RMTp_Zero },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Realtime,
+    CTimeReqClockNanosleep_Post_Expire_Last,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Nop },
+  { 0, 0, 0, 0, 0, 0, 0, CTimeReqClockNanosleep_Post_Status_Zero,
+    CTimeReqClockNanosleep_Post_Timer_Realtime,
+    CTimeReqClockNanosleep_Post_Expire_Absolute,
+    CTimeReqClockNanosleep_Post_Scheduler_Block,
+    CTimeReqClockNanosleep_Post_RMTp_Nop }
 };
 
 static const uint8_t
-CReqClockNanosleep_Map[] = {
+CTimeReqClockNanosleep_Map[] = {
   6, 6, 8, 8, 9, 9, 6, 6, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   0, 0, 0, 0, 0, 0, 7, 2, 10, 8, 11, 12, 13, 6, 7, 2, 7, 2, 7, 2, 7, 2, 3, 0,
   3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 6, 6, 14, 14, 15, 15, 6, 6, 2, 2,
@@ -888,42 +913,42 @@ CReqClockNanosleep_Map[] = {
   1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 
-static size_t CReqClockNanosleep_Scope( void *arg, char *buf, size_t n )
+static size_t CTimeReqClockNanosleep_Scope( void *arg, char *buf, size_t n )
 {
-  CReqClockNanosleep_Context *ctx;
+  CTimeReqClockNanosleep_Context *ctx;
 
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqClockNanosleep_PreDesc, buf, n, ctx->Map.pcs );
+    return T_get_scope( CTimeReqClockNanosleep_PreDesc, buf, n, ctx->Map.pcs );
   }
 
   return 0;
 }
 
-static T_fixture CReqClockNanosleep_Fixture = {
-  .setup = CReqClockNanosleep_Setup_Wrap,
+static T_fixture CTimeReqClockNanosleep_Fixture = {
+  .setup = CTimeReqClockNanosleep_Setup_Wrap,
   .stop = NULL,
-  .teardown = CReqClockNanosleep_Teardown_Wrap,
-  .scope = CReqClockNanosleep_Scope,
-  .initial_context = &CReqClockNanosleep_Instance
+  .teardown = CTimeReqClockNanosleep_Teardown_Wrap,
+  .scope = CTimeReqClockNanosleep_Scope,
+  .initial_context = &CTimeReqClockNanosleep_Instance
 };
 
-static inline CReqClockNanosleep_Entry CReqClockNanosleep_PopEntry(
-  CReqClockNanosleep_Context *ctx
+static inline CTimeReqClockNanosleep_Entry CTimeReqClockNanosleep_PopEntry(
+  CTimeReqClockNanosleep_Context *ctx
 )
 {
   size_t index;
 
   index = ctx->Map.index;
   ctx->Map.index = index + 1;
-  return CReqClockNanosleep_Entries[
-    CReqClockNanosleep_Map[ index ]
+  return CTimeReqClockNanosleep_Entries[
+    CTimeReqClockNanosleep_Map[ index ]
   ];
 }
 
-static void CReqClockNanosleep_SetPreConditionStates(
-  CReqClockNanosleep_Context *ctx
+static void CTimeReqClockNanosleep_SetPreConditionStates(
+  CTimeReqClockNanosleep_Context *ctx
 )
 {
   ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
@@ -931,13 +956,13 @@ static void CReqClockNanosleep_SetPreConditionStates(
   ctx->Map.pcs[ 2 ] = ctx->Map.pci[ 2 ];
 
   if ( ctx->Map.entry.Pre_RQTpNSec_NA ) {
-    ctx->Map.pcs[ 3 ] = CReqClockNanosleep_Pre_RQTpNSec_NA;
+    ctx->Map.pcs[ 3 ] = CTimeReqClockNanosleep_Pre_RQTpNSec_NA;
   } else {
     ctx->Map.pcs[ 3 ] = ctx->Map.pci[ 3 ];
   }
 
   if ( ctx->Map.entry.Pre_RQTpSec_NA ) {
-    ctx->Map.pcs[ 4 ] = CReqClockNanosleep_Pre_RQTpSec_NA;
+    ctx->Map.pcs[ 4 ] = CTimeReqClockNanosleep_Pre_RQTpSec_NA;
   } else {
     ctx->Map.pcs[ 4 ] = ctx->Map.pci[ 4 ];
   }
@@ -945,75 +970,77 @@ static void CReqClockNanosleep_SetPreConditionStates(
   ctx->Map.pcs[ 5 ] = ctx->Map.pci[ 5 ];
 }
 
-static void CReqClockNanosleep_TestVariant( CReqClockNanosleep_Context *ctx )
+static void CTimeReqClockNanosleep_TestVariant(
+  CTimeReqClockNanosleep_Context *ctx
+)
 {
-  CReqClockNanosleep_Pre_ClockId_Prepare( ctx, ctx->Map.pcs[ 0 ] );
-  CReqClockNanosleep_Pre_Abstime_Prepare( ctx, ctx->Map.pcs[ 1 ] );
-  CReqClockNanosleep_Pre_RQTp_Prepare( ctx, ctx->Map.pcs[ 2 ] );
-  CReqClockNanosleep_Pre_RQTpNSec_Prepare( ctx, ctx->Map.pcs[ 3 ] );
-  CReqClockNanosleep_Pre_RQTpSec_Prepare( ctx, ctx->Map.pcs[ 4 ] );
-  CReqClockNanosleep_Pre_RMTp_Prepare( ctx, ctx->Map.pcs[ 5 ] );
-  CReqClockNanosleep_Action( ctx );
-  CReqClockNanosleep_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
-  CReqClockNanosleep_Post_Timer_Check( ctx, ctx->Map.entry.Post_Timer );
-  CReqClockNanosleep_Post_Expire_Check( ctx, ctx->Map.entry.Post_Expire );
-  CReqClockNanosleep_Post_Scheduler_Check(
+  CTimeReqClockNanosleep_Pre_ClockId_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CTimeReqClockNanosleep_Pre_Abstime_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CTimeReqClockNanosleep_Pre_RQTp_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  CTimeReqClockNanosleep_Pre_RQTpNSec_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+  CTimeReqClockNanosleep_Pre_RQTpSec_Prepare( ctx, ctx->Map.pcs[ 4 ] );
+  CTimeReqClockNanosleep_Pre_RMTp_Prepare( ctx, ctx->Map.pcs[ 5 ] );
+  CTimeReqClockNanosleep_Action( ctx );
+  CTimeReqClockNanosleep_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CTimeReqClockNanosleep_Post_Timer_Check( ctx, ctx->Map.entry.Post_Timer );
+  CTimeReqClockNanosleep_Post_Expire_Check( ctx, ctx->Map.entry.Post_Expire );
+  CTimeReqClockNanosleep_Post_Scheduler_Check(
     ctx,
     ctx->Map.entry.Post_Scheduler
   );
-  CReqClockNanosleep_Post_RMTp_Check( ctx, ctx->Map.entry.Post_RMTp );
+  CTimeReqClockNanosleep_Post_RMTp_Check( ctx, ctx->Map.entry.Post_RMTp );
 }
 
 /**
- * @fn void T_case_body_CReqClockNanosleep( void )
+ * @fn void T_case_body_CTimeReqClockNanosleep( void )
  */
-T_TEST_CASE_FIXTURE( CReqClockNanosleep, &CReqClockNanosleep_Fixture )
+T_TEST_CASE_FIXTURE( CTimeReqClockNanosleep, &CTimeReqClockNanosleep_Fixture )
 {
-  CReqClockNanosleep_Context *ctx;
+  CTimeReqClockNanosleep_Context *ctx;
 
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pci[ 0 ] = CReqClockNanosleep_Pre_ClockId_Monotonic;
-    ctx->Map.pci[ 0 ] < CReqClockNanosleep_Pre_ClockId_NA;
+    ctx->Map.pci[ 0 ] = CTimeReqClockNanosleep_Pre_ClockId_Monotonic;
+    ctx->Map.pci[ 0 ] < CTimeReqClockNanosleep_Pre_ClockId_NA;
     ++ctx->Map.pci[ 0 ]
   ) {
     for (
-      ctx->Map.pci[ 1 ] = CReqClockNanosleep_Pre_Abstime_Yes;
-      ctx->Map.pci[ 1 ] < CReqClockNanosleep_Pre_Abstime_NA;
+      ctx->Map.pci[ 1 ] = CTimeReqClockNanosleep_Pre_Abstime_Yes;
+      ctx->Map.pci[ 1 ] < CTimeReqClockNanosleep_Pre_Abstime_NA;
       ++ctx->Map.pci[ 1 ]
     ) {
       for (
-        ctx->Map.pci[ 2 ] = CReqClockNanosleep_Pre_RQTp_Valid;
-        ctx->Map.pci[ 2 ] < CReqClockNanosleep_Pre_RQTp_NA;
+        ctx->Map.pci[ 2 ] = CTimeReqClockNanosleep_Pre_RQTp_Valid;
+        ctx->Map.pci[ 2 ] < CTimeReqClockNanosleep_Pre_RQTp_NA;
         ++ctx->Map.pci[ 2 ]
       ) {
         for (
-          ctx->Map.pci[ 3 ] = CReqClockNanosleep_Pre_RQTpNSec_Valid;
-          ctx->Map.pci[ 3 ] < CReqClockNanosleep_Pre_RQTpNSec_NA;
+          ctx->Map.pci[ 3 ] = CTimeReqClockNanosleep_Pre_RQTpNSec_Valid;
+          ctx->Map.pci[ 3 ] < CTimeReqClockNanosleep_Pre_RQTpNSec_NA;
           ++ctx->Map.pci[ 3 ]
         ) {
           for (
-            ctx->Map.pci[ 4 ] = CReqClockNanosleep_Pre_RQTpSec_Negative;
-            ctx->Map.pci[ 4 ] < CReqClockNanosleep_Pre_RQTpSec_NA;
+            ctx->Map.pci[ 4 ] = CTimeReqClockNanosleep_Pre_RQTpSec_Negative;
+            ctx->Map.pci[ 4 ] < CTimeReqClockNanosleep_Pre_RQTpSec_NA;
             ++ctx->Map.pci[ 4 ]
           ) {
             for (
-              ctx->Map.pci[ 5 ] = CReqClockNanosleep_Pre_RMTp_Valid;
-              ctx->Map.pci[ 5 ] < CReqClockNanosleep_Pre_RMTp_NA;
+              ctx->Map.pci[ 5 ] = CTimeReqClockNanosleep_Pre_RMTp_Valid;
+              ctx->Map.pci[ 5 ] < CTimeReqClockNanosleep_Pre_RMTp_NA;
               ++ctx->Map.pci[ 5 ]
             ) {
-              ctx->Map.entry = CReqClockNanosleep_PopEntry( ctx );
+              ctx->Map.entry = CTimeReqClockNanosleep_PopEntry( ctx );
 
               if ( ctx->Map.entry.Skip ) {
                 continue;
               }
 
-              CReqClockNanosleep_SetPreConditionStates( ctx );
-              CReqClockNanosleep_Prepare( ctx );
-              CReqClockNanosleep_TestVariant( ctx );
+              CTimeReqClockNanosleep_SetPreConditionStates( ctx );
+              CTimeReqClockNanosleep_Prepare( ctx );
+              CTimeReqClockNanosleep_TestVariant( ctx );
             }
           }
         }
