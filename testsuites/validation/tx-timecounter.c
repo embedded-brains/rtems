@@ -111,6 +111,44 @@ static void InstallTimecounter( void )
   rtems_timecounter_install( &self->base );
 }
 
+static uint32_t GetTimecountPlaceholder( struct timecounter *tc )
+{
+  (void) tc;
+  return 0;
+}
+
+static struct timecounter FrequencyChangePlaceholder = {
+  .tc_get_timecount = GetTimecountPlaceholder,
+  .tc_counter_mask = 0xffffffff,
+  .tc_frequency = SOFTWARE_TIMECOUNTER_FREQUENCY
+};
+
+uint64_t SetTimecounterFrequency( uint64_t frequency )
+{
+  TimecounterControl *self;
+  uint64_t previous;
+
+  self = &TimecounterInstance;
+  previous = self->base.tc_frequency;
+
+  /*
+   * _Timecounter_Install() only switches counters that are at least as
+   * good as the currently active one, so a two-step dance with a
+   * placeholder timecounter is used to force a real switch away and back.
+   * This makes _Timecounter_Install() recalculate the scaling factor for
+   * the new frequency, which it skips if the active timecounter object
+   * does not change.
+   */
+  FrequencyChangePlaceholder.tc_quality = self->base.tc_quality + 1;
+  rtems_timecounter_install( &FrequencyChangePlaceholder );
+
+  FrequencyChangePlaceholder.tc_quality = self->base.tc_quality - 1;
+  self->base.tc_frequency = frequency;
+  rtems_timecounter_install( &self->base );
+
+  return previous;
+}
+
 RTEMS_SYSINIT_ITEM(
   InstallTimecounter,
   RTEMS_SYSINIT_DEVICE_DRIVERS,
@@ -130,7 +168,7 @@ void TimecounterTick( void )
   bool             success;
 
   counter_ticks_per_clock_tick =
-    SOFTWARE_TIMECOUNTER_FREQUENCY / rtems_clock_get_ticks_per_second();
+    TimecounterInstance.base.tc_frequency / rtems_clock_get_ticks_per_second();
   cpu_self = _Thread_Dispatch_disable();
 
   do {

@@ -334,6 +334,18 @@ uint32_t GetTimecountCounter( void );
 uint32_t SetTimecountCounter( uint32_t counter );
 
 /**
+ * @brief Sets the software timecounter frequency.
+ *
+ * This changes the frequency reported by the software timecounter and the
+ * rate at which its counter value advances through TimecounterTick().
+ *
+ * @param frequency is the new software timecounter frequency in Hz.
+ *
+ * @return Returns the previous software timecounter frequency in Hz.
+ */
+uint64_t SetTimecounterFrequency( uint64_t frequency );
+
+/**
  * @brief Return the task id of the timer server task
  *
  * This function is an attempt to avoid using RTEMS internal global
