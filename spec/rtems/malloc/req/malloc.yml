@@ -126,19 +126,21 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: AreaBegin
+    Status:
+    - if:
+        pre-conditions:
+          Size:
+          - Valid
+      then: AreaBegin
+    - else: 'Null'
     Alignment: Valid
-    Size: Valid
-  pre-conditions:
     Size:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: 'Null'
-    Alignment: Valid
-    Size: N/A
+    - if:
+        pre-conditions:
+          Size:
+          - Valid
+      then: Valid
+    - else: N/A
   pre-conditions:
-    Size:
-    - Huge
-    - Zero
+    Size: all
 type: requirement
