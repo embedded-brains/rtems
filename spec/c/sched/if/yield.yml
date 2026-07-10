@@ -1,0 +1,35 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Yield the processor.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: sched_yield
+notes: |
+  See [POSIX.1-2024, System Interfaces, sched_yield()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sched_yield.html).
+params: []
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

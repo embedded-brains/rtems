@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: low scheduling priority
+text: |
+  An attribute of the ${sporadic-server:/term} that specifies the background
+  execution priority. See
+  [POSIX.1-2024, System Interfaces, sched_getparam](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sched_getparam.html).
+type: glossary

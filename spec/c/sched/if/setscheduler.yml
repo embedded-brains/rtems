@@ -1,0 +1,67 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/policy:/term} specified by ${.:/params[1]/name} and the
+  ${../glossary/parameter:/plural} referenced by ${.:/params[2]/name} for the
+  process with the ID specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pid_t:/name} ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - const struct sched_param *${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    Invalid arguments: ${.:/params[0]/name} is negative or ${.:/params[2]/name} is
+    NULL. (sched_setscheduler()) ${.:/params[1]/name} is not one of the recognized
+    policies. (sched_setscheduler()) ${.:/params[2]/name} does not make sense for
+    the specified ${.:/params[1]/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The calling thread does not have appropriate privileges.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    The thread whose ID is ${.:/params[0]/name} could not be found.
+  role: errno
+  uid: /c/errno/if/esrch
+name: sched_setscheduler
+notes: |
+  See [POSIX.1-2024, System Interfaces, sched_setscheduler()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sched_setscheduler.html).
+params:
+- description: |
+    is the process ID.
+  dir: null
+  name: pid
+- description: |
+    is the ${../glossary/policy:/term}.
+  dir: null
+  name: policy
+- description: |
+    is the pointer to a sched_param structure containing the new parameters.
+  dir: in
+  name: param
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
