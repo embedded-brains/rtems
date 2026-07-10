@@ -153,6 +153,11 @@ transition-map:
     SchedulerIDObj:
     - if:
         pre-conditions:
+          SchedulerID:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Id:
           - Task
           SchedulerID:
