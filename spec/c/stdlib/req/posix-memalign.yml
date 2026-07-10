@@ -46,13 +46,6 @@ post-conditions:
       The value of the object referenced by the memptr parameter shall be set
       to ${/c/if/null:/name} after the return of the
       ${../if/posix-memalign:/name} call.
-  - name: Nop
-    test-code: |
-      T_eq_uptr( (uintptr_t) ctx->memptr_obj, 1 );
-    text: |
-      Objects referenced by the memptr parameter in past calls to
-      ${../if/posix-memalign:/name} shall not be accessed by the
-      ${../if/posix-memalign:/name} call.
   test-epilogue: null
   test-prologue: null
 - name: Alignment
@@ -281,6 +274,11 @@ transition-map:
     MemptrVar:
     - if:
         pre-conditions:
+          Memptr:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Alignment:
           - Valid
           Memptr:
@@ -323,7 +321,6 @@ transition-map:
           Memptr:
           - Valid
       then: 'Null'
-    - else: Nop
     Alignment:
     - if:
         pre-conditions:
