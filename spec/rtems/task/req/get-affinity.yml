@@ -233,6 +233,11 @@ transition-map:
     - if:
         pre-conditions:
           CPUSet:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          CPUSet:
           - Valid
           CPUSetSize:
           - Valid
