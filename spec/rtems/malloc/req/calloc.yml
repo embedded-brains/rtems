@@ -162,39 +162,35 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: AreaBegin
+    Status:
+    - if:
+        pre-conditions:
+          ElementCount:
+          - Valid
+          ElementSize:
+          - Valid
+      then: AreaBegin
+    - else: 'Null'
     Alignment: Valid
-    Size: Valid
-    Content: Zero
+    Size:
+    - if:
+        pre-conditions:
+          ElementCount:
+          - Valid
+          ElementSize:
+          - Valid
+      then: Valid
+    - else: N/A
+    Content:
+    - if:
+        pre-conditions:
+          ElementCount:
+          - Valid
+          ElementSize:
+          - Valid
+      then: Zero
+    - else: N/A
   pre-conditions:
-    ElementCount:
-    - Valid
-    ElementSize:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: 'Null'
-    Alignment: Valid
-    Size: N/A
-    Content: N/A
-  pre-conditions:
-    ElementCount:
-    - Huge
-    - Zero
-    ElementSize:
-    - Huge
-    - Zero
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: 'Null'
-    Alignment: Valid
-    Size: N/A
-    Content: N/A
-  pre-conditions:
-    ElementCount:
-    - Valid
-    ElementSize:
-    - Huge
-    - Zero
+    ElementCount: all
+    ElementSize: all
 type: requirement
