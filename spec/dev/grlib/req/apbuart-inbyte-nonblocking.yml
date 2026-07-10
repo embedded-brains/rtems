@@ -94,16 +94,14 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: Data
+    Result:
+    - if:
+        pre-conditions:
+          DataReady:
+          - 'No'
+      then: MinusOne
+    - else: Data
     ErrorFlags: Cleared
   pre-conditions:
-    DataReady:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Result: MinusOne
-    ErrorFlags: Cleared
-  pre-conditions:
-    DataReady:
-    - 'No'
+    DataReady: all
 type: requirement
