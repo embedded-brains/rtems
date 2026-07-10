@@ -105,16 +105,20 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: PollChar
-    Calls: Once
+    Result:
+    - if:
+        pre-conditions:
+          PollChar:
+          - 'Null'
+      then: MinusOne
+    - else: PollChar
+    Calls:
+    - if:
+        pre-conditions:
+          PollChar:
+          - 'Null'
+      then: N/A
+    - else: Once
   pre-conditions:
-    PollChar:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Result: MinusOne
-    Calls: N/A
-  pre-conditions:
-    PollChar:
-    - 'Null'
+    PollChar: all
 type: requirement
