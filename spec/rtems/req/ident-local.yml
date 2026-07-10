@@ -145,28 +145,39 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Id: 'Null'
-    Status: InvAddr
-  pre-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Invalid
+      then: InvName
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Ok
+    - else: InvAddr
     Id:
-    - 'Null'
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Id
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Invalid
+      then: Nop
+    - else: 'Null'
+  pre-conditions:
     Name: all
-- enabled-by: true
-  post-conditions:
-    Id: Nop
-    Status: InvName
-  pre-conditions:
-    Id:
-    - Valid
-    Name:
-    - Invalid
-- enabled-by: true
-  post-conditions:
-    Id: Id
-    Status: Ok
-  pre-conditions:
-    Id:
-    - Valid
-    Name:
-    - Valid
+    Id: all
 type: requirement
