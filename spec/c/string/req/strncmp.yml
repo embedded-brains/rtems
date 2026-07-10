@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/strncmp
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/strncmp:/name} function shall be specified by
+  ${/glossary/c11:/term}.
+type: requirement
