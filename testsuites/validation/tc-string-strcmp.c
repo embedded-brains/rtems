@@ -52,6 +52,7 @@
 #include "config.h"
 #endif
 
+#include <rtems.h>
 #include <string.h>
 
 #include <rtems/test.h>
@@ -63,19 +64,37 @@
  */
 
 typedef enum {
-  CStringReqStrcmp_Pre_Status_Ok,
-  CStringReqStrcmp_Pre_Status_NA
-} CStringReqStrcmp_Pre_Status;
+  CStringReqStrcmp_Pre_Alignment_Aligned,
+  CStringReqStrcmp_Pre_Alignment_Unaligned,
+  CStringReqStrcmp_Pre_Alignment_NA
+} CStringReqStrcmp_Pre_Alignment;
 
 typedef enum {
-  CStringReqStrcmp_Post_Status_Ok,
-  CStringReqStrcmp_Post_Status_NA
-} CStringReqStrcmp_Post_Status;
+  CStringReqStrcmp_Pre_Compare_Equal,
+  CStringReqStrcmp_Pre_Compare_Less,
+  CStringReqStrcmp_Pre_Compare_Greater,
+  CStringReqStrcmp_Pre_Compare_NA
+} CStringReqStrcmp_Pre_Compare;
+
+typedef enum {
+  CStringReqStrcmp_Pre_MatchPosition_FirstChunk,
+  CStringReqStrcmp_Pre_MatchPosition_SecondChunk,
+  CStringReqStrcmp_Pre_MatchPosition_NA
+} CStringReqStrcmp_Pre_MatchPosition;
+
+typedef enum {
+  CStringReqStrcmp_Post_Result_Equal,
+  CStringReqStrcmp_Post_Result_Less,
+  CStringReqStrcmp_Post_Result_Greater,
+  CStringReqStrcmp_Post_Result_NA
+} CStringReqStrcmp_Post_Result;
 
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Alignment_NA : 1;
+  uint8_t Pre_Compare_NA : 1;
+  uint8_t Pre_MatchPosition_NA : 1;
+  uint8_t Post_Result : 2;
 } CStringReqStrcmp_Entry;
 
 /**
@@ -83,12 +102,12 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the `s1` parameter value.
+   * @brief This member specifies the ``s1`` parameter value.
    */
   const char *s1;
 
   /**
-   * @brief This member specifies the `s2` parameter value.
+   * @brief This member specifies the ``s2`` parameter value.
    */
   const char *s2;
 
@@ -97,11 +116,33 @@ typedef struct {
    */
   int retval;
 
+  /**
+   * @brief This member contains the signed difference applied at the differing
+   *   byte position.
+   */
+  int diff_delta;
+
+  /**
+   * @brief This member contains the offset of the guarded ``s1`` and ``s2``
+   *   regions from the start of the s1 and s2 buffers.
+   */
+  size_t offset;
+
+  /**
+   * @brief This member provides the ``s1`` buffer.
+   */
+  unsigned char s1_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) );
+
+  /**
+   * @brief This member provides the ``s2`` buffer.
+   */
+  unsigned char s2_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) );
+
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 3 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,50 +170,199 @@ typedef struct {
 static CStringReqStrcmp_Context
   CStringReqStrcmp_Instance;
 
-static const char * const CStringReqStrcmp_PreDesc_Status[] = {
-  "Ok",
+static const char * const CStringReqStrcmp_PreDesc_Alignment[] = {
+  "Aligned",
+  "Unaligned",
+  "NA"
+};
+
+static const char * const CStringReqStrcmp_PreDesc_Compare[] = {
+  "Equal",
+  "Less",
+  "Greater",
+  "NA"
+};
+
+static const char * const CStringReqStrcmp_PreDesc_MatchPosition[] = {
+  "FirstChunk",
+  "SecondChunk",
   "NA"
 };
 
 static const char * const * const CStringReqStrcmp_PreDesc[] = {
-  CStringReqStrcmp_PreDesc_Status,
+  CStringReqStrcmp_PreDesc_Alignment,
+  CStringReqStrcmp_PreDesc_Compare,
+  CStringReqStrcmp_PreDesc_MatchPosition,
   NULL
 };
 
-static void CStringReqStrcmp_Pre_Status_Prepare(
-  CStringReqStrcmp_Pre_Status state
+static void CStringReqStrcmp_Pre_Alignment_Prepare(
+  CStringReqStrcmp_Context      *ctx,
+  CStringReqStrcmp_Pre_Alignment state
 )
 {
   switch ( state ) {
-    case CStringReqStrcmp_Pre_Status_Ok: {
+    case CStringReqStrcmp_Pre_Alignment_Aligned: {
       /*
-       * TODO
+       * While the ``s1`` parameter and the ``s2`` parameter are aligned on a
+       * `long` integer boundary of the target architecture.
        */
-      /* TODO */
+      ctx->offset = sizeof( long );
+      ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+      ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
       break;
     }
 
-    case CStringReqStrcmp_Pre_Status_NA:
+    case CStringReqStrcmp_Pre_Alignment_Unaligned: {
+      /*
+       * While the ``s1`` parameter or the ``s2`` parameter are not aligned on
+       * a `long` integer boundary of the target architecture.
+       */
+      ctx->offset = sizeof( long ) + 1;
+      ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+      ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
+      break;
+    }
+
+    case CStringReqStrcmp_Pre_Alignment_NA:
       break;
   }
 }
 
-static void CStringReqStrcmp_Post_Status_Check(
-  CStringReqStrcmp_Post_Status state
+static void CStringReqStrcmp_Pre_Compare_Prepare(
+  CStringReqStrcmp_Context    *ctx,
+  CStringReqStrcmp_Pre_Compare state
 )
 {
   switch ( state ) {
-    case CStringReqStrcmp_Post_Status_Ok: {
+    case CStringReqStrcmp_Pre_Compare_Equal: {
       /*
-       * TODO
+       * While the strings referenced by ``s1`` and ``s2`` are equal.
        */
-      /* TODO */
+      ctx->diff_delta = 0;
       break;
     }
 
-    case CStringReqStrcmp_Post_Status_NA:
+    case CStringReqStrcmp_Pre_Compare_Less: {
+      /*
+       * While the strings referenced by ``s1`` and ``s2`` are not equal, while
+       * the byte value at the first differing position of the string
+       * referenced by ``s1`` is less than the corresponding byte value of the
+       * string referenced by ``s2``.
+       */
+      ctx->diff_delta = -1;
+      break;
+    }
+
+    case CStringReqStrcmp_Pre_Compare_Greater: {
+      /*
+       * While the strings referenced by ``s1`` and ``s2`` are not equal, while
+       * the byte value at the first differing position of the string
+       * referenced by ``s1`` is greater than the corresponding byte value of
+       * the string referenced by ``s2``.
+       */
+      ctx->diff_delta = 1;
+      break;
+    }
+
+    case CStringReqStrcmp_Pre_Compare_NA:
       break;
   }
+}
+
+static void CStringReqStrcmp_Pre_MatchPosition_Prepare(
+  CStringReqStrcmp_Context          *ctx,
+  CStringReqStrcmp_Pre_MatchPosition state
+)
+{
+  switch ( state ) {
+    case CStringReqStrcmp_Pre_MatchPosition_FirstChunk: {
+      /*
+       * While the notable position occurs within the first aligned `long`
+       * integer sized chunk of the strings referenced by ``s1`` and ``s2``.
+       */
+      size_t pos = ctx->offset;
+
+      if ( ctx->diff_delta == 0 ) {
+        ctx->s1_buf[ pos ] = 0;
+        ctx->s2_buf[ pos ] = 0;
+      } else {
+        ctx->s1_buf[ pos ] = (unsigned char)
+          ( ctx->s2_buf[ pos ] + ctx->diff_delta );
+        ctx->s1_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+        ctx->s2_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+      }
+      break;
+    }
+
+    case CStringReqStrcmp_Pre_MatchPosition_SecondChunk: {
+      /*
+       * While the notable position occurs within the second aligned `long`
+       * integer sized chunk of the strings referenced by ``s1`` and ``s2``.
+       */
+      size_t pos = ctx->offset + sizeof( long );
+
+      if ( ctx->diff_delta == 0 ) {
+        ctx->s1_buf[ pos ] = 0;
+        ctx->s2_buf[ pos ] = 0;
+      } else {
+        ctx->s1_buf[ pos ] = (unsigned char)
+          ( ctx->s2_buf[ pos ] + ctx->diff_delta );
+        ctx->s1_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+        ctx->s2_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+      }
+      break;
+    }
+
+    case CStringReqStrcmp_Pre_MatchPosition_NA:
+      break;
+  }
+}
+
+static void CStringReqStrcmp_Post_Result_Check(
+  CStringReqStrcmp_Context    *ctx,
+  CStringReqStrcmp_Post_Result state
+)
+{
+  switch ( state ) {
+    case CStringReqStrcmp_Post_Result_Equal: {
+      /*
+       * The return value of strcmp() shall be equal to zero.
+       */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringReqStrcmp_Post_Result_Less: {
+      /*
+       * The return value of strcmp() shall be less than zero.
+       */
+      T_lt_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringReqStrcmp_Post_Result_Greater: {
+      /*
+       * The return value of strcmp() shall be greater than zero.
+       */
+      T_gt_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringReqStrcmp_Post_Result_NA:
+      break;
+  }
+}
+
+static void CStringReqStrcmp_Prepare( CStringReqStrcmp_Context *ctx )
+{
+  memset( ctx->s1_buf, 0x41, sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 0x41, sizeof( ctx->s2_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+  ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
+  ctx->retval = 0;
+  ctx->diff_delta = 0;
 }
 
 static void CStringReqStrcmp_Action( CStringReqStrcmp_Context *ctx )
@@ -182,12 +372,14 @@ static void CStringReqStrcmp_Action( CStringReqStrcmp_Context *ctx )
 
 static const CStringReqStrcmp_Entry
 CStringReqStrcmp_Entries[] = {
-  { 0, 0, CStringReqStrcmp_Post_Status_Ok }
+  { 0, 0, 0, 0, CStringReqStrcmp_Post_Result_Equal },
+  { 0, 0, 0, 0, CStringReqStrcmp_Post_Result_Less },
+  { 0, 0, 0, 0, CStringReqStrcmp_Post_Result_Greater }
 };
 
 static const uint8_t
 CStringReqStrcmp_Map[] = {
-  0
+  0, 0, 1, 1, 2, 2, 0, 0, 1, 1, 2, 2
 };
 
 static size_t CStringReqStrcmp_Scope( void *arg, char *buf, size_t n )
@@ -226,9 +418,11 @@ static inline CStringReqStrcmp_Entry CStringReqStrcmp_PopEntry(
 
 static void CStringReqStrcmp_TestVariant( CStringReqStrcmp_Context *ctx )
 {
-  CStringReqStrcmp_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CStringReqStrcmp_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringReqStrcmp_Pre_Compare_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CStringReqStrcmp_Pre_MatchPosition_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CStringReqStrcmp_Action( ctx );
-  CStringReqStrcmp_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CStringReqStrcmp_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
 }
 
 /**
@@ -243,12 +437,25 @@ T_TEST_CASE_FIXTURE( CStringReqStrcmp, &CStringReqStrcmp_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringReqStrcmp_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CStringReqStrcmp_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CStringReqStrcmp_Pre_Alignment_Aligned;
+    ctx->Map.pcs[ 0 ] < CStringReqStrcmp_Pre_Alignment_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
-    ctx->Map.entry = CStringReqStrcmp_PopEntry( ctx );
-    CStringReqStrcmp_TestVariant( ctx );
+    for (
+      ctx->Map.pcs[ 1 ] = CStringReqStrcmp_Pre_Compare_Equal;
+      ctx->Map.pcs[ 1 ] < CStringReqStrcmp_Pre_Compare_NA;
+      ++ctx->Map.pcs[ 1 ]
+    ) {
+      for (
+        ctx->Map.pcs[ 2 ] = CStringReqStrcmp_Pre_MatchPosition_FirstChunk;
+        ctx->Map.pcs[ 2 ] < CStringReqStrcmp_Pre_MatchPosition_NA;
+        ++ctx->Map.pcs[ 2 ]
+      ) {
+        ctx->Map.entry = CStringReqStrcmp_PopEntry( ctx );
+        CStringReqStrcmp_Prepare( ctx );
+        CStringReqStrcmp_TestVariant( ctx );
+      }
+    }
   }
 }
 
