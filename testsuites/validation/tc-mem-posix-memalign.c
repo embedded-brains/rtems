@@ -98,7 +98,6 @@ typedef enum {
 typedef enum {
   CStdlibReqPosixMemalign_Post_MemptrVar_AreaBegin,
   CStdlibReqPosixMemalign_Post_MemptrVar_Null,
-  CStdlibReqPosixMemalign_Post_MemptrVar_Nop,
   CStdlibReqPosixMemalign_Post_MemptrVar_NA
 } CStdlibReqPosixMemalign_Post_MemptrVar;
 
@@ -395,15 +394,6 @@ static void CStdlibReqPosixMemalign_Post_MemptrVar_Check(
       break;
     }
 
-    case CStdlibReqPosixMemalign_Post_MemptrVar_Nop: {
-      /*
-       * Objects referenced by the memptr parameter in past calls to
-       * posix_memalign() shall not be accessed by the posix_memalign() call.
-       */
-      T_eq_uptr( (uintptr_t) ctx->memptr_obj, 1 );
-      break;
-    }
-
     case CStdlibReqPosixMemalign_Post_MemptrVar_NA:
       break;
   }
@@ -512,7 +502,7 @@ static void CStdlibReqPosixMemalign_Action(
 static const CStdlibReqPosixMemalign_Entry
 CStdlibReqPosixMemalign_Entries[] = {
   { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_EINVAL,
-    CStdlibReqPosixMemalign_Post_MemptrVar_Nop,
+    CStdlibReqPosixMemalign_Post_MemptrVar_NA,
     CStdlibReqPosixMemalign_Post_Alignment_NA,
     CStdlibReqPosixMemalign_Post_Size_NA },
   { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_EINVAL,
