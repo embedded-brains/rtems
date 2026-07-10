@@ -1,14 +1,74 @@
-SPDX-License-Identifier: CC-BY-SA-4.0
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2025 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
+functional-type: action
 links:
 - role: interface-function
   uid: ../if/strlcpy
-functional-type: function
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODO */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODO */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strlcpy( ctx->dst, ctx->src, ctx->size );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/strlcpy:/params[0]/name} parameter value.
+  description: null
+  member: char *dst
+- brief: |
+    This member specifies the ${../if/strlcpy:/params[1]/name} parameter value.
+  description: null
+  member: const char *src
+- brief: |
+    This member specifies the ${../if/strlcpy:/params[2]/name} parameter value.
+  description: null
+  member: size_t size
+- brief: |
+    This member contains the return value.
+  description: null
+  member: size_t retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-string-strlcpy.c
+test-teardown: null
 text: |
-  The ${../if/strlcpy:/name} function shall be specified by OpenBSD.
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+  pre-conditions:
+    Status: all
 type: requirement
