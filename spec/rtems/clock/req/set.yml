@@ -432,77 +432,71 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Clock: Set
-    Timer: Nop
+    Status:
+    - if:
+        pre-conditions:
+          Hook:
+          - NotOk
+          ToD:
+          - Valid
+          - ValidLeap4
+          - ValidLeap400
+          - Youngest
+          - Oldest
+          - AtTimer
+          - BeforeTimer
+          - AfterTimer
+      then: Hook
+    - if:
+        pre-conditions:
+          ToD:
+          - 'Null'
+      then: InvAddr
+    - if:
+        pre-conditions:
+          Hook:
+          - None
+          - Ok
+          ToD:
+          - Valid
+          - ValidLeap4
+          - ValidLeap400
+          - Youngest
+          - Oldest
+          - AtTimer
+          - BeforeTimer
+          - AfterTimer
+      then: Ok
+    - else: InvClk
+    Clock:
+    - if:
+        pre-conditions:
+          Hook:
+          - None
+          - Ok
+          ToD:
+          - Valid
+          - ValidLeap4
+          - ValidLeap400
+          - Youngest
+          - Oldest
+          - AtTimer
+          - BeforeTimer
+          - AfterTimer
+      then: Set
+    - else: Nop
+    Timer:
+    - if:
+        pre-conditions:
+          Hook:
+          - None
+          - Ok
+          ToD:
+          - AtTimer
+          - AfterTimer
+      then: Triggered
+    - else: Nop
   pre-conditions:
-    ToD:
-      - Valid
-      - Youngest
-      - Oldest
-      - ValidLeap4
-      - ValidLeap400
-      - BeforeTimer
-    Hook:
-      - None
-      - Ok
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Clock: Set
-    Timer: Triggered
-  pre-conditions:
-    ToD:
-      - AtTimer
-      - AfterTimer
-    Hook:
-      - None
-      - Ok
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Clock: Nop
-    Timer: Nop
-  pre-conditions:
-    ToD:
-      - 'Null'
+    ToD: all
     Hook: all
-- enabled-by: true
-  post-conditions:
-    Status: InvClk
-    Clock: Nop
-    Timer: Nop
-  pre-conditions:
-    ToD:
-      - TooJung
-      - TooOld
-      - InvMonth0
-      - InvMonth
-      - InvDay0
-      - InvDay
-      - InvHour
-      - InvMinute
-      - InvSecond
-      - InvTicks
-      - InvLeap4
-      - InvLeap100
-      - InvLeap400
-    Hook: all
-- enabled-by: true
-  post-conditions:
-    Status: Hook
-    Clock: Nop
-    Timer: Nop
-  pre-conditions:
-    ToD:
-      - AtTimer
-      - AfterTimer
-      - Valid
-      - Youngest
-      - Oldest
-      - ValidLeap4
-      - ValidLeap400
-      - BeforeTimer
-    Hook:
-      - NotOk
 type: requirement
