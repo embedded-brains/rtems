@@ -438,7 +438,12 @@ transition-map:
           - PastOrNow
       then: BlockUnblock
     - else: Block
-    RMTp: Nop
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     ClockId:
     - Monotonic
@@ -479,9 +484,9 @@ transition-map:
     RMTp:
     - if:
         pre-conditions:
-          RMTp: Valid
-      then: Zero
-    - else: Nop
+          RMTp: 'Null'
+      then: N/A
+    - else: Zero
   pre-conditions:
     ClockId:
     - Monotonic
@@ -503,7 +508,12 @@ transition-map:
     Timer: Inactive
     Expire: N/A
     Scheduler: Nop
-    RMTp: Nop
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     ClockId:
     - Invalid
@@ -519,7 +529,12 @@ transition-map:
     Timer: Inactive
     Expire: N/A
     Scheduler: Nop
-    RMTp: Nop
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     ClockId:
     - Invalid
@@ -536,6 +551,10 @@ transition-map:
     Expire: N/A
     Scheduler: BlockUnblock
     RMTp:
+    - if:
+        pre-conditions:
+          RMTp: 'Null'
+      then: N/A
     - if:
         pre-conditions:
           Abstime: 'No'
@@ -559,6 +578,10 @@ transition-map:
     Expire: N/A
     Scheduler: BlockUnblock
     RMTp:
+    - if:
+        pre-conditions:
+          RMTp: 'Null'
+      then: N/A
     - if:
         pre-conditions:
           Abstime: 'No'
@@ -585,9 +608,9 @@ transition-map:
     RMTp:
     - if:
         pre-conditions:
-          RMTp: Valid
-      then: Zero
-    - else: Nop
+          RMTp: 'Null'
+      then: N/A
+    - else: Zero
   pre-conditions:
     ClockId:
     - Monotonic
