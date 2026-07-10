@@ -7,23 +7,117 @@ links:
 - role: interface-function
   uid: ../if/strlcpy
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Truncated
     test-code: |
-      /* TODO */
+      T_ge_uint( ctx->retval, ctx->size );
+      T_eq_uint( ctx->retval, strlen( ctx->src ) );
     text: |
-      TODO
+      The return value of ${../if/strlcpy:/name} shall be greater than or
+      equal to the size specified by ${../if/strlcpy:/params[2]/name}.
+  - name: NotTruncated
+    test-code: |
+      T_lt_uint( ctx->retval, ctx->size );
+      T_eq_uint( ctx->retval, strlen( ctx->src ) );
+    text: |
+      The return value of ${../if/strlcpy:/name} shall be less than the
+      size specified by ${../if/strlcpy:/params[2]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: DstArea
+  states:
+  - name: Unmodified
+    test-code: |
+      for ( size_t i = 0; i < sizeof( ctx->dst_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+    text: |
+      The memory area referenced by ${../if/strlcpy:/params[0]/name} shall
+      not be modified.
+  - name: CopiedFull
+    test-code: |
+      size_t len = strlen( ctx->src );
+
+      T_eq_nstr( ctx->dst, ctx->src, len + 1 );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + len + 1;
+        i < sizeof( ctx->dst_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+    text: |
+      The string referenced by ${../if/strlcpy:/params[1]/name}, including
+      its terminating null character, shall be copied to the memory area
+      referenced by ${../if/strlcpy:/params[0]/name}. The remaining bytes
+      of the memory area referenced by ${../if/strlcpy:/params[0]/name} up
+      to the size specified by ${../if/strlcpy:/params[2]/name} shall not
+      be modified.
+  - name: CopiedTruncated
+    test-code: |
+      T_eq_nstr( ctx->dst, ctx->src, ctx->size - 1 );
+      T_eq_uint( ctx->dst[ ctx->size - 1 ], 0 );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + ctx->size;
+        i < sizeof( ctx->dst_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+    text: |
+      The first bytes of the string referenced by
+      ${../if/strlcpy:/params[1]/name}, up to one less than the size
+      specified by ${../if/strlcpy:/params[2]/name}, shall be copied to
+      the memory area referenced by ${../if/strlcpy:/params[0]/name},
+      followed by a terminating null character.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: N
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODO */
+      ctx->size = 0;
     text: |
-      TODO
+      While the size specified by ${../if/strlcpy:/params[2]/name} is
+      equal to zero.
+  - name: Positive
+    test-code: |
+      /* The exact positive value is determined by the Fit pre-condition */
+    text: |
+      While the size specified by ${../if/strlcpy:/params[2]/name} is
+      greater than zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: Fits
+    test-code: |
+      strcpy( ctx->src_buf, "AB" );
+      ctx->size = 8;
+    text: |
+      While the length of the string referenced by
+      ${../if/strlcpy:/params[1]/name} is less than the size specified by
+      ${../if/strlcpy:/params[2]/name}.
+  - name: Truncate
+    test-code: |
+      strcpy( ctx->src_buf, "ABCDE" );
+      ctx->size = 3;
+    text: |
+      While the length of the string referenced by
+      ${../if/strlcpy:/params[1]/name} is greater than or equal to the
+      size specified by ${../if/strlcpy:/params[2]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -51,13 +145,32 @@ test-context:
     This member contains the return value.
   description: null
   member: size_t retval
+- brief: |
+    This member contains the offset of the guarded ${../if/strlcpy:/params[0]/name} region from the start of the destination buffer.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the destination buffer.
+  description: null
+  member: unsigned char dst_buf[ 32 ]
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: char src_buf[ 16 ]
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->dst_buf, 0xaa, sizeof( ctx->dst_buf ) );
+  memset( ctx->src_buf, 0, sizeof( ctx->src_buf ) );
+  ctx->offset = 4;
+  ctx->dst = (char *) ( ctx->dst_buf + ctx->offset );
+  ctx->src = ctx->src_buf;
+  ctx->retval = 0;
+  ctx->size = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -68,7 +181,30 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Truncated
+    - if:
+        pre-conditions:
+          Fit: Fits
+      then: NotTruncated
+    - else: Truncated
+    DstArea:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Unmodified
+    - if:
+        pre-conditions:
+          Fit: Fits
+      then: CopiedFull
+    - else: CopiedTruncated
   pre-conditions:
-    Status: all
+    N: all
+    Fit:
+      applicable:
+        pre-conditions:
+          N: Positive
 type: requirement
