@@ -244,38 +244,50 @@ transition-map:
   post-conditions:
     Status: InvName
     Name: Invalid
-    IdVar: Nop
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     Name:
     - Invalid
-    Table: all
     Id: all
+    Table: all
     Free: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
-    IdVar: Nop
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     Name:
     - Valid
+    Id: all
     Table:
     - 'Null'
-    Id: all
     Free: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
     Name:
     - Valid
+    Id:
+    - 'Null'
     Table:
     - TdSw
     - NoTdSw
-    Id:
-    - 'Null'
     Free: all
 - enabled-by: true
   post-conditions:
@@ -285,11 +297,11 @@ transition-map:
   pre-conditions:
     Name:
     - Valid
+    Id:
+    - Valid
     Table:
     - TdSw
     - NoTdSw
-    Id:
-    - Valid
     Free:
     - 'No'
 - enabled-by: true
@@ -300,11 +312,11 @@ transition-map:
   pre-conditions:
     Name:
     - Valid
+    Id:
+    - Valid
     Table:
     - TdSw
     - NoTdSw
-    Id:
-    - Valid
     Free:
     - 'Yes'
 type: requirement
