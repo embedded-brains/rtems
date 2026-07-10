@@ -36,6 +36,12 @@ params:
   name: s2
 return:
   return: |
-    Returns the result.
-  return-values: []
+    Returns a pointer to the first character of the string referenced by
+    ${.:/params[0]/name} which occurs in the string referenced by
+    ${.:/params[1]/name}.
+  return-values:
+  - description: |
+      Returns ${/c/if/null:/name}, if no character from the string referenced by
+      ${.:/params[1]/name} occurs in the string referenced by ${.:/params[0]/name}.
+    value: ${/c/if/null:/name}
 type: interface
