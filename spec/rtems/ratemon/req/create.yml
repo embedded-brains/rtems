@@ -233,6 +233,11 @@ transition-map:
     IdVar:
     - if:
         pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Free:
           - 'Yes'
           Id:
