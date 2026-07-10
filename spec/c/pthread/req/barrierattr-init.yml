@@ -1,0 +1,63 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/barrierattr-init
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODOD */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODOD */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: ctx->retval = pthread_barrierattr_init( ctx->attr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/barrierattr-init:/params[0]/name} parameter
+    value.
+  description: null
+  member: pthread_barrierattr_t *attr
+- brief: This member contains the return value.
+  description: null
+  member: int retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-barrierattr-init.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+  pre-conditions:
+    Status: all
+type: requirement
