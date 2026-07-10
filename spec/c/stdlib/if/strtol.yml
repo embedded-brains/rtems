@@ -1,0 +1,57 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Convert the string specified by ${.:/params[0]/name} to a long integer with the
+  base specified by ${.:/params[2]/name}, storing the end pointer in the object
+  referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *restrict ${.:/params[0]/name}
+    - char **restrict ${.:/params[1]/name}
+    - int ${.:/params[2]/name}
+    return: long
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[2]/name} argument is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The converted value is out of range.
+  role: errno
+  uid: /c/errno/if/erange
+name: strtol
+notes: |
+  See [C23, <stdlib.h>, strtol()](https://en.cppreference.com/w/c/string/byte/strtol).
+params:
+- description: |
+    is the pointer to the string to parse.
+  dir: in
+  name: nptr
+- description: |
+    is the pointer to a character pointer where the address of the first invalid
+    character will be stored.
+  dir: out
+  name: endptr
+- description: |
+    is the base.
+  dir: null
+  name: base
+return:
+  return: |
+    Returns the converted value, or 0 on error, or
+    ${/c/limits/if/long-max:/name}/${/c/limits/if/long-min:/name} if out of range.
+  return-values: []
+type: interface

@@ -1,0 +1,30 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get a pseudo-random number.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: ${/c/if/uint32_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: arc4random
+notes: |
+  See [FreeBSD Manual Pages, arc4random()](https://man.freebsd.org/cgi/man.cgi?query=arc4random&sektion=3).
+params: []
+return:
+  return: |
+    Return a pseudo-random number.
+  return-values: []
+type: interface

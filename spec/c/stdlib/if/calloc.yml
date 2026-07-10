@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Allocate and zero-initialize memory for the number of elements specified by
+  ${.:/params[0]/name}, each with the size in bytes specified by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/size_t:/name} ${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    There is insufficient memory available.
+  role: errno
+  uid: /c/errno/if/enomem
+name: calloc
+notes: |
+  See [C23, <stdlib.h>, calloc()](https://en.cppreference.com/w/c/memory/calloc).
+params:
+- description: |
+    is the number of elements.
+  dir: null
+  name: nmemb
+- description: |
+    is the size of each element.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns a pointer to the allocated memory on success, or ${/c/if/null:/name} on
+    error.
+  return-values: []
+type: interface

@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Convert the string specified by ${.:/params[0]/name} to an unsigned long long
+  integer with the base specified by ${.:/params[2]/name}, storing the end
+  pointer in the object referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *restrict ${.:/params[0]/name}
+    - char **restrict ${.:/params[1]/name}
+    - int ${.:/params[2]/name}
+    return: unsigned long long
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[2]/name} argument is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The converted value is out of range.
+  role: errno
+  uid: /c/errno/if/erange
+name: strtoull
+notes: |
+  See [C23, <stdlib.h>, strtoull()](https://en.cppreference.com/w/c/string/byte/strtoul).
+params:
+- description: |
+    is the pointer to the string to be converted.
+  dir: in
+  name: nptr
+- description: |
+    is the reference to an object that will contain the address of the first
+    invalid character.
+  dir: out
+  name: endptr
+- description: |
+    is the base of the expected integer in the string.
+  dir: null
+  name: base
+return:
+  return: |
+    Returns the converted value, or 0 on error, or ULLONG_MAX if out of range.
+  return-values: []
+type: interface

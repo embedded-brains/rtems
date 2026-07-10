@@ -1,0 +1,40 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Fill the buffer referenced by ${.:/params[0]/name} with pseudo-random bytes up
+  to the size in bytes specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: arc4random_buf
+notes: |
+  See [FreeBSD Manual Pages, arc4random_buf()](https://man.freebsd.org/cgi/man.cgi?query=arc4random_buf&sektion=3).
+params:
+- description: |
+    is the buffer to fill with pseudo-random bytes.
+  dir: out
+  name: buf
+- description: |
+    is the size in bytes of the buffer.
+  dir: null
+  name: nbytes
+return:
+  return: null
+  return-values: []
+type: interface
