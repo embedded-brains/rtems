@@ -1,0 +1,96 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/ffs
+post-conditions:
+- name: Result
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The return value shall be zero.
+  - name: Index
+    test-code: |
+      int expected;
+      int i;
+
+      expected = 0;
+
+      for ( i = 0; i < 32; ++i ) {
+        if ( ( ctx->i & ( 1 << i ) ) != 0 ) {
+          expected = i + 1;
+          break;
+        }
+      }
+
+      T_eq_int( ctx->result, expected );
+    text: |
+      The return value shall be the index of the first bit set in the value
+      specified by ${../if/ffs:/params[0]/name}, where the least significant
+      bit is bit one.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: I
+  states:
+  - name: Zero
+    test-code: |
+      ctx->i = 0;
+    text: |
+      While the value specified by ${../if/ffs:/params[0]/name} is equal to
+      zero.
+  - name: NonZero
+    test-code: |
+      ctx->i = 0x00080100;
+    text: |
+      While the value specified by ${../if/ffs:/params[0]/name} is not equal
+      to zero.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = ffs( ctx->i );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/ffs:/params[0]/name} parameter value.
+  description: null
+  member: int i
+- brief: |
+    This member stores the return value of the ${../if/ffs:/name} call.
+  description: null
+  member: int result
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- strings.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-strings-ffs.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          I: Zero
+      then: Zero
+    - else: Index
+  pre-conditions:
+    I: all
+type: requirement
