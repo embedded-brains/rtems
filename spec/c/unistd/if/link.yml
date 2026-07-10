@@ -1,0 +1,100 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Make a new name specified by ${.:/params[1]/name} for the file specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eexist
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eloop
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/emlink
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enomem
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enospc
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enotdir
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/erofs
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/exdev
+name: link
+notes: |
+  See [POSIX.1-2024, System Interfaces, link()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/link.html).
+params:
+- description: |
+    is the path to the existing file.
+  dir: in
+  name: path1
+- description: |
+    is the path to the new link.
+  dir: in
+  name: path2
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

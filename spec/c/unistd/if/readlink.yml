@@ -1,0 +1,86 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Read the value of the symbolic link specified by ${.:/params[0]/name} and store
+  it in the buffer specified by ${.:/params[1]/name} bounded by the size in bytes
+  specified by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *restrict ${.:/params[0]/name}
+    - char *restrict ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: ${/c/if/ssize_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eio
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eloop
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enomem
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enotdir
+name: readlink
+notes: |
+  See [POSIX.1-2024, System Interfaces, readlink()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/readlink.html).
+params:
+- description: |
+    is the path to the symbolic link.
+  dir: in
+  name: path
+- description: |
+    is the pointer to the buffer to store the link target.
+  dir: out
+  name: buf
+- description: |
+    is the size of the buffer.
+  dir: null
+  name: buflen
+return:
+  return: |
+    Returns the number of bytes placed in ${.:/params[1]/name} on success, or -1 on
+    error with ${/c/errno/if/errno:/name} set to indicate the error.
+  return-values: []
+type: interface

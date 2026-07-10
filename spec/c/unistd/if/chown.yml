@@ -1,0 +1,91 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Change the ownership of the file specified by ${.:/params[0]/name} to the owner
+  user ID specified by ${.:/params[1]/name} and the owner group ID specified by
+  ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - ${/c/if/uid_t:/name} ${.:/params[1]/name}
+    - ${/c/if/gid_t:/name} ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    Search permission is denied on a component of the ${.:/params[0]/name} prefix.
+    (See also path_resolution(7).).
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    ${.:/params[0]/name} points outside your accessible address space.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    Too many symbolic links were encountered in resolving ${.:/params[0]/name}.
+  role: errno
+  uid: /c/errno/if/eloop
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enomem
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/enotdir
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    An error occurred.
+  role: errno
+  uid: /c/errno/if/erofs
+name: chown
+notes: |
+  See [POSIX.1-2024, System Interfaces, chown()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/chown.html).
+params:
+- description: |
+    is the path to the file.
+  dir: in
+  name: path
+- description: |
+    is the new owner user ID.
+  dir: null
+  name: owner
+- description: |
+    is the new owner group ID.
+  dir: null
+  name: group
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

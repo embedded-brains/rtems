@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Change data segment space allocation by the increment specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/ptrdiff_t:/name} ${.:/params[0]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    Insufficient memory is available.
+  role: errno
+  uid: /c/errno/if/enomem
+name: sbrk
+notes: |
+  See [POSIX.1-2024, System Interfaces, sbrk()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sbrk.html).
+params:
+- description: |
+    is the increment to add to the data segment space.
+  dir: null
+  name: incr
+return:
+  return: |
+    Returns the previous program break on success, or (void \*) -1 on error with
+    ${/c/errno/if/errno:/name} set to indicate the error.
+  return-values: []
+type: interface
