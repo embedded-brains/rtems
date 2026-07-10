@@ -1,0 +1,49 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Fill the memory area referenced by ${.:/params[0]/name} with the constant byte
+  specified by ${.:/params[1]/name} for the size in bytes specified by
+  ${.:/params[2]/name}, ensuring the compiler does not optimize it away.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void * ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - size_t ${.:/params[2]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: memset_explicit
+notes: |
+  See [C23, <string.h>, memset_explicit()](https://en.cppreference.com/w/c/string/byte/memset).
+params:
+- description: |
+    is the dest parameter.
+  dir: out
+  name: dest
+- description: |
+    is the c parameter.
+  dir: null
+  name: c
+- description: |
+    is the n parameter.
+  dir: null
+  name: n
+return:
+  return: |
+    Returns the result.
+  return-values: []
+type: interface

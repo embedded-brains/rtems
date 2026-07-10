@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Copy bytes from the memory area referenced by ${.:/params[1]/name} to the
+  memory area referenced by ${.:/params[0]/name}, stopping after the character
+  specified by ${.:/params[2]/name} is found or the size in bytes specified by
+  ${.:/params[3]/name} are copied.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void * ${.:/params[0]/name}
+    - const void * ${.:/params[1]/name}
+    - int ${.:/params[2]/name}
+    - size_t ${.:/params[3]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: memccpy
+notes: |
+  See [C23, <string.h>, memccpy()](https://en.cppreference.com/w/c/string/byte/memccpy).
+params:
+- description: |
+    is the dest parameter.
+  dir: out
+  name: dest
+- description: |
+    is the src parameter.
+  dir: in
+  name: src
+- description: |
+    is the c parameter.
+  dir: null
+  name: c
+- description: |
+    is the n parameter.
+  dir: null
+  name: n
+return:
+  return: |
+    Returns the result.
+  return-values: []
+type: interface

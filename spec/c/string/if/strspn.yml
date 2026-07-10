@@ -1,0 +1,42 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the length of the maximum initial segment of the string specified by
+  ${.:/params[0]/name} that consists of only characters from the string specified
+  by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char * ${.:/params[0]/name}
+    - const char * ${.:/params[1]/name}
+    return: size_t
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: strspn
+notes: |
+  See [C23, <string.h>, strspn()](https://en.cppreference.com/w/c/string/byte/strspn).
+params:
+- description: |
+    is the s1 parameter.
+  dir: in
+  name: s1
+- description: |
+    is the s2 parameter.
+  dir: in
+  name: s2
+return:
+  return: |
+    Returns the result.
+  return-values: []
+type: interface

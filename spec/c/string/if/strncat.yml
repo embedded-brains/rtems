@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Append a copy of the string specified by ${.:/params[1]/name}, up to the size
+  in bytes specified by ${.:/params[2]/name}, to the end of the string specified
+  by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - char * ${.:/params[0]/name}
+    - const char * ${.:/params[1]/name}
+    - size_t ${.:/params[2]/name}
+    return: char *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: strncat
+notes: |
+  See [C23, <string.h>, strncat()](https://en.cppreference.com/w/c/string/byte/strncat).
+params:
+- description: |
+    is the dest parameter.
+  dir: inout
+  name: dest
+- description: |
+    is the src parameter.
+  dir: in
+  name: src
+- description: |
+    is the n parameter.
+  dir: null
+  name: n
+return:
+  return: |
+    Returns the result.
+  return-values: []
+type: interface

@@ -1,0 +1,35 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Calculate the length in bytes of the string referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    return: ${/c/if/size_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: strlen
+notes: |
+  See [C23, <string.h>, strlen()](https://en.cppreference.com/w/c/string/byte/strlen).
+params:
+- description: |
+    is the pointer to the string.
+  dir: in
+  name: s
+return:
+  return: |
+    Returns the number of bytes in the string.
+  return-values: []
+type: interface
