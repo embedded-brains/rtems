@@ -1,0 +1,137 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strspn
+post-conditions:
+- name: Result
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->retval, 0 );
+    text: |
+      The return value shall be equal to zero.
+  - name: Partial
+    test-code: |
+      T_eq_sz( ctx->retval, 1 );
+    text: |
+      The return value shall be equal to the number of initial characters of the string specified by ${../if/strspn:/params[0]/name} which are present in the string specified by ${../if/strspn:/params[1]/name}.
+  - name: Length
+    test-code: |
+      T_eq_sz( ctx->retval, strlen( ctx->s1 ) );
+    text: |
+      The return value shall be equal to the length of the string specified by ${../if/strspn:/params[0]/name}.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: S1
+  states:
+  - name: Empty
+    test-code: |
+      ctx->s1 = "";
+    text: |
+      While the length of the string specified by ${../if/strspn:/params[0]/name} is equal to zero.
+  - name: NotEmpty
+    test-code: |
+      ctx->s1 = "bc";
+    text: |
+      While the length of the string specified by ${../if/strspn:/params[0]/name} is greater than zero.
+  test-epilogue: null
+  test-prologue: null
+- name: S2
+  states:
+  - name: Empty
+    test-code: |
+      ctx->s2 = "";
+    text: |
+      While the length of the string specified by ${../if/strspn:/params[1]/name} is equal to zero.
+  - name: NotEmpty
+    test-code: |
+      ctx->s2 = "ab";
+    text: |
+      While the length of the string specified by ${../if/strspn:/params[1]/name} is greater than zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: None
+    test-code: |
+      ctx->s1 = "c";
+    text: |
+      While the first character of the string specified by ${../if/strspn:/params[0]/name} is not present in the string specified by ${../if/strspn:/params[1]/name}.
+  - name: Partial
+    test-code: |
+      ctx->s1 = "bc";
+    text: |
+      While the first character of the string specified by ${../if/strspn:/params[0]/name} is present in the string specified by ${../if/strspn:/params[1]/name}, while the string specified by ${../if/strspn:/params[0]/name} contains at least one character not present in the string specified by ${../if/strspn:/params[1]/name}.
+  - name: Full
+    test-code: |
+      ctx->s1 = "b";
+    text: |
+      While all characters of the string specified by ${../if/strspn:/params[0]/name} are present in the string specified by ${../if/strspn:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strspn( ctx->s1, ctx->s2 );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/strspn:/params[0]/name} parameter value.
+  description: null
+  member: const char * s1
+- brief: This member specifies the ${../if/strspn:/params[1]/name} parameter value.
+  description: null
+  member: const char * s2
+- brief: This member contains the return value.
+  description: null
+  member: size_t retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-string-strspn.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          S1: Empty
+      then: Zero
+    - if:
+        pre-conditions:
+          S2: Empty
+      then: Zero
+    - if:
+        pre-conditions:
+          Match: None
+      then: Zero
+    - if:
+        pre-conditions:
+          Match: Partial
+      then: Partial
+    - else: Length
+  pre-conditions:
+    S1: all
+    S2: all
+    Match:
+      applicable:
+        pre-conditions:
+          S1: NotEmpty
+          S2: NotEmpty
+type: requirement
