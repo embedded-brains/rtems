@@ -7,23 +7,113 @@ links:
 - role: interface-function
   uid: ../if/strcmp
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Equal
     test-code: |
-      /* TODO */
+      T_eq_int( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/strcmp:/name} shall be equal to zero.
+  - name: Less
+    test-code: |
+      T_lt_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/strcmp:/name} shall be less than zero.
+  - name: Greater
+    test-code: |
+      T_gt_int( ctx->retval, 0 );
+    text: |
+      The return value of ${../if/strcmp:/name} shall be greater than
+      zero.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Alignment
   states:
-  - name: Ok
+  - name: Aligned
     test-code: |
-      /* TODO */
+      ctx->offset = sizeof( long );
+      ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+      ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
     text: |
-      TODO
+      While the ${../if/strcmp:/params[0]/name} parameter and the
+      ${../if/strcmp:/params[1]/name} parameter are aligned on a `long`
+      integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+      ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
+    text: |
+      While the ${../if/strcmp:/params[0]/name} parameter or the
+      ${../if/strcmp:/params[1]/name} parameter are not aligned on a
+      `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Compare
+  states:
+  - name: Equal
+    test-code: |
+      ctx->diff_delta = 0;
+    text: |
+      While the strings referenced by ${../if/strcmp:/params[0]/name} and
+      ${../if/strcmp:/params[1]/name} are equal.
+  - name: Less
+    test-code: |
+      ctx->diff_delta = -1;
+    text: |
+      While the strings referenced by ${../if/strcmp:/params[0]/name} and
+      ${../if/strcmp:/params[1]/name} are not equal, while the byte value
+      at the first differing position of the string referenced by
+      ${../if/strcmp:/params[0]/name} is less than the corresponding byte
+      value of the string referenced by ${../if/strcmp:/params[1]/name}.
+  - name: Greater
+    test-code: |
+      ctx->diff_delta = 1;
+    text: |
+      While the strings referenced by ${../if/strcmp:/params[0]/name} and
+      ${../if/strcmp:/params[1]/name} are not equal, while the byte value
+      at the first differing position of the string referenced by
+      ${../if/strcmp:/params[0]/name} is greater than the corresponding
+      byte value of the string referenced by ${../if/strcmp:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      size_t pos = ctx->offset;
+
+      if ( ctx->diff_delta == 0 ) {
+        ctx->s1_buf[ pos ] = 0;
+        ctx->s2_buf[ pos ] = 0;
+      } else {
+        ctx->s1_buf[ pos ] = (unsigned char)
+          ( ctx->s2_buf[ pos ] + ctx->diff_delta );
+        ctx->s1_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+        ctx->s2_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+      }
+    text: |
+      While the notable position occurs within the first aligned `long`
+      integer sized chunk of the strings referenced by
+      ${../if/strcmp:/params[0]/name} and ${../if/strcmp:/params[1]/name}.
+  - name: SecondChunk
+    test-code: |
+      size_t pos = ctx->offset + sizeof( long );
+
+      if ( ctx->diff_delta == 0 ) {
+        ctx->s1_buf[ pos ] = 0;
+        ctx->s2_buf[ pos ] = 0;
+      } else {
+        ctx->s1_buf[ pos ] = (unsigned char)
+          ( ctx->s2_buf[ pos ] + ctx->diff_delta );
+        ctx->s1_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+        ctx->s2_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+      }
+    text: |
+      While the notable position occurs within the second aligned `long`
+      integer sized chunk of the strings referenced by
+      ${../if/strcmp:/params[0]/name} and ${../if/strcmp:/params[1]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -47,13 +137,39 @@ test-context:
     This member contains the return value.
   description: null
   member: int retval
+- brief: |
+    This member contains the signed difference applied at the differing byte position.
+  description: null
+  member: int diff_delta
+- brief: |
+    This member contains the offset of the guarded ${../if/strcmp:/params[0]/name} and ${../if/strcmp:/params[1]/name} regions from the start of the s1 and s2 buffers.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the ${../if/strcmp:/params[0]/name} buffer.
+  description: null
+  member: unsigned char s1_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long )
+    )
+- brief: |
+    This member provides the ${../if/strcmp:/params[1]/name} buffer.
+  description: null
+  member: unsigned char s2_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long )
+    )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s1_buf, 0x41, sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 0x41, sizeof( ctx->s2_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->s1 = (const char *) ( ctx->s1_buf + ctx->offset );
+  ctx->s2 = (const char *) ( ctx->s2_buf + ctx->offset );
+  ctx->retval = 0;
+  ctx->diff_delta = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -64,7 +180,10 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - specified-by: Compare
   pre-conditions:
-    Status: all
+    Alignment: all
+    Compare: all
+    MatchPosition: all
 type: requirement
