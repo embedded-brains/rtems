@@ -7,23 +7,108 @@ links:
 - role: interface-function
   uid: ../if/strchr
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Found
     test-code: |
-      /* TODO */
+      T_eq_ptr( ctx->retval, (char *) ( ctx->s_buf + ctx->match_pos ) );
     text: |
-      TODO
+      The return value of ${../if/strchr:/name} shall be a pointer to the
+      notable byte in the string referenced by
+      ${../if/strchr:/params[0]/name}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/strchr:/name} shall be equal to
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: C
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODO */
+      ctx->c = 0;
     text: |
-      TODO
+      While the byte specified by ${../if/strchr:/params[1]/name} is equal
+      to the terminating null character.
+  - name: NonZero
+    test-code: |
+      ctx->c = 0x42;
+    text: |
+      While the byte specified by ${../if/strchr:/params[1]/name} is not
+      equal to the terminating null character.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->offset = sizeof( long );
+      ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
+    text: |
+      While the ${../if/strchr:/params[0]/name} parameter is aligned on a
+      `long` integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
+    text: |
+      While the ${../if/strchr:/params[0]/name} parameter is not aligned
+      on a `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: Found
+    test-code: |
+      ctx->match_pos = ctx->offset;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+      ctx->s_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+    text: |
+      While the byte specified by ${../if/strchr:/params[1]/name} occurs
+      in the string referenced by ${../if/strchr:/params[0]/name} before
+      its terminating null character.
+  - name: NotFound
+    test-code: |
+      ctx->s_buf[ ctx->offset + 2 * sizeof( long ) ] = 0;
+      ctx->s_buf[ ctx->offset + 2 * sizeof( long ) + 1 ] =
+        (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/strchr:/params[1]/name} does not
+      occur in the string referenced by ${../if/strchr:/params[0]/name}
+      before its terminating null character, while the string referenced
+      by ${../if/strchr:/params[0]/name} is not empty.
+  - name: Empty
+    test-code: |
+      ctx->s_buf[ ctx->offset ] = 0;
+      ctx->s_buf[ ctx->offset + 1 ] = (unsigned char) ctx->c;
+    text: |
+      While the string referenced by ${../if/strchr:/params[0]/name} is
+      empty.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->s_buf[ ctx->match_pos ] = 0x41;
+      ctx->match_pos = ctx->offset;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the notable byte occurs within the first aligned `long`
+      integer sized chunk of the string referenced by
+      ${../if/strchr:/params[0]/name}.
+  - name: SecondChunk
+    test-code: |
+      ctx->s_buf[ ctx->match_pos ] = 0x41;
+      ctx->match_pos = ctx->offset + sizeof( long );
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the notable byte occurs within the second aligned `long`
+      integer sized chunk of the string referenced by
+      ${../if/strchr:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -47,13 +132,33 @@ test-context:
     This member contains the return value.
   description: null
   member: char *retval
+- brief: |
+    This member contains the index of the notable byte within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member contains the offset of the guarded ${../if/strchr:/params[0]/name} region from the start of the source buffer.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: unsigned char s_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long )
+    )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s_buf, 0x41, sizeof( ctx->s_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
+  ctx->c = 0;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -64,7 +169,33 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result: Found
   pre-conditions:
-    Status: all
+    C:
+    - Zero
+    Alignment: all
+    Match:
+      not-applicable:
+        pre-conditions:
+          C: Zero
+    MatchPosition: all
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Match:
+          - NotFound
+          - Empty
+      then: 'Null'
+    - else: Found
+  pre-conditions:
+    C:
+    - NonZero
+    Alignment: all
+    Match: all
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Match: Found
 type: requirement
