@@ -219,23 +219,20 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Timeout
-    Unblock: 'Yes'
+    Status:
+    - if:
+        pre-conditions:
+          WaitState:
+          - ReadyAgain
+      then: Ok
+    - else: Timeout
+    Unblock:
+    - if:
+        pre-conditions:
+          WaitState:
+          - Blocked
+      then: 'Yes'
+    - else: 'No'
   pre-conditions:
-    WaitState:
-    - Blocked
-- enabled-by: true
-  post-conditions:
-    Status: Timeout
-    Unblock: 'No'
-  pre-conditions:
-    WaitState:
-    - IntendToBlock
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Unblock: 'No'
-  pre-conditions:
-    WaitState:
-    - ReadyAgain
+    WaitState: all
 type: requirement
