@@ -7,65 +7,297 @@ links:
 - role: interface-function
   uid: ../if/memccpy
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: AfterChar
     test-code: |
-      /* TODOD */
+      T_eq_ptr( ctx->retval, ctx->dest_buf + ctx->match_pos + 1 );
     text: |
-      TODO
+      The return value of ${../if/memccpy:/name} shall be a pointer to the
+      byte immediately following the copied byte specified by
+      ${../if/memccpy:/params[2]/name} in the memory area referenced by
+      ${../if/memccpy:/params[0]/name}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/memccpy:/name} shall be equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MemoryArea
+  states:
+  - name: CopiedToMatch
+    test-code: |
+      T_eq_mem(
+        ctx->dest_buf + ctx->offset,
+        ctx->src_buf + ctx->offset,
+        ctx->match_pos + 1 - ctx->offset
+      );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for ( size_t i = ctx->match_pos + 1; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The bytes of the memory area referenced by
+      ${../if/memccpy:/params[0]/name} up to and including the byte matching
+      ${../if/memccpy:/params[2]/name} shall be copied from the memory area
+      referenced by ${../if/memccpy:/params[1]/name}. The remaining bytes of
+      the memory area referenced by ${../if/memccpy:/params[0]/name} shall
+      not be modified.
+  - name: CopiedAll
+    test-code: |
+      T_eq_mem(
+        ctx->dest_buf + ctx->offset,
+        ctx->src_buf + ctx->offset,
+        ctx->n
+      );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for ( size_t i = ctx->offset + ctx->n; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The bytes specified by ${../if/memccpy:/params[3]/name} of the memory
+      area referenced by ${../if/memccpy:/params[0]/name} shall be copied
+      from the memory area referenced by ${../if/memccpy:/params[1]/name}.
+      The remaining bytes of the memory area referenced by
+      ${../if/memccpy:/params[0]/name} shall not be modified.
+  - name: Nop
+    test-code: |
+      for ( size_t i = 0; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The memory area referenced by ${../if/memccpy:/params[0]/name} shall
+      not be modified.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: N
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      ctx->n = 0;
     text: |
-      TODO
+      While the size specified by ${../if/memccpy:/params[3]/name} is equal
+      to zero.
+  - name: Small
+    test-code: |
+      ctx->n = 5;
+    text: |
+      While the size specified by ${../if/memccpy:/params[3]/name} is
+      greater than zero, while the size specified by
+      ${../if/memccpy:/params[3]/name} is less than the size of a `long`
+      integer on the target architecture.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+    text: |
+      While the size specified by ${../if/memccpy:/params[3]/name} is equal
+      to the size of a `long` integer on the target architecture.
+  - name: MultiWord
+    test-code: |
+      ctx->n = 2 * sizeof( long ) + 3;
+    text: |
+      While the size specified by ${../if/memccpy:/params[3]/name} is
+      greater than twice the size of a `long` integer on the target
+      architecture, while the size specified by
+      ${../if/memccpy:/params[3]/name} is not evenly divisible by the size
+      of a `long` integer on the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: Found
+    test-code: |
+      ctx->match_pos = ctx->offset + 2;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memccpy:/params[2]/name} occurs
+      within the first bytes specified by ${../if/memccpy:/params[3]/name}
+      of the memory area referenced by ${../if/memccpy:/params[1]/name}.
+  - name: NotFound
+    test-code: |
+      /* The default fill value of the source buffer does not match c */
+    text: |
+      While the byte specified by ${../if/memccpy:/params[2]/name} does not
+      occur within the first bytes specified by
+      ${../if/memccpy:/params[3]/name} of the memory area referenced by
+      ${../if/memccpy:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 3;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memccpy:/params[2]/name} occurs
+      within the first aligned `long` integer sized chunk of the memory area
+      referenced by ${../if/memccpy:/params[1]/name}.
+  - name: SecondChunk
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + sizeof( long ) + 3;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memccpy:/params[2]/name} occurs
+      within the second aligned `long` integer sized chunk of the memory
+      area referenced by ${../if/memccpy:/params[1]/name}.
+  - name: Remainder
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 2 * sizeof( long ) + 1;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memccpy:/params[2]/name} occurs
+      within the trailing bytes of the memory area referenced by
+      ${../if/memccpy:/params[1]/name} which remain after all aligned `long`
+      integer sized chunks have been processed.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->offset = sizeof( long );
+      ctx->dest = ctx->dest_buf + ctx->offset;
+      ctx->src = ctx->src_buf + ctx->offset;
+    text: |
+      While the ${../if/memccpy:/params[0]/name} parameter and the
+      ${../if/memccpy:/params[1]/name} parameter are aligned on a `long`
+      integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->dest = ctx->dest_buf + ctx->offset;
+      ctx->src = ctx->src_buf + ctx->offset;
+    text: |
+      While the ${../if/memccpy:/params[0]/name} parameter or the
+      ${../if/memccpy:/params[1]/name} parameter are not aligned on a `long`
+      integer boundary of the target architecture.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = memccpy( ctx->dest, ctx->src, ctx->c, ctx->n );
+test-action: |
+  ctx->retval = memccpy( ctx->dest, ctx->src, ctx->c, ctx->n );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/memccpy:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/memccpy:/params[0]/name} parameter value.
   description: null
   member: void * dest
-- brief: This member specifies the ${../if/memccpy:/params[1]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/memccpy:/params[1]/name} parameter value.
   description: null
   member: const void * src
-- brief: This member specifies the ${../if/memccpy:/params[2]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/memccpy:/params[2]/name} parameter value.
   description: null
   member: int c
-- brief: This member specifies the ${../if/memccpy:/params[3]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/memccpy:/params[3]/name} parameter value.
   description: null
   member: size_t n
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: void *retval
+- brief: |
+    This member contains the index of the byte matching the ${../if/memccpy:/params[2]/name} parameter value within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member contains the offset of the guarded ${../if/memccpy:/params[0]/name} and ${../if/memccpy:/params[1]/name} regions from the start of the destination and source buffers.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the destination buffer.
+  description: null
+  member: unsigned char dest_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long
+    ) )
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: unsigned char src_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long
+    ) )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->dest_buf, 0xaa, sizeof( ctx->dest_buf ) );
+  memset( ctx->src_buf, 0x11, sizeof( ctx->src_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->dest = ctx->dest_buf + ctx->offset;
+  ctx->src = ctx->src_buf + ctx->offset;
+  ctx->c = 0x5a;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-string-memccpy.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: 'Null'
+    - else: AfterChar
+    MemoryArea:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Nop
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: CopiedAll
+    - else: CopiedToMatch
   pre-conditions:
-    Status: all
+    N: all
+    Match:
+      applicable:
+        pre-conditions:
+          N:
+          - Small
+          - Word
+          - MultiWord
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Alignment: Aligned
+          Match: Found
+          N: MultiWord
+    Alignment:
+      applicable:
+        pre-conditions:
+          N: MultiWord
 type: requirement
