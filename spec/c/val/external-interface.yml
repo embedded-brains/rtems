@@ -42,7 +42,7 @@ links:
 - role: validation
   uid: /c/if/int8_t
 - role: validation
-  uid: /c/if/intmax_t
+  uid: /c/stdint/if/intmax_t
 - role: validation
   uid: /c/if/intptr_t
 - role: validation
