@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/arc4random
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/arc4random:/name} function shall return a 32-bit pseudo-random
+  number.
+type: requirement

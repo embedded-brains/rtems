@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: interface-function
+  uid: ../if/arc4random
+- role: interface-function
+  uid: ../if/arc4random-buf
+- role: interface-function
+  uid: /score/interr/if/internal-error-core
+- role: interface-function
+  uid: /score/interr/if/arc4random-getentropy-fail
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  While the pseudo-random number generator used by ${../if/arc4random:/name}
+  and ${../if/arc4random-buf:/name} is reinitialized, if the call to
+  ${/c/unistd/if/getentropy:/name} fails, then the system shall terminate with
+  the ${/score/interr/if/internal-error-core:/name} fatal source and the
+  ${/score/interr/if/arc4random-getentropy-fail:/name} fatal code.
+type: requirement

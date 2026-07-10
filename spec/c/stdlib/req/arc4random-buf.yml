@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/arc4random-buf
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/arc4random-buf:/name} function shall fill the buffer with
+  pseudo-random numbers.
+type: requirement

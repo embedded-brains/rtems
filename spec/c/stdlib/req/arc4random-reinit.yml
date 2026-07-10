@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/arc4random
+- role: interface-function
+  uid: ../if/arc4random-buf
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  When the pseudo-random number generator used by ${../if/arc4random:/name} and
+  ${../if/arc4random-buf:/name} is exhausted, the pseudo-random number
+  generator shall be reinitialized using ${/c/unistd/if/getentropy:/name}.
+type: requirement
