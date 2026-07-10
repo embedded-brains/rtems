@@ -218,59 +218,77 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Surrender: N/A
-    Count: One
-  pre-conditions:
-    Variant:
-    - Binary
-    Discipline: all
-    Count:
-    - LessMax
-    - Max
-- enabled-by: true
-  post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Count:
+          - Max
+          Variant:
+          - Counting
+      then: MaxCountExceeded
+    - else: Ok
     Surrender:
-    - specified-by: Discipline
-    Count: Zero
+    - if:
+        pre-conditions:
+          Count:
+          - Blocked
+          Discipline:
+          - FIFO
+      then: FIFO
+    - if:
+        pre-conditions:
+          Count:
+          - Blocked
+          Discipline:
+          - Priority
+      then: Priority
+    - else: N/A
+    Count:
+    - if:
+        pre-conditions:
+          Count:
+          - Max
+          Variant:
+          - Counting
+      then: Nop
+    - if:
+        pre-conditions:
+          Count:
+          - LessMax
+          Variant:
+          - Binary
+      then: One
+    - if:
+        pre-conditions:
+          Count:
+          - Max
+          Variant:
+          - Binary
+      then: One
+    - if:
+        pre-conditions:
+          Count:
+          - LessMax
+          Variant:
+          - Counting
+      then: PlusOne
+    - if:
+        pre-conditions:
+          Count:
+          - LessMax
+          Variant:
+          - CountingModulo
+      then: PlusOne
+    - if:
+        pre-conditions:
+          Count:
+          - Max
+          Variant:
+          - CountingModulo
+      then: PlusOne
+    - else: Zero
   pre-conditions:
     Variant: all
     Discipline: all
-    Count:
-    - Blocked
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Surrender: N/A
-    Count: PlusOne
-  pre-conditions:
-    Variant:
-    - Counting
-    Discipline: all
-    Count:
-    - LessMax
-- enabled-by: true
-  post-conditions:
-    Status: MaxCountExceeded
-    Surrender: N/A
-    Count: Nop
-  pre-conditions:
-    Variant:
-    - Counting
-    Discipline: all
-    Count:
-    - Max
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Surrender: N/A
-    Count: PlusOne
-  pre-conditions:
-    Variant:
-    - CountingModulo
-    Discipline: all
-    Count:
-    - LessMax
-    - Max
+    Count: all
 type: requirement
