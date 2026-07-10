@@ -7,59 +7,192 @@ links:
 - role: interface-function
   uid: ../if/strpbrk
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Found
     test-code: |
-      /* TODOD */
+      T_eq_ptr( ctx->retval, ctx->s1_buf + ctx->match_pos );
     text: |
-      TODO
+      The return value of ${../if/strpbrk:/name} shall be a pointer to the
+      first character of the string referenced by
+      ${../if/strpbrk:/params[0]/name} which occurs in the string
+      referenced by ${../if/strpbrk:/params[1]/name}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/strpbrk:/name} shall be equal to
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: S1
   states:
-  - name: Ok
+  - name: Empty
     test-code: |
-      /* TODOD */
+      ctx->s1_buf[ 0 ] = '\0';
     text: |
-      TODO
+      While the string referenced by ${../if/strpbrk:/params[0]/name} is
+      empty.
+  - name: NonEmpty
+    test-code: |
+      strcpy( ctx->s1_buf, "XXXXX" );
+    text: |
+      While the string referenced by ${../if/strpbrk:/params[0]/name} is
+      not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: S2
+  states:
+  - name: Empty
+    test-code: |
+      ctx->s2_buf[ 0 ] = '\0';
+    text: |
+      While the string referenced by ${../if/strpbrk:/params[1]/name} is
+      empty.
+  - name: NonEmpty
+    test-code: |
+      strcpy( ctx->s2_buf, "ZZZ" );
+    text: |
+      While the string referenced by ${../if/strpbrk:/params[1]/name} is
+      not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: Found
+    test-code: |
+      ctx->s1_buf[ 0 ] = 'Y';
+      ctx->s2_buf[ 0 ] = 'Y';
+      ctx->match_pos = 0;
+    text: |
+      While a character of the string referenced by
+      ${../if/strpbrk:/params[0]/name} occurs in the string referenced by
+      ${../if/strpbrk:/params[1]/name}.
+  - name: NotFound
+    test-code: |
+      /* The default fill values of the buffers do not overlap */
+    text: |
+      While no character of the string referenced by
+      ${../if/strpbrk:/params[0]/name} occurs in the string referenced by
+      ${../if/strpbrk:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: First
+    test-code: |
+      /* Already set up generically by Match: Found */
+    text: |
+      While the first character of the string referenced by
+      ${../if/strpbrk:/params[0]/name} matches the first character of the
+      string referenced by ${../if/strpbrk:/params[1]/name}.
+  - name: S1Later
+    test-code: |
+      ctx->s1_buf[ 0 ] = 'X';
+      ctx->s1_buf[ 2 ] = 'Y';
+      ctx->match_pos = 2;
+    text: |
+      While a character other than the first character of the string
+      referenced by ${../if/strpbrk:/params[0]/name} is the first
+      character of that string to match the first character of the string
+      referenced by ${../if/strpbrk:/params[1]/name}.
+  - name: S2Later
+    test-code: |
+      ctx->s2_buf[ 0 ] = 'Z';
+      ctx->s2_buf[ 2 ] = 'Y';
+    text: |
+      While the first character of the string referenced by
+      ${../if/strpbrk:/params[0]/name} matches a character other than the
+      first character of the string referenced by
+      ${../if/strpbrk:/params[1]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = strpbrk( ctx->s1, ctx->s2 );
+test-action: |
+  ctx->retval = strpbrk( ctx->s1, ctx->s2 );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/strpbrk:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/strpbrk:/params[0]/name} parameter value.
   description: null
-  member: const char * s1
-- brief: This member specifies the ${../if/strpbrk:/params[1]/name} parameter value.
+  member: const char *s1
+- brief: |
+    This member specifies the ${../if/strpbrk:/params[1]/name} parameter value.
   description: null
-  member: const char * s2
-- brief: This member contains the return value.
+  member: const char *s2
+- brief: |
+    This member contains the return value.
   description: null
   member: char *retval
+- brief: |
+    This member contains the index of the first matching character within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member provides the ${../if/strpbrk:/params[0]/name} buffer.
+  description: null
+  member: char s1_buf[ 32 ]
+- brief: |
+    This member provides the ${../if/strpbrk:/params[1]/name} buffer.
+  description: null
+  member: char s2_buf[ 16 ]
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s1_buf, 0, sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 0, sizeof( ctx->s2_buf ) );
+  ctx->s1 = ctx->s1_buf;
+  ctx->s2 = ctx->s2_buf;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-string-strpbrk.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          S1: Empty
+      then: 'Null'
+    - if:
+        pre-conditions:
+          S2: Empty
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: 'Null'
+    - else: Found
   pre-conditions:
-    Status: all
+    S1: all
+    S2:
+      applicable:
+        pre-conditions:
+          S1: NonEmpty
+    Match:
+      applicable:
+        pre-conditions:
+          S1: NonEmpty
+          S2: NonEmpty
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Match: Found
+          S1: NonEmpty
+          S2: NonEmpty
 type: requirement
