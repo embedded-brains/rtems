@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Allocate memory of the size in bytes specified by ${.:/params[2]/name} with the
+  alignment specified by ${.:/params[1]/name} and store the pointer in the object
+  referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void **${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[1]/name} argument is not a valid alignment.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    There is insufficient memory available.
+  role: errno
+  uid: /c/errno/if/enomem
+name: posix_memalign
+notes: |
+  See [POSIX.1-2024, System Interfaces, posix_memalign()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/posix_memalign.html).
+params:
+- description: |
+    is the pointer to a void pointer where the allocated memory address will be
+    stored.
+  dir: out
+  name: memptr
+- description: |
+    is the alignment.
+  dir: null
+  name: alignment
+- description: |
+    is the size.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns zero on success, or an error number on error.
+  return-values: []
+type: interface

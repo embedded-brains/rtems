@@ -1,0 +1,52 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Register the function ${.:/params[0]/name} with the argument referenced by
+  ${.:/params[1]/name} to be called at normal process termination.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void ( *${.:/params[0]/name} )( int, void * )
+    - void *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    There is insufficient memory available to register the function.
+  role: errno
+  uid: /c/errno/if/enomem
+name: on_exit
+notes: |
+  See [FreeBSD Manual Pages, on_exit()](https://man.freebsd.org/cgi/man.cgi?query=on_exit&sektion=3).
+params:
+- description: |
+    is the pointer to the function to be called at exit.
+  dir: in
+  name: function
+- description: |
+    is the pointer to the argument to be passed to the function.
+  dir: in
+  name: arg
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

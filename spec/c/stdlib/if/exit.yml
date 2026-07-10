@@ -1,0 +1,38 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Cause normal process termination with the status specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: null
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: exit
+notes: |
+  See [C23, <stdlib.h>, exit()](https://en.cppreference.com/w/c/program/exit).
+params:
+- description: |
+    is the exit status.
+  dir: null
+  name: status
+return:
+  return: |
+    This function does not return.
+  return-values: []
+type: interface
