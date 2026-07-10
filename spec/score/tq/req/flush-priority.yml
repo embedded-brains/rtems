@@ -192,14 +192,13 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Operation: Nop
+    Operation:
+    - if:
+        pre-conditions:
+          Queue:
+          - NonEmpty
+      then: TryExtract
+    - else: Nop
   pre-conditions:
-    Queue:
-    - Empty
-- enabled-by: true
-  post-conditions:
-    Operation: TryExtract
-  pre-conditions:
-    Queue:
-    - NonEmpty
+    Queue: all
 type: requirement
