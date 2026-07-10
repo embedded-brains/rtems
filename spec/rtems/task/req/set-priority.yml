@@ -360,7 +360,7 @@ transition-map:
   post-conditions:
     Status: InvAddr
     Priority: Nop
-    OldPriorityObj: Nop
+    OldPriorityObj: N/A
   pre-conditions:
     Id:
     - Task
@@ -374,7 +374,7 @@ transition-map:
   post-conditions:
     Status: InvAddr
     Priority: Nop
-    OldPriorityObj: Nop
+    OldPriorityObj: N/A
   pre-conditions:
     Id:
     - Task
@@ -388,7 +388,7 @@ transition-map:
   post-conditions:
     Status: InvAddr
     Priority: Nop
-    OldPriorityObj: Nop
+    OldPriorityObj: N/A
   pre-conditions:
     Id:
     - Invalid
