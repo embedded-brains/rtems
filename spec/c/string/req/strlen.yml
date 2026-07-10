@@ -1,15 +1,66 @@
-SPDX-License-Identifier: CC-BY-SA-4.0
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2024 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
+functional-type: action
 links:
 - role: interface-function
   uid: ../if/strlen
-functional-type: function
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODO */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      /* TODO */
+    text: |
+      TODO
+  test-epilogue: null
+  test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strlen( ctx->s );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/strlen:/params[0]/name} parameter value.
+  description: null
+  member: const char *s
+- brief: |
+    This member contains the return value.
+  description: null
+  member: size_t retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-string-strlen.c
+test-teardown: null
 text: |
-  The ${../if/strlen:/name} function shall be specified by
-  ${/glossary/c11:/term}.
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+  pre-conditions:
+    Status: all
 type: requirement
