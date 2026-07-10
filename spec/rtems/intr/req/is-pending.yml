@@ -345,43 +345,48 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Pending:
+          - Obj
+          Vector:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          Pending:
+          - Obj
+          Vector:
+          - Valid
+      then: Ok
+    - else: InvAddr
     IsPending:
-    - specified-by: IsPending
+    - if:
+        pre-conditions:
+          IsPending:
+          - 'No'
+          Pending:
+          - Obj
+          Vector:
+          - Valid
+      then: 'No'
+    - if:
+        pre-conditions:
+          IsPending:
+          - 'Yes'
+          Pending:
+          - Obj
+          Vector:
+          - Valid
+      then: 'Yes'
+    - else: Nop
   pre-conditions:
-    Vector:
-    - Valid
-    Pending:
-    - Obj
-    IsPending: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    IsPending: Nop
-  pre-conditions:
-    Vector:
-    - Valid
-    Pending:
-    - 'Null'
-    IsPending: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    IsPending: Nop
-  pre-conditions:
-    Vector:
-    - Invalid
-    Pending:
-    - 'Null'
-    IsPending: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    IsPending: Nop
-  pre-conditions:
-    Vector:
-    - Invalid
-    Pending:
-    - Obj
-    IsPending: N/A
+    Vector: all
+    Pending: all
+    IsPending:
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
