@@ -1,11 +1,12 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   This is a complete object type suitable for holding information needed by the
-  macros `va_start`, `va_arg`, `va_end`, and `va_copy`.
+  macros ${/c/stdarg/if/va-start:/name}, ${/c/stdarg/if/va-arg:/name},
+  ${/c/stdarg/if/va-end:/name}, and ${/c/stdarg/if/va-copy:/name}.
 copyrights:
 - Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 definition:
-  default: ${.:/name} _ImplementationDefined
+  default: _ImplementationDefined
   variants: []
 description: null
 enabled-by: true
