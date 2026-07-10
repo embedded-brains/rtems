@@ -364,6 +364,11 @@ transition-map:
     IsPending:
     - if:
         pre-conditions:
+          Pending:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           IsPending:
           - 'No'
           Pending:
