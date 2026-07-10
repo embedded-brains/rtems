@@ -1,0 +1,46 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Read the next directory entry from the directory stream referenced by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - DIR *${.:/params[0]/name}
+    return: ${/c/if/dirent:/name} *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The ${.:/params[0]/name} parameter is not a valid directory stream descriptor.
+  role: errno
+  uid: /c/errno/if/ebadf
+name: readdir
+notes: |
+  See [POSIX.1-2024, System Interfaces, readdir()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/readdir.html).
+params:
+- description: |
+    is the directory stream pointer.
+  dir: inout
+  name: dirp
+return:
+  return: |
+    On success, a pointer to a ${/c/if/dirent:/name} structure is returned. If the
+    end of the directory stream is reached, ${/c/if/null:/name} is returned and
+    ${/c/errno/if/errno:/name} is not changed. If an error occurs,
+    ${/c/if/null:/name} is returned and ${/c/errno/if/errno:/name} is set to
+    indicate the error.
+  return-values: []
+type: interface

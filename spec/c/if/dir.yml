@@ -1,32 +1,22 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Brief TODO.
+  This type represents a directory stream.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
-  default:
-    attributes: null
-    body: null
-    params:
-    - ${/c/if/dir:/name} *${.:/params[0]/name}
-    return: ${/c/if/dirent:/name} *
+  default: _ImplementationDefined
   variants: []
 description: null
 enabled-by: true
 index-entries: []
-interface-type: function
+interface-type: typedef
 links:
 - role: interface-placement
   uid: /c/dirent/if/header
 - role: interface-ingroup
-  uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
-name: readdir
+  uid: /c/dirent/if/group
+name: DIR
 notes: null
-params:
-- description: null
-  dir: null
-  name: param_0
+params: []
 return: null
 type: interface

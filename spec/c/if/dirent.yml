@@ -1,0 +1,67 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure represents a directory entry.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member represents the file serial number.
+    definition: ${/c/if/ino_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: d_fileno
+  variants: []
+- default:
+    brief: |
+      This member represents the offset to the next directory entry.
+    definition: ${/c/if/off_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: d_off
+  variants: []
+- default:
+    brief: |
+      This member represents the length of this directory entry.
+    definition: ${/c/if/uint16_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: d_reclen
+  variants: []
+- default:
+    brief: |
+      This member represents the type of the file.
+    definition: ${/c/if/uint8_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: d_type
+  variants: []
+- default:
+    brief: |
+      This member represents the length of the string in the d_name member.
+    definition: ${/c/if/uint16_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: d_namlen
+  variants: []
+- default:
+    brief: |
+      This member represents the name of the directory entry.
+    definition: char ${.:name}[]
+    description: null
+    kind: member
+    name: d_name
+  variants: []
+definition-kind: struct-only
+description: null
+enabled-by: true
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: /c/dirent/if/header
+- role: interface-ingroup
+  uid: /c/dirent/if/group
+name: dirent
+notes: null
+type: interface
