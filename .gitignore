@@ -1,4 +1,5 @@
 /build
+/.specitems
 doc
 /*.ini
 .lock*
