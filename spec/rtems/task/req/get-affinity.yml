@@ -193,44 +193,55 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    CPUSetObj: Set
-  pre-conditions:
-    Id:
-    - Task
-    CPUSetSize:
-    - Valid
-    CPUSet:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    CPUSetObj: Nop
+    Status:
+    - if:
+        pre-conditions:
+          CPUSet:
+          - Valid
+          Id:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          CPUSet:
+          - Valid
+          CPUSetSize:
+          - TooSmall
+          Id:
+          - Task
+      then: InvSize
+    - if:
+        pre-conditions:
+          CPUSet:
+          - Valid
+          CPUSetSize:
+          - Askew
+          Id:
+          - Task
+      then: InvSize
+    - if:
+        pre-conditions:
+          CPUSet:
+          - Valid
+          CPUSetSize:
+          - Valid
+          Id:
+          - Task
+      then: Ok
+    - else: InvAddr
+    CPUSetObj:
+    - if:
+        pre-conditions:
+          CPUSet:
+          - Valid
+          CPUSetSize:
+          - Valid
+          Id:
+          - Task
+      then: Set
+    - else: Nop
   pre-conditions:
     Id: all
     CPUSetSize: all
-    CPUSet:
-    - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    CPUSetObj: Nop
-  pre-conditions:
-    Id:
-    - Invalid
-    CPUSetSize: all
-    CPUSet:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvSize
-    CPUSetObj: Nop
-  pre-conditions:
-    Id:
-    - Task
-    CPUSetSize:
-    - TooSmall
-    - Askew
-    CPUSet:
-    - Valid
+    CPUSet: all
 type: requirement
