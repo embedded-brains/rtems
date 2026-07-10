@@ -1,0 +1,80 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Make a FIFO special file at the path specified by ${.:/params[0]/name} with the
+  file mode specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - ${/c/if/mode_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    One of the directories in ${.:/params[0]/name} did not allow search (execute)
+    permission.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    ${.:/params[0]/name} already exists.
+  role: errno
+  uid: /c/errno/if/eexist
+- description: |
+    This error number indicates the following error conditions:
+
+    - A directory component in ${.:/params[0]/name} does not exist.
+    - A directory component in ${.:/params[0]/name} is a dangling symbolic link.
+  role: errno
+  uid: /c/errno/if/enoent
+- description: |
+    This error number indicates the following error conditions:
+
+    - The directory has no room for the new file.
+    - The filesystem has no room for the new file.
+  role: errno
+  uid: /c/errno/if/enospc
+- description: |
+    A component used as a directory in ${.:/params[0]/name} is not, in fact, a
+    directory.
+  role: errno
+  uid: /c/errno/if/enotdir
+- description: |
+    ${.:/params[0]/name} refers to a read-only filesystem.
+  role: errno
+  uid: /c/errno/if/erofs
+name: mkfifo
+notes: |
+  See [POSIX.1-2024, System Interfaces, mkfifo()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mkfifo.html).
+params:
+- description: |
+    is the path to the FIFO to be created.
+  dir: in
+  name: path
+- description: |
+    is the file mode for the new FIFO.
+  dir: null
+  name: mode
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

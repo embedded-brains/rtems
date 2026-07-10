@@ -17,7 +17,7 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: sys-stat
+  uid: dirent
 - role: interface-ingroup
   uid: group
 - role: constraint
