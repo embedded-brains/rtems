@@ -74,7 +74,7 @@ links:
 - role: validation
   uid: /c/if/uint8_t
 - role: validation
-  uid: /c/if/uintmax_t
+  uid: /c/stdint/if/uintmax_t
 - role: validation
   uid: /c/if/uintptr_max
 - role: validation
