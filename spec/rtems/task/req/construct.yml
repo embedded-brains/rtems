@@ -939,6 +939,10 @@ transition-map:
     - else: Invalid
     IdObj:
     - if:
+        pre-conditions:
+          Id: 'Null'
+      then: N/A
+    - if:
         post-conditions:
           Status: Ok
       then: Set
@@ -961,21 +965,21 @@ transition-map:
     - else: Nop
     KillZombies:
     - if:
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'Yes'
-            Priority:
-            - Valid
-            - Zero
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'No'
-            Priority:
-            - Valid
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          - Zero
+          SystemTask: 'Yes'
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          SystemTask: 'No'
       then: 'Yes'
     - else: 'No'
     StorageFree:
@@ -1018,14 +1022,14 @@ transition-map:
     CPUs:
     - One
     Config: all
-    Create: all
-    Id: all
     Name: all
+    Id: all
     SystemTask: all
     Priority: all
-    Stack: all
-    TLS: all
     Free: all
+    TLS: all
+    Stack: all
+    Create: all
     FloatingPoint: all
     Preempt: all
     Timeslice: all
@@ -1037,14 +1041,14 @@ transition-map:
     CPUs:
     - More
     Config: all
-    Create: all
-    Id: all
     Name: all
+    Id: all
     SystemTask: all
     Priority: all
-    Stack: all
-    TLS: all
     Free: all
+    TLS: all
+    Stack: all
+    Create: all
     FloatingPoint: all
     Preempt: all
     Timeslice: all
@@ -1103,6 +1107,10 @@ transition-map:
     - else: Invalid
     IdObj:
     - if:
+        pre-conditions:
+          Id: 'Null'
+      then: N/A
+    - if:
         post-conditions:
           Status: Ok
       then: Set
@@ -1114,10 +1122,10 @@ transition-map:
       then: All
     - if:
         and:
-          - post-conditions:
-              Status: Unsat
-          - pre-conditions:
-              IntLvl: Zero
+        - post-conditions:
+            Status: Unsat
+        - pre-conditions:
+            IntLvl: Zero
       then: UpToFailing
     - else: Nop
     DeleteNew:
@@ -1128,21 +1136,21 @@ transition-map:
     - else: Nop
     KillZombies:
     - if:
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'Yes'
-            Priority:
-            - Valid
-            - Zero
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'No'
-            Priority:
-            - Valid
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          - Zero
+          SystemTask: 'Yes'
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          SystemTask: 'No'
       then: 'Yes'
     - else: 'No'
     StorageFree:
@@ -1185,14 +1193,14 @@ transition-map:
     CPUs:
     - One
     Config: all
-    Create: all
-    Id: all
     Name: all
+    Id: all
     SystemTask: all
     Priority: all
-    Stack: all
-    TLS: all
     Free: all
+    TLS: all
+    Stack: all
+    Create: all
     FloatingPoint: all
     Preempt: all
     Timeslice: all
@@ -1255,6 +1263,10 @@ transition-map:
     - else: Invalid
     IdObj:
     - if:
+        pre-conditions:
+          Id: 'Null'
+      then: N/A
+    - if:
         post-conditions:
           Status: Ok
       then: Set
@@ -1266,11 +1278,11 @@ transition-map:
       then: All
     - if:
         and:
-          - post-conditions:
-              Status: Unsat
-          - pre-conditions:
-              Preempt: 'Yes'
-              IntLvl: Zero
+        - post-conditions:
+            Status: Unsat
+        - pre-conditions:
+            IntLvl: Zero
+            Preempt: 'Yes'
       then: UpToFailing
     - else: Nop
     DeleteNew:
@@ -1281,21 +1293,21 @@ transition-map:
     - else: Nop
     KillZombies:
     - if:
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'Yes'
-            Priority:
-            - Valid
-            - Zero
-        - pre-conditions:
-            Config: Valid
-            Name: Valid
-            Id: Valid
-            SystemTask: 'No'
-            Priority:
-            - Valid
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          - Zero
+          SystemTask: 'Yes'
+      - pre-conditions:
+          Config: Valid
+          Id: Valid
+          Name: Valid
+          Priority:
+          - Valid
+          SystemTask: 'No'
       then: 'Yes'
     - else: 'No'
     StorageFree:
@@ -1338,14 +1350,14 @@ transition-map:
     CPUs:
     - More
     Config: all
-    Create: all
-    Id: all
     Name: all
+    Id: all
     SystemTask: all
     Priority: all
-    Stack: all
-    TLS: all
     Free: all
+    TLS: all
+    Stack: all
+    Create: all
     FloatingPoint: all
     Preempt: all
     Timeslice: all
