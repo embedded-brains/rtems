@@ -1,0 +1,183 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2025 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/setname-np
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/setname-np:/name} shall be equal to
+      zero.
+  - name: ESRCH
+    test-code: |
+      T_eq_int( ctx->status, ESRCH );
+    text: |
+      The return value of ${../if/setname-np:/name} shall be equal to
+      ${/c/errno/if/esrch:/name}.
+  - name: ERANGE
+    test-code: |
+      T_eq_int( ctx->status, ERANGE );
+    text: |
+      The return value of ${../if/setname-np:/name} shall be equal to
+      ${/c/errno/if/erange:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Partial
+    test-code: |
+      eno = pthread_getname_np(
+        ctx->thread,
+        ctx->name_buf,
+        sizeof( ctx->name_buf )
+      );
+      T_eno_success( eno );
+
+      T_eq_str( ctx->name_buf, "0123456789abcde" );
+    text: |
+      The thread name buffer shall contain the first up the maximum thread name
+      length characters of the string referenced by the ``name`` parameter.
+  - name: Full
+    test-code: |
+      eno = pthread_getname_np(
+        ctx->thread,
+        ctx->name_buf,
+        sizeof( ctx->name_buf )
+      );
+      T_eno_success( eno );
+
+      T_eq_str( ctx->name_buf, "foobar" );
+    text: |
+      The thread name buffer shall contain the string referenced by the
+      ``name`` parameter.
+  test-epilogue: null
+  test-prologue: |
+    int eno;
+pre-conditions:
+- name: Thread
+  states:
+  - name: NoObj
+    test-code: |
+      ctx->thread = 0xffffffff;
+    text: |
+      While the ``thread`` parameter is not associated with a thread.
+  - name: Valid
+    test-code: |
+      ctx->thread = ctx->worker_id;
+    text: |
+      While the ``thread`` parameter is associated with a thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Length
+  states:
+  - name: Fits
+    test-code: |
+      ctx->name = fitting_name;
+    text: |
+      While the string referenced by the ``name`` parameter fits into the
+      thread name buffer.
+  - name: TooLong
+    test-code: |
+      ctx->name = too_long_name;
+    text: |
+      While the string referenced by the ``name`` parameter does not fit into
+      the thread name buffer.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_setname_np( ctx->thread, ctx->name );
+test-brief: null
+test-cleanup: |
+  DeleteTask( ctx->worker_id );
+test-context:
+- brief: |
+    This member provides a task with a name.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member provides a buffer for the thread name.
+  description: null
+  member: |
+    char name_buf[ 16 ];
+- brief: |
+    This member provides the ``thread`` parameter value.
+  description: null
+  member: |
+    pthread_t thread
+- brief: |
+    This member provides the ``name`` parameter value.
+  description: null
+  member: |
+    const char *name
+- brief: |
+    This member contains the returned status.
+  description: null
+  member: |
+    int status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->worker_id = CreateTask( "WORK", GetSelfPriority() );
+test-setup: null
+test-stop: null
+test-support: |
+  static const char fitting_name[] = "foobar";
+
+  static const char too_long_name[] = "0123456789abcdef0123456789abcdef";
+test-target: testsuites/validation/tc-pthread-setname-np.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Thread: NoObj
+      then: ESRCH
+    - if:
+        pre-conditions:
+          Length: Fits
+          Thread: Valid
+      then: Zero
+    - else: ERANGE
+    Name:
+    - if:
+        pre-conditions:
+          Length: Fits
+          Thread: Valid
+      then: Full
+    - if:
+        pre-conditions:
+          Length: TooLong
+          Thread: Valid
+      then: Partial
+    - else: N/A
+  pre-conditions:
+    Thread: all
+    Length:
+      applicable:
+        pre-conditions:
+          Thread: Valid
+type: requirement
