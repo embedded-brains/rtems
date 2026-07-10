@@ -168,39 +168,45 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          CanSetPriority:
+          - 'Yes'
+          Priority:
+          - Invalid
+          Vector:
+          - Valid
+      then: InvPrio
+    - if:
+        pre-conditions:
+          CanSetPriority:
+          - 'Yes'
+          Priority:
+          - Valid
+          Vector:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          CanSetPriority:
+          - 'No'
+          Vector:
+          - Valid
+      then: Unsat
+    - else: InvId
   pre-conditions:
-    Vector:
-    - Valid
+    Vector: all
     Priority:
-    - Valid
+      applicable:
+        pre-conditions:
+          CanSetPriority:
+          - 'Yes'
+          Vector:
+          - Valid
     CanSetPriority:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvPrio
-  pre-conditions:
-    Vector:
-    - Valid
-    Priority:
-    - Invalid
-    CanSetPriority:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-  pre-conditions:
-    Vector:
-    - Invalid
-    Priority: N/A
-    CanSetPriority: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-  pre-conditions:
-    Vector:
-    - Valid
-    Priority: N/A
-    CanSetPriority:
-    - 'No'
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
