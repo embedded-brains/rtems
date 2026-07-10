@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: test-program
-cflags: []
+cflags:
+- -D_GNU_SOURCE
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
 cppflags:
@@ -66,6 +67,7 @@ source:
 - testsuites/validation/tc-part-get.c
 - testsuites/validation/tc-part-ident.c
 - testsuites/validation/tc-part-return.c
+- testsuites/validation/tc-pthread-getname-np.c
 - testsuites/validation/tc-ratemon.c
 - testsuites/validation/tc-ratemon-cancel.c
 - testsuites/validation/tc-ratemon-create.c
