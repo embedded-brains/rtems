@@ -1,0 +1,85 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/spin-lock
+post-conditions:
+- name: Result
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value shall be 0.
+  test-epilogue: null
+  test-prologue: null
+- name: LockState
+  states:
+  - name: Acquired
+    test-code: |
+      /* The lock state cannot be verified using public APIs without concurrent
+       * execution. As a last resort, we verify that the ISR level is non-zero,
+       * indicating the spin lock has successfully disabled interrupts. */
+      T_true( _ISR_Get_level() != 0 );
+    text: |
+      The spin lock shall be acquired by the calling thread.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: SpinLock
+  states:
+  - name: Valid
+    test-code: |
+      /* lock is initialized in test-prepare */
+      T_true( _ISR_Get_level() == 0 );
+    text: |
+      While the spin lock object referenced by ${../if/spin-lock:/params[0]/name} is initialized.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = pthread_spin_lock( ctx->lock );
+test-brief: null
+test-cleanup: |
+  pthread_spin_unlock( ctx->lock );
+test-context:
+- brief: This member specifies the ${../if/spin-lock:/params[0]/name} parameter value.
+  description: null
+  member: pthread_spinlock_t *lock
+- brief: This member contains the return value.
+  description: null
+  member: int retval
+- brief: This member contains the spin lock.
+  description: null
+  member: pthread_spinlock_t spinlock
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- rtems.h
+test-local-includes: []
+test-prepare: |
+  ctx->lock = &ctx->spinlock;
+  pthread_spin_init( ctx->lock, PTHREAD_PROCESS_PRIVATE );
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-spin-lock.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: Ok
+    LockState: Acquired
+  pre-conditions:
+    SpinLock:
+    - Valid
+type: requirement
