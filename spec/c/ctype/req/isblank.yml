@@ -1,0 +1,123 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/isblank
+post-conditions:
+- name: Result
+  states:
+  - name: NonZero
+    test-code: |
+      size_t i;
+
+      for ( i = 0; i < ctx->n; ++i ) {
+        T_ne_int( ctx->retval[ i ], 0 );
+      }
+    text: The return value shall be non-zero.
+  - name: Zero
+    test-code: |
+      size_t i;
+
+      for ( i = 0; i < ctx->n; ++i ) {
+        T_eq_int( ctx->retval[ i ], 0 );
+      }
+    text: The return value shall be zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Character
+  states:
+  - name: Blank
+    test-code: |
+      ctx->chars = blank_chars;
+      ctx->n = RTEMS_ARRAY_SIZE( blank_chars );
+    text: While the character specified by ${../if/isblank:/params[0]/name} is a blank
+      character.
+  - name: NonBlank
+    test-code: |
+      ctx->chars = non_blank_chars;
+      ctx->n = RTEMS_ARRAY_SIZE( non_blank_chars );
+    text: While the character specified by ${../if/isblank:/params[0]/name} is not
+      a blank character.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |-
+  size_t i;
+
+  for ( i = 0; i < ctx->n; ++i ) {
+    ctx->retval[ i ] = isblank( ctx->chars[ i ] );
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the characters to be tested.
+  description: null
+  member: const int *chars
+- brief: This member specifies the number of characters to be tested.
+  description: null
+  member: size_t n
+- brief: This member contains the return values.
+  description: null
+  member: int retval[ 257 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- stdio.h
+- ctype.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |-
+  static const int blank_chars[] = {
+    '\t', ' '
+  };
+
+  static const int non_blank_chars[] = {
+    '\0', '\x01', '\x02', '\x03', '\x04', '\x05', '\x06', '\a',
+    '\b', '\n', '\v', '\f', '\r', '\x0e', '\x0f',
+    '\x10', '\x11', '\x12', '\x13', '\x14', '\x15', '\x16', '\x17',
+    '\x18', '\x19', '\x1a', '\x1b', '\x1c', '\x1d', '\x1e', '\x1f',
+    '!', '"', '#', '$', '%', '&', '\'', '(', ')', '*', '+', ',', '-', '.', '/',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    ':', ';', '<', '=', '>', '?', '@',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '[', '\\', ']', '^', '_', '`',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    '{', '|', '}', '~', '\x7f',
+    EOF,
+    0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
+    0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97, 0x98, 0x99, 0x9a, 0x9b, 0x9c, 0x9d, 0x9e, 0x9f,
+    0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf,
+    0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf,
+    0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf,
+    0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf,
+    0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef,
+    0xf0, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8, 0xf9, 0xfa, 0xfb, 0xfc, 0xfd, 0xfe, 0xff,
+    256 /* Out of bounds */
+  };
+test-target: testsuites/validation/tc-ctype-isblank.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Character: Blank
+      then: NonZero
+    - else: Zero
+  pre-conditions:
+    Character: all
+type: requirement
