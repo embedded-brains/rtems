@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: thread
+text: |
+  A single flow of control within a process. See
+  [POSIX.1-2024, Base Definitions, Section 3.407 Thread](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html#tag_04_407).
+type: glossary

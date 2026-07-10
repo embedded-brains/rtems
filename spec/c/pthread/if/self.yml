@@ -1,0 +1,30 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the ID of the calling ${../glossary/thread:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params: []
+    return: ${/c/if/pthread_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_self
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_self()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_self.html).
+params: []
+return:
+  return: |
+    Returns the thread ID of the calling thread.
+  return-values: []
+type: interface

@@ -1,0 +1,32 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Terminate the calling ${../glossary/thread:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    return: null
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_exit
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_exit()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_exit.html).
+params:
+- description: |
+    is the value to be returned to the joining thread.
+  dir: null
+  name: value_ptr
+return: null
+type: interface

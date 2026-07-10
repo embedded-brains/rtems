@@ -1,0 +1,62 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Examine and change the blocked signals of the calling
+  ${../glossary/thread:/term} according to the action specified by
+  ${.:/params[0]/name} and the signal set referenced by ${.:/params[1]/name}, and
+  store the previous signal set in the object referenced by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    - const sigset_t *restrict ${.:/params[1]/name}
+    - sigset_t *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The pointer specified by ${.:/params[1]/name} is not ${/c/if/null:/name} and
+    the value specified by ${.:/params[0]/name} is not equal to one of the defined
+    values.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_sigmask
+notes: See [POSIX.1-2024, System Interfaces, pthread_sigmask()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_sigmask.html).
+params:
+- description: |
+    is the action to perform.
+  dir: in
+  name: how
+- description: |
+    is the pointer to the signal set.
+  dir: in
+  name: set
+- description: |
+    is the pointer to the old signal set.
+  dir: out
+  name: oset
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: '0'
+  - description: |
+      The pointer specified by ${.:/params[1]/name} is not ${/c/if/null:/name} and
+      the value specified by ${.:/params[0]/name} is not equal to one of the defined
+      values.
+    value: ${/c/errno/if/einval:/name}
+type: interface

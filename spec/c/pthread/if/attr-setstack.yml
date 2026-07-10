@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/thread-stack:/term} of the ${../glossary/thread:/term}
+  attributes object referenced by ${.:/params[0]/name} to the stack address
+  specified by ${.:/params[1]/name} and the stack size specified by
+  ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *${.:/params[0]/name}
+    - void *${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The value specified by ${.:/params[2]/name} is less than
+      ${/c/pthread/if/stack-min:/name}.
+    - The stack area described by ${.:/params[1]/name} and ${.:/params[2]/name} is
+      not suitably aligned.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The stack area described by ${.:/params[1]/name} and ${.:/params[2]/name} is
+    not both readable and writable by the caller.
+  role: errno
+  uid: /c/errno/if/eacces
+name: pthread_attr_setstack
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_attr_setstack()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setstack.html).
+params:
+- description: |
+    is the thread attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the ${../glossary/thread-stack-address:/term}.
+  dir: in
+  name: stackaddr
+- description: |
+    is the ${../glossary/thread-stack-size:/term}.
+  dir: null
+  name: stacksize
+return:
+  return: |
+    Returns zero on success.
+  return-values:
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The value of ${.:/params[2]/name} is less than
+        ${/c/pthread/if/stack-min:/name}.
+      - The value of ${.:/params[2]/name} exceeds an implementation-defined limit.
+    value: ${/c/errno/if/einval:/name}
+type: interface

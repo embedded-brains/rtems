@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Creates a new thread.
+  Create a new ${../glossary/thread:/term}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -25,8 +25,25 @@ links:
   uid: group
 - role: constraint
   uid: /constraint/directive-not-pre-qualified
+- description: |
+    This error number indicates the following error conditions:
+
+    - Insufficient resources to create another ${/c/pthread/glossary/thread:/term}.
+    - A system-imposed limit on the number of threads was encountered.
+  role: errno
+  uid: /c/errno/if/eagain
+- description: |
+    The settings in ${.:/params[1]/name} are invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    There is no permission to set the scheduling policy and parameters specified in
+    ${.:/params[1]/name}.
+  role: errno
+  uid: /c/errno/if/eperm
 name: pthread_create
-notes: null
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_create()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_create.html).
 params:
 - description: |
     is the thread object to create.
@@ -54,8 +71,8 @@ return:
       This error number indicates the following error conditions:
 
       - The system lacked the necessary resources to create another thread.
-      - The system-imposed limit on the total number of threads in a process
-        would be exceeded.
+      - The system-imposed limit on the total number of threads in a process would be
+        exceeded.
     value: ${/c/errno/if/eagain:/name}
   - description: |
       The value specified by ${.:/params[1]/name} is invalid.

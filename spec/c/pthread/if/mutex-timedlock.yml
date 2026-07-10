@@ -1,0 +1,65 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Lock the ${../glossary/mutex:/term} object referenced by ${.:/params[0]/name}
+  with a timeout referenced by ${.:/params[1]/name}. If the
+  ${../glossary/mutex:/term} object is already locked, the calling
+  ${../glossary/thread:/term} blocks until the ${../glossary/mutex:/term} object
+  becomes available or the timeout expires.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_mutex_timedlock
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutex_timedlock()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutex_timedlock.html).
+params:
+- description: |
+    is the mutex to lock.
+  dir: inout
+  name: mutex
+- description: |
+    is the pointer to a timespec structure specifying the absolute timeout time.
+  dir: in
+  name: abstime
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      The mutex was created with the protocol attribute having the value
+      ${/c/pthread/if/prio-protect:/name} and the calling thread's priority is higher
+      than the mutex's current priority ceiling.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The process or thread would have blocked, and the ${.:/params[1]/name}
+      parameter specified a nanoseconds field value less than zero or greater than or
+      equal to 1000 million.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The mutex could not be locked before the specified timeout expired.
+    value: ${/c/errno/if/etimedout:/name}
+  - description: |
+      locks for ${.:/params[0]/name} has been exceeded.
+    value: ${/c/errno/if/eagain:/name}
+  - description: |
+      The current thread already owns the mutex.
+    value: ${/c/errno/if/edeadlk:/name}
+type: interface

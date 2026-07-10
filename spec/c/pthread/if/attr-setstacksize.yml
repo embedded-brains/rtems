@@ -1,0 +1,57 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/thread-stack-size:/term} of the
+  ${../glossary/thread:/term} attributes object referenced by
+  ${.:/params[0]/name} to the size specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[1]/name} is less than PTHREAD_STACK_MIN bytes.
+    - The ${.:/params[1]/name} is not a multiple of the system page size.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_attr_setstacksize
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_attr_setstacksize()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setstacksize.html).
+params:
+- description: |
+    is the thread attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the ${../glossary/thread-stack-size:/term}.
+  dir: null
+  name: stacksize
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The stack size is less than ${/c/pthread/if/stack-min:/name}.
+      - The stack size exceeds a system-imposed limit.
+    value: ${/c/errno/if/einval:/name}
+type: interface

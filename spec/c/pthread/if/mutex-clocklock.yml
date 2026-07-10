@@ -1,0 +1,71 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Lock the ${../glossary/mutex:/term} object referenced by ${.:/params[0]/name},
+  terminating if it cannot be locked before the absolute time referenced by
+  ${.:/params[2]/name} against the clock specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[0]/name}
+    - ${/c/if/clockid_t:/name} ${.:/params[1]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_mutex_clocklock
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutex_clocklock()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutex_clocklock.html).
+params:
+- description: |
+    is the mutex to lock.
+  dir: inout
+  name: mutex
+- description: |
+    is the clock to use for the timeout.
+  dir: null
+  name: clock_id
+- description: |
+    is the pointer to a timespec structure specifying the absolute timeout time.
+  dir: in
+  name: abstime
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      The mutex was created with the protocol attribute having the value
+      ${/c/pthread/if/prio-protect:/name} and the calling thread's priority is higher
+      than the mutex's current priority ceiling.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The process or thread would have blocked, and the ${.:/params[2]/name}
+      parameter specified a nanoseconds field value less than zero or greater than or
+      equal to 1000 million.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} argument does not specify a known clock.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The mutex could not be locked before the specified timeout expired.
+    value: ${/c/errno/if/etimedout:/name}
+  - description: |
+      The current thread already owns the mutex.
+    value: ${/c/errno/if/edeadlk:/name}
+  - description: |
+      The caller does not have the privilege to perform the operation.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

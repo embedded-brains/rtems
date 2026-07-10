@@ -1,0 +1,57 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${/c/sched/glossary/parameter:/term} of the ${../glossary/thread:/term}
+  attributes object referenced by ${.:/params[0]/name} to the parameters object
+  referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/sched_param:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The priority specified in ${.:/params[1]/name} does not make sense for the
+    current scheduling policy of ${.:/params[0]/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    An attempt was made to set the attribute to an unsupported value.
+  role: errno
+  uid: /c/errno/if/enotsup
+name: pthread_attr_setschedparam
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_attr_setschedparam()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setschedparam.html).
+params:
+- description: |
+    is the thread attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the scheduling parameter attribute.
+  dir: in
+  name: param
+return:
+  return: |
+    Returns zero on success.
+  return-values:
+  - description: |
+      The value of ${.:/params[1]/name} is not valid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      An attempt was made to set the attribute to an unsupported value.
+    value: ${/c/errno/if/enotsup:/name}
+type: interface

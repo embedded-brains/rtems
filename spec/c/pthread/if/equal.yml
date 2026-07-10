@@ -1,0 +1,42 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Compare the ${../glossary/thread:/term} IDs specified by ${.:/params[0]/name}
+  and ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - ${/c/if/pthread_t:/name} ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_equal
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_equal()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_equal.html).
+params:
+- description: |
+    is the first thread to compare.
+  dir: null
+  name: t1
+- description: |
+    is the second thread to compare.
+  dir: null
+  name: t2
+return:
+  return: |
+    Returns a non-zero value if ${.:/params[0]/name} and ${.:/params[1]/name} are
+    equal, otherwise zero.
+  return-values: []
+type: interface

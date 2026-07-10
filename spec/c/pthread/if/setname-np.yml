@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Set the name of a thread.
+  Set the name of the ${../glossary/thread:/term} specified by
+  ${.:/params[0]/name} to the name specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -23,10 +24,14 @@ links:
   uid: group
 - role: constraint
   uid: /constraint/directive-not-pre-qualified
-- role: interface-function
+- description: |
+    The length of the string specified by ${.:/params[1]/name} exceeds the allowed
+    limit.
+  role: errno
   uid: /c/errno/if/erange
 name: pthread_setname_np
-notes: null
+notes: |
+  See [FreeBSD Manual Pages, pthread_setname_np()](https://man.freebsd.org/cgi/man.cgi?query=pthread_setname_np&sektion=3).
 params:
 - description: |
     is the thread
@@ -43,8 +48,7 @@ return:
       The requested operation was successful.
     value: 0
   - description: |
-      The length of the string pointed to by ${.:/params[1]/name} exceeds the
-      maximum
+      The length of the string pointed to by ${.:/params[1]/name} exceeds the maximum
       allowed length.
     value: ${/c/errno/if/erange:/name}
 type: interface

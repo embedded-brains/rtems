@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: mutex priority ceiling attribute
+text: |
+  An attribute of a ${mutex:/term} that specifies its priority ceiling, used when
+  the priority protect protocol is in effect. See
+  [POSIX.1-2024, System Interfaces, pthread_mutexattr_getprioceiling](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutexattr_getprioceiling.html).
+type: glossary

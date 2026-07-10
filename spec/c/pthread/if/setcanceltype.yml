@@ -1,0 +1,54 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/thread-cancel-type:/term} of the calling
+  ${../glossary/thread:/term} to the type specified by ${.:/params[0]/name} and
+  optionally store the previous type in the object referenced by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    - int *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The value for ${.:/params[0]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_setcanceltype
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_setcanceltype()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setcanceltype.html).
+params:
+- description: |
+    is the new cancelability type
+  dir: null
+  name: type
+- description: |
+    is the pointer to store the old cancelability type
+  dir: out
+  name: oldtype
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The specified ${.:/params[0]/name} is not
+      ${/c/pthread/if/cancel-deferred:/name} or
+      ${/c/pthread/if/cancel-asynchronous:/name}.
+    value: ${/c/errno/if/einval:/name}
+type: interface

@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the ${../glossary/mutex-type:/term} of the ${../glossary/mutex:/term}
+  attributes object referenced by ${.:/params[0]/name} and store it in the object
+  referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const ${/c/if/pthread_mutexattr_t:/name} *restrict ${.:/params[0]/name}
+    - int *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_mutexattr_gettype
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutexattr_gettype()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutexattr_gettype.html).
+params:
+- description: |
+    is the mutex attributes object to get the type from.
+  dir: in
+  name: attr
+- description: |
+    is the pointer to an object where the type will be stored.
+  dir: out
+  name: type
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      The value specified by ${.:/params[0]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+type: interface

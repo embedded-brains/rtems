@@ -1,0 +1,45 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Synchronize participating ${../glossary/thread:/plural} at the
+  ${../glossary/barrier:/term} object referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_barrier_t:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_barrier_wait
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_barrier_wait()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_barrier_wait.html).
+params:
+- description: |
+    is the barrier object to wait on.
+  dir: inout
+  name: barrier
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The thread is synchronized at the barrier and is the chosen serial thread.
+    value: ${barrier-serial-thread:/name}
+  - description: |
+      The value specified by ${.:/params[0]/name} does not refer to an initialized
+      barrier object.
+    value: ${/c/errno/if/einval:/name}
+type: interface

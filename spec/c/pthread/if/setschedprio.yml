@@ -1,0 +1,78 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../../sched/glossary/priority:/term} of the
+  ${../glossary/thread:/term} specified by ${.:/params[0]/name} to the value
+  specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The value specified by ${.:/params[1]/name} is not valid for the scheduling
+    policy of the specified ${/c/pthread/glossary/thread:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    An attempt was made to set the ${../../sched/glossary/priority:/term} to an
+    unsupported value.
+  role: errno
+  uid: /c/errno/if/enotsup
+- description: |
+    The caller does not have appropriate privileges to set the specified
+    ${../../sched/glossary/priority:/term}.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    No ${/c/pthread/glossary/thread:/term} with the ID ${.:/params[0]/name} could
+    be found.
+  role: errno
+  uid: /c/errno/if/esrch
+name: pthread_setschedprio
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_setschedprio()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setschedprio.html).
+params:
+- description: |
+    is the thread
+  dir: null
+  name: thread
+- description: |
+    is the ${../../sched/glossary/priority:/term}
+  dir: null
+  name: prio
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The value of ${.:/params[1]/name} is invalid for the scheduling policy of the
+      specified ${.:/params[0]/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      An attempt was made to set the priority to an unsupported value.
+    value: ${/c/errno/if/enotsup:/name}
+  - description: |
+      The caller does not have the appropriate privileges to set the scheduling
+      priority for the specified thread.
+    value: ${/c/errno/if/eperm:/name}
+  - description: |
+      No thread with the ID specified by ${.:/params[0]/name} could be found.
+    value: ${/c/errno/if/esrch:/name}
+type: interface

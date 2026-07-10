@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the scheduling policy and parameters of the ${../glossary/thread:/term}
+  specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - int *restrict ${.:/params[1]/name}
+    - ${/c/if/sched_param:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    No thread with the ID ${.:/params[0]/name} could be found.
+  role: errno
+  uid: /c/errno/if/esrch
+name: pthread_getschedparam
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_getschedparam()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_getschedparam.html).
+params:
+- description: |
+    is the thread to get the scheduling parameters for.
+  dir: null
+  name: thread
+- description: |
+    is the pointer to an object where the scheduling policy will be stored.
+  dir: out
+  name: policy
+- description: |
+    is the pointer to an object where the scheduling parameters will be stored.
+  dir: out
+  name: param
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion returns zero.
+    value: 0
+  - description: |
+      No thread could be found corresponding to that specified by the given
+      ${.:/params[0]/name} ID.
+    value: ${/c/errno/if/esrch:/name}
+type: interface

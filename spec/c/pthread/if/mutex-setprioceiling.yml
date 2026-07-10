@@ -1,0 +1,60 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/mutex-priority-ceiling:/term} of the
+  ${../glossary/mutex:/term} object referenced by ${.:/params[0]/name} to the
+  value specified by ${.:/params[1]/name} and store the old priority ceiling in
+  the object referenced by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - int *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_mutex_setprioceiling
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutex_setprioceiling()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutex_setprioceiling.html).
+params:
+- description: |
+    is the mutex to set the priority ceiling for.
+  dir: inout
+  name: mutex
+- description: |
+    is the new priority ceiling.
+  dir: null
+  name: prioceiling
+- description: |
+    is the pointer to an object where the old priority ceiling will be stored.
+  dir: out
+  name: old_ceiling
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The priority requested by ${.:/params[1]/name} is out of range.
+      - The value specified by ${.:/params[0]/name} does not refer to a currently
+        existing mutex.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The caller does not have the privilege to perform the operation.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

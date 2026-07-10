@@ -1,0 +1,68 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Block on the ${../glossary/condition-variable:/term} object referenced by
+  ${.:/params[0]/name} with a timeout referenced by ${.:/params[3]/name} measured
+  against the clock specified by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_cond_t:/name} *restrict ${.:/params[0]/name}
+    - ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[1]/name}
+    - ${/c/if/clockid_t:/name} ${.:/params[2]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[3]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_cond_clockwait
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_cond_clockwait()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_cond_clockwait.html).
+params:
+- description: |
+    is the condition variable object to wait on.
+  dir: inout
+  name: cond
+- description: |
+    is the mutex object to release and reacquire.
+  dir: inout
+  name: mutex
+- description: |
+    is the clock to use for the timeout.
+  dir: null
+  name: clock_id
+- description: |
+    is the absolute timeout.
+  dir: in
+  name: abstime
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The time specified by ${.:/params[3]/name} has passed.
+    value: ${/c/errno/if/etimedout:/name}
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The value specified by ${.:/params[0]/name} is invalid.
+      - The value specified by ${.:/params[1]/name} is invalid.
+      - The value specified by ${.:/params[2]/name} is invalid.
+      - The value specified by ${.:/params[3]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The mutex was not owned by the current thread at the time of the call.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

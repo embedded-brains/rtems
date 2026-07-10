@@ -1,0 +1,60 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initialize the spin lock object referenced by ${.:/params[0]/name} using the
+  ${../glossary/process-shared:/term} value specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_spinlock_t:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The system has insufficient resources to initialize the spin lock.
+  role: errno
+  uid: /c/errno/if/eagain
+- description: |
+    There is insufficient memory to initialize the spin lock.
+  role: errno
+  uid: /c/errno/if/enomem
+name: pthread_spin_init
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_spin_init()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_spin_init.html).
+params:
+- description: |
+    is the spin lock
+  dir: out
+  name: lock
+- description: |
+    is the ${../glossary/process-shared:/term} value
+  dir: null
+  name: pshared
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The system lacked the necessary resources to initialize another spin lock.
+    value: ${/c/errno/if/eagain:/name}
+  - description: |
+      Insufficient memory exists to initialize the lock.
+    value: ${/c/errno/if/enomem:/name}
+  - description: |
+      The value specified by ${.:/params[0]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+type: interface

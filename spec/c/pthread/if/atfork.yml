@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Register the fork handlers specified by ${.:/params[0]/name},
+  ${.:/params[1]/name}, and ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void ( *${.:/params[0]/name} )( void )
+    - void ( *${.:/params[1]/name} )( void )
+    - void ( *${.:/params[2]/name} )( void )
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    Could not allocate memory to record the fork handler list entry.
+  role: errno
+  uid: /c/errno/if/enomem
+name: pthread_atfork
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_atfork()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_atfork.html).
+params:
+- description: |
+    is the pointer to the fork preparation handler.
+  dir: in
+  name: prepare
+- description: |
+    is the pointer to the parent fork handler.
+  dir: in
+  name: parent
+- description: |
+    is the pointer to the child fork handler.
+  dir: in
+  name: child
+return:
+  return: |
+    Returns zero on success.
+  return-values:
+  - description: |
+      Insufficient memory exists to initialize the fork handlers.
+    value: ${/c/errno/if/enomem:/name}
+type: interface

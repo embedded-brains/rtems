@@ -1,0 +1,48 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the ${../glossary/thread-inherit-scheduler:/term} of the
+  ${../glossary/thread:/term} attributes object referenced by
+  ${.:/params[0]/name} and store it in the object referenced by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const ${/c/if/pthread_attr_t:/name} *restrict ${.:/params[0]/name}
+    - int *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The value specified in ${.:/params[1]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_attr_getinheritsched
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_attr_getinheritsched()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_getinheritsched.html).
+params:
+- description: |
+    is the pointer to the thread attributes object.
+  dir: in
+  name: attr
+- description: |
+    is the pointer to the location where the
+    ${../glossary/thread-inherit-scheduler:/term} will be stored.
+  dir: out
+  name: inheritsched
+return:
+  return: |
+    Returns zero on success.
+  return-values: []
+type: interface

@@ -1,0 +1,89 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the scheduling policy and parameters of the ${../glossary/thread:/term}
+  specified by ${.:/params[0]/name} using the policy specified by
+  ${.:/params[1]/name} and the parameters object referenced by
+  ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - const ${/c/if/sched_param:/name} *${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    No thread with the ID ${.:/params[0]/name} could be found.
+  role: errno
+  uid: /c/errno/if/esrch
+- description: |
+    The value specified by ${.:/params[1]/name} is not a recognized policy, or the
+    value specified by ${.:/params[2]/name} does not make sense for the policy.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The caller does not have appropriate privileges to set the specified scheduling
+    policy and parameters.
+  role: errno
+  uid: /c/errno/if/eperm
+- description: |
+    An attempt was made to set the policy or scheduling parameters to an
+    unsupported value.
+  role: errno
+  uid: /c/errno/if/enotsup
+name: pthread_setschedparam
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_setschedparam()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setschedparam.html).
+params:
+- description: |
+    is the thread
+  dir: null
+  name: thread
+- description: |
+    is the scheduling policy
+  dir: null
+  name: policy
+- description: |
+    is the scheduling parameters
+  dir: in
+  name: param
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The value specified by ${.:/params[1]/name} is invalid.
+      - One of the scheduling parameters associated with the scheduling policy
+        ${.:/params[1]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      This error number indicates the following error conditions:
+
+      - An attempt was made to set the policy to an unsupported value.
+      - An attempt was made to set the scheduling parameters to an unsupported value.
+    value: ${/c/errno/if/enotsup:/name}
+  - description: |
+      The caller does not have the appropriate privileges to set the scheduling
+      policy and parameters for the specified thread.
+    value: ${/c/errno/if/eperm:/name}
+  - description: |
+      No thread with the ID specified by ${.:/params[0]/name} could be found.
+    value: ${/c/errno/if/esrch:/name}
+type: interface

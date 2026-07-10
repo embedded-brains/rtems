@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Attempt to lock the ${../glossary/read-write-lock:/term} object referenced by
+  ${.:/params[0]/name} for reading.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_rwlock_t:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_rwlock_tryrdlock
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_rwlock_tryrdlock()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_rwlock_tryrdlock.html).
+params:
+- description: |
+    is the read-write lock
+  dir: inout
+  name: rwlock
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The lock could not be acquired because a writer holds the lock.
+      - The lock could not be acquired because a writer is blocked on it.
+    value: ${/c/errno/if/ebusy:/name}
+  - description: |
+      The maximum number of read locks for the rwlock has been exceeded.
+    value: ${/c/errno/if/eagain:/name}
+  - description: |
+      The value specified by ${.:/params[0]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The current thread already owns the ${.:/params[0]/name} for writing.
+    value: ${/c/errno/if/edeadlk:/name}
+type: interface

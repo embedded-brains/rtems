@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Send the signal specified by ${.:/params[1]/name} to the
+  ${../glossary/thread:/term} specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The value specified by ${.:/params[1]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_kill
+notes: See [POSIX.1-2024, System Interfaces, pthread_kill()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_kill.html).
+params:
+- description: |
+    is the thread to which the signal is sent.
+  dir: in
+  name: thread
+- description: |
+    is the signal number.
+  dir: in
+  name: sig
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: '0'
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The value specified by ${.:/params[1]/name} is zero.
+      - The value specified by ${.:/params[1]/name} is an invalid or unsupported
+        signal number.
+    value: ${/c/errno/if/einval:/name}
+type: interface

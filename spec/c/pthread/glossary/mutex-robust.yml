@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: robust attribute
+text: |
+  The ${mutex:/term} robust attribute defines the behavior when a thread
+  terminates while holding the mutex. See
+  [POSIX.1-2024, Base Definitions, Section 3.315 Robust Mutex](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html#tag_03_315).
+type: glossary

@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: mutex type attribute
+text: |
+  An attribute of a ${mutex:/term} that specifies its behavior. See
+  [POSIX.1-2024, System Interfaces, pthread_mutexattr_gettype](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutexattr_gettype.html).
+  This attribute can be set to ${../if/mutex-normal:/name},
+  ${../if/mutex-errorcheck:/name}, ${../if/mutex-recursive:/name}, or
+  ${../if/mutex-default:/name}.
+type: glossary

@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Thread-specific data management.
+  Set the thread-specific data associated with the key specified by
+  ${.:/params[0]/name} to the value specified by ${.:/params[1]/name}.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -23,12 +24,13 @@ links:
   uid: group
 - role: constraint
   uid: /constraint/directive-not-pre-qualified
-- role: interface-function
-  uid: /c/errno/if/enomem
-- role: interface-function
+- description: |
+    The value specified by ${.:/params[0]/name} is not a valid, allocated TSD key.
+  role: errno
   uid: /c/errno/if/einval
 name: pthread_setspecific
-notes: null
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_setspecific()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setspecific.html).
 params:
 - description: |
     is the thread-specific data key
@@ -45,8 +47,7 @@ return:
       The requested operation was successful.
     value: 0
   - description: |
-      Insufficient memory exists to associate the ${.:/params[1]/name} with the
-      key.
+      Insufficient memory exists to associate the ${.:/params[1]/name} with the key.
     value: ${/c/errno/if/enomem:/name}
   - description: |
       The ${.:/params[0]/name} value is invalid.

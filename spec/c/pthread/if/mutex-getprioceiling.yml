@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the ${../glossary/mutex-priority-ceiling:/term} of the
+  ${../glossary/mutex:/term} object referenced by ${.:/params[0]/name} and store
+  it in the object referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const ${/c/if/pthread_mutex_t:/name} *restrict ${.:/params[0]/name}
+    - int *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: pthread_mutex_getprioceiling
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutex_getprioceiling()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutex_getprioceiling.html).
+params:
+- description: |
+    is the mutex to get the priority ceiling from.
+  dir: in
+  name: mutex
+- description: |
+    is the pointer to an object where the priority ceiling will be stored.
+  dir: out
+  name: prioceiling
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      The value specified by ${.:/params[0]/name} does not refer to a currently
+      existing mutex.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The caller does not have the privilege to perform the operation.
+    value: ${/c/errno/if/eperm:/name}
+type: interface

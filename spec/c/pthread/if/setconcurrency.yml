@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the concurrency level to the value specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The value specified by ${.:/params[0]/name} is negative.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The value specified by ${.:/params[0]/name} would cause a system resource to be
+    exceeded.
+  role: errno
+  uid: /c/errno/if/eagain
+name: pthread_setconcurrency
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_setconcurrency()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_setconcurrency.html).
+params:
+- description: |
+    is the new concurrency level
+  dir: null
+  name: new_level
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The value specified by ${.:/params[0]/name} is negative.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The value specified by ${.:/params[0]/name} would cause a system resource to be
+      exceeded.
+    value: ${/c/errno/if/eagain:/name}
+type: interface

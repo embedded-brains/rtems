@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Lock the ${../glossary/mutex:/term} object referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_mutex_t:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The mutex has not been properly initialized.
+  role: errno
+  uid: /c/errno/if/einval
+name: pthread_mutex_lock
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_mutex_lock()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutex_lock.html).
+params:
+- description: |
+    is the mutex to lock.
+  dir: inout
+  name: mutex
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion.
+    value: 0
+  - description: |
+      The mutex was created with the protocol attribute having the value
+      ${/c/pthread/if/prio-protect:/name} and the calling thread's priority is higher
+      than the mutex's current priority ceiling.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The mutex could not be acquired because the maximum number of recursive locks
+      for ${.:/params[0]/name} has been exceeded.
+    value: ${/c/errno/if/eagain:/name}
+  - description: |
+      The current thread already owns the mutex.
+    value: ${/c/errno/if/edeadlk:/name}
+type: interface

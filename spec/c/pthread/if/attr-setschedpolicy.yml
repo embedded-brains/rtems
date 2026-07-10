@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${/c/sched/glossary/policy:/term} of the ${../glossary/thread:/term}
+  attributes object referenced by ${.:/params[0]/name} to the policy specified by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_attr_t:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The value specified by ${.:/params[1]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    An attempt was made to set the attribute to an unsupported value.
+  role: errno
+  uid: /c/errno/if/enotsup
+name: pthread_attr_setschedpolicy
+notes: |
+  See [POSIX.1-2024, System Interfaces, pthread_attr_setschedpolicy()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_attr_setschedpolicy.html).
+params:
+- description: |
+    is the thread attributes object.
+  dir: inout
+  name: attr
+- description: |
+    is the ${../../sched/glossary/policy:/term}.
+  dir: null
+  name: policy
+return:
+  return: |
+    Returns zero on success.
+  return-values:
+  - description: |
+      The value of ${.:/params[1]/name} was not valid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      An attempt was made to set the attribute to an unsupported value.
+    value: ${/c/errno/if/enotsup:/name}
+type: interface

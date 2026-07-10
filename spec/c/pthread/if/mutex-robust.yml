@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant is used to set the robust attribute.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: _ImplementationDefined
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: PTHREAD_MUTEX_ROBUST
+notes: See [POSIX.1-2024, System Interfaces, pthread_mutexattr_setrobust()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/pthread_mutexattr_setrobust.html).
+type: interface
