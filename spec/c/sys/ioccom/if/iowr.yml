@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Creates an ${/c/sys/ioccom/if/ioctl:/name} command with a read and write
+  parameter.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: _ImplementationDefined
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: _IOWR
+notes: |
+  See [FreeBSD Manual Pages](https://man.freebsd.org/cgi/man.cgi?query=_IOWR&sektion=3).
+type: interface

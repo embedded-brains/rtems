@@ -1,0 +1,75 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Control the device using the file descriptor specified by ${.:/params[0]/name}
+  and the device-dependent request code specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    - ${/c/if/ioctl_command_t:/name} ${.:/params[1]/name}
+    - '...'
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    ${.:/params[0]/name} is not a valid file descriptor.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    ${.:/params[2]/name} references an inaccessible memory area.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[1]/name} is not valid.
+    - The ${.:/params[2]/name} is not valid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} is not associated with a character special device.
+    - The specified ${.:/params[1]/name} does not apply to the kind of object that
+      the file descriptor ${.:/params[0]/name} references.
+  role: errno
+  uid: /c/errno/if/enotty
+name: ioctl
+notes: |
+  See [FreeBSD Manual Pages, ioctl()](https://man.freebsd.org/cgi/man.cgi?query=ioctl&sektion=3).
+params:
+- description: |
+    is the file descriptor.
+  dir: null
+  name: fd
+- description: |
+    is the device-dependent request code.
+  dir: null
+  name: request
+- description: |
+    are the optional arguments for the request.
+  dir: null
+  name: '...'
+return:
+  return: |
+    Returns a non-negative value on success. The specific value depends on the
+    request.
+  return-values:
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
