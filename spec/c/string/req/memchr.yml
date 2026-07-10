@@ -7,23 +7,125 @@ links:
 - role: interface-function
   uid: ../if/memchr
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Found
     test-code: |
-      /* TODO */
+      T_eq_ptr( ctx->retval, ctx->s_buf + ctx->match_pos );
     text: |
-      TODO
+      The return value of ${../if/memchr:/name} shall be a pointer to the
+      byte matching ${../if/memchr:/params[1]/name} in the memory area
+      referenced by ${../if/memchr:/params[0]/name}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/memchr:/name} shall be equal to
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: N
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODO */
+      ctx->n = 0;
     text: |
-      TODO
+      While the size specified by ${../if/memchr:/params[2]/name} is equal
+      to zero.
+  - name: Small
+    test-code: |
+      ctx->n = sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is
+      greater than zero, while the size specified by
+      ${../if/memchr:/params[2]/name} is less than the size of a `long`
+      integer on the target architecture.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is equal
+      to the size of a `long` integer on the target architecture.
+  - name: MultiWord
+    test-code: |
+      ctx->n = 2 * sizeof( long ) + 3;
+    text: |
+      While the size specified by ${../if/memchr:/params[2]/name} is
+      greater than twice the size of a `long` integer on the target
+      architecture, while the size specified by
+      ${../if/memchr:/params[2]/name} is not evenly divisible by the size
+      of a `long` integer on the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->offset = sizeof( long );
+      ctx->s = ctx->s_buf + ctx->offset;
+    text: |
+      While the ${../if/memchr:/params[0]/name} parameter is aligned on a
+      `long` integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->s = ctx->s_buf + ctx->offset;
+    text: |
+      While the ${../if/memchr:/params[0]/name} parameter is not aligned on
+      a `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: Found
+    test-code: |
+      ctx->match_pos = ctx->offset;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memchr:/params[1]/name} occurs
+      within the first bytes specified by ${../if/memchr:/params[2]/name}
+      of the memory area referenced by ${../if/memchr:/params[0]/name}.
+  - name: NotFound
+    test-code: |
+      ctx->s_buf[ ctx->offset + ctx->n ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memchr:/params[1]/name} does not
+      occur within the first bytes specified by
+      ${../if/memchr:/params[2]/name} of the memory area referenced by
+      ${../if/memchr:/params[0]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->s_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 3;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memchr:/params[1]/name} occurs
+      within the first aligned `long` integer sized chunk of the memory
+      area referenced by ${../if/memchr:/params[0]/name}.
+  - name: SecondChunk
+    test-code: |
+      ctx->s_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + sizeof( long ) + 3;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memchr:/params[1]/name} occurs
+      within the second aligned `long` integer sized chunk of the memory
+      area referenced by ${../if/memchr:/params[0]/name}.
+  - name: Remainder
+    test-code: |
+      ctx->s_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 2 * sizeof( long ) + 1;
+      ctx->s_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+    text: |
+      While the byte specified by ${../if/memchr:/params[1]/name} occurs
+      within the trailing bytes of the memory area referenced by
+      ${../if/memchr:/params[0]/name} which remain after all aligned `long`
+      integer sized chunks have been processed.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -51,13 +153,33 @@ test-context:
     This member contains the return value.
   description: null
   member: void *retval
+- brief: |
+    This member contains the index of the byte matching the ${../if/memchr:/params[1]/name} parameter value within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member contains the offset of the guarded ${../if/memchr:/params[0]/name} region from the start of the source buffer.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: unsigned char s_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long )
+    )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s_buf, 0x11, sizeof( ctx->s_buf ) );
+  ctx->c = 0x5a;
+  ctx->offset = sizeof( long );
+  ctx->s = ctx->s_buf + ctx->offset;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -68,7 +190,29 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: 'Null'
+    - else: Found
   pre-conditions:
-    Status: all
+    N: all
+    Alignment: all
+    Match:
+      applicable:
+        pre-conditions:
+          N:
+          - Small
+          - Word
+          - MultiWord
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Match: Found
+          N: MultiWord
 type: requirement
