@@ -1,0 +1,62 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Notify a process that a ${/glossary/message:/term} is available on the
+  ${/glossary/messagequeue:/term} specified by ${.:/params[0]/name} using the
+  sigevent structure referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - const struct sigevent *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    Another process has already registered to receive notification for the
+    ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/ebusy
+- description: |
+    This error number indicates the following error conditions:
+
+    - The notification values specified in ${.:/params[1]/name} are invalid.
+    - ${.:/params[1]/name} is NULL, and the caller is not currently registered to
+      receive notifications for the ${/glossary/messagequeue:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    Insufficient memory.
+  role: errno
+  uid: /c/errno/if/enomem
+name: mq_notify
+notes: |
+  See [POSIX.1-2024, System Interfaces, mq_notify()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_notify.html).
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to a sigevent structure describing the notification.
+  dir: in
+  name: notification
+return: null
+type: interface

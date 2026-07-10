@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the ${../glossary/mqattr:/plural} of the ${/glossary/messagequeue:/term}
+  specified by ${.:/params[0]/name} using the attributes referenced by
+  ${.:/params[1]/name} and store the previous attributes in the object referenced
+  by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/mqd_t:/name} ${.:/params[0]/name}
+    - const  ${/c/if/mq_attr:/name} *restrict ${.:/params[1]/name}
+    - ${/c/if/mq_attr:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${../glossary/mqdes:/term} specified by ${.:/params[0]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/ebadf
+- description: |
+    The mq_flags field in ${.:/params[1]/name} contained set bits other than
+    O_NONBLOCK.
+  role: errno
+  uid: /c/errno/if/einval
+name: mq_setattr
+notes: |
+  See [POSIX.1-2024, System Interfaces, mq_setattr()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/mq_setattr.html).
+params:
+- description: |
+    is the ${../glossary/mqdes:/term}.
+  dir: null
+  name: mqdes
+- description: |
+    is the pointer to the new attributes for the message queue.
+  dir: in
+  name: mqstat
+- description: |
+    is the pointer to an ${/c/if/mq_attr:/name} object where the previous
+    attributes will be stored.
+  dir: out
+  name: omqstat
+return: null
+type: interface
