@@ -319,6 +319,8 @@ uint64_t _Timecounter_Get_frequency( void );
  */
 void _Timecounter_Discipline( struct timespec *tsp, long nsec );
 
+int timespec_getres( struct timespec *res, int base );
+
 /** @} */
 
 #ifdef __cplusplus

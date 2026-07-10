@@ -138,6 +138,7 @@ test-header: null
 test-includes:
 - stdint.h
 - time.h
+- rtems/score/timecounter.h
 test-local-includes:
 - tx-support.h
 test-prepare: |

@@ -54,6 +54,7 @@
 
 #include <stdint.h>
 #include <time.h>
+#include <rtems/score/timecounter.h>
 
 #include "tx-support.h"
 
