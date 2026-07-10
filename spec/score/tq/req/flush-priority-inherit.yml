@@ -269,28 +269,32 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Extract: Nop
-    PriorityUpdate: 'No'
+    Extract:
+    - if:
+        pre-conditions:
+          Queue:
+          - Empty
+      then: Nop
+    - else: All
+    PriorityUpdate:
+    - if:
+        pre-conditions:
+          Queue:
+          - Empty
+      then: 'No'
+    - if:
+        pre-conditions:
+          Priority:
+          - NotMinimum
+          Queue:
+          - NonEmpty
+      then: 'No'
+    - else: 'Yes'
   pre-conditions:
-    Queue:
-    - Empty
-    Priority: N/A
-- enabled-by: true
-  post-conditions:
-    Extract: All
-    PriorityUpdate: 'No'
-  pre-conditions:
-    Queue:
-    - NonEmpty
     Priority:
-    - NotMinimum
-- enabled-by: true
-  post-conditions:
-    Extract: All
-    PriorityUpdate: 'Yes'
-  pre-conditions:
-    Queue:
-    - NonEmpty
-    Priority:
-    - Minimum
+      applicable:
+        pre-conditions:
+          Queue:
+          - NonEmpty
+    Queue: all
 type: requirement
