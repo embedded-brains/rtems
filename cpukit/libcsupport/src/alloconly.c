@@ -54,6 +54,23 @@ void *rtems_malloc( size_t size )
   return _Memory_Allocate( _Memory_Get(), size, CPU_HEAP_ALIGNMENT );
 }
 
+void *malloc( size_t size )
+{
+  void *p;
+
+  if ( size == 0 ) {
+    return NULL;
+  }
+
+  p = _Memory_Allocate( _Memory_Get(), size, CPU_HEAP_ALIGNMENT );
+
+  if ( p == NULL ) {
+    errno = ENOMEM;
+  }
+
+  return p;
+}
+
 int posix_memalign( void **memptr, size_t alignment, size_t size )
 {
   void *p;
