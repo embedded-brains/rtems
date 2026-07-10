@@ -198,17 +198,11 @@ test-prepare: |
   ctx->tc.base.tc_get_timecount = GetTimecountHigh;
   ctx->tc.base.tc_counter_mask = 0xffffffff;
   ctx->tc.base.tc_quality = RTEMS_TIMECOUNTER_QUALITY_CLOCK_DRIVER + 1;
-test-setup:
-  brief: null
-  code: null
-  description: null
+test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-time-clock-getres.c
-test-teardown:
-  brief: null
-  code: null
-  description: null
+test-teardown: null
 text: ${.:text-template}
 transition-map:
 - enabled-by: true

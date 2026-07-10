@@ -420,34 +420,6 @@ static void CTimeReqClockGetres_Post_ResObj_Check(
   }
 }
 
-static void CTimeReqClockGetres_Setup( void )
-{
-  
-}
-
-static void CTimeReqClockGetres_Setup_Wrap( void *arg )
-{
-  CTimeReqClockGetres_Context *ctx;
-
-  ctx = arg;
-  ctx->Map.in_action_loop = false;
-  CTimeReqClockGetres_Setup();
-}
-
-static void CTimeReqClockGetres_Teardown( void )
-{
-  
-}
-
-static void CTimeReqClockGetres_Teardown_Wrap( void *arg )
-{
-  CTimeReqClockGetres_Context *ctx;
-
-  ctx = arg;
-  ctx->Map.in_action_loop = false;
-  CTimeReqClockGetres_Teardown();
-}
-
 static void CTimeReqClockGetres_Prepare( CTimeReqClockGetres_Context *ctx )
 {
   errno = -1;
@@ -506,9 +478,9 @@ static size_t CTimeReqClockGetres_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture CTimeReqClockGetres_Fixture = {
-  .setup = CTimeReqClockGetres_Setup_Wrap,
+  .setup = NULL,
   .stop = NULL,
-  .teardown = CTimeReqClockGetres_Teardown_Wrap,
+  .teardown = NULL,
   .scope = CTimeReqClockGetres_Scope,
   .initial_context = &CTimeReqClockGetres_Instance
 };

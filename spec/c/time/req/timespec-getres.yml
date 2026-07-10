@@ -1,0 +1,181 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/timespec-getres
+post-conditions:
+- name: Result
+  states:
+  - name: Base
+    test-code: |
+      T_eq_int( ctx->result, TIME_UTC );
+    text: |
+      The return value of ${../if/timespec-getres:/name} shall be equal to
+      ${/c/time/if/time-utc:/name}.
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The return value of ${../if/timespec-getres:/name} shall be equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: ResObj
+  states:
+  - name: Set
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, 0 );
+      T_gt_long( ctx->res_obj.tv_nsec, 0 );
+    text: |
+      The object referenced by the ${../if/timespec-getres:/params[0]/name} parameter
+      shall be set to the resolution of the time base.
+  - name: Unchanged
+    test-code: |
+      T_eq_long( ctx->res_obj.tv_sec, -1 );
+      T_eq_long( ctx->res_obj.tv_nsec, -1 );
+    text: |
+      The object referenced by the ${../if/timespec-getres:/params[0]/name} parameter
+      shall not be changed by the directive call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Res
+  states:
+  - name: Valid
+    test-code: |
+      ctx->res = &ctx->res_obj;
+    text: |
+      While the ${../if/timespec-getres:/params[0]/name} parameter references an
+      object of type ${/c/if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->res = NULL;
+    text: |
+      While the ${../if/timespec-getres:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Base
+  states:
+  - name: TimeUtc
+    test-code: |
+      ctx->base = TIME_UTC;
+    text: |
+      While the ${../if/timespec-getres:/params[1]/name} parameter is equal to
+      ${/c/time/if/time-utc:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->base = -1;
+    text: |
+      While the ${../if/timespec-getres:/params[1]/name} parameter is not equal to
+      ${/c/time/if/time-utc:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: TimecounterFreq
+  states:
+  - name: Low
+    test-code: |
+      /* Use default software timecounter frequency (1000000 Hz), which is
+       * low enough so TOD_NANOSECONDS_PER_SECOND / freq > 0. */
+    text: |
+      While the timecounter frequency is low enough such that
+      `TOD_NANOSECONDS_PER_SECOND` divided by the frequency is greater than zero.
+  - name: High
+    test-code: |
+      ctx->tc_freq = SetTimecounterFrequency( UINT64_C( 2000000000 ) );
+    text: |
+      While the timecounter frequency is high enough such that
+      `TOD_NANOSECONDS_PER_SECOND` divided by the frequency equals zero.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = timespec_getres( ctx->res, ctx->base );
+test-brief: null
+test-cleanup: |
+  if ( ctx->tc_freq != 0 ) {
+    SetTimecounterFrequency( ctx->tc_freq );
+    ctx->tc_freq = 0;
+  }
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/timespec-getres:/name} call.
+  description: null
+  member: |
+    int result
+- brief: |
+    This member specifies the ${../if/timespec-getres:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    struct timespec *res
+- brief: |
+    This member provides the object referenced by the
+    ${../if/timespec-getres:/params[0]/name} parameter.
+  description: null
+  member: |
+    struct timespec res_obj
+- brief: |
+    This member specifies the ${../if/timespec-getres:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    int base
+- brief: |
+    This member provides the timecounter frequency to restore during test
+    cleanup, or zero if the frequency was not changed.
+  description: null
+  member: |
+    uint64_t tc_freq
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- stdint.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->result = -1;
+  ctx->res_obj.tv_sec = -1;
+  ctx->res_obj.tv_nsec = -1;
+  ctx->tc_freq = 0;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-time-timespec-getres.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Base: Invalid
+      then: Zero
+    - else: Base
+    ResObj:
+    - if:
+        pre-conditions:
+          Base: Invalid
+      then: Unchanged
+    - if:
+        pre-conditions:
+          Res: 'Null'
+      then: N/A
+    - else: Set
+  pre-conditions:
+    Res: all
+    Base: all
+    TimecounterFreq:
+      applicable:
+        pre-conditions:
+          Res: Valid
+          Base: TimeUtc
+type: requirement
