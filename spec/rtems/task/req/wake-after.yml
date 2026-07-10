@@ -236,31 +236,37 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: Ok
-    Timer: Ticks
-    Expire: Relative
+    Timer:
+    - if:
+        pre-conditions:
+          Ticks:
+          - Interval
+      then: Ticks
+    - else: Inactive
+    Expire:
+    - if:
+        pre-conditions:
+          Ticks:
+          - Interval
+      then: Relative
+    - else: N/A
     Scheduler:
     - if:
         pre-conditions:
-          Suspended: 'Yes'
-      then: Nop
-    - else: Block
-  pre-conditions:
-    Ticks:
-    - Interval
-    Suspended: all
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Timer: Inactive
-    Expire: N/A
-    Scheduler:
+          Suspended:
+          - 'No'
+          Ticks:
+          - Interval
+      then: Block
     - if:
         pre-conditions:
-          Suspended: 'Yes'
-      then: Nop
-    - else: Yield
+          Suspended:
+          - 'No'
+          Ticks:
+          - Yield
+      then: Yield
+    - else: Nop
   pre-conditions:
-    Ticks:
-    - Yield
+    Ticks: all
     Suspended: all
 type: requirement
