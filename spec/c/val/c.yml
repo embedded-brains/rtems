@@ -82,6 +82,33 @@ test-actions:
   links:
   - role: validation
     uid: /c/string/req/memset
+- action-brief: |
+    Call ${/c/string/if/strlen:/name} for a sample set of strings.
+  action-code: |
+    char    str[sizeof( long ) * 10];
+    char   *aligned_str;
+    size_t  offset;
+
+    aligned_str = (char *) RTEMS_ALIGN_UP( (uintptr_t) str, sizeof( long ) );
+
+    for ( offset = 0; offset < sizeof( long ); ++offset  ) {
+      size_t size;
+
+      for ( size = 0; size < sizeof( long ) * 8; ++size ) {
+        char *s;
+
+        s = aligned_str + offset;
+
+        memset( s, 0x85, size );
+        s[size] = '\0';
+        RTEMS_OBFUSCATE_VARIABLE( s );
+        T_eq_sz( strlen( s ), size );
+      }
+    }
+  checks: []
+  links:
+  - role: validation
+    uid: /c/string/req/strlen
 test-brief: |
   Tests C library functions.
 test-context: []
