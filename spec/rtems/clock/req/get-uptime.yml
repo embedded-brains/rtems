@@ -103,16 +103,20 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: InvAddr
-    Uptime: Unchanged
-  pre-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Uptime:
+          - 'Null'
+      then: InvAddr
+    - else: Ok
     Uptime:
-      - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    Uptime: Set
+    - if:
+        pre-conditions:
+          Uptime:
+          - 'Null'
+      then: Unchanged
+    - else: Set
   pre-conditions:
-    Uptime:
-      - Valid
+    Uptime: all
 type: requirement
