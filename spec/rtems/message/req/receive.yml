@@ -811,110 +811,108 @@ test-teardown:
   description: null
 text: ${.:text-template}
 transition-map:
-
-# ---- Ok Case ----
-
 - enabled-by: true
   post-conditions:
     Status: Ok
     Delay: None
-    Tasks: N/A
     Size: First
     Msg: First
     MsgQueue:
-      - if:
-          pre-conditions:
-            MsgQueue: One
-        then: Empty
-      - else: OneLess
+    - if:
+        pre-conditions:
+          MsgQueue: One
+      then: Empty
+    - else: OneLess
     Tasks: N/A
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     DuringWait:
-      - Nop
+    - Nop
     TaskQueue: all
     Wait: all
     MsgQueue:
-      - One
-      - Several
+    - One
+    - Several
     Storage: all
-
-# ---- Empty Queue ----
-
 - enabled-by: true
   post-conditions:
     Status:
-      - if:
-          pre-conditions:
-            Wait: Forever
-        then: N/A
-      - if:
-          pre-conditions:
-            Wait: 'No'
-        then: Unsat
-      - else: Timeout
+    - if:
+        pre-conditions:
+          Wait: Forever
+      then: N/A
+    - if:
+        pre-conditions:
+          Wait: 'No'
+      then: Unsat
+    - else: Timeout
     Delay:
-      - if:
-          pre-conditions:
-            Wait: 'No'
-        then: None
-      - if:
-          pre-conditions:
-            Wait: Timeout
-        then: Ticks
-      - else: Forever
+    - if:
+        pre-conditions:
+          Wait: 'No'
+      then: None
+    - if:
+        pre-conditions:
+          Wait: Timeout
+      then: Ticks
+    - else: Forever
     Size: Nop
     Msg: Nop
     MsgQueue: Nop
-
     Tasks:
-      - if:
-          pre-conditions:
-            Wait: 'No'
-        then: N/A
-      - if:
-          pre-conditions:
-            TaskQueue: Fifo
-        then: Fifo
-      - else: Priority
+    - if:
+        pre-conditions:
+          Wait: 'No'
+      then: N/A
+    - if:
+        pre-conditions:
+          TaskQueue: Fifo
+      then: Fifo
+    - else: Priority
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     DuringWait:
-      - Nop
+    - Nop
     TaskQueue: all
     Wait: all
     MsgQueue:
-      - Empty
+    - Empty
     Storage: all
-
-# ---- InvAddr: Buffer ----
-
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Delay: None
-    Size: Nop
-    Msg: Nop
+    Size:
+    - if:
+        pre-conditions:
+          Size: 'Null'
+      then: N/A
+    - else: Nop
+    Msg: N/A
     MsgQueue:
-      - if:
-          pre-conditions:
-            DuringWait: Deleted
-        then: N/A
-      - else: Nop
+    - if:
+        pre-conditions:
+          Id: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          DuringWait: Deleted
+      then: N/A
+    - else: Nop
     Tasks: N/A
   pre-conditions:
     Buffer:
-      - 'Null'
+    - 'Null'
     Size: all
     Id: all
     DuringWait: all
@@ -922,64 +920,54 @@ transition-map:
     Wait: all
     MsgQueue: all
     Storage: all
-
-# ---- InvAddr: Size ----
-
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Delay: None
-    Size: Nop
+    Size: N/A
     Msg: Nop
     MsgQueue:
-      - if:
-          pre-conditions:
-            DuringWait: Deleted
-        then: N/A
-      - else: Nop
+    - if:
+        pre-conditions:
+          Id: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          DuringWait: Deleted
+      then: N/A
+    - else: Nop
     Tasks: N/A
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - 'Null'
+    - 'Null'
     Id: all
     DuringWait: all
     TaskQueue: all
     Wait: all
     MsgQueue: all
     Storage: all
-
-# ---- InvId ----
-
 - enabled-by: true
   post-conditions:
     Status: InvId
     Delay: None
     Size: Nop
     Msg: Nop
-    MsgQueue:
-      - if:
-          pre-conditions:
-            DuringWait: Deleted
-        then: N/A
-      - else: Nop
+    MsgQueue: N/A
     Tasks: N/A
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Invalid
+    - Invalid
     DuringWait: all
     TaskQueue: all
     Wait: all
     MsgQueue: all
     Storage: all
-
-# ---- Deleted ----
-
 - enabled-by: true
   post-conditions:
     Status: Deleted
@@ -990,54 +978,50 @@ transition-map:
     Tasks: N/A
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     DuringWait:
-      - Deleted
+    - Deleted
     TaskQueue: all
     Wait: all
     MsgQueue: all
     Storage: all
-
-# ---- Impossible Deleted Cases ----
-
 - enabled-by: true
   post-conditions: NoWait
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     DuringWait:
-      - Deleted
+    - Deleted
     TaskQueue: all
     Wait:
-      - 'No'
+    - 'No'
     MsgQueue: all
     Storage: all
-
 - enabled-by: true
   post-conditions: NoWait
   pre-conditions:
     Buffer:
-      - Valid
+    - Valid
     Size:
-      - Valid
+    - Valid
     Id:
-      - Valid
+    - Valid
     DuringWait:
-      - Deleted
+    - Deleted
     TaskQueue: all
     Wait:
-      - Timeout
-      - Forever
+    - Timeout
+    - Forever
     MsgQueue:
-      - One
-      - Several
+    - One
+    - Several
     Storage: all
 type: requirement
