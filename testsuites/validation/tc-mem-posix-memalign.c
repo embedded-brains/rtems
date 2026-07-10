@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup CReqPosixMemalign
+ * @ingroup CStdlibReqPosixMemalign
  */
 
 /*
@@ -60,7 +60,7 @@
 #include <rtems/test.h>
 
 /**
- * @defgroup CReqPosixMemalign spec:/c/req/posix-memalign
+ * @defgroup CStdlibReqPosixMemalign spec:/c/stdlib/req/posix-memalign
  *
  * @ingroup TestsuitesValidation0
  *
@@ -68,49 +68,49 @@
  */
 
 typedef enum {
-  CReqPosixMemalign_Pre_Memptr_Valid,
-  CReqPosixMemalign_Pre_Memptr_Null,
-  CReqPosixMemalign_Pre_Memptr_NA
-} CReqPosixMemalign_Pre_Memptr;
+  CStdlibReqPosixMemalign_Pre_Memptr_Valid,
+  CStdlibReqPosixMemalign_Pre_Memptr_Null,
+  CStdlibReqPosixMemalign_Pre_Memptr_NA
+} CStdlibReqPosixMemalign_Pre_Memptr;
 
 typedef enum {
-  CReqPosixMemalign_Pre_Alignment_Tiny,
-  CReqPosixMemalign_Pre_Alignment_NotPower2,
-  CReqPosixMemalign_Pre_Alignment_Huge,
-  CReqPosixMemalign_Pre_Alignment_Valid,
-  CReqPosixMemalign_Pre_Alignment_NA
-} CReqPosixMemalign_Pre_Alignment;
+  CStdlibReqPosixMemalign_Pre_Alignment_Tiny,
+  CStdlibReqPosixMemalign_Pre_Alignment_NotPower2,
+  CStdlibReqPosixMemalign_Pre_Alignment_Huge,
+  CStdlibReqPosixMemalign_Pre_Alignment_Valid,
+  CStdlibReqPosixMemalign_Pre_Alignment_NA
+} CStdlibReqPosixMemalign_Pre_Alignment;
 
 typedef enum {
-  CReqPosixMemalign_Pre_Size_Huge,
-  CReqPosixMemalign_Pre_Size_Zero,
-  CReqPosixMemalign_Pre_Size_Valid,
-  CReqPosixMemalign_Pre_Size_NA
-} CReqPosixMemalign_Pre_Size;
+  CStdlibReqPosixMemalign_Pre_Size_Huge,
+  CStdlibReqPosixMemalign_Pre_Size_Zero,
+  CStdlibReqPosixMemalign_Pre_Size_Valid,
+  CStdlibReqPosixMemalign_Pre_Size_NA
+} CStdlibReqPosixMemalign_Pre_Size;
 
 typedef enum {
-  CReqPosixMemalign_Post_Status_Zero,
-  CReqPosixMemalign_Post_Status_EINVAL,
-  CReqPosixMemalign_Post_Status_ENOMEM,
-  CReqPosixMemalign_Post_Status_NA
-} CReqPosixMemalign_Post_Status;
+  CStdlibReqPosixMemalign_Post_Status_Zero,
+  CStdlibReqPosixMemalign_Post_Status_EINVAL,
+  CStdlibReqPosixMemalign_Post_Status_ENOMEM,
+  CStdlibReqPosixMemalign_Post_Status_NA
+} CStdlibReqPosixMemalign_Post_Status;
 
 typedef enum {
-  CReqPosixMemalign_Post_MemptrVar_AreaBegin,
-  CReqPosixMemalign_Post_MemptrVar_Null,
-  CReqPosixMemalign_Post_MemptrVar_Nop,
-  CReqPosixMemalign_Post_MemptrVar_NA
-} CReqPosixMemalign_Post_MemptrVar;
+  CStdlibReqPosixMemalign_Post_MemptrVar_AreaBegin,
+  CStdlibReqPosixMemalign_Post_MemptrVar_Null,
+  CStdlibReqPosixMemalign_Post_MemptrVar_Nop,
+  CStdlibReqPosixMemalign_Post_MemptrVar_NA
+} CStdlibReqPosixMemalign_Post_MemptrVar;
 
 typedef enum {
-  CReqPosixMemalign_Post_Alignment_Valid,
-  CReqPosixMemalign_Post_Alignment_NA
-} CReqPosixMemalign_Post_Alignment;
+  CStdlibReqPosixMemalign_Post_Alignment_Valid,
+  CStdlibReqPosixMemalign_Post_Alignment_NA
+} CStdlibReqPosixMemalign_Post_Alignment;
 
 typedef enum {
-  CReqPosixMemalign_Post_Size_Valid,
-  CReqPosixMemalign_Post_Size_NA
-} CReqPosixMemalign_Post_Size;
+  CStdlibReqPosixMemalign_Post_Size_Valid,
+  CStdlibReqPosixMemalign_Post_Size_NA
+} CStdlibReqPosixMemalign_Post_Size;
 
 typedef struct {
   uint16_t Skip : 1;
@@ -121,10 +121,10 @@ typedef struct {
   uint16_t Post_MemptrVar : 2;
   uint16_t Post_Alignment : 1;
   uint16_t Post_Size : 1;
-} CReqPosixMemalign_Entry;
+} CStdlibReqPosixMemalign_Entry;
 
 /**
- * @brief Test context for spec:/c/req/posix-memalign test case.
+ * @brief Test context for spec:/c/stdlib/req/posix-memalign test case.
  */
 typedef struct {
   /**
@@ -176,7 +176,7 @@ typedef struct {
     /**
      * @brief This member contains the current transition map entry.
      */
-    CReqPosixMemalign_Entry entry;
+    CStdlibReqPosixMemalign_Entry entry;
 
     /**
      * @brief If this member is true, then the current transition variant
@@ -184,18 +184,18 @@ typedef struct {
      */
     bool skip;
   } Map;
-} CReqPosixMemalign_Context;
+} CStdlibReqPosixMemalign_Context;
 
-static CReqPosixMemalign_Context
-  CReqPosixMemalign_Instance;
+static CStdlibReqPosixMemalign_Context
+  CStdlibReqPosixMemalign_Instance;
 
-static const char * const CReqPosixMemalign_PreDesc_Memptr[] = {
+static const char * const CStdlibReqPosixMemalign_PreDesc_Memptr[] = {
   "Valid",
   "Null",
   "NA"
 };
 
-static const char * const CReqPosixMemalign_PreDesc_Alignment[] = {
+static const char * const CStdlibReqPosixMemalign_PreDesc_Alignment[] = {
   "Tiny",
   "NotPower2",
   "Huge",
@@ -203,27 +203,27 @@ static const char * const CReqPosixMemalign_PreDesc_Alignment[] = {
   "NA"
 };
 
-static const char * const CReqPosixMemalign_PreDesc_Size[] = {
+static const char * const CStdlibReqPosixMemalign_PreDesc_Size[] = {
   "Huge",
   "Zero",
   "Valid",
   "NA"
 };
 
-static const char * const * const CReqPosixMemalign_PreDesc[] = {
-  CReqPosixMemalign_PreDesc_Memptr,
-  CReqPosixMemalign_PreDesc_Alignment,
-  CReqPosixMemalign_PreDesc_Size,
+static const char * const * const CStdlibReqPosixMemalign_PreDesc[] = {
+  CStdlibReqPosixMemalign_PreDesc_Memptr,
+  CStdlibReqPosixMemalign_PreDesc_Alignment,
+  CStdlibReqPosixMemalign_PreDesc_Size,
   NULL
 };
 
-static void CReqPosixMemalign_Pre_Memptr_Prepare(
-  CReqPosixMemalign_Context   *ctx,
-  CReqPosixMemalign_Pre_Memptr state
+static void CStdlibReqPosixMemalign_Pre_Memptr_Prepare(
+  CStdlibReqPosixMemalign_Context   *ctx,
+  CStdlibReqPosixMemalign_Pre_Memptr state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Pre_Memptr_Valid: {
+    case CStdlibReqPosixMemalign_Pre_Memptr_Valid: {
       /*
        * While the memptr parameter references an object of type `void *`.
        */
@@ -231,7 +231,7 @@ static void CReqPosixMemalign_Pre_Memptr_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Memptr_Null: {
+    case CStdlibReqPosixMemalign_Pre_Memptr_Null: {
       /*
        * While the memptr parameter is equal to NULL.
        */
@@ -239,18 +239,18 @@ static void CReqPosixMemalign_Pre_Memptr_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Memptr_NA:
+    case CStdlibReqPosixMemalign_Pre_Memptr_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Pre_Alignment_Prepare(
-  CReqPosixMemalign_Context      *ctx,
-  CReqPosixMemalign_Pre_Alignment state
+static void CStdlibReqPosixMemalign_Pre_Alignment_Prepare(
+  CStdlibReqPosixMemalign_Context      *ctx,
+  CStdlibReqPosixMemalign_Pre_Alignment state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Pre_Alignment_Tiny: {
+    case CStdlibReqPosixMemalign_Pre_Alignment_Tiny: {
       /*
        * While the alignment parameter is less than sizeof( void * ).
        */
@@ -258,7 +258,7 @@ static void CReqPosixMemalign_Pre_Alignment_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Alignment_NotPower2: {
+    case CStdlibReqPosixMemalign_Pre_Alignment_NotPower2: {
       /*
        * While the alignment parameter is greater than or equal to sizeof( void
        * * ), while the alignment parameter is not a power of two.
@@ -267,7 +267,7 @@ static void CReqPosixMemalign_Pre_Alignment_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Alignment_Huge: {
+    case CStdlibReqPosixMemalign_Pre_Alignment_Huge: {
       /*
        * While the alignment parameter is greater than or equal to sizeof( void
        * * ), while the alignment parameter is a power of two, while the
@@ -278,7 +278,7 @@ static void CReqPosixMemalign_Pre_Alignment_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Alignment_Valid: {
+    case CStdlibReqPosixMemalign_Pre_Alignment_Valid: {
       /*
        * While the alignment parameter is greater than or equal to sizeof( void
        * * ), while the alignment parameter is a power of two, while the
@@ -289,18 +289,18 @@ static void CReqPosixMemalign_Pre_Alignment_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Alignment_NA:
+    case CStdlibReqPosixMemalign_Pre_Alignment_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Pre_Size_Prepare(
-  CReqPosixMemalign_Context *ctx,
-  CReqPosixMemalign_Pre_Size state
+static void CStdlibReqPosixMemalign_Pre_Size_Prepare(
+  CStdlibReqPosixMemalign_Context *ctx,
+  CStdlibReqPosixMemalign_Pre_Size state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Pre_Size_Huge: {
+    case CStdlibReqPosixMemalign_Pre_Size_Huge: {
       /*
        * While the size parameter is not equal to zero, while the size
        * parameter is too large to allocate a memory area with the specified
@@ -310,7 +310,7 @@ static void CReqPosixMemalign_Pre_Size_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Size_Zero: {
+    case CStdlibReqPosixMemalign_Pre_Size_Zero: {
       /*
        * While the size parameter is equal to zero.
        */
@@ -318,7 +318,7 @@ static void CReqPosixMemalign_Pre_Size_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Size_Valid: {
+    case CStdlibReqPosixMemalign_Pre_Size_Valid: {
       /*
        * While the size parameter is not equal to zero, while the size
        * parameter is small enough to allocate a memory area with the specified
@@ -328,18 +328,18 @@ static void CReqPosixMemalign_Pre_Size_Prepare(
       break;
     }
 
-    case CReqPosixMemalign_Pre_Size_NA:
+    case CStdlibReqPosixMemalign_Pre_Size_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Post_Status_Check(
-  CReqPosixMemalign_Context    *ctx,
-  CReqPosixMemalign_Post_Status state
+static void CStdlibReqPosixMemalign_Post_Status_Check(
+  CStdlibReqPosixMemalign_Context    *ctx,
+  CStdlibReqPosixMemalign_Post_Status state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Post_Status_Zero: {
+    case CStdlibReqPosixMemalign_Post_Status_Zero: {
       /*
        * The return value of posix_memalign() shall be equal to zero.
        */
@@ -347,7 +347,7 @@ static void CReqPosixMemalign_Post_Status_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_Status_EINVAL: {
+    case CStdlibReqPosixMemalign_Post_Status_EINVAL: {
       /*
        * The return value of posix_memalign() shall be equal to EINVAL.
        */
@@ -355,7 +355,7 @@ static void CReqPosixMemalign_Post_Status_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_Status_ENOMEM: {
+    case CStdlibReqPosixMemalign_Post_Status_ENOMEM: {
       /*
        * The return value of posix_memalign() shall be equal to ENOMEM.
        */
@@ -363,18 +363,18 @@ static void CReqPosixMemalign_Post_Status_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_Status_NA:
+    case CStdlibReqPosixMemalign_Post_Status_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Post_MemptrVar_Check(
-  CReqPosixMemalign_Context       *ctx,
-  CReqPosixMemalign_Post_MemptrVar state
+static void CStdlibReqPosixMemalign_Post_MemptrVar_Check(
+  CStdlibReqPosixMemalign_Context       *ctx,
+  CStdlibReqPosixMemalign_Post_MemptrVar state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Post_MemptrVar_AreaBegin: {
+    case CStdlibReqPosixMemalign_Post_MemptrVar_AreaBegin: {
       /*
        * The value of the object referenced by the memptr parameter shall be
        * set to the begin address of the allocated memory area after the return
@@ -385,7 +385,7 @@ static void CReqPosixMemalign_Post_MemptrVar_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_MemptrVar_Null: {
+    case CStdlibReqPosixMemalign_Post_MemptrVar_Null: {
       /*
        * The value of the object referenced by the memptr parameter shall be
        * set to NULL after the return of the posix_memalign() call.
@@ -395,7 +395,7 @@ static void CReqPosixMemalign_Post_MemptrVar_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_MemptrVar_Nop: {
+    case CStdlibReqPosixMemalign_Post_MemptrVar_Nop: {
       /*
        * Objects referenced by the memptr parameter in past calls to
        * posix_memalign() shall not be accessed by the posix_memalign() call.
@@ -404,18 +404,18 @@ static void CReqPosixMemalign_Post_MemptrVar_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_MemptrVar_NA:
+    case CStdlibReqPosixMemalign_Post_MemptrVar_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Post_Alignment_Check(
-  CReqPosixMemalign_Context       *ctx,
-  CReqPosixMemalign_Post_Alignment state
+static void CStdlibReqPosixMemalign_Post_Alignment_Check(
+  CStdlibReqPosixMemalign_Context       *ctx,
+  CStdlibReqPosixMemalign_Post_Alignment state
 )
 {
   switch ( state ) {
-    case CReqPosixMemalign_Post_Alignment_Valid: {
+    case CStdlibReqPosixMemalign_Post_Alignment_Valid: {
       /*
        * The begin address of the allocated memory area shall be an integral
        * multiple of the alignment parameter.
@@ -424,14 +424,14 @@ static void CReqPosixMemalign_Post_Alignment_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_Alignment_NA:
+    case CStdlibReqPosixMemalign_Post_Alignment_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Post_Size_Check(
-  CReqPosixMemalign_Context  *ctx,
-  CReqPosixMemalign_Post_Size state
+static void CStdlibReqPosixMemalign_Post_Size_Check(
+  CStdlibReqPosixMemalign_Context  *ctx,
+  CStdlibReqPosixMemalign_Post_Size state
 )
 {
   void     *ptr;
@@ -441,7 +441,7 @@ static void CReqPosixMemalign_Post_Size_Check(
   uintptr_t size;
 
   switch ( state ) {
-    case CReqPosixMemalign_Post_Size_Valid: {
+    case CStdlibReqPosixMemalign_Post_Size_Valid: {
       /*
        * The size of the allocated memory area shall greater than or equal to
        * the size parameter.
@@ -458,148 +458,177 @@ static void CReqPosixMemalign_Post_Size_Check(
       break;
     }
 
-    case CReqPosixMemalign_Post_Size_NA:
+    case CStdlibReqPosixMemalign_Post_Size_NA:
       break;
   }
 }
 
-static void CReqPosixMemalign_Setup( CReqPosixMemalign_Context *ctx )
+static void CStdlibReqPosixMemalign_Setup(
+  CStdlibReqPosixMemalign_Context *ctx
+)
 {
   MemorySave( &ctx->mem_ctx );
 }
 
-static void CReqPosixMemalign_Setup_Wrap( void *arg )
+static void CStdlibReqPosixMemalign_Setup_Wrap( void *arg )
 {
-  CReqPosixMemalign_Context *ctx;
+  CStdlibReqPosixMemalign_Context *ctx;
 
   ctx = arg;
   ctx->Map.in_action_loop = false;
-  CReqPosixMemalign_Setup( ctx );
+  CStdlibReqPosixMemalign_Setup( ctx );
 }
 
-static void CReqPosixMemalign_Teardown( CReqPosixMemalign_Context *ctx )
+static void CStdlibReqPosixMemalign_Teardown(
+  CStdlibReqPosixMemalign_Context *ctx
+)
 {
   MemoryRestore( &ctx->mem_ctx );
 }
 
-static void CReqPosixMemalign_Teardown_Wrap( void *arg )
+static void CStdlibReqPosixMemalign_Teardown_Wrap( void *arg )
 {
-  CReqPosixMemalign_Context *ctx;
+  CStdlibReqPosixMemalign_Context *ctx;
 
   ctx = arg;
   ctx->Map.in_action_loop = false;
-  CReqPosixMemalign_Teardown( ctx );
+  CStdlibReqPosixMemalign_Teardown( ctx );
 }
 
-static void CReqPosixMemalign_Prepare( CReqPosixMemalign_Context *ctx )
+static void CStdlibReqPosixMemalign_Prepare(
+  CStdlibReqPosixMemalign_Context *ctx
+)
 {
   ctx->memptr_obj = (void *)(uintptr_t) 1;
 }
 
-static void CReqPosixMemalign_Action( CReqPosixMemalign_Context *ctx )
+static void CStdlibReqPosixMemalign_Action(
+  CStdlibReqPosixMemalign_Context *ctx
+)
 {
   ctx->status = posix_memalign( ctx->memptr, ctx->alignment, ctx->size );
 }
 
-static const CReqPosixMemalign_Entry
-CReqPosixMemalign_Entries[] = {
-  { 0, 0, 0, 0, CReqPosixMemalign_Post_Status_EINVAL,
-    CReqPosixMemalign_Post_MemptrVar_Nop, CReqPosixMemalign_Post_Alignment_NA,
-    CReqPosixMemalign_Post_Size_NA },
-  { 0, 0, 0, 0, CReqPosixMemalign_Post_Status_EINVAL,
-    CReqPosixMemalign_Post_MemptrVar_Null, CReqPosixMemalign_Post_Alignment_NA,
-    CReqPosixMemalign_Post_Size_NA },
-  { 0, 0, 0, 0, CReqPosixMemalign_Post_Status_ENOMEM,
-    CReqPosixMemalign_Post_MemptrVar_Null, CReqPosixMemalign_Post_Alignment_NA,
-    CReqPosixMemalign_Post_Size_NA },
-  { 0, 0, 0, 0, CReqPosixMemalign_Post_Status_Zero,
-    CReqPosixMemalign_Post_MemptrVar_Null,
-    CReqPosixMemalign_Post_Alignment_Valid, CReqPosixMemalign_Post_Size_NA },
-  { 0, 0, 0, 0, CReqPosixMemalign_Post_Status_Zero,
-    CReqPosixMemalign_Post_MemptrVar_AreaBegin,
-    CReqPosixMemalign_Post_Alignment_Valid, CReqPosixMemalign_Post_Size_Valid }
+static const CStdlibReqPosixMemalign_Entry
+CStdlibReqPosixMemalign_Entries[] = {
+  { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_EINVAL,
+    CStdlibReqPosixMemalign_Post_MemptrVar_Nop,
+    CStdlibReqPosixMemalign_Post_Alignment_NA,
+    CStdlibReqPosixMemalign_Post_Size_NA },
+  { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_EINVAL,
+    CStdlibReqPosixMemalign_Post_MemptrVar_Null,
+    CStdlibReqPosixMemalign_Post_Alignment_NA,
+    CStdlibReqPosixMemalign_Post_Size_NA },
+  { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_ENOMEM,
+    CStdlibReqPosixMemalign_Post_MemptrVar_Null,
+    CStdlibReqPosixMemalign_Post_Alignment_NA,
+    CStdlibReqPosixMemalign_Post_Size_NA },
+  { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_Zero,
+    CStdlibReqPosixMemalign_Post_MemptrVar_Null,
+    CStdlibReqPosixMemalign_Post_Alignment_Valid,
+    CStdlibReqPosixMemalign_Post_Size_NA },
+  { 0, 0, 0, 0, CStdlibReqPosixMemalign_Post_Status_Zero,
+    CStdlibReqPosixMemalign_Post_MemptrVar_AreaBegin,
+    CStdlibReqPosixMemalign_Post_Alignment_Valid,
+    CStdlibReqPosixMemalign_Post_Size_Valid }
 };
 
 static const uint8_t
-CReqPosixMemalign_Map[] = {
+CStdlibReqPosixMemalign_Map[] = {
   1, 1, 1, 1, 1, 1, 2, 3, 2, 2, 3, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 
-static size_t CReqPosixMemalign_Scope( void *arg, char *buf, size_t n )
+static size_t CStdlibReqPosixMemalign_Scope( void *arg, char *buf, size_t n )
 {
-  CReqPosixMemalign_Context *ctx;
+  CStdlibReqPosixMemalign_Context *ctx;
 
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqPosixMemalign_PreDesc, buf, n, ctx->Map.pcs );
+    return T_get_scope(
+      CStdlibReqPosixMemalign_PreDesc,
+      buf,
+      n,
+      ctx->Map.pcs
+    );
   }
 
   return 0;
 }
 
-static T_fixture CReqPosixMemalign_Fixture = {
-  .setup = CReqPosixMemalign_Setup_Wrap,
+static T_fixture CStdlibReqPosixMemalign_Fixture = {
+  .setup = CStdlibReqPosixMemalign_Setup_Wrap,
   .stop = NULL,
-  .teardown = CReqPosixMemalign_Teardown_Wrap,
-  .scope = CReqPosixMemalign_Scope,
-  .initial_context = &CReqPosixMemalign_Instance
+  .teardown = CStdlibReqPosixMemalign_Teardown_Wrap,
+  .scope = CStdlibReqPosixMemalign_Scope,
+  .initial_context = &CStdlibReqPosixMemalign_Instance
 };
 
-static inline CReqPosixMemalign_Entry CReqPosixMemalign_PopEntry(
-  CReqPosixMemalign_Context *ctx
+static inline CStdlibReqPosixMemalign_Entry CStdlibReqPosixMemalign_PopEntry(
+  CStdlibReqPosixMemalign_Context *ctx
 )
 {
   size_t index;
 
   index = ctx->Map.index;
   ctx->Map.index = index + 1;
-  return CReqPosixMemalign_Entries[
-    CReqPosixMemalign_Map[ index ]
+  return CStdlibReqPosixMemalign_Entries[
+    CStdlibReqPosixMemalign_Map[ index ]
   ];
 }
 
-static void CReqPosixMemalign_TestVariant( CReqPosixMemalign_Context *ctx )
+static void CStdlibReqPosixMemalign_TestVariant(
+  CStdlibReqPosixMemalign_Context *ctx
+)
 {
-  CReqPosixMemalign_Pre_Memptr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
-  CReqPosixMemalign_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 1 ] );
-  CReqPosixMemalign_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 2 ] );
-  CReqPosixMemalign_Action( ctx );
-  CReqPosixMemalign_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
-  CReqPosixMemalign_Post_MemptrVar_Check( ctx, ctx->Map.entry.Post_MemptrVar );
-  CReqPosixMemalign_Post_Alignment_Check( ctx, ctx->Map.entry.Post_Alignment );
-  CReqPosixMemalign_Post_Size_Check( ctx, ctx->Map.entry.Post_Size );
+  CStdlibReqPosixMemalign_Pre_Memptr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStdlibReqPosixMemalign_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CStdlibReqPosixMemalign_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  CStdlibReqPosixMemalign_Action( ctx );
+  CStdlibReqPosixMemalign_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CStdlibReqPosixMemalign_Post_MemptrVar_Check(
+    ctx,
+    ctx->Map.entry.Post_MemptrVar
+  );
+  CStdlibReqPosixMemalign_Post_Alignment_Check(
+    ctx,
+    ctx->Map.entry.Post_Alignment
+  );
+  CStdlibReqPosixMemalign_Post_Size_Check( ctx, ctx->Map.entry.Post_Size );
 }
 
 /**
- * @fn void T_case_body_CReqPosixMemalign( void )
+ * @fn void T_case_body_CStdlibReqPosixMemalign( void )
  */
-T_TEST_CASE_FIXTURE( CReqPosixMemalign, &CReqPosixMemalign_Fixture )
+T_TEST_CASE_FIXTURE(
+  CStdlibReqPosixMemalign,
+  &CStdlibReqPosixMemalign_Fixture
+)
 {
-  CReqPosixMemalign_Context *ctx;
+  CStdlibReqPosixMemalign_Context *ctx;
 
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CReqPosixMemalign_Pre_Memptr_Valid;
-    ctx->Map.pcs[ 0 ] < CReqPosixMemalign_Pre_Memptr_NA;
+    ctx->Map.pcs[ 0 ] = CStdlibReqPosixMemalign_Pre_Memptr_Valid;
+    ctx->Map.pcs[ 0 ] < CStdlibReqPosixMemalign_Pre_Memptr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     for (
-      ctx->Map.pcs[ 1 ] = CReqPosixMemalign_Pre_Alignment_Tiny;
-      ctx->Map.pcs[ 1 ] < CReqPosixMemalign_Pre_Alignment_NA;
+      ctx->Map.pcs[ 1 ] = CStdlibReqPosixMemalign_Pre_Alignment_Tiny;
+      ctx->Map.pcs[ 1 ] < CStdlibReqPosixMemalign_Pre_Alignment_NA;
       ++ctx->Map.pcs[ 1 ]
     ) {
       for (
-        ctx->Map.pcs[ 2 ] = CReqPosixMemalign_Pre_Size_Huge;
-        ctx->Map.pcs[ 2 ] < CReqPosixMemalign_Pre_Size_NA;
+        ctx->Map.pcs[ 2 ] = CStdlibReqPosixMemalign_Pre_Size_Huge;
+        ctx->Map.pcs[ 2 ] < CStdlibReqPosixMemalign_Pre_Size_NA;
         ++ctx->Map.pcs[ 2 ]
       ) {
-        ctx->Map.entry = CReqPosixMemalign_PopEntry( ctx );
-        CReqPosixMemalign_Prepare( ctx );
-        CReqPosixMemalign_TestVariant( ctx );
+        ctx->Map.entry = CStdlibReqPosixMemalign_PopEntry( ctx );
+        CStdlibReqPosixMemalign_Prepare( ctx );
+        CStdlibReqPosixMemalign_TestVariant( ctx );
       }
     }
   }
