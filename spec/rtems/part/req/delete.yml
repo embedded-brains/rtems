@@ -147,25 +147,23 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Part
+          InUse:
+          - 'Yes'
+      then: InUse
+    - if:
+        pre-conditions:
+          Id:
+          - Part
+          InUse:
+          - 'No'
+      then: Ok
+    - else: InvId
   pre-conditions:
-    Id:
-    - Part
-    InUse:
-    - 'No'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-  pre-conditions:
-    Id:
-    - NoObj
+    Id: all
     InUse: all
-- enabled-by: true
-  post-conditions:
-    Status: InUse
-  pre-conditions:
-    Id:
-    - Part
-    InUse:
-    - 'Yes'
 type: requirement
