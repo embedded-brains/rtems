@@ -50,7 +50,7 @@ links:
 - role: validation
   uid: /c/if/offsetof
 - role: validation
-  uid: /c/if/size_max
+  uid: /c/stdint/if/size_max
 - role: validation
   uid: /c/if/size_t
 - role: validation
