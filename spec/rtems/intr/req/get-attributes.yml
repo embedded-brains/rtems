@@ -179,28 +179,39 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Attributes: Set
-  pre-conditions:
-    Vector:
-    - Valid
+    Status:
+    - if:
+        pre-conditions:
+          Attributes:
+          - Obj
+          Vector:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          Attributes:
+          - Obj
+          Vector:
+          - Valid
+      then: Ok
+    - else: InvAddr
     Attributes:
-    - Obj
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Attributes: Nop
+    - if:
+        pre-conditions:
+          Attributes:
+          - Obj
+          Vector:
+          - Valid
+      then: Set
+    - if:
+        pre-conditions:
+          Attributes:
+          - Obj
+          Vector:
+          - Invalid
+      then: Zero
+    - else: Nop
   pre-conditions:
     Vector: all
-    Attributes:
-    - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Attributes: Zero
-  pre-conditions:
-    Vector:
-    - Invalid
-    Attributes:
-    - Obj
+    Attributes: all
 type: requirement
