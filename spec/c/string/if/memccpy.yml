@@ -48,6 +48,12 @@ params:
   name: n
 return:
   return: |
-    Returns the result.
-  return-values: []
+    Returns a pointer to the byte immediately following the copied byte specified
+    by ${.:/params[2]/name} in the memory area referenced by ${.:/params[0]/name},
+    if the byte specified by ${.:/params[2]/name} was copied.
+  return-values:
+  - description: |
+      Returns ${/c/if/null:/name}, if the byte specified by ${.:/params[2]/name} was
+      not copied.
+    value: ${/c/if/null:/name}
 type: interface
