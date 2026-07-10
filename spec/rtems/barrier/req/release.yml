@@ -231,32 +231,58 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: InvAddr
-    ReleasedVar: Nop
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - NoObj
+          Released:
+          - Valid
+      then: InvId
+    - if:
+        pre-conditions:
+          Id:
+          - Manual
+          Released:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          Id:
+          - Auto
+          Released:
+          - Valid
+      then: Ok
+    - else: InvAddr
+    ReleasedVar:
+    - if:
+        pre-conditions:
+          Id:
+          - Manual
+          Released:
+          - Valid
+      then: Set
+    - if:
+        pre-conditions:
+          Id:
+          - Auto
+          Released:
+          - Valid
+      then: Set
+    - else: Nop
   pre-conditions:
     Id: all
-    Released:
-    - 'Null'
-    Waiting: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    ReleasedVar: Nop
-  pre-conditions:
-    Id:
-    - NoObj
-    Released:
-    - Valid
-    Waiting: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Ok
-    ReleasedVar: Set
-  pre-conditions:
-    Id:
-    - Manual
-    - Auto
-    Released:
-    - Valid
-    Waiting: all
+    Released: all
+    Waiting:
+      applicable:
+      - pre-conditions:
+          Id:
+          - Manual
+          Released:
+          - Valid
+      - pre-conditions:
+          Id:
+          - Auto
+          Released:
+          - Valid
 type: requirement
