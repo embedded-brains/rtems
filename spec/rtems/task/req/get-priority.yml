@@ -230,7 +230,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    PriorityObj: Nop
+    PriorityObj: N/A
   pre-conditions:
     TaskId:
     - Invalid
@@ -242,7 +242,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    PriorityObj: Nop
+    PriorityObj: N/A
   pre-conditions:
     TaskId:
     - Task
@@ -254,7 +254,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    PriorityObj: Nop
+    PriorityObj: N/A
   pre-conditions:
     TaskId:
     - Invalid
@@ -266,7 +266,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    PriorityObj: Nop
+    PriorityObj: N/A
   pre-conditions:
     TaskId:
     - Task
@@ -325,7 +325,7 @@ transition-map:
 - enabled-by: RTEMS_SMP
   post-conditions:
     Status: InvAddr
-    PriorityObj: Nop
+    PriorityObj: N/A
   pre-conditions:
     TaskId:
     - Task
