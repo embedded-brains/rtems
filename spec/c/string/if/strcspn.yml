@@ -37,6 +37,9 @@ params:
   name: s2
 return:
   return: |
-    Returns the result.
+    Returns the length of the maximum initial segment of the string referenced by
+    ${.:/params[0]/name} which consists entirely of characters not from the string
+    referenced by ${.:/params[1]/name} (excluding the terminating null character of
+    either string).
   return-values: []
 type: interface
