@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: errno
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/errno:/name} object shall have thread storage duration.
+type: requirement
