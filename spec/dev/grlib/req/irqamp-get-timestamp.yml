@@ -80,14 +80,13 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: Registers
+    Result:
+    - if:
+        pre-conditions:
+          NumberOfTimestampRegisterSets:
+          - Positive
+      then: Registers
+    - else: 'Null'
   pre-conditions:
-    NumberOfTimestampRegisterSets:
-    - Positive
-- enabled-by: true
-  post-conditions:
-    Result: 'Null'
-  pre-conditions:
-    NumberOfTimestampRegisterSets:
-    - Zero
+    NumberOfTimestampRegisterSets: all
 type: requirement
