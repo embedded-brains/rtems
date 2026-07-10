@@ -35,6 +35,7 @@ install:
   - bsps/sparc/shared/start/linkcmds.base
 links: []
 source:
+- bsps/shared/dev/getentropy/getentropy-cpucounter.c
 - bsps/shared/irq/irq-default-handler.c
 - bsps/sparc/leon3/clock/ckinit.c
 - bsps/sparc/leon3/console/printk_support.c
@@ -44,5 +45,4 @@ source:
 - bsps/sparc/leon3/start/cpucounter.c
 - bsps/sparc/leon3/start/eirq.c
 - bsps/sparc/shared/irq/bsp_isr_handler.c
-- bsps/sparc/shared/start/bspgetworkarea.c
 type: build

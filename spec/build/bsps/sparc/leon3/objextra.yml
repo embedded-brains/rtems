@@ -17,7 +17,6 @@ install:
   - bsps/sparc/leon3/include/bsp/watchdog.h
 links: []
 source:
-- bsps/shared/dev/getentropy/getentropy-cpucounter.c
 - bsps/shared/dev/serial/console-termios.c
 - bsps/shared/start/sbrk.c
 - bsps/sparc/leon3/btimer/btimer.c

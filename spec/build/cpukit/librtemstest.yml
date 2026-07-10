@@ -34,6 +34,7 @@ source:
 - cpukit/libtest/t-test-busy-tick.c
 - cpukit/libtest/t-test-busy.c
 - cpukit/libtest/t-test-checks.c
+- cpukit/libtest/t-test-checks-eno.c
 - cpukit/libtest/t-test-hash-sha256.c
 - cpukit/libtest/t-test-interrupt.c
 - cpukit/libtest/t-test-rtems-context.c

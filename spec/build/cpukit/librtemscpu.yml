@@ -17,6 +17,7 @@ extra-files:
 - cpukit/doxygen/mainpage.h
 - cpukit/doxygen/top-level-groups.h
 - cpukit/include/rtems/cpuuseimpl.h
+- cpukit/libcsupport/src/malloc_p.h
 - cpukit/score/src/contrib/opt_compat.h
 - cpukit/score/src/contrib/opt_ffclock.h
 - cpukit/score/src/contrib/opt_ntp.h
@@ -30,6 +31,7 @@ install:
   - cpukit/include/rtems.h
   - cpukit/contrib/include/sha224.h
   - cpukit/contrib/include/sha256.h
+  - cpukit/include/mqueue.h
 - destination: ${BSP_INCLUDEDIR}/machine
   source:
   - cpukit/contrib/include/machine/_kernel_cpuset.h
@@ -65,6 +67,7 @@ install:
 - destination: ${BSP_INCLUDEDIR}/rtems
   source:
   - cpukit/include/rtems/base64.h
+  - cpukit/include/rtems/bsd.h
   - cpukit/include/rtems/bspIo.h
   - cpukit/include/rtems/chain.h
   - cpukit/include/rtems/clockdrv.h
@@ -76,26 +79,49 @@ install:
   - cpukit/include/rtems/extensiondata.h
   - cpukit/include/rtems/extensionimpl.h
   - cpukit/include/rtems/fatal.h
+  - cpukit/include/rtems/fs.h
   - cpukit/include/rtems/init.h
+  - cpukit/include/rtems/inttypes.h
   - cpukit/include/rtems/io.h
   - cpukit/include/rtems/irq-extension.h
   - cpukit/include/rtems/libcsupport.h
+  - cpukit/include/rtems/libio.h
+  - cpukit/include/rtems/libio_.h
   - cpukit/include/rtems/linkersets.h
   - cpukit/include/rtems/malloc.h
+  - cpukit/include/rtems/mallocinitone.h
   - cpukit/include/rtems/print.h
+  - cpukit/include/rtems/printer.h
   - cpukit/include/rtems/seterr.h
   - cpukit/include/rtems/scheduler.h
   - cpukit/include/rtems/sysinit.h
+  - cpukit/include/rtems/termiosdevice.h
   - cpukit/include/rtems/timecounter.h
   - cpukit/include/rtems/thread.h
+  - cpukit/include/rtems/userenv.h
   - cpukit/include/rtems/version.h
 - destination: ${BSP_INCLUDEDIR}/rtems/dev
   source:
   - cpukit/include/rtems/dev/io.h
 - destination: ${BSP_INCLUDEDIR}/rtems/posix
   source:
+  - cpukit/include/rtems/posix/barrierimpl.h
+  - cpukit/include/rtems/posix/condimpl.h
+  - cpukit/include/rtems/posix/key.h
+  - cpukit/include/rtems/posix/keyimpl.h
+  - cpukit/include/rtems/posix/mqueue.h
+  - cpukit/include/rtems/posix/mqueueimpl.h
+  - cpukit/include/rtems/posix/muteximpl.h
   - cpukit/include/rtems/posix/posixapi.h
+  - cpukit/include/rtems/posix/priorityimpl.h
+  - cpukit/include/rtems/posix/pthread.h
+  - cpukit/include/rtems/posix/pthreadattrimpl.h
+  - cpukit/include/rtems/posix/pthreadimpl.h
+  - cpukit/include/rtems/posix/rwlockimpl.h
+  - cpukit/include/rtems/posix/semaphore.h
+  - cpukit/include/rtems/posix/semaphoreimpl.h
   - cpukit/include/rtems/posix/spinlockimpl.h
+  - cpukit/include/rtems/posix/threadsup.h
 - destination: ${BSP_INCLUDEDIR}/rtems/rtems
   source:
   - cpukit/include/rtems/rtems/asr.h
@@ -169,6 +195,7 @@ install:
   - cpukit/include/rtems/score/coremsgimpl.h
   - cpukit/include/rtems/score/coremutex.h
   - cpukit/include/rtems/score/coremuteximpl.h
+  - cpukit/include/rtems/score/corerwlockimpl.h
   - cpukit/include/rtems/score/coresem.h
   - cpukit/include/rtems/score/coresemimpl.h
   - cpukit/include/rtems/score/exception.h
@@ -190,6 +217,7 @@ install:
   - cpukit/include/rtems/score/object.h
   - cpukit/include/rtems/score/objectdata.h
   - cpukit/include/rtems/score/objectimpl.h
+  - cpukit/include/rtems/score/onceimpl.h
   - cpukit/include/rtems/score/percpu.h
   - cpukit/include/rtems/score/priority.h
   - cpukit/include/rtems/score/prioritybitmap.h
@@ -251,7 +279,9 @@ install:
   - cpukit/include/rtems/score/watchdog.h
   - cpukit/include/rtems/score/watchdogimpl.h
   - cpukit/include/rtems/score/watchdogticks.h
+  - cpukit/include/rtems/score/wkspace.h
   - cpukit/include/rtems/score/wkspacedata.h
+  - cpukit/include/rtems/score/wkspaceinitone.h
 - destination: ${BSP_INCLUDEDIR}/sys
   source:
   - cpukit/contrib/include/sys/endian.h
@@ -322,27 +352,202 @@ source:
 - contrib/cpukit/posix-newlib/gmtime_r.c
 - contrib/cpukit/posix-newlib/mktime.c
 - cpukit/dev/iorelax.c
+- cpukit/libcsupport/src/__assert.c
+- cpukit/libcsupport/src/alignedalloc.c
+- cpukit/libcsupport/src/arc4random_getentropy_fail.c
+- cpukit/libcsupport/src/calloc.c
+- cpukit/libcsupport/src/free.c
 - cpukit/libcsupport/src/getchark.c
+- cpukit/libcsupport/src/getpid.c
+- cpukit/libcsupport/src/libiozeroiops.c
+- cpukit/libcsupport/src/malloc.c
+- cpukit/libcsupport/src/malloc_deferred.c
+- cpukit/libcsupport/src/mallocdirtydefault.c
+- cpukit/libcsupport/src/mallocextenddefault.c
+- cpukit/libcsupport/src/mallocheap.c
+- cpukit/libcsupport/src/posix_memalign.c
 - cpukit/libcsupport/src/print_printf.c
 - cpukit/libcsupport/src/printk.c
 - cpukit/libcsupport/src/printk_plugin.c
-- cpukit/libcsupport/src/rtemscalloc.c
+- cpukit/libcsupport/src/realloc.c
+- cpukit/libcsupport/src/rtems_heap_null_extend.c
 - cpukit/libcsupport/src/rtems_put_char.c
 - cpukit/libcsupport/src/rtems_putc.c
+- cpukit/libcsupport/src/rtemscalloc.c
 - cpukit/libcsupport/src/vprintk.c
 - cpukit/libmisc/cpuuse/cpuusagedata.c
 - cpukit/libmisc/cpuuse/cpuusagereset.c
+- cpukit/posix/src/barrierattrdestroy.c
+- cpukit/posix/src/barrierattrgetpshared.c
+- cpukit/posix/src/barrierattrinit.c
+- cpukit/posix/src/barrierattrsetpshared.c
+- cpukit/posix/src/cancel.c
+- cpukit/posix/src/cleanuppush.c
+- cpukit/posix/src/clockgetcpuclockid.c
+- cpukit/posix/src/clockgetres.c
+- cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocknanosleep.c
+- cpukit/posix/src/clocksettime.c
+- cpukit/posix/src/condattrdestroy.c
+- cpukit/posix/src/condattrgetclock.c
+- cpukit/posix/src/condattrgetpshared.c
+- cpukit/posix/src/condattrinit.c
+- cpukit/posix/src/condattrsetclock.c
+- cpukit/posix/src/condattrsetpshared.c
+- cpukit/posix/src/condbroadcast.c
+- cpukit/posix/src/condclockwait.c
+- cpukit/posix/src/conddefaultattributes.c
+- cpukit/posix/src/conddestroy.c
+- cpukit/posix/src/condinit.c
+- cpukit/posix/src/condsignal.c
+- cpukit/posix/src/condsignalsupp.c
+- cpukit/posix/src/condtimedwait.c
+- cpukit/posix/src/condwait.c
+- cpukit/posix/src/condwaitsupp.c
+- cpukit/posix/src/key.c
+- cpukit/posix/src/keycreate.c
+- cpukit/posix/src/keydelete.c
+- cpukit/posix/src/keygetspecific.c
+- cpukit/posix/src/keysetspecific.c
+- cpukit/posix/src/keyzerokvp.c
+- cpukit/posix/src/mqueue.c
+- cpukit/posix/src/mqueueclose.c
+- cpukit/posix/src/mqueueconfig.c
+- cpukit/posix/src/mqueuedeletesupp.c
+- cpukit/posix/src/mqueuegetattr.c
+- cpukit/posix/src/mqueueopen.c
+- cpukit/posix/src/mqueuereceive.c
+- cpukit/posix/src/mqueuerecvsupp.c
+- cpukit/posix/src/mqueuesend.c
+- cpukit/posix/src/mqueuesendsupp.c
+- cpukit/posix/src/mqueuesetattr.c
+- cpukit/posix/src/mqueuetimedreceive.c
+- cpukit/posix/src/mqueuetimedsend.c
+- cpukit/posix/src/mqueueunlink.c
+- cpukit/posix/src/mutexattrdestroy.c
+- cpukit/posix/src/mutexattrgetprioceiling.c
+- cpukit/posix/src/mutexattrgetprotocol.c
+- cpukit/posix/src/mutexattrgetpshared.c
+- cpukit/posix/src/mutexattrgettype.c
+- cpukit/posix/src/mutexattrinit.c
+- cpukit/posix/src/mutexattrsetprioceiling.c
+- cpukit/posix/src/mutexattrsetprotocol.c
+- cpukit/posix/src/mutexattrsetpshared.c
+- cpukit/posix/src/mutexattrsettype.c
+- cpukit/posix/src/mutexclocklock.c
+- cpukit/posix/src/mutexdestroy.c
+- cpukit/posix/src/mutexgetprioceiling.c
+- cpukit/posix/src/mutexinit.c
+- cpukit/posix/src/mutexlock.c
+- cpukit/posix/src/mutexlocksupp.c
+- cpukit/posix/src/mutexsetprioceiling.c
+- cpukit/posix/src/mutextimedlock.c
+- cpukit/posix/src/mutextrylock.c
+- cpukit/posix/src/mutexunlock.c
+- cpukit/posix/src/nanosleep.c
+- cpukit/posix/src/pbarrierdestroy.c
+- cpukit/posix/src/pbarrierinit.c
+- cpukit/posix/src/pbarrierwait.c
+- cpukit/posix/src/prwlockclockrdlock.c
+- cpukit/posix/src/prwlockclockwrlock.c
+- cpukit/posix/src/prwlockdestroy.c
+- cpukit/posix/src/prwlockinit.c
+- cpukit/posix/src/prwlockrdlock.c
+- cpukit/posix/src/prwlocktimedrdlock.c
+- cpukit/posix/src/prwlocktimedwrlock.c
+- cpukit/posix/src/prwlocktryrdlock.c
+- cpukit/posix/src/prwlocktrywrlock.c
+- cpukit/posix/src/prwlockunlock.c
+- cpukit/posix/src/prwlockwrlock.c
+- cpukit/posix/src/pspindestroy.c
+- cpukit/posix/src/pspininit.c
+- cpukit/posix/src/pspinlock.c
+- cpukit/posix/src/pspinunlock.c
+- cpukit/posix/src/psxnametoid.c
+- cpukit/posix/src/psxpriorityisvalid.c
+- cpukit/posix/src/psxsemaphore.c
+- cpukit/posix/src/psxsemaphoreconfig.c
+- cpukit/posix/src/psxtransschedparam.c
+- cpukit/posix/src/pthread.c
+- cpukit/posix/src/pthreadattrdefault.c
+- cpukit/posix/src/pthreadattrdestroy.c
+- cpukit/posix/src/pthreadattrgetaffinitynp.c
+- cpukit/posix/src/pthreadattrgetdetachstate.c
+- cpukit/posix/src/pthreadattrgetguardsize.c
+- cpukit/posix/src/pthreadattrgetinheritsched.c
+- cpukit/posix/src/pthreadattrgetschedparam.c
+- cpukit/posix/src/pthreadattrgetschedpolicy.c
+- cpukit/posix/src/pthreadattrgetscope.c
+- cpukit/posix/src/pthreadattrgetstack.c
+- cpukit/posix/src/pthreadattrgetstackaddr.c
+- cpukit/posix/src/pthreadattrgetstacksize.c
+- cpukit/posix/src/pthreadattrinit.c
+- cpukit/posix/src/pthreadattrsetaffinitynp.c
+- cpukit/posix/src/pthreadattrsetdetachstate.c
+- cpukit/posix/src/pthreadattrsetguardsize.c
+- cpukit/posix/src/pthreadattrsetinheritsched.c
+- cpukit/posix/src/pthreadattrsetschedparam.c
+- cpukit/posix/src/pthreadattrsetschedpolicy.c
+- cpukit/posix/src/pthreadattrsetscope.c
+- cpukit/posix/src/pthreadattrsetstack.c
+- cpukit/posix/src/pthreadattrsetstackaddr.c
+- cpukit/posix/src/pthreadattrsetstacksize.c
+- cpukit/posix/src/pthreadconcurrency.c
+- cpukit/posix/src/pthreadconfig.c
+- cpukit/posix/src/pthreadcreate.c
+- cpukit/posix/src/pthreaddetach.c
+- cpukit/posix/src/pthreadequal.c
+- cpukit/posix/src/pthreadexit.c
+- cpukit/posix/src/pthreadgetaffinitynp.c
+- cpukit/posix/src/pthreadgetattrnp.c
+- cpukit/posix/src/pthreadgetcpuclockid.c
+- cpukit/posix/src/pthreadgetnamenp.c
+- cpukit/posix/src/pthreadgetschedparam.c
+- cpukit/posix/src/pthreadinitthreads.c
+- cpukit/posix/src/pthreadjoin.c
+- cpukit/posix/src/pthreadonce.c
+- cpukit/posix/src/pthreadsetaffinitynp.c
+- cpukit/posix/src/pthreadsetnamenp.c
+- cpukit/posix/src/pthreadsetschedparam.c
+- cpukit/posix/src/pthreadsetschedprio.c
+- cpukit/posix/src/rwlockattrdestroy.c
+- cpukit/posix/src/rwlockattrgetpshared.c
+- cpukit/posix/src/rwlockattrinit.c
+- cpukit/posix/src/rwlockattrsetpshared.c
+- cpukit/posix/src/sched_getparam.c
+- cpukit/posix/src/sched_getprioritymax.c
+- cpukit/posix/src/sched_getprioritymin.c
+- cpukit/posix/src/sched_getscheduler.c
+- cpukit/posix/src/sched_rr_get_interval.c
+- cpukit/posix/src/sched_setparam.c
+- cpukit/posix/src/sched_setscheduler.c
+- cpukit/posix/src/sched_yield.c
+- cpukit/posix/src/semaphoredeletesupp.c
+- cpukit/posix/src/semclose.c
+- cpukit/posix/src/semdestroy.c
+- cpukit/posix/src/semgetvalue.c
+- cpukit/posix/src/seminit.c
+- cpukit/posix/src/semopen.c
+- cpukit/posix/src/sempost.c
+- cpukit/posix/src/semtimedwait.c
+- cpukit/posix/src/semtrywait.c
+- cpukit/posix/src/semunlink.c
+- cpukit/posix/src/semwait.c
+- cpukit/posix/src/setcancelstate.c
+- cpukit/posix/src/setcanceltype.c
+- cpukit/posix/src/sysconf.c
 - cpukit/posix/src/testcancel.c
+- cpukit/posix/src/timespecget.c
+- cpukit/posix/src/timespecgetres.c
 - cpukit/rtems/src/barrier.c
 - cpukit/rtems/src/barriercreate.c
 - cpukit/rtems/src/barrierdelete.c
+- cpukit/rtems/src/barriergetnumwaiting.c
 - cpukit/rtems/src/barrierident.c
 - cpukit/rtems/src/barrierrelease.c
-- cpukit/rtems/src/barriergetnumwaiting.c
 - cpukit/rtems/src/barrierwait.c
-- cpukit/rtems/src/clockgettickssinceboot.c
 - cpukit/rtems/src/clockgettickspersecond.c
+- cpukit/rtems/src/clockgettickssinceboot.c
 - cpukit/rtems/src/clockgettod.c
 - cpukit/rtems/src/clockgetuptime.c
 - cpukit/rtems/src/clockgetuptimenanoseconds.c
@@ -383,9 +588,9 @@ source:
 - cpukit/rtems/src/ratemonresetstatistics.c
 - cpukit/rtems/src/ratemontimeout.c
 - cpukit/rtems/src/region.c
-- cpukit/rtems/src/rtemsnametoid.c
 - cpukit/rtems/src/rtemsbuildname.c
 - cpukit/rtems/src/rtemsmaxprio.c
+- cpukit/rtems/src/rtemsnametoid.c
 - cpukit/rtems/src/rtemsobjectgetname.c
 - cpukit/rtems/src/rtemstimer.c
 - cpukit/rtems/src/scheduleraddprocessor.c
@@ -410,9 +615,9 @@ source:
 - cpukit/rtems/src/statustext.c
 - cpukit/rtems/src/systemeventreceive.c
 - cpukit/rtems/src/systemeventsend.c
-- cpukit/rtems/src/taskcreate.c
 - cpukit/rtems/src/taskconstruct.c
 - cpukit/rtems/src/taskconstructuser.c
+- cpukit/rtems/src/taskcreate.c
 - cpukit/rtems/src/taskdelete.c
 - cpukit/rtems/src/taskexit.c
 - cpukit/rtems/src/taskgetaffinity.c
@@ -455,6 +660,8 @@ source:
 - cpukit/score/src/apimutexlock.c
 - cpukit/score/src/apimutexunlock.c
 - cpukit/score/src/chain.c
+- cpukit/score/src/condition.c
+- cpukit/score/src/configstackspacesize.c
 - cpukit/score/src/contrib/kern_tc.c
 - cpukit/score/src/corebarrier.c
 - cpukit/score/src/corebarrierwait.c
@@ -465,15 +672,26 @@ source:
 - cpukit/score/src/coremsginsert.c
 - cpukit/score/src/coremsgseize.c
 - cpukit/score/src/coremsgsubmit.c
+- cpukit/score/src/coremsgwkspace.c
 - cpukit/score/src/coremutexseize.c
+- cpukit/score/src/corerwlock.c
+- cpukit/score/src/corerwlockobtainread.c
+- cpukit/score/src/corerwlockobtainwrite.c
+- cpukit/score/src/corerwlockrelease.c
 - cpukit/score/src/coresem.c
 - cpukit/score/src/coretod.c
+- cpukit/score/src/coretodcheck.c
 - cpukit/score/src/coretodhookdata.c
 - cpukit/score/src/coretodhookregister.c
 - cpukit/score/src/coretodhookrun.c
 - cpukit/score/src/coretodhookunregister.c
 - cpukit/score/src/coretodset.c
+- cpukit/score/src/freechain.c
 - cpukit/score/src/futex.c
+- cpukit/score/src/heap.c
+- cpukit/score/src/heapallocate.c
+- cpukit/score/src/heapfree.c
+- cpukit/score/src/heapresizeblock.c
 - cpukit/score/src/interr.c
 - cpukit/score/src/isr.c
 - cpukit/score/src/isrisinprogress.c
@@ -489,9 +707,14 @@ source:
 - cpukit/score/src/objectgetnameasstring.c
 - cpukit/score/src/objectgetnoprotection.c
 - cpukit/score/src/objectinitializeinformation.c
+- cpukit/score/src/objectnamespaceremove.c
 - cpukit/score/src/objectnametoid.c
+- cpukit/score/src/objectnametoidstring.c
+- cpukit/score/src/once.c
 - cpukit/score/src/percpu.c
 - cpukit/score/src/percpuasm.c
+- cpukit/score/src/pheapallocate.c
+- cpukit/score/src/pheapfree.c
 - cpukit/score/src/processormaskcopy.c
 - cpukit/score/src/rbtreeextract.c
 - cpukit/score/src/rbtreeinsert.c
@@ -510,6 +733,7 @@ source:
 - cpukit/score/src/schedulerpriorityunblock.c
 - cpukit/score/src/schedulerpriorityyield.c
 - cpukit/score/src/schedulersetaffinity.c
+- cpukit/score/src/semaphore.c
 - cpukit/score/src/stackallocatorforidle.c
 - cpukit/score/src/stackallocatorforidlewkspace.c
 - cpukit/score/src/thread.c
@@ -519,6 +743,8 @@ source:
 - cpukit/score/src/threaddispatch.c
 - cpukit/score/src/threadentryadaptoridle.c
 - cpukit/score/src/threadentryadaptornumeric.c
+- cpukit/score/src/threadentryadaptorpointer.c
+- cpukit/score/src/threadexhausttimeslice.c
 - cpukit/score/src/threadget.c
 - cpukit/score/src/threadgetcputimeused.c
 - cpukit/score/src/threadgetcputimeusedafterreset.c
@@ -527,6 +753,7 @@ source:
 - cpukit/score/src/threadinitialize.c
 - cpukit/score/src/threaditerate.c
 - cpukit/score/src/threadloadenv.c
+- cpukit/score/src/threadname.c
 - cpukit/score/src/threadq.c
 - cpukit/score/src/threadqenqueue.c
 - cpukit/score/src/threadqflush.c
@@ -544,6 +771,7 @@ source:
 - cpukit/score/src/threadtimeout.c
 - cpukit/score/src/threadyield.c
 - cpukit/score/src/timespecdividebyinteger.c
+- cpukit/score/src/timespecfromticks.c
 - cpukit/score/src/timespecgetasnanoseconds.c
 - cpukit/score/src/tlsallocsize.c
 - cpukit/score/src/userext.c
@@ -555,6 +783,12 @@ source:
 - cpukit/score/src/watchdogtick.c
 - cpukit/score/src/watchdogtickssinceboot.c
 - cpukit/score/src/watchdogtimeslicedefault.c
+- cpukit/score/src/wkspace.c
+- cpukit/score/src/wkspaceallocate.c
+- cpukit/score/src/wkspacefree.c
+- cpukit/score/src/wkspaceisunifieddefault.c
 - cpukit/score/src/wkspacemallocinitdefault.c
+- cpukit/score/src/wkspacemallocinitunified.c
+- cpukit/score/src/wkstringduplicate.c
 target: rtemscpu
 type: build
