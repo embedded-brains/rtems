@@ -118,14 +118,13 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Output: CrNl
+    Output:
+    - if:
+        pre-conditions:
+          Char:
+          - Other
+      then: Other
+    - else: CrNl
   pre-conditions:
-    Char:
-    - Nl
-- enabled-by: true
-  post-conditions:
-    Output: Other
-  pre-conditions:
-    Char:
-    - Other
+    Char: all
 type: requirement
