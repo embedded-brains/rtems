@@ -1,0 +1,153 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/mutexattr-getpshared
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_rsc_success( ctx->retval );
+    text: |
+      The return status shall be zero.
+  - name: Einval
+    test-code: |
+      T_rsc( ctx->retval, EINVAL );
+    text: |
+      The return status shall be ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: PsharedObj
+  states:
+  - name: Set
+    test-code: |
+      T_eq_int( ctx->pshared_value, ctx->pshared_obj );
+    text: |
+      The value of the object referenced by the ${../if/mutexattr-getpshared:/params[1]/name} parameter shall be set to the process-shared attribute of the mutex attributes object referenced by the ${../if/mutexattr-getpshared:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->pshared_value, -1 );
+    text: |
+      The value of the object referenced by the ${../if/mutexattr-getpshared:/params[1]/name} parameter shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Attr
+  states:
+  - name: Valid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      pthread_mutexattr_init( &ctx->attr_obj );
+      pthread_mutexattr_setpshared( &ctx->attr_obj, ctx->pshared_obj );
+    text: |
+      While the mutex attributes object referenced by ${../if/mutexattr-getpshared:/params[0]/name} is valid.
+  - name: 'Null'
+    test-code: |
+      ctx->attr = NULL;
+    text: |
+      While the ${../if/mutexattr-getpshared:/params[0]/name} parameter is NULL.
+  - name: Invalid
+    test-code: |
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+    text: |
+      While the mutex attributes object referenced by ${../if/mutexattr-getpshared:/params[0]/name} is invalid.
+  test-epilogue: null
+  test-prologue: null
+- name: Pshared
+  states:
+  - name: Valid
+    test-code: |
+      ctx->pshared_value = -1;
+      ctx->pshared = &ctx->pshared_value;
+    text: |
+      While the ${../if/mutexattr-getpshared:/params[1]/name} parameter references an object of type `int`.
+  - name: 'Null'
+    test-code: |
+      ctx->pshared = NULL;
+    text: |
+      While the ${../if/mutexattr-getpshared:/params[1]/name} parameter is NULL.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: ctx->retval = pthread_mutexattr_getpshared( ctx->attr, ctx->pshared );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/mutexattr-getpshared:/params[0]/name} parameter
+    value.
+  description: null
+  member: const pthread_mutexattr_t *attr
+- brief: This member specifies the ${../if/mutexattr-getpshared:/params[1]/name} parameter
+    value.
+  description: null
+  member: int *pshared
+- brief: This member contains the return value.
+  description: null
+  member: int retval
+- brief: |
+    This member contains the attribute object.
+  description: null
+  member: pthread_mutexattr_t attr_obj
+- brief: |
+    This member contains the pshared value.
+  description: null
+  member: int pshared_obj
+- brief: |
+    This member contains the pshared output object.
+  description: null
+  member: int pshared_value
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->pshared_obj = PTHREAD_PROCESS_SHARED;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-mutexattr-getpshared.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Attr:
+          - 'Null'
+          - Invalid
+      then: Einval
+    - if:
+        pre-conditions:
+          Pshared: 'Null'
+      then: Einval
+    - else: Ok
+    PsharedObj:
+    - if:
+        pre-conditions:
+          Pshared: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Attr:
+          - 'Null'
+          - Invalid
+      then: Nop
+    - else: Set
+  pre-conditions:
+    Attr: all
+    Pshared: all
+type: requirement
