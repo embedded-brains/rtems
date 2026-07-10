@@ -222,80 +222,150 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: EINVAL
-    MemptrVar: 'Null'
-    Alignment: N/A
-    Size: N/A
-  pre-conditions:
-    Memptr:
-    - Valid
+    Status:
+    - if:
+        pre-conditions:
+          Alignment:
+          - Huge
+          Memptr:
+          - Valid
+          Size:
+          - Huge
+      then: ENOMEM
+    - if:
+        pre-conditions:
+          Alignment:
+          - Huge
+          Memptr:
+          - Valid
+          Size:
+          - Valid
+      then: ENOMEM
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Huge
+      then: ENOMEM
+    - if:
+        pre-conditions:
+          Alignment:
+          - Huge
+          Memptr:
+          - Valid
+          Size:
+          - Zero
+      then: Zero
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Zero
+      then: Zero
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Valid
+      then: Zero
+    - else: EINVAL
+    MemptrVar:
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Valid
+      then: AreaBegin
+    - if:
+        pre-conditions:
+          Memptr:
+          - Valid
+          Size:
+          - Huge
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Memptr:
+          - Valid
+          Size:
+          - Zero
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Alignment:
+          - Tiny
+          Memptr:
+          - Valid
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Alignment:
+          - NotPower2
+          Memptr:
+          - Valid
+      then: 'Null'
+    - if:
+        pre-conditions:
+          Alignment:
+          - Huge
+          Memptr:
+          - Valid
+      then: 'Null'
+    - else: Nop
     Alignment:
-    - Tiny
-    - NotPower2
-    Size: all
-- enabled-by: true
-  post-conditions:
-    Status: EINVAL
-    MemptrVar: Nop
-    Alignment: N/A
-    Size: N/A
+    - if:
+        pre-conditions:
+          Alignment:
+          - Huge
+          Memptr:
+          - Valid
+          Size:
+          - Zero
+      then: Valid
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Zero
+      then: Valid
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Valid
+      then: Valid
+    - else: N/A
+    Size:
+    - if:
+        pre-conditions:
+          Alignment:
+          - Valid
+          Memptr:
+          - Valid
+          Size:
+          - Valid
+      then: Valid
+    - else: N/A
   pre-conditions:
-    Memptr:
-    - 'Null'
+    Memptr: all
     Alignment: all
     Size: all
-- enabled-by: true
-  post-conditions:
-    Status: ENOMEM
-    MemptrVar: 'Null'
-    Alignment: N/A
-    Size: N/A
-  pre-conditions:
-    Memptr:
-    - Valid
-    Alignment:
-    - Huge
-    Size:
-    - Huge
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: ENOMEM
-    MemptrVar: 'Null'
-    Alignment: N/A
-    Size: N/A
-  pre-conditions:
-    Memptr:
-    - Valid
-    Alignment:
-    - Valid
-    Size:
-    - Huge
-- enabled-by: true
-  post-conditions:
-    Status: Zero
-    MemptrVar: AreaBegin
-    Alignment: Valid
-    Size: Valid
-  pre-conditions:
-    Memptr:
-    - Valid
-    Alignment:
-    - Valid
-    Size:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: Zero
-    MemptrVar: 'Null'
-    Alignment: Valid
-    Size: N/A
-  pre-conditions:
-    Memptr:
-    - Valid
-    Alignment:
-    - Valid
-    - Huge
-    Size:
-    - Zero
 type: requirement
