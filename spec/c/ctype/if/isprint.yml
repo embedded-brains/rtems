@@ -1,0 +1,40 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Check whether the character specified by ${.:/params[0]/name} is an
+  ${../glossary/uppercase:/term}, a ${../glossary/lowercase:/term}, a
+  ${../glossary/digit:/term}, a ${../glossary/punctuation:/term}, or space.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - int ${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: isprint
+notes: |
+  See [C23, <ctype.h>, isprint()](https://en.cppreference.com/w/c/string/byte/isprint).
+params:
+- description: |
+    is the character to be classified.
+  dir: null
+  name: c
+return:
+  return: |
+    Returns a nonzero value if the character is a printable character.
+  return-values:
+  - description: |
+      Returns zero if the character is not a printable character.
+    value: 0
+type: interface

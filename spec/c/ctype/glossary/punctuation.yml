@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: punctuation
+text: |
+  A punctuation character is one of the 32 printable characters that is not an
+  uppercase letter, lowercase letter, digit, or white-space character.
+type: glossary
