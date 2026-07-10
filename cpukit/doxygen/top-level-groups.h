@@ -122,11 +122,131 @@
  */
 
 /**
+ * @file cpukit/libc/ctype/ctype_.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the __set_ctype()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/ctype/ctype_.h
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides internal declarations used by the
+ *   implementation of the character classification and conversion functions.
+ */
+
+/**
  * @file cpukit/libc/search/qsort.c
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the qsort()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/arc4random.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the arc4random()
+ *   and arc4random_buf() functions.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/arc4random.h
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides internal helper functions and macros
+ *   used by the implementation of the arc4random() and arc4random_buf()
+ *   functions.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/chacha_private.h
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides the internal implementation of the
+ *   ChaCha20 stream cipher used by the arc4random() implementation.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/env.h
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file declares the environ variable and the __findenv()
+ *   function used by the implementation of the environment variable
+ *   functions.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/getenv.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the __findenv()
+ *   and getenv() functions.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/reallocarray.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the reallocarray()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/setenv.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the putenv(),
+ *   setenv(), and unsetenv() functions.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/strtol.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strtol()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/strtoll.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strtoll()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/strtoul.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strtoul()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/stdlib/strtoull.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strtoull()
+ *   function.
  */
 
 /**
@@ -134,7 +254,8 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the
+ *   explicit_bzero() function.
  */
 
 /**
@@ -142,7 +263,8 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the flsl()
+ *   function.
  */
 
 /**
@@ -150,8 +272,26 @@
  *
  * @ingroup libcsupport
  *
- * @brief This header file provides interfaces used by the implementation of C
- *   library functions.
+ * @brief This header file declares the __wcwidth() function and provides
+ *   internal macros used by the implementation of the string functions.
+ */
+
+/**
+ * @file cpukit/libc/string/memccpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memccpy()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/memchr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memchr()
+ *   function.
  */
 
 /**
@@ -159,7 +299,8 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the memcmp()
+ *   function.
  */
 
 /**
@@ -167,7 +308,17 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the memcpy()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/memmove.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memmove()
+ *   function.
  */
 
 /**
@@ -175,7 +326,36 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the memset()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/stpcpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the stpcpy()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/str-two-way.h
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This header file provides the internal Two-Way string searching
+ *   algorithm template used by the implementation of substring search
+ *   functions such as strstr().
+ */
+
+/**
+ * @file cpukit/libc/string/strcasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcasecmp()
+ *   function.
  */
 
 /**
@@ -183,7 +363,8 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the strchr()
+ *   function.
  */
 
 /**
@@ -191,7 +372,35 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the strcmp()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strcspn.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcspn()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strdup.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strdup()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strlcpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strlcpy()
+ *   function.
  */
 
 /**
@@ -199,7 +408,71 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the strlen()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strncasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncasecmp()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strncat.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncat()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strncmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncmp()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strncpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncpy()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strndup.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strndup()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strnlen.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strnlen()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strpbrk.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strpbrk()
+ *   function.
  */
 
 /**
@@ -207,7 +480,26 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implemention of a C library function.
+ * @brief This source file contains the implementation of the strrchr()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strspn.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strspn()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strstr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strstr()
+ *   function.
  */
 
 /**
