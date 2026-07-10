@@ -91,7 +91,7 @@ pre-conditions:
       to zero.
   - name: Small
     test-code: |
-      ctx->n = 5;
+      ctx->n = sizeof( long ) - 1;
     text: |
       While the size specified by ${../if/memccpy:/params[3]/name} is
       greater than zero, while the size specified by
