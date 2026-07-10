@@ -365,43 +365,48 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Enabled:
+          - Obj
+          Vector:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          Enabled:
+          - Obj
+          Vector:
+          - Valid
+      then: Ok
+    - else: InvAddr
     IsEnabled:
-    - specified-by: IsEnabled
+    - if:
+        pre-conditions:
+          Enabled:
+          - Obj
+          IsEnabled:
+          - 'No'
+          Vector:
+          - Valid
+      then: 'No'
+    - if:
+        pre-conditions:
+          Enabled:
+          - Obj
+          IsEnabled:
+          - 'Yes'
+          Vector:
+          - Valid
+      then: 'Yes'
+    - else: Nop
   pre-conditions:
-    Vector:
-    - Valid
-    Enabled:
-    - Obj
-    IsEnabled: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    IsEnabled: Nop
-  pre-conditions:
-    Vector:
-    - Valid
-    Enabled:
-    - 'Null'
-    IsEnabled: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    IsEnabled: Nop
-  pre-conditions:
-    Vector:
-    - Invalid
-    Enabled:
-    - 'Null'
-    IsEnabled: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    IsEnabled: Nop
-  pre-conditions:
-    Vector:
-    - Invalid
-    Enabled:
-    - Obj
-    IsEnabled: N/A
+    Vector: all
+    Enabled: all
+    IsEnabled:
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
