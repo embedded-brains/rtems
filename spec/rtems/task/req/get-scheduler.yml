@@ -134,28 +134,32 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    SchedulerIDObj: Set
-  pre-conditions:
-    Id:
-    - Task
-    SchedulerID:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    SchedulerIDObj: Nop
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Invalid
+          SchedulerID:
+          - Valid
+      then: InvId
+    - if:
+        pre-conditions:
+          Id:
+          - Task
+          SchedulerID:
+          - Valid
+      then: Ok
+    - else: InvAddr
+    SchedulerIDObj:
+    - if:
+        pre-conditions:
+          Id:
+          - Task
+          SchedulerID:
+          - Valid
+      then: Set
+    - else: Nop
   pre-conditions:
     Id: all
-    SchedulerID:
-    - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    SchedulerIDObj: Nop
-  pre-conditions:
-    Id:
-    - Invalid
-    SchedulerID:
-    - Valid
+    SchedulerID: all
 type: requirement
