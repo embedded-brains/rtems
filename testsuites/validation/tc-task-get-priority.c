@@ -130,7 +130,7 @@ typedef struct {
   rtems_id scheduler_b_id;
 
   /**
-   * @brief This member provides the object referenced by the `priority`
+   * @brief This member provides the object referenced by the ``priority``
    *   parameter.
    */
   rtems_task_priority priority_obj;
@@ -142,17 +142,17 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the `task_id` parameter value.
+   * @brief This member specifies if the ``task_id`` parameter value.
    */
   rtems_id task_id;
 
   /**
-   * @brief This member specifies if the `scheduler_id` parameter value.
+   * @brief This member specifies if the ``scheduler_id`` parameter value.
    */
   rtems_id scheduler_id;
 
   /**
-   * @brief This member specifies if the `priority` parameter value.
+   * @brief This member specifies if the ``priority`` parameter value.
    */
   rtems_id *priority;
 
@@ -234,7 +234,7 @@ static void RtemsTaskReqGetPriority_Pre_TaskId_Prepare(
   switch ( state ) {
     case RtemsTaskReqGetPriority_Pre_TaskId_Invalid: {
       /*
-       * While the `task_id` parameter is not associated with a task.
+       * While the ``task_id`` parameter is not associated with a task.
        */
       ctx->task_id = INVALID_ID;
       break;
@@ -242,7 +242,7 @@ static void RtemsTaskReqGetPriority_Pre_TaskId_Prepare(
 
     case RtemsTaskReqGetPriority_Pre_TaskId_Task: {
       /*
-       * While the `task_id` parameter is associated with a task.
+       * While the ``task_id`` parameter is associated with a task.
        */
       ctx->task_id = RTEMS_SELF;
       break;
@@ -261,7 +261,8 @@ static void RtemsTaskReqGetPriority_Pre_SchedulerId_Prepare(
   switch ( state ) {
     case RtemsTaskReqGetPriority_Pre_SchedulerId_Invalid: {
       /*
-       * While the `scheduler_id` parameter is not associated with a scheduler.
+       * While the ``scheduler_id`` parameter is not associated with a
+       * scheduler.
        */
       ctx->scheduler_id = INVALID_ID;
       break;
@@ -269,7 +270,7 @@ static void RtemsTaskReqGetPriority_Pre_SchedulerId_Prepare(
 
     case RtemsTaskReqGetPriority_Pre_SchedulerId_Scheduler: {
       /*
-       * While the `scheduler_id` parameter is associated with a scheduler.
+       * While the ``scheduler_id`` parameter is associated with a scheduler.
        */
       ctx->scheduler_id = ctx->scheduler_a_id;
       break;
@@ -288,8 +289,8 @@ static void RtemsTaskReqGetPriority_Pre_Scheduler_Prepare(
   switch ( state ) {
     case RtemsTaskReqGetPriority_Pre_Scheduler_Eligible: {
       /*
-       * While the `scheduler_id` parameter is associated with an eligible
-       * scheduler of the task specified by `task_id`.
+       * While the ``scheduler_id`` parameter is associated with an eligible
+       * scheduler of the task specified by ``task_id``.
        */
       ctx->scheduler_id = ctx->scheduler_a_id;
       break;
@@ -297,8 +298,8 @@ static void RtemsTaskReqGetPriority_Pre_Scheduler_Prepare(
 
     case RtemsTaskReqGetPriority_Pre_Scheduler_Ineligible: {
       /*
-       * While the `scheduler_id` parameter is associated with an ineligible
-       * scheduler of the task specified by `task_id`.
+       * While the ``scheduler_id`` parameter is associated with an ineligible
+       * scheduler of the task specified by ``task_id``.
        */
       ctx->scheduler_id = ctx->scheduler_b_id;
       break;
@@ -317,7 +318,7 @@ static void RtemsTaskReqGetPriority_Pre_Priority_Prepare(
   switch ( state ) {
     case RtemsTaskReqGetPriority_Pre_Priority_Valid: {
       /*
-       * While the `priority` parameter references an object of type
+       * While the ``priority`` parameter references an object of type
        * rtems_task_priority.
        */
       ctx->priority = &ctx->priority_obj;
@@ -326,7 +327,7 @@ static void RtemsTaskReqGetPriority_Pre_Priority_Prepare(
 
     case RtemsTaskReqGetPriority_Pre_Priority_Null: {
       /*
-       * While the `priority` parameter is equal to NULL.
+       * While the ``priority`` parameter is equal to NULL.
        */
       ctx->priority = NULL;
       break;
@@ -392,9 +393,9 @@ static void RtemsTaskReqGetPriority_Post_PriorityObj_Check(
   switch ( state ) {
     case RtemsTaskReqGetPriority_Post_PriorityObj_Set: {
       /*
-       * The value of the object referenced by the `scheduler_id` parameter
+       * The value of the object referenced by the ``scheduler_id`` parameter
        * shall be set to the object identifier of the home scheduler of the
-       * task specified by the `task_id` parameter at some point during the
+       * task specified by the ``task_id`` parameter at some point during the
        * call after the return of the rtems_task_get_priority() call.
        */
       T_eq_u32( ctx->priority_obj, PRIO_DEFAULT );
@@ -403,7 +404,7 @@ static void RtemsTaskReqGetPriority_Post_PriorityObj_Check(
 
     case RtemsTaskReqGetPriority_Post_PriorityObj_Nop: {
       /*
-       * Objects referenced by the `scheduler_id` parameter in past calls to
+       * Objects referenced by the ``scheduler_id`` parameter in past calls to
        * rtems_task_get_priority() shall not be accessed by the
        * rtems_task_get_priority() call.
        */
@@ -469,11 +470,11 @@ RtemsTaskReqGetPriority_Entries[] = {
   { 0, 0, 0, 1, 0, RtemsTaskReqGetPriority_Post_Status_InvId,
     RtemsTaskReqGetPriority_Post_PriorityObj_Nop },
   { 0, 0, 0, 1, 0, RtemsTaskReqGetPriority_Post_Status_InvAddr,
-    RtemsTaskReqGetPriority_Post_PriorityObj_Nop },
+    RtemsTaskReqGetPriority_Post_PriorityObj_NA },
   { 0, 0, 0, 0, 0, RtemsTaskReqGetPriority_Post_Status_Ok,
     RtemsTaskReqGetPriority_Post_PriorityObj_Set },
   { 0, 0, 0, 0, 0, RtemsTaskReqGetPriority_Post_Status_InvAddr,
-    RtemsTaskReqGetPriority_Post_PriorityObj_Nop },
+    RtemsTaskReqGetPriority_Post_PriorityObj_NA },
 #if defined(RTEMS_SMP)
   { 0, 0, 0, 0, 0, RtemsTaskReqGetPriority_Post_Status_NotDef,
     RtemsTaskReqGetPriority_Post_PriorityObj_Nop },
@@ -483,7 +484,7 @@ RtemsTaskReqGetPriority_Entries[] = {
 #endif
 #if defined(RTEMS_SMP)
   { 0, 0, 0, 0, 0, RtemsTaskReqGetPriority_Post_Status_InvAddr,
-    RtemsTaskReqGetPriority_Post_PriorityObj_Nop }
+    RtemsTaskReqGetPriority_Post_PriorityObj_NA }
 #else
   { 1, 0, 0, 0, 0, RtemsTaskReqGetPriority_Post_Status_NA,
     RtemsTaskReqGetPriority_Post_PriorityObj_NA }
