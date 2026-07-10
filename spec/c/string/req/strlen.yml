@@ -7,23 +7,53 @@ links:
 - role: interface-function
   uid: ../if/strlen
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Length
     test-code: |
-      /* TODO */
+      T_eq_uint( ctx->retval, ctx->expected_len );
     text: |
-      TODO
+      The return value of ${../if/strlen:/name} shall be equal to the
+      length of the string referenced by ${../if/strlen:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: Alignment
   states:
-  - name: Ok
+  - name: Aligned
     test-code: |
-      /* TODO */
+      ctx->offset = sizeof( long );
+      ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
     text: |
-      TODO
+      While the ${../if/strlen:/params[0]/name} parameter is aligned on a
+      `long` integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
+    text: |
+      While the ${../if/strlen:/params[0]/name} parameter is not aligned
+      on a `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->s_buf[ ctx->offset ] = 0;
+      ctx->expected_len = 0;
+    text: |
+      While the terminating null character occurs within the first
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strlen:/params[0]/name}.
+  - name: SecondChunk
+    test-code: |
+      ctx->s_buf[ ctx->offset + sizeof( long ) ] = 0;
+      ctx->expected_len = sizeof( long );
+    text: |
+      While the terminating null character occurs within the second
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strlen:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -43,13 +73,32 @@ test-context:
     This member contains the return value.
   description: null
   member: size_t retval
+- brief: |
+    This member contains the expected return value.
+  description: null
+  member: size_t expected_len
+- brief: |
+    This member contains the offset of the guarded ${../if/strlen:/params[0]/name} region from the start of the source buffer.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: unsigned char s_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long )
+    )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s_buf, 0x41, sizeof( ctx->s_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->s = (const char *) ( ctx->s_buf + ctx->offset );
+  ctx->retval = 0;
+  ctx->expected_len = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -60,7 +109,8 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result: Length
   pre-conditions:
-    Status: all
+    Alignment: all
+    MatchPosition: all
 type: requirement
