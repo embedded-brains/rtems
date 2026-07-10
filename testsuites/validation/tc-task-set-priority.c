@@ -153,7 +153,7 @@ typedef struct {
   bool blocked;
 
   /**
-   * @brief This member provides the object referenced by the `old_priority`
+   * @brief This member provides the object referenced by the ``old_priority``
    *   parameter.
    */
   rtems_task_priority old_priority_obj;
@@ -165,17 +165,17 @@ typedef struct {
   rtems_status_code status;
 
   /**
-   * @brief This member specifies if the `id` parameter value.
+   * @brief This member specifies if the ``id`` parameter value.
    */
   rtems_id id;
 
   /**
-   * @brief This member specifies if the `new_priority` parameter value.
+   * @brief This member specifies if the ``new_priority`` parameter value.
    */
   rtems_task_priority new_priority;
 
   /**
-   * @brief This member specifies if the `old_priority` parameter value.
+   * @brief This member specifies if the ``old_priority`` parameter value.
    */
   rtems_task_priority *old_priority;
 
@@ -276,7 +276,7 @@ static void RtemsTaskReqSetPriority_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Pre_Id_Invalid: {
       /*
-       * While the `id` parameter is not associated with a task.
+       * While the ``id`` parameter is not associated with a task.
        */
       ctx->id = INVALID_ID;
       break;
@@ -284,7 +284,7 @@ static void RtemsTaskReqSetPriority_Pre_Id_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_Id_Task: {
       /*
-       * While the `id` parameter is associated with a task.
+       * While the ``id`` parameter is associated with a task.
        */
       ctx->id = ctx->worker_id;
       break;
@@ -303,7 +303,7 @@ static void RtemsTaskReqSetPriority_Pre_State_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Pre_State_Dormant: {
       /*
-       * While the task specified by the `id` parameter is dormant.
+       * While the task specified by the ``id`` parameter is dormant.
        */
       ctx->started = false;
       break;
@@ -311,7 +311,7 @@ static void RtemsTaskReqSetPriority_Pre_State_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_State_Ready: {
       /*
-       * While the task specified by the `id` parameter is ready.
+       * While the task specified by the ``id`` parameter is ready.
        */
       ctx->started = true;
       ctx->blocked = false;
@@ -320,7 +320,7 @@ static void RtemsTaskReqSetPriority_Pre_State_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_State_Scheduled: {
       /*
-       * While the task specified by the `id` parameter is scheduled.
+       * While the task specified by the ``id`` parameter is scheduled.
        */
       ctx->started = false;
       ctx->id = rtems_task_self();
@@ -329,7 +329,7 @@ static void RtemsTaskReqSetPriority_Pre_State_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_State_Blocked: {
       /*
-       * While the task specified by the `id` parameter is blocked.
+       * While the task specified by the ``id`` parameter is blocked.
        */
       ctx->started = true;
       ctx->blocked = true;
@@ -349,7 +349,7 @@ static void RtemsTaskReqSetPriority_Pre_NewPriority_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Pre_NewPriority_Current: {
       /*
-       * While the value of the `new_priority` parameter is equal to
+       * While the value of the ``new_priority`` parameter is equal to
        * RTEMS_CURRENT_PRIORITY.
        */
       ctx->new_priority = RTEMS_CURRENT_PRIORITY;
@@ -358,7 +358,7 @@ static void RtemsTaskReqSetPriority_Pre_NewPriority_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_NewPriority_Other: {
       /*
-       * While the value of the `new_priority` parameter is not equal to
+       * While the value of the ``new_priority`` parameter is not equal to
        * RTEMS_CURRENT_PRIORITY.
        */
       ctx->new_priority = PRIO_NORMAL;
@@ -378,11 +378,11 @@ static void RtemsTaskReqSetPriority_Pre_TaskPriority_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Pre_TaskPriority_High: {
       /*
-       * While the value of the `new_priority` parameter is a valid task
+       * While the value of the ``new_priority`` parameter is a valid task
        * priority with respect to the home scheduler of the task specified by
-       * the `id` parameter when the new priority is set, while the value of
-       * the `new_priority` parameter is higher than the task priority with
-       * respect to the home scheduler of the task specified by the `id`
+       * the ``id`` parameter when the new priority is set, while the value of
+       * the ``new_priority`` parameter is higher than the task priority with
+       * respect to the home scheduler of the task specified by the ``id``
        * parameter at time when the scheduler evaluates the new priority.
        */
       ctx->new_priority = PRIO_HIGH;
@@ -391,11 +391,11 @@ static void RtemsTaskReqSetPriority_Pre_TaskPriority_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_TaskPriority_Equal: {
       /*
-       * While the value of the `new_priority` parameter is a valid task
+       * While the value of the ``new_priority`` parameter is a valid task
        * priority with respect to the home scheduler of the task specified by
-       * the `id` parameter when the new priority is set, while the value of
-       * the `new_priority` parameter is equal to the task priority with
-       * respect to the home scheduler of the task specified by the `id`
+       * the ``id`` parameter when the new priority is set, while the value of
+       * the ``new_priority`` parameter is equal to the task priority with
+       * respect to the home scheduler of the task specified by the ``id``
        * parameter at time when the scheduler evaluates the new priority.
        */
       ctx->new_priority = PRIO_NORMAL;
@@ -404,11 +404,11 @@ static void RtemsTaskReqSetPriority_Pre_TaskPriority_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_TaskPriority_Low: {
       /*
-       * While the value of the `new_priority` parameter is a valid task
+       * While the value of the ``new_priority`` parameter is a valid task
        * priority with respect to the home scheduler of the task specified by
-       * the `id` parameter when the new priority is set, while the value of
-       * the `new_priority` parameter is lower than the task priority with
-       * respect to the home scheduler of the task specified by the `id`
+       * the ``id`` parameter when the new priority is set, while the value of
+       * the ``new_priority`` parameter is lower than the task priority with
+       * respect to the home scheduler of the task specified by the ``id``
        * parameter at time when the scheduler evaluates the new priority.
        */
       ctx->new_priority = PRIO_LOW;
@@ -417,9 +417,9 @@ static void RtemsTaskReqSetPriority_Pre_TaskPriority_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_TaskPriority_Invalid: {
       /*
-       * While the value of the `new_priority` parameter is an invalid task
+       * While the value of the ``new_priority`` parameter is an invalid task
        * priority with respect to the home scheduler of the task specified by
-       * the `id` parameter when the new priority is evaluated.
+       * the ``id`` parameter when the new priority is evaluated.
        */
       ctx->new_priority = PRIO_INVALID;
       break;
@@ -438,7 +438,7 @@ static void RtemsTaskReqSetPriority_Pre_OldPriority_Prepare(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Pre_OldPriority_Valid: {
       /*
-       * While the `old_priority` parameter references an object of type
+       * While the ``old_priority`` parameter references an object of type
        * rtems_task_priority.
        */
       ctx->old_priority = &ctx->old_priority_obj;
@@ -447,7 +447,7 @@ static void RtemsTaskReqSetPriority_Pre_OldPriority_Prepare(
 
     case RtemsTaskReqSetPriority_Pre_OldPriority_Null: {
       /*
-       * While the `old_priority` parameter is equal to NULL.
+       * While the ``old_priority`` parameter is equal to NULL.
        */
       ctx->old_priority = NULL;
       break;
@@ -513,9 +513,9 @@ static void RtemsTaskReqSetPriority_Post_Priority_Check(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Post_Priority_Set: {
       /*
-       * The real priority of the task specified by the `id` parameter shall be
-       * set to the value specified by the `new_priority` parameter at some
-       * point during the rtems_task_set_priority() call.
+       * The real priority of the task specified by the ``id`` parameter shall
+       * be set to the value specified by the ``new_priority`` parameter at
+       * some point during the rtems_task_set_priority() call.
        */
       T_eq_u32( GetPriority( ctx->id ), ctx->new_priority );
       break;
@@ -543,9 +543,9 @@ static void RtemsTaskReqSetPriority_Post_OldPriorityObj_Check(
   switch ( state ) {
     case RtemsTaskReqSetPriority_Post_OldPriorityObj_Set: {
       /*
-       * The value of the object referenced by the `old_priority` parameter
+       * The value of the object referenced by the ``old_priority`` parameter
        * shall be set after the return of the rtems_task_set_priority() call to
-       * the current priority of the task specified by the `id` parameter at
+       * the current priority of the task specified by the ``id`` parameter at
        * some point during the call and before the real priority is modified by
        * the call if it is modified by the call.
        */
@@ -555,7 +555,7 @@ static void RtemsTaskReqSetPriority_Post_OldPriorityObj_Check(
 
     case RtemsTaskReqSetPriority_Post_OldPriorityObj_Nop: {
       /*
-       * Objects referenced by the `old_priority` parameter in past calls to
+       * Objects referenced by the ``old_priority`` parameter in past calls to
        * rtems_task_set_priority() shall not be accessed by the
        * rtems_task_set_priority() call.
        */
@@ -653,16 +653,16 @@ RtemsTaskReqSetPriority_Entries[] = {
     RtemsTaskReqSetPriority_Post_OldPriorityObj_Nop },
   { 0, 0, 1, 0, 1, 0, RtemsTaskReqSetPriority_Post_Status_InvAddr,
     RtemsTaskReqSetPriority_Post_Priority_Nop,
-    RtemsTaskReqSetPriority_Post_OldPriorityObj_Nop },
+    RtemsTaskReqSetPriority_Post_OldPriorityObj_NA },
   { 0, 0, 0, 0, 1, 0, RtemsTaskReqSetPriority_Post_Status_Ok,
     RtemsTaskReqSetPriority_Post_Priority_Nop,
     RtemsTaskReqSetPriority_Post_OldPriorityObj_Set },
   { 0, 0, 0, 0, 1, 0, RtemsTaskReqSetPriority_Post_Status_InvAddr,
     RtemsTaskReqSetPriority_Post_Priority_Nop,
-    RtemsTaskReqSetPriority_Post_OldPriorityObj_Nop },
+    RtemsTaskReqSetPriority_Post_OldPriorityObj_NA },
   { 0, 0, 0, 0, 0, 0, RtemsTaskReqSetPriority_Post_Status_InvAddr,
     RtemsTaskReqSetPriority_Post_Priority_Nop,
-    RtemsTaskReqSetPriority_Post_OldPriorityObj_Nop },
+    RtemsTaskReqSetPriority_Post_OldPriorityObj_NA },
   { 0, 0, 0, 0, 0, 0, RtemsTaskReqSetPriority_Post_Status_Ok,
     RtemsTaskReqSetPriority_Post_Priority_Set,
     RtemsTaskReqSetPriority_Post_OldPriorityObj_Set },
