@@ -154,28 +154,32 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    PrioObj: Set
-  pre-conditions:
-    Id:
-    - Scheduler
-    Prio:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    PrioObj: Nop
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Invalid
+          Prio:
+          - Valid
+      then: InvId
+    - if:
+        pre-conditions:
+          Id:
+          - Scheduler
+          Prio:
+          - Valid
+      then: Ok
+    - else: InvAddr
+    PrioObj:
+    - if:
+        pre-conditions:
+          Id:
+          - Scheduler
+          Prio:
+          - Valid
+      then: Set
+    - else: Nop
   pre-conditions:
     Id: all
-    Prio:
-    - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    PrioObj: Nop
-  pre-conditions:
-    Id:
-    - Invalid
-    Prio:
-    - Valid
+    Prio: all
 type: requirement
