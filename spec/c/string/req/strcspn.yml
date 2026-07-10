@@ -7,59 +7,202 @@ links:
 - role: interface-function
   uid: ../if/strcspn
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      T_eq_uint( ctx->retval, 0 );
     text: |
-      TODO
+      The return value of ${../if/strcspn:/name} shall be equal to zero.
+  - name: Partial
+    test-code: |
+      T_eq_uint( ctx->retval, ctx->expected_len );
+      T_gt_uint( ctx->retval, 0 );
+      T_lt_uint( ctx->retval, strlen( ctx->s1 ) );
+    text: |
+      The return value of ${../if/strcspn:/name} shall be greater than
+      zero, while the return value of ${../if/strcspn:/name} is less than
+      the length of the string referenced by
+      ${../if/strcspn:/params[0]/name}.
+  - name: Full
+    test-code: |
+      T_eq_uint( ctx->retval, strlen( ctx->s1 ) );
+    text: |
+      The return value of ${../if/strcspn:/name} shall be equal to the
+      length of the string referenced by ${../if/strcspn:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: S1
   states:
-  - name: Ok
+  - name: Empty
     test-code: |
-      /* TODOD */
+      ctx->s1_buf[ 0 ] = '\0';
     text: |
-      TODO
+      While the string referenced by ${../if/strcspn:/params[0]/name} is
+      empty.
+  - name: NonEmpty
+    test-code: |
+      strcpy( ctx->s1_buf, "XXXXX" );
+    text: |
+      While the string referenced by ${../if/strcspn:/params[0]/name} is
+      not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: S2
+  states:
+  - name: Empty
+    test-code: |
+      ctx->s2_buf[ 0 ] = '\0';
+    text: |
+      While the string referenced by ${../if/strcspn:/params[1]/name} is
+      empty.
+  - name: NonEmpty
+    test-code: |
+      strcpy( ctx->s2_buf, "ZZZ" );
+    text: |
+      While the string referenced by ${../if/strcspn:/params[1]/name} is
+      not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: Found
+    test-code: |
+      ctx->s1_buf[ 0 ] = 'Y';
+      ctx->s2_buf[ 0 ] = 'Y';
+    text: |
+      While a character of the string referenced by
+      ${../if/strcspn:/params[0]/name} occurs in the string referenced by
+      ${../if/strcspn:/params[1]/name}.
+  - name: NotFound
+    test-code: |
+      /* The default fill values of the buffers do not overlap */
+    text: |
+      While no character of the string referenced by
+      ${../if/strcspn:/params[0]/name} occurs in the string referenced by
+      ${../if/strcspn:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: First
+    test-code: |
+      /* Already set up generically by Match: Found */
+    text: |
+      While the first character of the string referenced by
+      ${../if/strcspn:/params[0]/name} matches the first character of the
+      string referenced by ${../if/strcspn:/params[1]/name}.
+  - name: S1Later
+    test-code: |
+      ctx->s1_buf[ 0 ] = 'X';
+      ctx->s1_buf[ 2 ] = 'Y';
+      ctx->expected_len = 2;
+    text: |
+      While a character other than the first character of the string
+      referenced by ${../if/strcspn:/params[0]/name} is the first
+      character of that string to match the first character of the string
+      referenced by ${../if/strcspn:/params[1]/name}.
+  - name: S2Later
+    test-code: |
+      ctx->s2_buf[ 0 ] = 'Z';
+      ctx->s2_buf[ 2 ] = 'Y';
+    text: |
+      While the first character of the string referenced by
+      ${../if/strcspn:/params[0]/name} matches a character other than the
+      first character of the string referenced by
+      ${../if/strcspn:/params[1]/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = strcspn( ctx->s1, ctx->s2 );
+test-action: |
+  ctx->retval = strcspn( ctx->s1, ctx->s2 );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/strcspn:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/strcspn:/params[0]/name} parameter value.
   description: null
-  member: const char * s1
-- brief: This member specifies the ${../if/strcspn:/params[1]/name} parameter value.
+  member: const char *s1
+- brief: |
+    This member specifies the ${../if/strcspn:/params[1]/name} parameter value.
   description: null
-  member: const char * s2
-- brief: This member contains the return value.
+  member: const char *s2
+- brief: |
+    This member contains the return value.
   description: null
   member: size_t retval
+- brief: |
+    This member contains the expected return value for the Partial post-condition state.
+  description: null
+  member: size_t expected_len
+- brief: |
+    This member provides the ${../if/strcspn:/params[0]/name} buffer.
+  description: null
+  member: char s1_buf[ 32 ]
+- brief: |
+    This member provides the ${../if/strcspn:/params[1]/name} buffer.
+  description: null
+  member: char s2_buf[ 16 ]
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s1_buf, 0, sizeof( ctx->s1_buf ) );
+  memset( ctx->s2_buf, 0, sizeof( ctx->s2_buf ) );
+  ctx->s1 = ctx->s1_buf;
+  ctx->s2 = ctx->s2_buf;
+  ctx->retval = 0;
+  ctx->expected_len = 0;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-string-strcspn.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          S1: Empty
+      then: Zero
+    - if:
+        pre-conditions:
+          S2: Empty
+      then: Full
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: Full
+    - if:
+        pre-conditions:
+          MatchPosition: S1Later
+      then: Partial
+    - else: Zero
   pre-conditions:
-    Status: all
+    S1: all
+    S2:
+      applicable:
+        pre-conditions:
+          S1: NonEmpty
+    Match:
+      applicable:
+        pre-conditions:
+          S1: NonEmpty
+          S2: NonEmpty
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Match: Found
+          S1: NonEmpty
+          S2: NonEmpty
 type: requirement
