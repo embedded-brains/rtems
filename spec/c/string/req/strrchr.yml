@@ -7,23 +7,70 @@ links:
 - role: interface-function
   uid: ../if/strrchr
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: Found
     test-code: |
-      /* TODO */
+      T_eq_ptr( ctx->retval, ctx->s_buf + ctx->match_pos );
     text: |
-      TODO
+      The return value of ${../if/strrchr:/name} shall be a pointer to
+      the last occurrence of the notable byte in the string referenced by
+      ${../if/strrchr:/params[0]/name}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value of ${../if/strrchr:/name} shall be equal to
+      ${/c/if/null:/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: C
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODO */
+      strcpy( ctx->s_buf, "ABC" );
+      ctx->c = 0;
+      ctx->match_pos = 3;
     text: |
-      TODO
+      While the byte specified by ${../if/strrchr:/params[1]/name} is
+      equal to the terminating null character.
+  - name: NonZero
+    test-code: |
+      ctx->c = 'X';
+    text: |
+      While the byte specified by ${../if/strrchr:/params[1]/name} is not
+      equal to the terminating null character.
+  test-epilogue: null
+  test-prologue: null
+- name: Match
+  states:
+  - name: NotFound
+    test-code: |
+      strcpy( ctx->s_buf, "ABC" );
+    text: |
+      While the byte specified by ${../if/strrchr:/params[1]/name} does
+      not occur in the string referenced by
+      ${../if/strrchr:/params[0]/name} before its terminating null
+      character.
+  - name: FoundOnce
+    test-code: |
+      strcpy( ctx->s_buf, "ABXCD" );
+      ctx->match_pos = 2;
+    text: |
+      While the byte specified by ${../if/strrchr:/params[1]/name} occurs
+      exactly once in the string referenced by
+      ${../if/strrchr:/params[0]/name} before its terminating null
+      character.
+  - name: FoundMultiple
+    test-code: |
+      strcpy( ctx->s_buf, "AXBXC" );
+      ctx->match_pos = 3;
+    text: |
+      While the byte specified by ${../if/strrchr:/params[1]/name} occurs
+      more than once in the string referenced by
+      ${../if/strrchr:/params[0]/name} before its terminating null
+      character.
   test-epilogue: null
   test-prologue: null
 rationale: null
@@ -47,13 +94,26 @@ test-context:
     This member contains the return value.
   description: null
   member: char *retval
+- brief: |
+    This member contains the index of the last occurrence of the notable byte within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: char s_buf[ 16 ]
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->s_buf, 0, sizeof( ctx->s_buf ) );
+  ctx->s = ctx->s_buf;
+  ctx->c = 0;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
@@ -64,7 +124,16 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result:
+    - if:
+        pre-conditions:
+          Match: NotFound
+      then: 'Null'
+    - else: Found
   pre-conditions:
-    Status: all
+    C: all
+    Match:
+      applicable:
+        pre-conditions:
+          C: NonZero
 type: requirement
