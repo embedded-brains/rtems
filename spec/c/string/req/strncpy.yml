@@ -7,62 +7,292 @@ links:
 - role: interface-function
   uid: ../if/strncpy
 post-conditions:
-- name: Status
+- name: Result
   states:
-  - name: Ok
+  - name: SameAsDst
     test-code: |
-      /* TODOD */
+      T_eq_ptr( ctx->retval, ctx->dest_buf + ctx->offset );
     text: |
-      TODO
+      The return value of ${../if/strncpy:/name} shall be equal to the
+      initial value of ${../if/strncpy:/params[0]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: DstArea
+  states:
+  - name: Unmodified
+    test-code: |
+      for ( size_t i = 0; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The memory area referenced by ${../if/strncpy:/params[0]/name} shall
+      not be modified.
+  - name: CopiedWithPadding
+    test-code: |
+      size_t copy_len = ctx->match_pos - ctx->offset + 1;
+
+      T_eq_nstr(
+        (const char *) &ctx->dest_buf[ ctx->offset ],
+        (const char *) &ctx->src_buf[ ctx->offset ],
+        copy_len
+      );
+
+      for (
+        size_t i = ctx->offset + copy_len;
+        i < ctx->offset + ctx->n;
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0 );
+      }
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + ctx->n;
+        i < sizeof( ctx->dest_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The string referenced by ${../if/strncpy:/params[1]/name}, including
+      its terminating null character, shall be copied to the memory area
+      referenced by ${../if/strncpy:/params[0]/name}. The remaining bytes
+      of the memory area referenced by ${../if/strncpy:/params[0]/name} up
+      to the size specified by ${../if/strncpy:/params[2]/name} shall be
+      set to the terminating null character.
+  - name: CopiedFull
+    test-code: |
+      T_eq_mem(
+        ctx->dest_buf + ctx->offset,
+        ctx->src_buf + ctx->offset,
+        ctx->n
+      );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + ctx->n;
+        i < sizeof( ctx->dest_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+    text: |
+      The bytes specified by ${../if/strncpy:/params[2]/name} of the
+      string referenced by ${../if/strncpy:/params[1]/name} shall be
+      copied to the memory area referenced by
+      ${../if/strncpy:/params[0]/name}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
-- name: Status
+- name: N
   states:
-  - name: Ok
+  - name: Zero
     test-code: |
-      /* TODOD */
+      ctx->n = 0;
     text: |
-      TODO
+      While the size specified by ${../if/strncpy:/params[2]/name} is
+      equal to zero.
+  - name: Small
+    test-code: |
+      ctx->n = sizeof( long ) - 1;
+    text: |
+      While the size specified by ${../if/strncpy:/params[2]/name} is
+      greater than zero, while the size specified by
+      ${../if/strncpy:/params[2]/name} is less than the size of a `long`
+      integer on the target architecture.
+  - name: Word
+    test-code: |
+      ctx->n = sizeof( long );
+    text: |
+      While the size specified by ${../if/strncpy:/params[2]/name} is
+      equal to the size of a `long` integer on the target architecture.
+  - name: MultiWord
+    test-code: |
+      ctx->n = 2 * sizeof( long ) + 3;
+    text: |
+      While the size specified by ${../if/strncpy:/params[2]/name} is
+      greater than twice the size of a `long` integer on the target
+      architecture, while the size specified by
+      ${../if/strncpy:/params[2]/name} is not evenly divisible by the
+      size of a `long` integer on the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Aligned
+    test-code: |
+      ctx->offset = sizeof( long );
+      ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+      ctx->src = (const char *) ( ctx->src_buf + ctx->offset );
+    text: |
+      While the ${../if/strncpy:/params[0]/name} parameter and the
+      ${../if/strncpy:/params[1]/name} parameter are aligned on a `long`
+      integer boundary of the target architecture.
+  - name: Unaligned
+    test-code: |
+      ctx->offset = sizeof( long ) + 1;
+      ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+      ctx->src = (const char *) ( ctx->src_buf + ctx->offset );
+    text: |
+      While the ${../if/strncpy:/params[0]/name} parameter or the
+      ${../if/strncpy:/params[1]/name} parameter are not aligned on a
+      `long` integer boundary of the target architecture.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: Fits
+    test-code: |
+      ctx->match_pos = ctx->offset + 2;
+      ctx->src_buf[ ctx->match_pos ] = 0;
+    text: |
+      While the length of the string referenced by
+      ${../if/strncpy:/params[1]/name} is less than the size specified by
+      ${../if/strncpy:/params[2]/name}.
+  - name: Truncate
+    test-code: |
+      /* The default fill value of the source buffer does not contain a
+         null character within the first n bytes */
+    text: |
+      While the length of the string referenced by
+      ${../if/strncpy:/params[1]/name} is greater than or equal to the
+      size specified by ${../if/strncpy:/params[2]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: MatchPosition
+  states:
+  - name: FirstChunk
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x41;
+      ctx->match_pos = ctx->offset + 3;
+      ctx->src_buf[ ctx->match_pos ] = 0;
+    text: |
+      While the terminating null character occurs within the first
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strncpy:/params[1]/name}.
+  - name: SecondChunk
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x41;
+      ctx->match_pos = ctx->offset + sizeof( long ) + 3;
+      ctx->src_buf[ ctx->match_pos ] = 0;
+    text: |
+      While the terminating null character occurs within the second
+      aligned `long` integer sized chunk of the string referenced by
+      ${../if/strncpy:/params[1]/name}.
+  - name: Remainder
+    test-code: |
+      ctx->src_buf[ ctx->match_pos ] = 0x41;
+      ctx->match_pos = ctx->offset + 2 * sizeof( long ) + 1;
+      ctx->src_buf[ ctx->match_pos ] = 0;
+    text: |
+      While the terminating null character occurs within the trailing
+      bytes of the string referenced by ${../if/strncpy:/params[1]/name}
+      which remain after all aligned `long` integer sized chunks have
+      been processed.
   test-epilogue: null
   test-prologue: null
 rationale: null
 references: []
 requirement-type: functional
 skip-reasons: {}
-test-action: ctx->retval = strncpy( ctx->dest, ctx->src, ctx->n );
+test-action: |
+  ctx->retval = strncpy( ctx->dest, ctx->src, ctx->n );
 test-brief: null
 test-cleanup: null
 test-context:
-- brief: This member specifies the ${../if/strncpy:/params[0]/name} parameter value.
+- brief: |
+    This member specifies the ${../if/strncpy:/params[0]/name} parameter value.
   description: null
-  member: char * dest
-- brief: This member specifies the ${../if/strncpy:/params[1]/name} parameter value.
+  member: char *dest
+- brief: |
+    This member specifies the ${../if/strncpy:/params[1]/name} parameter value.
   description: null
-  member: const char * src
-- brief: This member specifies the ${../if/strncpy:/params[2]/name} parameter value.
+  member: const char *src
+- brief: |
+    This member specifies the ${../if/strncpy:/params[2]/name} parameter value.
   description: null
   member: size_t n
-- brief: This member contains the return value.
+- brief: |
+    This member contains the return value.
   description: null
   member: char *retval
+- brief: |
+    This member contains the index of the terminating null character within the source buffer.
+  description: null
+  member: size_t match_pos
+- brief: |
+    This member contains the offset of the guarded ${../if/strncpy:/params[0]/name} and ${../if/strncpy:/params[1]/name} regions from the start of the destination and source buffers.
+  description: null
+  member: size_t offset
+- brief: |
+    This member provides the destination buffer.
+  description: null
+  member: unsigned char dest_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long
+    ) )
+- brief: |
+    This member provides the source buffer.
+  description: null
+  member: unsigned char src_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long
+    ) )
 test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- rtems.h
 - string.h
 test-local-includes: []
-test-prepare: null
+test-prepare: |
+  memset( ctx->dest_buf, 0xaa, sizeof( ctx->dest_buf ) );
+  memset( ctx->src_buf, 0x41, sizeof( ctx->src_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->dest = (char *) ( ctx->dest_buf + ctx->offset );
+  ctx->src = (const char *) ( ctx->src_buf + ctx->offset );
+  ctx->retval = NULL;
+  ctx->n = 0;
+  ctx->match_pos = 0;
 test-setup: null
 test-stop: null
 test-support: null
 test-target: testsuites/validation/tc-string-strncpy.c
 test-teardown: null
-text: ${.:text-template}
+text: |
+  ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Result: SameAsDst
+    DstArea:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Unmodified
+    - if:
+        pre-conditions:
+          Fit: Fits
+      then: CopiedWithPadding
+    - else: CopiedFull
   pre-conditions:
-    Status: all
+    N: all
+    Alignment:
+      applicable:
+        pre-conditions:
+          N: MultiWord
+    Fit:
+      applicable:
+        pre-conditions:
+          N:
+          - Small
+          - Word
+          - MultiWord
+    MatchPosition:
+      applicable:
+        pre-conditions:
+          Fit: Fits
+          N: MultiWord
 type: requirement
