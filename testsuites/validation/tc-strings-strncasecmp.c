@@ -63,19 +63,33 @@
  */
 
 typedef enum {
-  CStringsReqStrncasecmp_Pre_Status_Ok,
-  CStringsReqStrncasecmp_Pre_Status_NA
-} CStringsReqStrncasecmp_Pre_Status;
+  CStringsReqStrncasecmp_Pre_N_Zero,
+  CStringsReqStrncasecmp_Pre_N_Positive,
+  CStringsReqStrncasecmp_Pre_N_LongPositive,
+  CStringsReqStrncasecmp_Pre_N_NA
+} CStringsReqStrncasecmp_Pre_N;
 
 typedef enum {
-  CStringsReqStrncasecmp_Post_Status_Ok,
-  CStringsReqStrncasecmp_Post_Status_NA
-} CStringsReqStrncasecmp_Post_Status;
+  CStringsReqStrncasecmp_Pre_Cmp_Less,
+  CStringsReqStrncasecmp_Pre_Cmp_Equal,
+  CStringsReqStrncasecmp_Pre_Cmp_Greater,
+  CStringsReqStrncasecmp_Pre_Cmp_S1Longer,
+  CStringsReqStrncasecmp_Pre_Cmp_LimitedByN,
+  CStringsReqStrncasecmp_Pre_Cmp_NA
+} CStringsReqStrncasecmp_Pre_Cmp;
+
+typedef enum {
+  CStringsReqStrncasecmp_Post_Result_Less,
+  CStringsReqStrncasecmp_Post_Result_Equal,
+  CStringsReqStrncasecmp_Post_Result_Greater,
+  CStringsReqStrncasecmp_Post_Result_NA
+} CStringsReqStrncasecmp_Post_Result;
 
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_N_NA : 1;
+  uint8_t Pre_Cmp_NA : 1;
+  uint8_t Post_Result : 2;
 } CStringsReqStrncasecmp_Entry;
 
 /**
@@ -104,9 +118,15 @@ typedef struct {
 
   struct {
     /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
+    /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -134,50 +154,172 @@ typedef struct {
 static CStringsReqStrncasecmp_Context
   CStringsReqStrncasecmp_Instance;
 
-static const char * const CStringsReqStrncasecmp_PreDesc_Status[] = {
-  "Ok",
+static const char * const CStringsReqStrncasecmp_PreDesc_N[] = {
+  "Zero",
+  "Positive",
+  "LongPositive",
+  "NA"
+};
+
+static const char * const CStringsReqStrncasecmp_PreDesc_Cmp[] = {
+  "Less",
+  "Equal",
+  "Greater",
+  "S1Longer",
+  "LimitedByN",
   "NA"
 };
 
 static const char * const * const CStringsReqStrncasecmp_PreDesc[] = {
-  CStringsReqStrncasecmp_PreDesc_Status,
+  CStringsReqStrncasecmp_PreDesc_N,
+  CStringsReqStrncasecmp_PreDesc_Cmp,
   NULL
 };
 
-static void CStringsReqStrncasecmp_Pre_Status_Prepare(
-  CStringsReqStrncasecmp_Pre_Status state
+static void CStringsReqStrncasecmp_Pre_N_Prepare(
+  CStringsReqStrncasecmp_Context *ctx,
+  CStringsReqStrncasecmp_Pre_N    state
 )
 {
   switch ( state ) {
-    case CStringsReqStrncasecmp_Pre_Status_Ok: {
+    case CStringsReqStrncasecmp_Pre_N_Zero: {
       /*
-       * TODO
+       * While the value specified by `n` is equal to zero.
        */
-      /* TODOD */
+      ctx->n = 0;
       break;
     }
 
-    case CStringsReqStrncasecmp_Pre_Status_NA:
+    case CStringsReqStrncasecmp_Pre_N_Positive: {
+      /*
+       * While the value specified by `n` is greater than zero.
+       */
+      ctx->n = 5;
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_N_LongPositive: {
+      /*
+       * While the value specified by `n` is greater than the length of the
+       * string specified by `s2`.
+       */
+      ctx->n = 6;
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_N_NA:
       break;
   }
 }
 
-static void CStringsReqStrncasecmp_Post_Status_Check(
-  CStringsReqStrncasecmp_Post_Status state
+static void CStringsReqStrncasecmp_Pre_Cmp_Prepare(
+  CStringsReqStrncasecmp_Context *ctx,
+  CStringsReqStrncasecmp_Pre_Cmp  state
 )
 {
   switch ( state ) {
-    case CStringsReqStrncasecmp_Post_Status_Ok: {
+    case CStringsReqStrncasecmp_Pre_Cmp_Less: {
       /*
-       * TODO
+       * While the first n characters of the string specified by `s1` are less
+       * than the first n characters of the string specified by `s2` after
+       * ignoring differences in case.
        */
-      /* TODOD */
+      ctx->s1 = "abcde";
+      ctx->s2 = "xyzab";
       break;
     }
 
-    case CStringsReqStrncasecmp_Post_Status_NA:
+    case CStringsReqStrncasecmp_Pre_Cmp_Equal: {
+      /*
+       * While the first n characters of the string specified by `s1` are equal
+       * to the first n characters of the string specified by `s2` after
+       * ignoring differences in case.
+       */
+      ctx->s1 = "Hello";
+      ctx->s2 = "hello";
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_Cmp_Greater: {
+      /*
+       * While the first n characters of the string specified by `s1` are
+       * greater than the first n characters of the string specified by `s2`
+       * after ignoring differences in case.
+       */
+      ctx->s1 = "xyzab";
+      ctx->s2 = "abcde";
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_Cmp_S1Longer: {
+      /*
+       * While the string specified by `s1` is longer than the string specified
+       * by `s2`, while both strings share the same prefix for the first n
+       * characters after ignoring differences in case.
+       */
+      ctx->s1 = "Hello!";
+      ctx->s2 = "Hello";
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_Cmp_LimitedByN: {
+      /*
+       * While the first n characters of the string specified by `s1` are equal
+       * to the first n characters of the string specified by `s2` after
+       * ignoring differences in case, while the strings differ after the first
+       * n characters.
+       */
+      ctx->s1 = "HelloX";
+      ctx->s2 = "HelloY";
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Pre_Cmp_NA:
       break;
   }
+}
+
+static void CStringsReqStrncasecmp_Post_Result_Check(
+  CStringsReqStrncasecmp_Context    *ctx,
+  CStringsReqStrncasecmp_Post_Result state
+)
+{
+  switch ( state ) {
+    case CStringsReqStrncasecmp_Post_Result_Less: {
+      /*
+       * The return value shall be less than zero.
+       */
+      T_lt_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Post_Result_Equal: {
+      /*
+       * The return value shall be equal to zero.
+       */
+      T_eq_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Post_Result_Greater: {
+      /*
+       * The return value shall be greater than zero.
+       */
+      T_gt_int( ctx->retval, 0 );
+      break;
+    }
+
+    case CStringsReqStrncasecmp_Post_Result_NA:
+      break;
+  }
+}
+
+static void CStringsReqStrncasecmp_Prepare(
+  CStringsReqStrncasecmp_Context *ctx
+)
+{
+  ctx->s1 = "Hello";
+  ctx->s2 = "hello";
 }
 
 static void CStringsReqStrncasecmp_Action(
@@ -189,12 +331,16 @@ static void CStringsReqStrncasecmp_Action(
 
 static const CStringsReqStrncasecmp_Entry
 CStringsReqStrncasecmp_Entries[] = {
-  { 0, 0, CStringsReqStrncasecmp_Post_Status_Ok }
+  { 0, 0, 1, CStringsReqStrncasecmp_Post_Result_Equal },
+  { 0, 0, 1, CStringsReqStrncasecmp_Post_Result_Greater },
+  { 0, 0, 0, CStringsReqStrncasecmp_Post_Result_Greater },
+  { 0, 0, 0, CStringsReqStrncasecmp_Post_Result_Equal },
+  { 0, 0, 0, CStringsReqStrncasecmp_Post_Result_Less }
 };
 
 static const uint8_t
 CStringsReqStrncasecmp_Map[] = {
-  0
+  0, 0, 0, 0, 0, 4, 3, 2, 2, 3, 1, 1, 1, 2, 1
 };
 
 static size_t CStringsReqStrncasecmp_Scope( void *arg, char *buf, size_t n )
@@ -231,13 +377,27 @@ static inline CStringsReqStrncasecmp_Entry CStringsReqStrncasecmp_PopEntry(
   ];
 }
 
+static void CStringsReqStrncasecmp_SetPreConditionStates(
+  CStringsReqStrncasecmp_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Cmp_NA ) {
+    ctx->Map.pcs[ 1 ] = CStringsReqStrncasecmp_Pre_Cmp_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CStringsReqStrncasecmp_TestVariant(
   CStringsReqStrncasecmp_Context *ctx
 )
 {
-  CStringsReqStrncasecmp_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CStringsReqStrncasecmp_Pre_N_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringsReqStrncasecmp_Pre_Cmp_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringsReqStrncasecmp_Action( ctx );
-  CStringsReqStrncasecmp_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CStringsReqStrncasecmp_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
 }
 
 /**
@@ -252,12 +412,20 @@ T_TEST_CASE_FIXTURE( CStringsReqStrncasecmp, &CStringsReqStrncasecmp_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringsReqStrncasecmp_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CStringsReqStrncasecmp_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CStringsReqStrncasecmp_Pre_N_Zero;
+    ctx->Map.pci[ 0 ] < CStringsReqStrncasecmp_Pre_N_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CStringsReqStrncasecmp_PopEntry( ctx );
-    CStringsReqStrncasecmp_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CStringsReqStrncasecmp_Pre_Cmp_Less;
+      ctx->Map.pci[ 1 ] < CStringsReqStrncasecmp_Pre_Cmp_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CStringsReqStrncasecmp_PopEntry( ctx );
+      CStringsReqStrncasecmp_SetPreConditionStates( ctx );
+      CStringsReqStrncasecmp_Prepare( ctx );
+      CStringsReqStrncasecmp_TestVariant( ctx );
+    }
   }
 }
 
