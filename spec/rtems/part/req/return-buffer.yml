@@ -176,30 +176,34 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Buf: Free
-  pre-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Buf:
+          - BadAlign
+          - BelowArea
+          - AboveArea
+          Id:
+          - Part
+      then: InvAddr
+    - if:
+        pre-conditions:
+          Buf:
+          - Valid
+          Id:
+          - Part
+      then: Ok
+    - else: InvId
     Buf:
-    - Valid
-    Id:
-    - Part
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Buf: InUse
+    - if:
+        pre-conditions:
+          Buf:
+          - Valid
+          Id:
+          - Part
+      then: Free
+    - else: InUse
   pre-conditions:
+    Id: all
     Buf: all
-    Id:
-    - NoObj
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Buf: InUse
-  pre-conditions:
-    Buf:
-    - BadAlign
-    - BelowArea
-    - AboveArea
-    Id:
-    - Part
 type: requirement
