@@ -42,6 +42,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <rtems/score/memory.h>
 
@@ -69,6 +70,30 @@ void *malloc( size_t size )
   }
 
   return p;
+}
+
+void *calloc( size_t nelem, size_t elsize )
+{
+  size_t  length;
+  void   *p;
+
+  if ( nelem == 0 ) {
+    return NULL;
+  }
+
+  if ( elsize > SIZE_MAX / nelem ) {
+    errno = ENOMEM;
+    return NULL;
+  }
+
+  length = nelem * elsize;
+  p = malloc( length );
+  RTEMS_OBFUSCATE_VARIABLE( p );
+  if ( RTEMS_PREDICT_FALSE( p == NULL ) ) {
+    return p;
+  }
+
+  return memset( p, 0, length );
 }
 
 int posix_memalign( void **memptr, size_t alignment, size_t size )
