@@ -132,7 +132,7 @@ post-conditions:
     test-code: |
       T_eq_u32( ctx->previous_mode_set_value, INVALID_MODE );
     text: |
-      Objects referenced by the ${../if/create:/params[2]/name} parameter in
+      Objects referenced by the ${../if/mode:/params[2]/name} parameter in
       past calls to ${../if/mode:/name} shall not be accessed by the
       ${../if/mode:/name} call.
   - name: Maybe
@@ -146,7 +146,7 @@ post-conditions:
       }
     text: |
       Where the scheduler does not support the no-preempt mode, objects
-      referenced by the ${../if/create:/params[2]/name} parameter in past calls
+      referenced by the ${../if/mode:/params[2]/name} parameter in past calls
       to ${../if/mode:/name} shall not be accessed by the ${../if/mode:/name}
       call.
 
@@ -457,8 +457,7 @@ test-context:
   description: null
   member: |
     rtems_id worker_id
-- brief: null
-    If this member is contains the initial mode of the runner.
+- brief: null If this member is contains the initial mode of the runner.
   description: null
   member: |
     rtems_mode runner_mode
@@ -680,8 +679,8 @@ transition-map:
         - post-conditions:
             Status: Ok
         - pre-conditions:
-            PreemptCur: 'No'
             Preempt: 'Yes'
+            PreemptCur: 'No'
             PreemptMsk: 'Yes'
       then: 'Yes'
     - else: 'No'
@@ -691,8 +690,8 @@ transition-map:
         - post-conditions:
             Status: Ok
         - pre-conditions:
-            ASRCur: 'No'
             ASR: 'Yes'
+            ASRCur: 'No'
             ASRMsk: 'Yes'
       then: 'Yes'
     - else: 'No'
@@ -700,7 +699,7 @@ transition-map:
     - if:
         pre-conditions:
           PrevMode: 'Null'
-      then: Nop
+      then: N/A
     - else: Set
     Mode:
     - if:
@@ -709,6 +708,7 @@ transition-map:
       then: Nop
     - else: Set
   pre-conditions:
+    PrevMode: all
     PreemptCur: all
     TimesliceCur: all
     ASRCur: all
@@ -721,7 +721,6 @@ transition-map:
     TimesliceMsk: all
     ASRMsk: all
     IntLvlMsk: all
-    PrevMode: all
 - enabled-by: CPU_ENABLE_ROBUST_THREAD_DISPATCH
   post-conditions:
     Status: NotImplIntLvl
@@ -730,6 +729,8 @@ transition-map:
     PMVar: Nop
     Mode: Nop
   pre-conditions:
+    PrevMode:
+    - Valid
     PreemptCur: all
     TimesliceCur: all
     ASRCur: all
@@ -745,11 +746,10 @@ transition-map:
     ASRMsk: all
     IntLvlMsk:
     - 'Yes'
-    PrevMode:
-    - Valid
 - enabled-by: CPU_ENABLE_ROBUST_THREAD_DISPATCH
   post-conditions: RobustThreadDispatching
   pre-conditions:
+    PrevMode: all
     PreemptCur: all
     TimesliceCur: all
     ASRCur: all
@@ -763,7 +763,6 @@ transition-map:
     TimesliceMsk: all
     ASRMsk: all
     IntLvlMsk: all
-    PrevMode: all
 - enabled-by: RTEMS_SMP
   post-conditions:
     Status:
@@ -781,45 +780,45 @@ transition-map:
     Preempt:
     - if:
         pre-conditions:
-          PreemptCur: 'No'
           Preempt: 'Yes'
+          PreemptCur: 'No'
           PreemptMsk: 'Yes'
       then: Maybe
     - else: 'No'
     ASR:
     - if:
         and:
+        - pre-conditions:
+            ASR: 'Yes'
+            ASRCur: 'No'
+            ASRMsk: 'Yes'
+        - or:
           - pre-conditions:
-              ASRCur: 'No'
-              ASR: 'Yes'
-              ASRMsk: 'Yes'
-          - or:
-            - pre-conditions:
-                Preempt: 'No'
-                PreemptMsk: 'Yes'
-            - pre-conditions:
-                IntLvl: Positive
-                IntLvlMsk: 'Yes'
+              Preempt: 'No'
+              PreemptMsk: 'Yes'
+          - pre-conditions:
+              IntLvl: Positive
+              IntLvlMsk: 'Yes'
       then: Maybe
     - if:
         and:
+        - pre-conditions:
+            ASR: 'Yes'
+            ASRCur: 'No'
+            ASRMsk: 'Yes'
+        - or:
           - pre-conditions:
-              ASRCur: 'No'
-              ASR: 'Yes'
-              ASRMsk: 'Yes'
-          - or:
-            - pre-conditions:
-                PreemptMsk: 'No'
-                IntLvlMsk: 'No'
-            - pre-conditions:
-                Preempt: 'Yes'
-                IntLvlMsk: 'No'
-            - pre-conditions:
-                PreemptMsk: 'No'
-                IntLvl: Zero
-            - pre-conditions:
-                Preempt: 'Yes'
-                IntLvl: Zero
+              IntLvlMsk: 'No'
+              PreemptMsk: 'No'
+          - pre-conditions:
+              IntLvlMsk: 'No'
+              Preempt: 'Yes'
+          - pre-conditions:
+              IntLvl: Zero
+              PreemptMsk: 'No'
+          - pre-conditions:
+              IntLvl: Zero
+              Preempt: 'Yes'
       then: 'Yes'
     - else: 'No'
     PMVar:
@@ -843,6 +842,8 @@ transition-map:
       then: Maybe
     - else: Set
   pre-conditions:
+    PrevMode:
+    - Valid
     PreemptCur: all
     TimesliceCur: all
     ASRCur: all
@@ -855,6 +856,4 @@ transition-map:
     TimesliceMsk: all
     ASRMsk: all
     IntLvlMsk: all
-    PrevMode:
-    - Valid
 type: requirement
