@@ -241,6 +241,8 @@ struct _Thread_Control *GetThread( rtems_id id );
 
 struct _Thread_Control *GetExecuting( void );
 
+bool IsTLSObjectOfThread( rtems_id id, const void *obj );
+
 void KillZombies( void );
 
 void WaitForExecutionStop( rtems_id task_id );

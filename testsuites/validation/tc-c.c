@@ -53,6 +53,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <rtems.h>
 #include <string.h>
 
@@ -80,6 +81,10 @@
  *
  * - Call assert() with an expression which evaluates to false. Check that the
  *   expected fatal error happened.
+ *
+ * - Check that errno has a signed integer type.
+ *
+ * - Check that errno has thread storage duration.
  *
  * @{
  */
@@ -262,6 +267,24 @@ static void CValC_Action_4( void )
 }
 
 /**
+ * @brief Check that errno has a signed integer type.
+ */
+static void CValC_Action_5( void )
+{
+  errno = -1;
+  T_eq_int( errno, -1 );
+  T_lt_int( errno, 0 );
+}
+
+/**
+ * @brief Check that errno has thread storage duration.
+ */
+static void CValC_Action_6( void )
+{
+  T_true( IsTLSObjectOfThread( RTEMS_SELF, &errno ) );
+}
+
+/**
  * @fn void T_case_body_CValC( void )
  */
 T_TEST_CASE( CValC )
@@ -271,6 +294,8 @@ T_TEST_CASE( CValC )
   CValC_Action_2();
   CValC_Action_3();
   CValC_Action_4();
+  CValC_Action_5();
+  CValC_Action_6();
 }
 
 /** @} */
