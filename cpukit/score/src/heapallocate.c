@@ -6,7 +6,7 @@
  * @ingroup RTEMSScoreHeap
  *
  * @brief This source file contains the implementation of
- *   _Heap_Allocate_aligned_with_boundary().
+ *   _Heap_Allocate_aligned().
  */
 
 /*
@@ -107,8 +107,7 @@ static void _Heap_Check_allocation(
   const Heap_Block   *block,
   uintptr_t           alloc_begin,
   uintptr_t           alloc_size,
-  uintptr_t           alignment,
-  uintptr_t           boundary
+  uintptr_t           alignment
 )
 {
   uintptr_t const min_block_size = heap->min_block_size;
@@ -140,24 +139,16 @@ static void _Heap_Check_allocation(
   } else {
     _HAssert( _Heap_Is_aligned( alloc_begin, alignment ) );
   }
-
-  if ( boundary != 0 ) {
-    uintptr_t boundary_line = _Heap_Align_down( alloc_end, boundary );
-
-    _HAssert( alloc_size <= boundary );
-    _HAssert( boundary_line <= alloc_begin || alloc_end <= boundary_line );
-  }
 }
 #else
-  #define _Heap_Check_allocation( h, b, ab, as, ag, bd ) ( (void) 0 )
+  #define _Heap_Check_allocation( h, b, ab, as, ag ) ( (void) 0 )
 #endif
 
 static uintptr_t _Heap_Check_block(
   const Heap_Control *heap,
   const Heap_Block   *block,
   uintptr_t           alloc_size,
-  uintptr_t           alignment,
-  uintptr_t           boundary
+  uintptr_t           alignment
 )
 {
   uintptr_t const page_size = heap->page_size;
@@ -183,22 +174,6 @@ static uintptr_t _Heap_Check_block(
 
   alloc_end = alloc_begin + alloc_size;
 
-  /* Ensure boundary constaint */
-  if ( boundary != 0 ) {
-    uintptr_t const boundary_floor = alloc_begin_floor + alloc_size;
-    uintptr_t       boundary_line = _Heap_Align_down( alloc_end, boundary );
-
-    while ( alloc_begin < boundary_line && boundary_line < alloc_end ) {
-      if ( boundary_line < boundary_floor ) {
-        return 0;
-      }
-      alloc_begin = boundary_line - alloc_size;
-      alloc_begin = _Heap_Align_down( alloc_begin, alignment );
-      alloc_end = alloc_begin + alloc_size;
-      boundary_line = _Heap_Align_down( alloc_end, boundary );
-    }
-  }
-
   /* Ensure that the we have a valid new block at the beginning */
   if ( alloc_begin >= alloc_begin_floor ) {
     uintptr_t const alloc_block_begin = (uintptr_t)
@@ -213,17 +188,15 @@ static uintptr_t _Heap_Check_block(
   return 0;
 }
 
-void *_Heap_Allocate_aligned_with_boundary(
+void *_Heap_Allocate_aligned(
   Heap_Control *heap,
   uintptr_t     alloc_size,
-  uintptr_t     alignment,
-  uintptr_t     boundary
+  uintptr_t     alignment
 )
 {
   Heap_Statistics *const stats = &heap->stats;
   uintptr_t const block_size_floor = alloc_size + HEAP_BLOCK_HEADER_SIZE -
                                      HEAP_ALLOC_BONUS;
-  uintptr_t const page_size = heap->page_size;
   Heap_Block     *block = NULL;
   uintptr_t       alloc_begin = 0;
   uint32_t        search_count = 0;
@@ -232,16 +205,6 @@ void *_Heap_Allocate_aligned_with_boundary(
   if ( block_size_floor < alloc_size ) {
     /* Integer overflow occurred */
     return NULL;
-  }
-
-  if ( boundary != 0 ) {
-    if ( boundary < alloc_size ) {
-      return NULL;
-    }
-
-    if ( alignment == 0 ) {
-      alignment = page_size;
-    }
   }
 
   do {
@@ -266,8 +229,7 @@ void *_Heap_Allocate_aligned_with_boundary(
             heap,
             block,
             alloc_size,
-            alignment,
-            boundary
+            alignment
           );
         }
       }
@@ -293,8 +255,7 @@ void *_Heap_Allocate_aligned_with_boundary(
       block,
       alloc_begin,
       alloc_size,
-      alignment,
-      boundary
+      alignment
     );
 
     /* Statistics */
@@ -312,4 +273,31 @@ void *_Heap_Allocate_aligned_with_boundary(
   }
 
   return (void *) alloc_begin;
+}
+
+void *_Heap_Allocate_aligned_with_boundary(
+  Heap_Control *heap,
+  uintptr_t     size,
+  uintptr_t     alignment,
+  uintptr_t     boundary
+)
+{
+  if ( boundary != 0 ) {
+    if ( boundary < size ) {
+      return NULL;
+    }
+
+    if ( alignment < boundary ) {
+      if ( alignment != 0 && boundary % alignment != 0 ) {
+        /* The boundary is not a multiple of the requested alignment, so
+         * raising the alignment to the boundary would silently drop the
+         * caller's alignment guarantee. */
+        return NULL;
+      }
+
+      alignment = boundary;
+    }
+  }
+
+  return _Heap_Allocate_aligned( heap, size, alignment );
 }

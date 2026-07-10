@@ -64,7 +64,7 @@ extern "C" {
  * area.  A heap control structure contains control information for the heap.
  *
  * The alignment routines could be made faster should we require only powers of
- * two to be supported for page size, alignment and boundary arguments.  The
+ * two to be supported for page size and alignment arguments.  The
  * minimum alignment requirement for pages is currently CPU_ALIGNMENT and this
  * value is only required to be multiple of two and explicitly not required to
  * be a power of two.

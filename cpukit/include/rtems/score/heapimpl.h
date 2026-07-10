@@ -119,31 +119,6 @@ uintptr_t _Heap_Initialize(
 );
 
 /**
- * @brief Allocates an aligned memory area with boundary constraint.
- *
- * A size value of zero will return a unique address which may be freed with
- * _Heap_Free().
- *
- * @param[in, out] heap The heap to allocate a memory are from.
- * @param size The size of the desired memory are in bytes.
- * @param alignment The allocated memory area will begin at an address aligned by this value.
- * @param boundary The allocated memory area will fulfill a boundary constraint,
- *      if this value is not equal to zero.  The boundary value specifies
- *      the set of addresses which are aligned by the boundary value.  The
- *      interior of the allocated memory area will not contain an element of this
- *      set.  The begin or end address of the area may be a member of the set.
- *
- * @retval pointer The starting address of the allocated memory area.
- * @retval NULL No memory is available of the parameters are inconsistent.
- */
-void *_Heap_Allocate_aligned_with_boundary(
-  Heap_Control *heap,
-  uintptr_t     size,
-  uintptr_t     alignment,
-  uintptr_t     boundary
-);
-
-/**
  * @brief Allocates an aligned memory area.
  *
  * A size value of zero will return a unique address which may be freed with
@@ -156,14 +131,50 @@ void *_Heap_Allocate_aligned_with_boundary(
  * @retval pointer The starting address of the allocated memory area.
  * @retval NULL No memory is available of the parameters are inconsistent.
  */
-static inline void *_Heap_Allocate_aligned(
+void *_Heap_Allocate_aligned(
   Heap_Control *heap,
   uintptr_t     size,
   uintptr_t     alignment
-)
-{
-  return _Heap_Allocate_aligned_with_boundary( heap, size, alignment, 0 );
-}
+);
+
+/**
+ * @brief Allocates an aligned memory area with boundary constraint.
+ *
+ * A size value of zero will return a unique address which may be freed with
+ * _Heap_Free().
+ *
+ * This is implemented on top of _Heap_Allocate_aligned() by raising the
+ * effective alignment to the boundary value, so the allocated memory area
+ * begins at a boundary-aligned address whenever @a boundary is not equal to
+ * zero.  Since @a size is required to be less than or equal to @a boundary,
+ * this guarantees that the interior of the allocated memory area does not
+ * contain an address aligned by @a boundary.  If @a alignment is not equal
+ * to zero and less than @a boundary, then @a boundary must be a multiple of
+ * @a alignment, otherwise raising the alignment to the boundary value would
+ * silently drop the requested alignment guarantee.
+ *
+ * @param[in, out] heap The heap to allocate a memory are from.
+ * @param size The size of the desired memory are in bytes.
+ * @param alignment The allocated memory area will begin at an address aligned by this value.
+ * @param boundary The allocated memory area will fulfill a boundary constraint,
+ *      if this value is not equal to zero.  The boundary value specifies
+ *      the set of addresses which are aligned by the boundary value.  The
+ *      interior of the allocated memory area will not contain an element of this
+ *      set.  The begin or end address of the area may be a member of the set.
+ *      If this value is not equal to zero and greater than @a alignment,
+ *      this value must be a multiple of @a alignment (unless @a alignment
+ *      is zero).
+ *
+ * @retval pointer The starting address of the allocated memory area.
+ * @retval NULL No memory is available, the parameters are inconsistent, or
+ *      @a alignment does not divide @a boundary.
+ */
+void *_Heap_Allocate_aligned_with_boundary(
+  Heap_Control *heap,
+  uintptr_t     size,
+  uintptr_t     alignment,
+  uintptr_t     boundary
+);
 
 /**
  * @brief Allocates a memory area.
@@ -308,7 +319,7 @@ void _Heap_Get_free_information( Heap_Control *heap, Heap_Information *info );
  * @brief Returns the size of the allocatable memory area.
  *
  * The size value may be greater than the initially requested size in
- * _Heap_Allocate_aligned_with_boundary().
+ * _Heap_Allocate_aligned().
  *
  * Inappropriate values for @a addr will not corrupt the heap, but may yield
  * invalid size values.

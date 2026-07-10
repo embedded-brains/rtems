@@ -299,6 +299,19 @@ static void test_check_alloc(
     uintptr_t const block_size = _Heap_Block_size( block );
     uintptr_t const block_end = block_begin + block_size;
 
+    /*
+     * _Heap_Allocate_aligned_with_boundary() is implemented on top of
+     * _Heap_Allocate_aligned() by raising the effective alignment to the
+     * boundary value (see heapallocate.c), so the address it actually
+     * produces is governed by this effective alignment, not by alignment
+     * alone.
+     */
+    uintptr_t effective_alignment = alignment;
+
+    if ( boundary != 0 && effective_alignment < boundary ) {
+      effective_alignment = boundary;
+    }
+
     rtems_test_assert( block_size >= min_block_size );
     rtems_test_assert( block_begin < block_end );
     rtems_test_assert(
@@ -311,19 +324,14 @@ static void test_check_alloc(
     rtems_test_assert( alloc_area_offset < page_size );
 
     rtems_test_assert( _Heap_Is_aligned( alloc_area_begin, page_size ) );
-    if ( alignment == 0 ) {
+    if ( effective_alignment == 0 ) {
       rtems_test_assert( alloc_begin == alloc_area_begin );
     } else {
-      rtems_test_assert( _Heap_Is_aligned( alloc_begin, alignment ) );
+      rtems_test_assert( _Heap_Is_aligned( alloc_begin, effective_alignment ) );
     }
 
     if ( boundary != 0 ) {
-      uintptr_t boundary_line = _Heap_Align_down( alloc_end, boundary );
-
       rtems_test_assert( alloc_size <= boundary );
-      rtems_test_assert(
-        boundary_line <= alloc_begin || alloc_end <= boundary_line
-      );
     }
   }
 
@@ -503,7 +511,7 @@ static void test_heap_allocate( void )
   test_init_and_alloc( alloc_size, alignment, boundary, NULL );
 
   puts(
-    "\tcheck if alignment will be set to page size if only a boundary is given"
+    "\tcheck if alignment will be raised to the boundary if only a boundary is given"
   );
 
   alloc_size = 1;
@@ -512,7 +520,7 @@ static void test_heap_allocate( void )
   alignment = 0;
   p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
 
-  alignment = test_page_size();
+  alignment = boundary;
   test_init_and_alloc( alloc_size, alignment, boundary, p1 );
 
   puts( "\tcreate a block which is bigger then the first free space" );
@@ -543,22 +551,39 @@ static void test_heap_allocate( void )
   alloc_size = test_page_size();
   alignment = 0;
   boundary = last_alloc_begin - alloc_size / 2;
-  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
-  rtems_test_assert( (uintptr_t) p1 + alloc_size <= boundary );
+  /*
+   * The old boundary-crossing search could still find a placement that
+   * begins before this boundary value and ends at or after it.  The new
+   * alignment = MAX(alignment, boundary) approach requires the allocation
+   * to begin at an address that is itself a multiple of this
+   * (address-sized) boundary value, which does not exist in the heap, so
+   * this now correctly fails instead of finding a placement.
+   */
+  test_init_and_alloc( alloc_size, alignment, boundary, NULL );
 
   puts( "\tset boundary after allocation end" );
   alloc_size = 1;
   alignment = 0;
   boundary = last_alloc_begin;
-  p1 = test_init_and_alloc_simple( alloc_size, alignment, boundary );
-  rtems_test_assert( (uintptr_t) p1 + alloc_size < boundary );
+  /*
+   * As above: the new alignment = MAX(alignment, boundary) approach
+   * requires an address that is a multiple of this (address-sized)
+   * boundary value, which the old boundary-crossing search did not
+   * require, so this now correctly fails.
+   */
+  test_init_and_alloc( alloc_size, alignment, boundary, NULL );
 
   puts( "\tset boundary on allocation end" );
   alloc_size = TEST_DEFAULT_PAGE_SIZE - HEAP_BLOCK_HEADER_SIZE;
   alignment = 0;
   boundary = last_block_begin;
-  p1 = (void *) ( last_alloc_begin - TEST_DEFAULT_PAGE_SIZE );
-  test_init_and_alloc( alloc_size, alignment, boundary, p1 );
+  /*
+   * As above: this (address-sized) boundary value does not divide any
+   * valid alloc-area address in the heap, so raising the alignment to it
+   * now correctly fails instead of finding a placement whose end coincides
+   * with the boundary line.
+   */
+  test_init_and_alloc( alloc_size, alignment, boundary, NULL );
 
   puts( "\talign the allocation to different positions in the block header" );
 
@@ -603,12 +628,13 @@ static void test_heap_allocate( void )
 
   test_heap_init( page_size );
   boundary = ( (uintptr_t) TestHeap.last_block );
-  p1 = test_alloc(
-    alloc_size,
-    alignment,
-    boundary,
-    (void *) previous_last_page_begin
-  );
+  /*
+   * As above: this (address-sized) boundary value does not divide any
+   * valid alloc-area address in the heap, so raising the alignment to it
+   * now correctly fails instead of finding a placement via the removed
+   * boundary-crossing search.
+   */
+  p1 = test_alloc( alloc_size, alignment, boundary, NULL );
 
   puts( "\tbreak the boundaries and aligns more than one time" );
 
@@ -617,9 +643,14 @@ static void test_heap_allocate( void )
   alignment = page_size / 5;
   boundary = page_size / 4;
   test_heap_init( page_size );
-  p1 = (void *) ( _Heap_Alloc_area_of_block( TestHeap.last_block ) -
-                  page_size );
-  test_alloc( alloc_size, alignment, boundary, p1 );
+  /*
+   * boundary (page_size / 4) is not a multiple of alignment
+   * (page_size / 5), so raising the alignment to the boundary would
+   * silently drop the requested alignment guarantee.  This is now
+   * rejected by _Heap_Allocate_aligned_with_boundary() itself instead of
+   * being resolved by the removed boundary-crossing search.
+   */
+  test_alloc( alloc_size, alignment, boundary, NULL );
 
   puts(
     "\tdifferent combinations, so that there is no valid block at the end"
@@ -1232,6 +1263,16 @@ static void test_rtems_heap_allocate_aligned_with_boundary( void )
   _Thread_Dispatch_disable();
   p = rtems_heap_allocate_aligned_with_boundary( 1, 1, 1 );
   _Thread_Dispatch_enable( _Per_CPU_Get() );
+  rtems_test_assert( p == NULL );
+
+  puts( "rtems_heap_allocate_aligned_with_boundary - boundary is a multiple of alignment" );
+  p = rtems_heap_allocate_aligned_with_boundary( 4, 8, 64 );
+  rtems_test_assert( p != NULL );
+  rtems_test_assert( ( (uintptr_t) p % 64 ) == 0 );
+  free( p );
+
+  puts( "rtems_heap_allocate_aligned_with_boundary - boundary is not a multiple of alignment" );
+  p = rtems_heap_allocate_aligned_with_boundary( 4, 3, 16 );
   rtems_test_assert( p == NULL );
 }
 
