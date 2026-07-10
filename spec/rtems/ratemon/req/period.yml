@@ -236,7 +236,7 @@ pre-conditions:
 - name: Postponed
   states:
   - name: Zero
-    test-code:  |
+    test-code: |
       ctx->postponed_jobs_count = 0;
     text: |
       While there is no ${../glossary/postponedjob:/term}.
@@ -255,7 +255,7 @@ pre-conditions:
 - name: InactiveCause
   states:
   - name: New
-    test-code:  |
+    test-code: |
       /* Nothing to do here as the period is newly created. */
       ctx->postponed_jobs_count = 0;
     text: |
@@ -389,8 +389,8 @@ test-context:
   member: |
     uint32_t test_duration_till_action
 - brief: |
-     This member contains the number of times the ${../if/period:/name}
-     function returned since the test started.
+    This member contains the number of times the ${../if/period:/name}
+    function returned since the test started.
   description: null
   member: |
     uint32_t period_calls
@@ -644,7 +644,6 @@ test-teardown:
   description: null
 text: ${.:text-template}
 transition-map:
-# ---- RTEMS_PERIOD_STATUS - OK ----
 - enabled-by: true
   post-conditions:
     Status: Ok
@@ -654,16 +653,15 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Status
+    - Status
     State:
-      - Active
+    - Active
     Postponed: all
-    InactiveCause: 'N/A'
-# ---- RTEMS_PERIOD_STATUS - NotDef ----
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions:
     Status: NotDef
@@ -673,16 +671,16 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Status
+    - Status
     State:
-      - Inactive
+    - Inactive
     Postponed: all
     InactiveCause:
-      - Canceled
+    - Canceled
 - enabled-by: true
   post-conditions:
     Status: NotDef
@@ -692,17 +690,16 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Status
+    - Status
     State:
-      - Inactive
-    Postponed: 'N/A'
+    - Inactive
+    Postponed: N/A
     InactiveCause:
-      - New
-# ---- RTEMS_PERIOD_STATUS - TimeOut ----
+    - New
 - enabled-by: true
   post-conditions:
     Status: TimeOut
@@ -712,18 +709,17 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Status
+    - Status
     State:
-      - Expired
+    - Expired
     Postponed:
-      - One
-      - Several
-    InactiveCause: 'N/A'
-# ---- Period: Inactive->Active - OK ----
+    - One
+    - Several
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions:
     Status: Ok
@@ -733,16 +729,16 @@ transition-map:
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Ticks
+    - Ticks
     State:
-      - Inactive
+    - Inactive
     Postponed: all
     InactiveCause:
-      - Canceled
+    - Canceled
 - enabled-by: true
   post-conditions:
     Status: Ok
@@ -752,17 +748,16 @@ transition-map:
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Ticks
+    - Ticks
     State:
-      - Inactive
-    Postponed: 'N/A'
+    - Inactive
+    Postponed: N/A
     InactiveCause:
-       - New
-# ---- Period: Active->Active - OK ----
+    - New
 - enabled-by: true
   post-conditions:
     Status: Ok
@@ -772,96 +767,93 @@ transition-map:
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Ticks
+    - Ticks
     State:
-      - Active
+    - Active
     Postponed:
-      - Zero
-    InactiveCause: 'N/A'
-# ---- Period: Active/Expired->Active - TimeOut ----
+    - Zero
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions:
     Status: TimeOut
     State: Active
     Postponed:
-      - if:
-          pre-conditions:
-            Postponed: One
-        then: Zero
-      - else: OneOrMore
+    - if:
+        pre-conditions:
+          Postponed: One
+      then: Zero
+    - else: OneOrMore
     Delay: None
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     Length:
-      - Ticks
+    - Ticks
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed:
-      - One
-      - Several
-    InactiveCause: 'N/A'
-# ---- Error Case - InvId ----
+    - One
+    - Several
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions:
     Status: InvId
-    State: Nop
-    Postponed: Nop
+    State: N/A
+    Postponed: N/A
     Delay: None
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Invalid
+    - Invalid
     Caller: all
     Length: all
     State:
-      - Inactive
+    - Inactive
     Postponed: all
     InactiveCause:
-      - Canceled
+    - Canceled
 - enabled-by: true
   post-conditions:
     Status: InvId
-    State: Nop
-    Postponed: Nop
+    State: N/A
+    Postponed: N/A
     Delay: None
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Invalid
+    - Invalid
     Caller: all
     Length: all
     State:
-      - Inactive
-    Postponed: 'N/A'
+    - Inactive
+    Postponed: N/A
     InactiveCause:
-      - New
+    - New
 - enabled-by: true
   post-conditions:
     Status: InvId
-    State: Nop
-    Postponed: Nop
+    State: N/A
+    Postponed: N/A
     Delay: None
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Invalid
+    - Invalid
     Caller: all
     Length: all
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed: all
-    InactiveCause: 'N/A'
-# ---- Error Case - NotOwn ----
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions:
     Status: NotOwn
@@ -871,15 +863,15 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OtherTask
+    - OtherTask
     Length: all
     State:
-      - Inactive
+    - Inactive
     Postponed: all
     InactiveCause:
-      - Canceled
+    - Canceled
 - enabled-by: true
   post-conditions:
     Status: NotOwn
@@ -889,15 +881,15 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OtherTask
+    - OtherTask
     Length: all
     State:
-      - Inactive
-    Postponed: 'N/A'
+    - Inactive
+    Postponed: N/A
     InactiveCause:
-      - New
+    - New
 - enabled-by: true
   post-conditions:
     Status: NotOwn
@@ -907,16 +899,15 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OtherTask
+    - OtherTask
     Length: all
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed: all
-    InactiveCause: 'N/A'
-# ---- NA ----
+    InactiveCause: N/A
 - enabled-by: true
   post-conditions: NeverInExpiredState
   pre-conditions:
@@ -924,8 +915,8 @@ transition-map:
     Caller: all
     Length: all
     State:
-      - Expired
+    - Expired
     Postponed:
-      - Zero
-    InactiveCause: 'N/A'
+    - Zero
+    InactiveCause: N/A
 type: requirement
