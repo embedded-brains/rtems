@@ -183,38 +183,40 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Value: TimeOfDay
+    Status:
+    - if:
+        pre-conditions:
+          Param:
+          - Valid
+          ToD:
+          - NotSet
+      then: NotDef
+    - if:
+        pre-conditions:
+          Param:
+          - Valid
+          ToD:
+          - Arbitrary
+          - Leap4
+          - Leap400
+          - Youngest
+          - Oldest
+      then: Ok
+    - else: InvAddr
+    Value:
+    - if:
+        pre-conditions:
+          Param:
+          - Valid
+          ToD:
+          - Arbitrary
+          - Leap4
+          - Leap400
+          - Youngest
+          - Oldest
+      then: TimeOfDay
+    - else: Unchanged
   pre-conditions:
-    ToD:
-      - Arbitrary
-      - Leap4
-      - Leap400
-      - Youngest
-      - Oldest
-    Param:
-      - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Value: Unchanged
-  pre-conditions:
-    ToD:
-      - Arbitrary
-      - Leap4
-      - Leap400
-      - Youngest
-      - Oldest
-      - NotSet
-    Param:
-      - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: NotDef
-    Value: Unchanged
-  pre-conditions:
-    ToD:
-      - NotSet
-    Param:
-      - Valid
+    ToD: all
+    Param: all
 type: requirement
