@@ -77,14 +77,13 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: 'True'
+    Result:
+    - if:
+        pre-conditions:
+          Name:
+          - Invalid
+      then: 'False'
+    - else: 'True'
   pre-conditions:
-    Name:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Result: 'False'
-  pre-conditions:
-    Name:
-    - Invalid
+    Name: all
 type: requirement
