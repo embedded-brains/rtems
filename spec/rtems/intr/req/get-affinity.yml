@@ -342,7 +342,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    CPUSetObj: Nop
+    CPUSetObj: N/A
   pre-conditions:
     Vector:
     - Valid
@@ -353,7 +353,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    CPUSetObj: Nop
+    CPUSetObj: N/A
   pre-conditions:
     Vector:
     - Invalid
