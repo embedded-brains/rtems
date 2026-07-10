@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,8 +52,11 @@
 #include "config.h"
 #endif
 
+#include <assert.h>
 #include <rtems.h>
 #include <string.h>
+
+#include "tx-support.h"
 
 #include <rtems/test.h>
 
@@ -71,6 +74,12 @@
  * - Call memset() for a sample set of buffers.
  *
  * - Call strlen() for a sample set of strings.
+ *
+ * - Call assert() with an expression which evaluates to true.  We expect that
+ *   nothing will happen.
+ *
+ * - Call assert() with an expression which evaluates to false. Check that the
+ *   expected fatal error happened.
  *
  * @{
  */
@@ -99,6 +108,34 @@ static bool Compare(
   }
 
   return result;
+}
+
+static int expected_line;
+
+static void CheckAssert(
+  rtems_fatal_source source,
+  rtems_fatal_code   code,
+  void              *arg
+)
+{
+  T_eq_int( source, RTEMS_FATAL_SOURCE_ASSERT );
+
+  if ( source == RTEMS_FATAL_SOURCE_ASSERT ) {
+    const rtems_assert_context *ctx;
+
+    ctx = (const rtems_assert_context *) code;
+    T_true( ContainsSubstring( ctx->file, "tc-c.c" ) );
+    T_eq_int( ctx->line, expected_line );
+    T_true( ContainsSubstring( ctx->failed_expression, "arg != NULL" ) );
+  }
+
+  T_null( arg );
+}
+
+static void AssertFalse( void *arg )
+{
+  expected_line = __LINE__ + 1;
+  assert( arg != NULL );
 }
 
 /**
@@ -207,6 +244,24 @@ static void CValC_Action_2( void )
 }
 
 /**
+ * @brief Call assert() with an expression which evaluates to true.  We expect
+ *   that nothing will happen.
+ */
+static void CValC_Action_3( void )
+{
+  assert( 1 );
+}
+
+/**
+ * @brief Call assert() with an expression which evaluates to false. Check that
+ *   the expected fatal error happened.
+ */
+static void CValC_Action_4( void )
+{
+  ProduceAndCheckFatalError( AssertFalse, CheckAssert, NULL );
+}
+
+/**
  * @fn void T_case_body_CValC( void )
  */
 T_TEST_CASE( CValC )
@@ -214,6 +269,8 @@ T_TEST_CASE( CValC )
   CValC_Action_0();
   CValC_Action_1();
   CValC_Action_2();
+  CValC_Action_3();
+  CValC_Action_4();
 }
 
 /** @} */
