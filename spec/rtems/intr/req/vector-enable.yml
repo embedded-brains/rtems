@@ -380,33 +380,62 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          CanEnable:
+          - 'Yes'
+          Vector:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          CanEnable:
+          - Maybe
+          Vector:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          CanEnable:
+          - 'No'
+          Vector:
+          - Valid
+      then: Unsat
+    - else: InvId
     IsEnabled:
-    - specified-by: CanEnable
+    - if:
+        pre-conditions:
+          CanEnable:
+          - Maybe
+          Vector:
+          - Valid
+      then: Maybe
+    - if:
+        pre-conditions:
+          CanEnable:
+          - 'No'
+          Vector:
+          - Valid
+      then: Nop
+    - if:
+        pre-conditions:
+          CanEnable:
+          - 'Yes'
+          Vector:
+          - Valid
+      then: 'Yes'
+    - else: N/A
   pre-conditions:
-    Vector:
-    - Valid
-    IsEnabled: all
+    Vector: all
+    IsEnabled:
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
     CanEnable:
-    - 'Yes'
-    - Maybe
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    IsEnabled: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    IsEnabled: N/A
-    CanEnable: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    IsEnabled: Nop
-  pre-conditions:
-    Vector:
-    - Valid
-    IsEnabled: all
-    CanEnable:
-    - 'No'
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
