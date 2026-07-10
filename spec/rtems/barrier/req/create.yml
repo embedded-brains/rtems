@@ -316,7 +316,13 @@ transition-map:
     Status: InvName
     Name: Invalid
     Class: N/A
-    IdVar: Nop
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
     Name:
     - Invalid
@@ -329,7 +335,7 @@ transition-map:
     Status: InvAddr
     Name: Invalid
     Class: N/A
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
     Name:
     - Valid
