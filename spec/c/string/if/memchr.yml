@@ -41,7 +41,11 @@ params:
   name: n
 return:
   return: |
-    Returns a pointer to the matching byte or ${/c/if/null:/name} if the character
-    does not occur.
-  return-values: []
+    Returns a pointer to the byte matching ${.:/params[1]/name}, if the byte occurs
+    within the first bytes specified by ${.:/params[2]/name}.
+  return-values:
+  - description: |
+      Returns ${/c/if/null:/name}, if the byte specified by ${.:/params[1]/name} does
+      not occur within the first bytes specified by ${.:/params[2]/name}.
+    value: ${/c/if/null:/name}
 type: interface
