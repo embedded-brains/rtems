@@ -70,6 +70,8 @@
  *
  * - Call memset() for a sample set of buffers.
  *
+ * - Call strlen() for a sample set of strings.
+ *
  * @{
  */
 
@@ -178,12 +180,40 @@ static void CValC_Action_1( void )
 }
 
 /**
+ * @brief Call strlen() for a sample set of strings.
+ */
+static void CValC_Action_2( void )
+{
+  char    str[sizeof( long ) * 10];
+  char   *aligned_str;
+  size_t  offset;
+
+  aligned_str = (char *) RTEMS_ALIGN_UP( (uintptr_t) str, sizeof( long ) );
+
+  for ( offset = 0; offset < sizeof( long ); ++offset  ) {
+    size_t size;
+
+    for ( size = 0; size < sizeof( long ) * 8; ++size ) {
+      char *s;
+
+      s = aligned_str + offset;
+
+      memset( s, 0x85, size );
+      s[size] = '\0';
+      RTEMS_OBFUSCATE_VARIABLE( s );
+      T_eq_sz( strlen( s ), size );
+    }
+  }
+}
+
+/**
  * @fn void T_case_body_CValC( void )
  */
 T_TEST_CASE( CValC )
 {
   CValC_Action_0();
   CValC_Action_1();
+  CValC_Action_2();
 }
 
 /** @} */
