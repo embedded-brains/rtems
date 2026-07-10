@@ -113,16 +113,20 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Count: MinusOne
-  pre-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Count:
+          - Positive
+      then: Ok
+    - else: Unsat
     Count:
-    - Positive
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    Count: Nop
+    - if:
+        pre-conditions:
+          Count:
+          - Positive
+      then: MinusOne
+    - else: Nop
   pre-conditions:
-    Count:
-    - Zero
+    Count: all
 type: requirement
