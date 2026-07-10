@@ -86,7 +86,6 @@ typedef enum {
 } RtemsIntrReqGetAttributes_Post_Status;
 
 typedef enum {
-  RtemsIntrReqGetAttributes_Post_Attributes_Nop,
   RtemsIntrReqGetAttributes_Post_Attributes_Zero,
   RtemsIntrReqGetAttributes_Post_Attributes_Set,
   RtemsIntrReqGetAttributes_Post_Attributes_NA
@@ -110,12 +109,13 @@ typedef struct {
   rtems_interrupt_attributes attributes_obj;
 
   /**
-   * @brief If this member is true, then the `vector` parameter shall be valid.
+   * @brief If this member is true, then the ``vector`` parameter shall be
+   *   valid.
    */
   bool valid_vector;
 
   /**
-   * @brief This member specifies if the `attributes` parameter value.
+   * @brief This member specifies if the ``attributes`` parameter value.
    */
   rtems_interrupt_attributes *attributes;
 
@@ -183,7 +183,7 @@ static void RtemsIntrReqGetAttributes_Pre_Vector_Prepare(
   switch ( state ) {
     case RtemsIntrReqGetAttributes_Pre_Vector_Valid: {
       /*
-       * While the `vector` parameter is associated with an interrupt vector.
+       * While the ``vector`` parameter is associated with an interrupt vector.
        */
       ctx->valid_vector = true;
       break;
@@ -191,7 +191,7 @@ static void RtemsIntrReqGetAttributes_Pre_Vector_Prepare(
 
     case RtemsIntrReqGetAttributes_Pre_Vector_Invalid: {
       /*
-       * While the `vector` parameter is not associated with an interrupt
+       * While the ``vector`` parameter is not associated with an interrupt
        * vector.
        */
       ctx->valid_vector = false;
@@ -211,7 +211,7 @@ static void RtemsIntrReqGetAttributes_Pre_Attributes_Prepare(
   switch ( state ) {
     case RtemsIntrReqGetAttributes_Pre_Attributes_Obj: {
       /*
-       * While the `attributes` parameter references an object of type
+       * While the ``attributes`` parameter references an object of type
        * rtems_interrupt_attributes.
        */
       ctx->attributes = &ctx->attributes_obj;
@@ -220,7 +220,7 @@ static void RtemsIntrReqGetAttributes_Pre_Attributes_Prepare(
 
     case RtemsIntrReqGetAttributes_Pre_Attributes_Null: {
       /*
-       * While the `attributes` parameter is equal to NULL.
+       * While the ``attributes`` parameter is equal to NULL.
        */
       ctx->attributes = NULL;
       break;
@@ -277,20 +277,9 @@ static void RtemsIntrReqGetAttributes_Post_Attributes_Check(
   rtems_interrupt_attributes attr;
 
   switch ( state ) {
-    case RtemsIntrReqGetAttributes_Post_Attributes_Nop: {
-      /*
-       * Objects referenced by the `attributes` parameter in past calls to
-       * rtems_interrupt_get_attributes() shall not be accessed by the
-       * rtems_interrupt_get_attributes() call.
-       */
-      memset( &attr, 0xa5, sizeof( attr ) );
-      T_eq_mem( &ctx->attributes_obj, &attr, sizeof( attr ) );
-      break;
-    }
-
     case RtemsIntrReqGetAttributes_Post_Attributes_Zero: {
       /*
-       * The object referenced by the `attributes` parameter shall cleared to
+       * The object referenced by the ``attributes`` parameter shall cleared to
        * zero.
        */
       memset( &attr, 0, sizeof( attr ) );
@@ -300,9 +289,9 @@ static void RtemsIntrReqGetAttributes_Post_Attributes_Check(
 
     case RtemsIntrReqGetAttributes_Post_Attributes_Set: {
       /*
-       * The members of the object referenced by the `attributes` parameter
+       * The members of the object referenced by the ``attributes`` parameter
        * shall be set to the attributes of the interrupt vector specified by
-       * `vector`.
+       * ``vector``.
        */
       memset( &attr, 0xa5, sizeof( attr ) );
       T_ne_mem( &ctx->attributes_obj, &attr, sizeof( attr ) );
@@ -368,7 +357,7 @@ static void RtemsIntrReqGetAttributes_Action(
 static const RtemsIntrReqGetAttributes_Entry
 RtemsIntrReqGetAttributes_Entries[] = {
   { 0, 0, 0, RtemsIntrReqGetAttributes_Post_Status_InvAddr,
-    RtemsIntrReqGetAttributes_Post_Attributes_Nop },
+    RtemsIntrReqGetAttributes_Post_Attributes_NA },
   { 0, 0, 0, RtemsIntrReqGetAttributes_Post_Status_Ok,
     RtemsIntrReqGetAttributes_Post_Attributes_Set },
   { 0, 0, 0, RtemsIntrReqGetAttributes_Post_Status_InvId,
