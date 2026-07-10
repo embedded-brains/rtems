@@ -176,54 +176,64 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    PriorityObj: Set
+    Status:
+    - if:
+        pre-conditions:
+          Priority:
+          - Valid
+          Vector:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          CanGetPriority:
+          - 'Yes'
+          Priority:
+          - Valid
+          Vector:
+          - Valid
+      then: Ok
+    - if:
+        pre-conditions:
+          CanGetPriority:
+          - 'No'
+          Priority:
+          - Valid
+          Vector:
+          - Valid
+      then: Unsat
+    - else: InvAddr
+    PriorityObj:
+    - if:
+        pre-conditions:
+          CanGetPriority:
+          - 'No'
+          Priority:
+          - Valid
+      then: Nop
+    - if:
+        pre-conditions:
+          Priority:
+          - Valid
+          Vector:
+          - Invalid
+      then: Nop
+    - if:
+        pre-conditions:
+          CanGetPriority:
+          - 'Yes'
+          Priority:
+          - Valid
+          Vector:
+          - Valid
+      then: Set
+    - else: N/A
   pre-conditions:
-    Vector:
-    - Valid
-    Priority:
-    - Valid
+    Vector: all
+    Priority: all
     CanGetPriority:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    PriorityObj: N/A
-  pre-conditions:
-    Vector:
-    - Valid
-    Priority:
-    - 'Null'
-    CanGetPriority: all
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    PriorityObj: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    Priority:
-    - 'Null'
-    CanGetPriority: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    PriorityObj: Nop
-  pre-conditions:
-    Vector:
-    - Invalid
-    Priority:
-    - Valid
-    CanGetPriority: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    PriorityObj: Nop
-  pre-conditions:
-    Vector:
-    - Valid
-    Priority:
-    - Valid
-    CanGetPriority:
-    - 'No'
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
