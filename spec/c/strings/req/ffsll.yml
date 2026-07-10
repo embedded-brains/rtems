@@ -1,0 +1,97 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/ffsll
+post-conditions:
+- name: Result
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The return value shall be zero.
+  - name: Index
+    test-code: |
+      int expected;
+      int j;
+
+      expected = 0;
+
+      for ( j = 0; j < (int) ( sizeof( long long ) * CHAR_BIT ); ++j ) {
+        if ( ( ctx->i & ( 1LL << j ) ) != 0 ) {
+          expected = j + 1;
+          break;
+        }
+      }
+
+      T_eq_int( ctx->result, expected );
+    text: |
+      The return value shall be the index of the first bit set in the value
+      specified by ${../if/ffsll:/params[0]/name}, where the least significant
+      bit is bit one.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: I
+  states:
+  - name: Zero
+    test-code: |
+      ctx->i = 0;
+    text: |
+      While the value specified by ${../if/ffsll:/params[0]/name} is equal to
+      zero.
+  - name: NonZero
+    test-code: |
+      ctx->i = 0x0008010000000000LL;
+    text: |
+      While the value specified by ${../if/ffsll:/params[0]/name} is not equal
+      to zero.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = ffsll( ctx->i );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the ${../if/ffsll:/params[0]/name} parameter value.
+  description: null
+  member: long long i
+- brief: |
+    This member stores the return value of the ${../if/ffsll:/name} call.
+  description: null
+  member: int result
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- limits.h
+- strings.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-strings-ffsll.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          I: Zero
+      then: Zero
+    - else: Index
+  pre-conditions:
+    I: all
+type: requirement
