@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  This is used for time in seconds.
+  Indicates that the timeout is an absolute time.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
@@ -9,14 +9,13 @@ definition:
 description: null
 enabled-by: true
 index-entries: []
-interface-type: typedef
+interface-type: define
 links:
 - role: interface-placement
-  uid: /c/time/if/header
+  uid: header
 - role: interface-ingroup
-  uid: /c/time/if/group
-name: time_t
-notes: null
-params: []
-return: null
+  uid: group
+name: TIMER_ABSTIME
+notes: |
+  See [POSIX.1-2024, Base Definitions, <stddef.h>](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/stddef.h.html).
 type: interface

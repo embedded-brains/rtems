@@ -1,0 +1,84 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Sleep with a high resolution using the clock specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/clockid_t:/name} ${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - const ${/c/if/timespec:/name} *${.:/params[2]/name}
+    - ${/c/if/timespec:/name} *${.:/params[3]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    This error number indicates the following error conditions:
+
+    - ${.:/params[2]/name} points to an invalid address.
+    - ${.:/params[3]/name} points to an invalid address.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    The sleep was interrupted by a signal handler.
+  role: errno
+  uid: /c/errno/if/eintr
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${/rtems/ratemon/glossary/time:/term} specified by ${.:/params[2]/name}
+      is invalid.
+    - The ${/rtems/timer/glossary/clock:/term} specified by ${.:/params[0]/name} is
+      invalid.
+  role: errno
+  uid: /c/errno/if/einval
+name: clock_nanosleep
+notes: |
+  See [POSIX.1-2024, System Interfaces, clock_nanosleep()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/clock_nanosleep.html).
+params:
+- description: |
+    is the clock identifier.
+  dir: null
+  name: clock_id
+- description: |
+    is the flags to specify relative or absolute sleep.
+  dir: null
+  name: flags
+- description: |
+    is the pointer to the timespec object specifying the sleep duration or absolute
+    time.
+  dir: in
+  name: rqtp
+- description: |
+    is the pointer to the timespec object to store the remaining time if
+    interrupted.
+  dir: out
+  name: rmtp
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion returns zero.
+    value: 0
+  - description: |
+      The sleep was interrupted by a signal handler.
+    value: ${/c/errno/if/eintr:/name}
+  - description: |
+      The ${.:/params[0]/name} is not valid, or ${.:/params[1]/name} is invalid, or
+      the nanoseconds field is invalid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[0]/name} is not supported.
+    value: ${/c/errno/if/enotsup:/name}
+type: interface
