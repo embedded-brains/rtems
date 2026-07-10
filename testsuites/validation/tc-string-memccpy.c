@@ -52,6 +52,7 @@
 #include "config.h"
 #endif
 
+#include <rtems.h>
 #include <string.h>
 
 #include <rtems/test.h>
@@ -63,19 +64,53 @@
  */
 
 typedef enum {
-  CStringReqMemccpy_Pre_Status_Ok,
-  CStringReqMemccpy_Pre_Status_NA
-} CStringReqMemccpy_Pre_Status;
+  CStringReqMemccpy_Pre_N_Zero,
+  CStringReqMemccpy_Pre_N_Small,
+  CStringReqMemccpy_Pre_N_Word,
+  CStringReqMemccpy_Pre_N_MultiWord,
+  CStringReqMemccpy_Pre_N_NA
+} CStringReqMemccpy_Pre_N;
 
 typedef enum {
-  CStringReqMemccpy_Post_Status_Ok,
-  CStringReqMemccpy_Post_Status_NA
-} CStringReqMemccpy_Post_Status;
+  CStringReqMemccpy_Pre_Match_Found,
+  CStringReqMemccpy_Pre_Match_NotFound,
+  CStringReqMemccpy_Pre_Match_NA
+} CStringReqMemccpy_Pre_Match;
+
+typedef enum {
+  CStringReqMemccpy_Pre_MatchPosition_FirstChunk,
+  CStringReqMemccpy_Pre_MatchPosition_SecondChunk,
+  CStringReqMemccpy_Pre_MatchPosition_Remainder,
+  CStringReqMemccpy_Pre_MatchPosition_NA
+} CStringReqMemccpy_Pre_MatchPosition;
+
+typedef enum {
+  CStringReqMemccpy_Pre_Alignment_Aligned,
+  CStringReqMemccpy_Pre_Alignment_Unaligned,
+  CStringReqMemccpy_Pre_Alignment_NA
+} CStringReqMemccpy_Pre_Alignment;
+
+typedef enum {
+  CStringReqMemccpy_Post_Result_AfterChar,
+  CStringReqMemccpy_Post_Result_Null,
+  CStringReqMemccpy_Post_Result_NA
+} CStringReqMemccpy_Post_Result;
+
+typedef enum {
+  CStringReqMemccpy_Post_MemoryArea_CopiedToMatch,
+  CStringReqMemccpy_Post_MemoryArea_CopiedAll,
+  CStringReqMemccpy_Post_MemoryArea_Nop,
+  CStringReqMemccpy_Post_MemoryArea_NA
+} CStringReqMemccpy_Post_MemoryArea;
 
 typedef struct {
-  uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint16_t Skip : 1;
+  uint16_t Pre_N_NA : 1;
+  uint16_t Pre_Match_NA : 1;
+  uint16_t Pre_MatchPosition_NA : 1;
+  uint16_t Pre_Alignment_NA : 1;
+  uint16_t Post_Result : 2;
+  uint16_t Post_MemoryArea : 2;
 } CStringReqMemccpy_Entry;
 
 /**
@@ -83,22 +118,22 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the `dest` parameter value.
+   * @brief This member specifies the ``dest`` parameter value.
    */
   void * dest;
 
   /**
-   * @brief This member specifies the `src` parameter value.
+   * @brief This member specifies the ``src`` parameter value.
    */
   const void * src;
 
   /**
-   * @brief This member specifies the `c` parameter value.
+   * @brief This member specifies the ``c`` parameter value.
    */
   int c;
 
   /**
-   * @brief This member specifies the `n` parameter value.
+   * @brief This member specifies the ``n`` parameter value.
    */
   size_t n;
 
@@ -107,11 +142,39 @@ typedef struct {
    */
   void *retval;
 
+  /**
+   * @brief This member contains the index of the byte matching the ``c``
+   *   parameter value within the source buffer.
+   */
+  size_t match_pos;
+
+  /**
+   * @brief This member contains the offset of the guarded ``dest`` and ``src``
+   *   regions from the start of the destination and source buffers.
+   */
+  size_t offset;
+
+  /**
+   * @brief This member provides the destination buffer.
+   */
+  unsigned char dest_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) );
+
+  /**
+   * @brief This member provides the source buffer.
+   */
+  unsigned char src_buf[ 8 * sizeof( long ) ] RTEMS_ALIGNED( sizeof( long ) );
+
   struct {
+    /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 4 ];
+
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 4 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -139,50 +202,304 @@ typedef struct {
 static CStringReqMemccpy_Context
   CStringReqMemccpy_Instance;
 
-static const char * const CStringReqMemccpy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CStringReqMemccpy_PreDesc_N[] = {
+  "Zero",
+  "Small",
+  "Word",
+  "MultiWord",
+  "NA"
+};
+
+static const char * const CStringReqMemccpy_PreDesc_Match[] = {
+  "Found",
+  "NotFound",
+  "NA"
+};
+
+static const char * const CStringReqMemccpy_PreDesc_MatchPosition[] = {
+  "FirstChunk",
+  "SecondChunk",
+  "Remainder",
+  "NA"
+};
+
+static const char * const CStringReqMemccpy_PreDesc_Alignment[] = {
+  "Aligned",
+  "Unaligned",
   "NA"
 };
 
 static const char * const * const CStringReqMemccpy_PreDesc[] = {
-  CStringReqMemccpy_PreDesc_Status,
+  CStringReqMemccpy_PreDesc_N,
+  CStringReqMemccpy_PreDesc_Match,
+  CStringReqMemccpy_PreDesc_MatchPosition,
+  CStringReqMemccpy_PreDesc_Alignment,
   NULL
 };
 
-static void CStringReqMemccpy_Pre_Status_Prepare(
-  CStringReqMemccpy_Pre_Status state
+static void CStringReqMemccpy_Pre_N_Prepare(
+  CStringReqMemccpy_Context *ctx,
+  CStringReqMemccpy_Pre_N    state
 )
 {
   switch ( state ) {
-    case CStringReqMemccpy_Pre_Status_Ok: {
+    case CStringReqMemccpy_Pre_N_Zero: {
       /*
-       * TODO
+       * While the size specified by ``n`` is equal to zero.
        */
-      /* TODOD */
+      ctx->n = 0;
       break;
     }
 
-    case CStringReqMemccpy_Pre_Status_NA:
+    case CStringReqMemccpy_Pre_N_Small: {
+      /*
+       * While the size specified by ``n`` is greater than zero, while the size
+       * specified by ``n`` is less than the size of a `long` integer on the
+       * target architecture.
+       */
+      ctx->n = 5;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_N_Word: {
+      /*
+       * While the size specified by ``n`` is equal to the size of a `long`
+       * integer on the target architecture.
+       */
+      ctx->n = sizeof( long );
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_N_MultiWord: {
+      /*
+       * While the size specified by ``n`` is greater than twice the size of a
+       * `long` integer on the target architecture, while the size specified by
+       * ``n`` is not evenly divisible by the size of a `long` integer on the
+       * target architecture.
+       */
+      ctx->n = 2 * sizeof( long ) + 3;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_N_NA:
       break;
   }
 }
 
-static void CStringReqMemccpy_Post_Status_Check(
-  CStringReqMemccpy_Post_Status state
+static void CStringReqMemccpy_Pre_Match_Prepare(
+  CStringReqMemccpy_Context  *ctx,
+  CStringReqMemccpy_Pre_Match state
 )
 {
   switch ( state ) {
-    case CStringReqMemccpy_Post_Status_Ok: {
+    case CStringReqMemccpy_Pre_Match_Found: {
       /*
-       * TODO
+       * While the byte specified by ``c`` occurs within the first bytes
+       * specified by ``n`` of the memory area referenced by ``src``.
        */
-      /* TODOD */
+      ctx->match_pos = ctx->offset + 2;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
       break;
     }
 
-    case CStringReqMemccpy_Post_Status_NA:
+    case CStringReqMemccpy_Pre_Match_NotFound: {
+      /*
+       * While the byte specified by ``c`` does not occur within the first
+       * bytes specified by ``n`` of the memory area referenced by ``src``.
+       */
+      /* The default fill value of the source buffer does not match c */
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_Match_NA:
       break;
   }
+}
+
+static void CStringReqMemccpy_Pre_MatchPosition_Prepare(
+  CStringReqMemccpy_Context          *ctx,
+  CStringReqMemccpy_Pre_MatchPosition state
+)
+{
+  switch ( state ) {
+    case CStringReqMemccpy_Pre_MatchPosition_FirstChunk: {
+      /*
+       * While the byte specified by ``c`` occurs within the first aligned
+       * `long` integer sized chunk of the memory area referenced by ``src``.
+       */
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 3;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_MatchPosition_SecondChunk: {
+      /*
+       * While the byte specified by ``c`` occurs within the second aligned
+       * `long` integer sized chunk of the memory area referenced by ``src``.
+       */
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + sizeof( long ) + 3;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_MatchPosition_Remainder: {
+      /*
+       * While the byte specified by ``c`` occurs within the trailing bytes of
+       * the memory area referenced by ``src`` which remain after all aligned
+       * `long` integer sized chunks have been processed.
+       */
+      ctx->src_buf[ ctx->match_pos ] = 0x11;
+      ctx->match_pos = ctx->offset + 2 * sizeof( long ) + 1;
+      ctx->src_buf[ ctx->match_pos ] = (unsigned char) ctx->c;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_MatchPosition_NA:
+      break;
+  }
+}
+
+static void CStringReqMemccpy_Pre_Alignment_Prepare(
+  CStringReqMemccpy_Context      *ctx,
+  CStringReqMemccpy_Pre_Alignment state
+)
+{
+  switch ( state ) {
+    case CStringReqMemccpy_Pre_Alignment_Aligned: {
+      /*
+       * While the ``dest`` parameter and the ``src`` parameter are aligned on
+       * a `long` integer boundary of the target architecture.
+       */
+      ctx->offset = sizeof( long );
+      ctx->dest = ctx->dest_buf + ctx->offset;
+      ctx->src = ctx->src_buf + ctx->offset;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_Alignment_Unaligned: {
+      /*
+       * While the ``dest`` parameter or the ``src`` parameter are not aligned
+       * on a `long` integer boundary of the target architecture.
+       */
+      ctx->offset = sizeof( long ) + 1;
+      ctx->dest = ctx->dest_buf + ctx->offset;
+      ctx->src = ctx->src_buf + ctx->offset;
+      break;
+    }
+
+    case CStringReqMemccpy_Pre_Alignment_NA:
+      break;
+  }
+}
+
+static void CStringReqMemccpy_Post_Result_Check(
+  CStringReqMemccpy_Context    *ctx,
+  CStringReqMemccpy_Post_Result state
+)
+{
+  switch ( state ) {
+    case CStringReqMemccpy_Post_Result_AfterChar: {
+      /*
+       * The return value of memccpy() shall be a pointer to the byte
+       * immediately following the copied byte specified by ``c`` in the memory
+       * area referenced by ``dest``.
+       */
+      T_eq_ptr( ctx->retval, ctx->dest_buf + ctx->match_pos + 1 );
+      break;
+    }
+
+    case CStringReqMemccpy_Post_Result_Null: {
+      /*
+       * The return value of memccpy() shall be equal to NULL.
+       */
+      T_null( ctx->retval );
+      break;
+    }
+
+    case CStringReqMemccpy_Post_Result_NA:
+      break;
+  }
+}
+
+static void CStringReqMemccpy_Post_MemoryArea_Check(
+  CStringReqMemccpy_Context        *ctx,
+  CStringReqMemccpy_Post_MemoryArea state
+)
+{
+  switch ( state ) {
+    case CStringReqMemccpy_Post_MemoryArea_CopiedToMatch: {
+      /*
+       * The bytes of the memory area referenced by ``dest`` up to and
+       * including the byte matching ``c`` shall be copied from the memory area
+       * referenced by ``src``. The remaining bytes of the memory area
+       * referenced by ``dest`` shall not be modified.
+       */
+      T_eq_mem(
+        ctx->dest_buf + ctx->offset,
+        ctx->src_buf + ctx->offset,
+        ctx->match_pos + 1 - ctx->offset
+      );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for ( size_t i = ctx->match_pos + 1; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqMemccpy_Post_MemoryArea_CopiedAll: {
+      /*
+       * The bytes specified by ``n`` of the memory area referenced by ``dest``
+       * shall be copied from the memory area referenced by ``src``. The
+       * remaining bytes of the memory area referenced by ``dest`` shall not be
+       * modified.
+       */
+      T_eq_mem(
+        ctx->dest_buf + ctx->offset,
+        ctx->src_buf + ctx->offset,
+        ctx->n
+      );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+
+      for ( size_t i = ctx->offset + ctx->n; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqMemccpy_Post_MemoryArea_Nop: {
+      /*
+       * The memory area referenced by ``dest`` shall not be modified.
+       */
+      for ( size_t i = 0; i < sizeof( ctx->dest_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dest_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqMemccpy_Post_MemoryArea_NA:
+      break;
+  }
+}
+
+static void CStringReqMemccpy_Prepare( CStringReqMemccpy_Context *ctx )
+{
+  memset( ctx->dest_buf, 0xaa, sizeof( ctx->dest_buf ) );
+  memset( ctx->src_buf, 0x11, sizeof( ctx->src_buf ) );
+  ctx->offset = sizeof( long );
+  ctx->dest = ctx->dest_buf + ctx->offset;
+  ctx->src = ctx->src_buf + ctx->offset;
+  ctx->c = 0x5a;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 }
 
 static void CStringReqMemccpy_Action( CStringReqMemccpy_Context *ctx )
@@ -192,12 +509,24 @@ static void CStringReqMemccpy_Action( CStringReqMemccpy_Context *ctx )
 
 static const CStringReqMemccpy_Entry
 CStringReqMemccpy_Entries[] = {
-  { 0, 0, CStringReqMemccpy_Post_Status_Ok }
+  { 0, 0, 1, 1, 1, CStringReqMemccpy_Post_Result_Null,
+    CStringReqMemccpy_Post_MemoryArea_Nop },
+  { 0, 0, 0, 1, 1, CStringReqMemccpy_Post_Result_AfterChar,
+    CStringReqMemccpy_Post_MemoryArea_CopiedToMatch },
+  { 0, 0, 0, 1, 1, CStringReqMemccpy_Post_Result_Null,
+    CStringReqMemccpy_Post_MemoryArea_CopiedAll },
+  { 0, 0, 0, 1, 0, CStringReqMemccpy_Post_Result_Null,
+    CStringReqMemccpy_Post_MemoryArea_CopiedAll },
+  { 0, 0, 0, 0, 0, CStringReqMemccpy_Post_Result_AfterChar,
+    CStringReqMemccpy_Post_MemoryArea_CopiedToMatch },
+  { 0, 0, 0, 1, 0, CStringReqMemccpy_Post_Result_AfterChar,
+    CStringReqMemccpy_Post_MemoryArea_CopiedToMatch }
 };
 
 static const uint8_t
 CStringReqMemccpy_Map[] = {
-  0
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1,
+  1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 4, 5, 4, 5, 4, 5, 3, 3, 3, 3, 3, 3
 };
 
 static size_t CStringReqMemccpy_Scope( void *arg, char *buf, size_t n )
@@ -234,11 +563,43 @@ static inline CStringReqMemccpy_Entry CStringReqMemccpy_PopEntry(
   ];
 }
 
+static void CStringReqMemccpy_SetPreConditionStates(
+  CStringReqMemccpy_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Match_NA ) {
+    ctx->Map.pcs[ 1 ] = CStringReqMemccpy_Pre_Match_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+
+  if ( ctx->Map.entry.Pre_MatchPosition_NA ) {
+    ctx->Map.pcs[ 2 ] = CStringReqMemccpy_Pre_MatchPosition_NA;
+  } else {
+    ctx->Map.pcs[ 2 ] = ctx->Map.pci[ 2 ];
+  }
+
+  if ( ctx->Map.entry.Pre_Alignment_NA ) {
+    ctx->Map.pcs[ 3 ] = CStringReqMemccpy_Pre_Alignment_NA;
+  } else {
+    ctx->Map.pcs[ 3 ] = ctx->Map.pci[ 3 ];
+  }
+}
+
 static void CStringReqMemccpy_TestVariant( CStringReqMemccpy_Context *ctx )
 {
-  CStringReqMemccpy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CStringReqMemccpy_Pre_N_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringReqMemccpy_Pre_Match_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CStringReqMemccpy_Pre_MatchPosition_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  CStringReqMemccpy_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 3 ] );
   CStringReqMemccpy_Action( ctx );
-  CStringReqMemccpy_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CStringReqMemccpy_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
+  CStringReqMemccpy_Post_MemoryArea_Check(
+    ctx,
+    ctx->Map.entry.Post_MemoryArea
+  );
 }
 
 /**
@@ -253,12 +614,32 @@ T_TEST_CASE_FIXTURE( CStringReqMemccpy, &CStringReqMemccpy_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringReqMemccpy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CStringReqMemccpy_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CStringReqMemccpy_Pre_N_Zero;
+    ctx->Map.pci[ 0 ] < CStringReqMemccpy_Pre_N_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CStringReqMemccpy_PopEntry( ctx );
-    CStringReqMemccpy_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CStringReqMemccpy_Pre_Match_Found;
+      ctx->Map.pci[ 1 ] < CStringReqMemccpy_Pre_Match_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      for (
+        ctx->Map.pci[ 2 ] = CStringReqMemccpy_Pre_MatchPosition_FirstChunk;
+        ctx->Map.pci[ 2 ] < CStringReqMemccpy_Pre_MatchPosition_NA;
+        ++ctx->Map.pci[ 2 ]
+      ) {
+        for (
+          ctx->Map.pci[ 3 ] = CStringReqMemccpy_Pre_Alignment_Aligned;
+          ctx->Map.pci[ 3 ] < CStringReqMemccpy_Pre_Alignment_NA;
+          ++ctx->Map.pci[ 3 ]
+        ) {
+          ctx->Map.entry = CStringReqMemccpy_PopEntry( ctx );
+          CStringReqMemccpy_SetPreConditionStates( ctx );
+          CStringReqMemccpy_Prepare( ctx );
+          CStringReqMemccpy_TestVariant( ctx );
+        }
+      }
+    }
   }
 }
 
