@@ -114,14 +114,13 @@ text: |
 transition-map:
 - enabled-by: true
   post-conditions:
-    Position: First
+    Position:
+    - if:
+        pre-conditions:
+          Queue:
+          - NonEmpty
+      then: Last
+    - else: First
   pre-conditions:
-    Queue:
-    - Empty
-- enabled-by: true
-  post-conditions:
-    Position: Last
-  pre-conditions:
-    Queue:
-    - NonEmpty
+    Queue: all
 type: requirement
