@@ -63,19 +63,36 @@
  */
 
 typedef enum {
-  CStringReqStrlcpy_Pre_Status_Ok,
-  CStringReqStrlcpy_Pre_Status_NA
-} CStringReqStrlcpy_Pre_Status;
+  CStringReqStrlcpy_Pre_N_Zero,
+  CStringReqStrlcpy_Pre_N_Positive,
+  CStringReqStrlcpy_Pre_N_NA
+} CStringReqStrlcpy_Pre_N;
 
 typedef enum {
-  CStringReqStrlcpy_Post_Status_Ok,
-  CStringReqStrlcpy_Post_Status_NA
-} CStringReqStrlcpy_Post_Status;
+  CStringReqStrlcpy_Pre_Fit_Fits,
+  CStringReqStrlcpy_Pre_Fit_Truncate,
+  CStringReqStrlcpy_Pre_Fit_NA
+} CStringReqStrlcpy_Pre_Fit;
+
+typedef enum {
+  CStringReqStrlcpy_Post_Result_Truncated,
+  CStringReqStrlcpy_Post_Result_NotTruncated,
+  CStringReqStrlcpy_Post_Result_NA
+} CStringReqStrlcpy_Post_Result;
+
+typedef enum {
+  CStringReqStrlcpy_Post_DstArea_Unmodified,
+  CStringReqStrlcpy_Post_DstArea_CopiedFull,
+  CStringReqStrlcpy_Post_DstArea_CopiedTruncated,
+  CStringReqStrlcpy_Post_DstArea_NA
+} CStringReqStrlcpy_Post_DstArea;
 
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_N_NA : 1;
+  uint8_t Pre_Fit_NA : 1;
+  uint8_t Post_Result : 2;
+  uint8_t Post_DstArea : 2;
 } CStringReqStrlcpy_Entry;
 
 /**
@@ -83,17 +100,17 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the `dst` parameter value.
+   * @brief This member specifies the ``dst`` parameter value.
    */
   char *dst;
 
   /**
-   * @brief This member specifies the `src` parameter value.
+   * @brief This member specifies the ``src`` parameter value.
    */
   const char *src;
 
   /**
-   * @brief This member specifies the `size` parameter value.
+   * @brief This member specifies the ``size`` parameter value.
    */
   size_t size;
 
@@ -102,11 +119,33 @@ typedef struct {
    */
   size_t retval;
 
+  /**
+   * @brief This member contains the offset of the guarded ``dst`` region from
+   *   the start of the destination buffer.
+   */
+  size_t offset;
+
+  /**
+   * @brief This member provides the destination buffer.
+   */
+  unsigned char dst_buf[ 32 ];
+
+  /**
+   * @brief This member provides the source buffer.
+   */
+  char src_buf[ 16 ];
+
   struct {
+    /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -134,50 +173,191 @@ typedef struct {
 static CStringReqStrlcpy_Context
   CStringReqStrlcpy_Instance;
 
-static const char * const CStringReqStrlcpy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CStringReqStrlcpy_PreDesc_N[] = {
+  "Zero",
+  "Positive",
+  "NA"
+};
+
+static const char * const CStringReqStrlcpy_PreDesc_Fit[] = {
+  "Fits",
+  "Truncate",
   "NA"
 };
 
 static const char * const * const CStringReqStrlcpy_PreDesc[] = {
-  CStringReqStrlcpy_PreDesc_Status,
+  CStringReqStrlcpy_PreDesc_N,
+  CStringReqStrlcpy_PreDesc_Fit,
   NULL
 };
 
-static void CStringReqStrlcpy_Pre_Status_Prepare(
-  CStringReqStrlcpy_Pre_Status state
+static void CStringReqStrlcpy_Pre_N_Prepare(
+  CStringReqStrlcpy_Context *ctx,
+  CStringReqStrlcpy_Pre_N    state
 )
 {
   switch ( state ) {
-    case CStringReqStrlcpy_Pre_Status_Ok: {
+    case CStringReqStrlcpy_Pre_N_Zero: {
       /*
-       * TODO
+       * While the size specified by ``size`` is equal to zero.
        */
-      /* TODO */
+      ctx->size = 0;
       break;
     }
 
-    case CStringReqStrlcpy_Pre_Status_NA:
+    case CStringReqStrlcpy_Pre_N_Positive: {
+      /*
+       * While the size specified by ``size`` is greater than zero.
+       */
+      /* The exact positive value is determined by the Fit pre-condition */
+      break;
+    }
+
+    case CStringReqStrlcpy_Pre_N_NA:
       break;
   }
 }
 
-static void CStringReqStrlcpy_Post_Status_Check(
-  CStringReqStrlcpy_Post_Status state
+static void CStringReqStrlcpy_Pre_Fit_Prepare(
+  CStringReqStrlcpy_Context *ctx,
+  CStringReqStrlcpy_Pre_Fit  state
 )
 {
   switch ( state ) {
-    case CStringReqStrlcpy_Post_Status_Ok: {
+    case CStringReqStrlcpy_Pre_Fit_Fits: {
       /*
-       * TODO
+       * While the length of the string referenced by ``src`` is less than the
+       * size specified by ``size``.
        */
-      /* TODO */
+      strcpy( ctx->src_buf, "AB" );
+      ctx->size = 8;
       break;
     }
 
-    case CStringReqStrlcpy_Post_Status_NA:
+    case CStringReqStrlcpy_Pre_Fit_Truncate: {
+      /*
+       * While the length of the string referenced by ``src`` is greater than
+       * or equal to the size specified by ``size``.
+       */
+      strcpy( ctx->src_buf, "ABCDE" );
+      ctx->size = 3;
+      break;
+    }
+
+    case CStringReqStrlcpy_Pre_Fit_NA:
       break;
   }
+}
+
+static void CStringReqStrlcpy_Post_Result_Check(
+  CStringReqStrlcpy_Context    *ctx,
+  CStringReqStrlcpy_Post_Result state
+)
+{
+  switch ( state ) {
+    case CStringReqStrlcpy_Post_Result_Truncated: {
+      /*
+       * The return value of strlcpy() shall be greater than or equal to the
+       * size specified by ``size``.
+       */
+      T_ge_uint( ctx->retval, ctx->size );
+      T_eq_uint( ctx->retval, strlen( ctx->src ) );
+      break;
+    }
+
+    case CStringReqStrlcpy_Post_Result_NotTruncated: {
+      /*
+       * The return value of strlcpy() shall be less than the size specified by
+       * ``size``.
+       */
+      T_lt_uint( ctx->retval, ctx->size );
+      T_eq_uint( ctx->retval, strlen( ctx->src ) );
+      break;
+    }
+
+    case CStringReqStrlcpy_Post_Result_NA:
+      break;
+  }
+}
+
+static void CStringReqStrlcpy_Post_DstArea_Check(
+  CStringReqStrlcpy_Context     *ctx,
+  CStringReqStrlcpy_Post_DstArea state
+)
+{
+  switch ( state ) {
+    case CStringReqStrlcpy_Post_DstArea_Unmodified: {
+      /*
+       * The memory area referenced by ``dst`` shall not be modified.
+       */
+      for ( size_t i = 0; i < sizeof( ctx->dst_buf ); ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqStrlcpy_Post_DstArea_CopiedFull: {
+      /*
+       * The string referenced by ``src``, including its terminating null
+       * character, shall be copied to the memory area referenced by ``dst``.
+       * The remaining bytes of the memory area referenced by ``dst`` up to the
+       * size specified by ``size`` shall not be modified.
+       */
+      size_t len = strlen( ctx->src );
+
+      T_eq_nstr( ctx->dst, ctx->src, len + 1 );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + len + 1;
+        i < sizeof( ctx->dst_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqStrlcpy_Post_DstArea_CopiedTruncated: {
+      /*
+       * The first bytes of the string referenced by ``src``, up to one less
+       * than the size specified by ``size``, shall be copied to the memory
+       * area referenced by ``dst``, followed by a terminating null character.
+       */
+      T_eq_nstr( ctx->dst, ctx->src, ctx->size - 1 );
+      T_eq_uint( ctx->dst[ ctx->size - 1 ], 0 );
+
+      for ( size_t i = 0; i < ctx->offset; ++i ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+
+      for (
+        size_t i = ctx->offset + ctx->size;
+        i < sizeof( ctx->dst_buf );
+        ++i
+      ) {
+        T_quiet_eq_uint( ctx->dst_buf[ i ], 0xaa );
+      }
+      break;
+    }
+
+    case CStringReqStrlcpy_Post_DstArea_NA:
+      break;
+  }
+}
+
+static void CStringReqStrlcpy_Prepare( CStringReqStrlcpy_Context *ctx )
+{
+  memset( ctx->dst_buf, 0xaa, sizeof( ctx->dst_buf ) );
+  memset( ctx->src_buf, 0, sizeof( ctx->src_buf ) );
+  ctx->offset = 4;
+  ctx->dst = (char *) ( ctx->dst_buf + ctx->offset );
+  ctx->src = ctx->src_buf;
+  ctx->retval = 0;
+  ctx->size = 0;
 }
 
 static void CStringReqStrlcpy_Action( CStringReqStrlcpy_Context *ctx )
@@ -187,12 +367,17 @@ static void CStringReqStrlcpy_Action( CStringReqStrlcpy_Context *ctx )
 
 static const CStringReqStrlcpy_Entry
 CStringReqStrlcpy_Entries[] = {
-  { 0, 0, CStringReqStrlcpy_Post_Status_Ok }
+  { 0, 0, 1, CStringReqStrlcpy_Post_Result_Truncated,
+    CStringReqStrlcpy_Post_DstArea_Unmodified },
+  { 0, 0, 0, CStringReqStrlcpy_Post_Result_NotTruncated,
+    CStringReqStrlcpy_Post_DstArea_CopiedFull },
+  { 0, 0, 0, CStringReqStrlcpy_Post_Result_Truncated,
+    CStringReqStrlcpy_Post_DstArea_CopiedTruncated }
 };
 
 static const uint8_t
 CStringReqStrlcpy_Map[] = {
-  0
+  0, 0, 1, 2
 };
 
 static size_t CStringReqStrlcpy_Scope( void *arg, char *buf, size_t n )
@@ -229,11 +414,26 @@ static inline CStringReqStrlcpy_Entry CStringReqStrlcpy_PopEntry(
   ];
 }
 
+static void CStringReqStrlcpy_SetPreConditionStates(
+  CStringReqStrlcpy_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Fit_NA ) {
+    ctx->Map.pcs[ 1 ] = CStringReqStrlcpy_Pre_Fit_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CStringReqStrlcpy_TestVariant( CStringReqStrlcpy_Context *ctx )
 {
-  CStringReqStrlcpy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CStringReqStrlcpy_Pre_N_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringReqStrlcpy_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringReqStrlcpy_Action( ctx );
-  CStringReqStrlcpy_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CStringReqStrlcpy_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
+  CStringReqStrlcpy_Post_DstArea_Check( ctx, ctx->Map.entry.Post_DstArea );
 }
 
 /**
@@ -248,12 +448,20 @@ T_TEST_CASE_FIXTURE( CStringReqStrlcpy, &CStringReqStrlcpy_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringReqStrlcpy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CStringReqStrlcpy_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CStringReqStrlcpy_Pre_N_Zero;
+    ctx->Map.pci[ 0 ] < CStringReqStrlcpy_Pre_N_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CStringReqStrlcpy_PopEntry( ctx );
-    CStringReqStrlcpy_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CStringReqStrlcpy_Pre_Fit_Fits;
+      ctx->Map.pci[ 1 ] < CStringReqStrlcpy_Pre_Fit_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CStringReqStrlcpy_PopEntry( ctx );
+      CStringReqStrlcpy_SetPreConditionStates( ctx );
+      CStringReqStrlcpy_Prepare( ctx );
+      CStringReqStrlcpy_TestVariant( ctx );
+    }
   }
 }
 
