@@ -1,0 +1,124 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strcasecmp
+post-conditions:
+- name: Result
+  states:
+  - name: Less
+    test-code: |
+      T_lt_int( ctx->retval, 0 );
+    text: |
+      The return value shall be less than zero.
+  - name: Equal
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value shall be equal to zero.
+  - name: Greater
+    test-code: |
+      T_gt_int( ctx->retval, 0 );
+    text: |
+      The return value shall be greater than zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Cmp
+  states:
+  - name: Less
+    test-code: |
+      ctx->s1 = "abc";
+      ctx->s2 = "xyz";
+    text: |
+      While the string specified by ${../if/strcasecmp:/params[0]/name} is
+      less than the string specified by ${../if/strcasecmp:/params[1]/name}
+      after ignoring differences in case.
+  - name: Equal
+    test-code: |
+      ctx->s1 = "Hello";
+      ctx->s2 = "hello";
+    text: |
+      While the string specified by ${../if/strcasecmp:/params[0]/name} is
+      equal to the string specified by ${../if/strcasecmp:/params[1]/name}
+      after ignoring differences in case.
+  - name: Greater
+    test-code: |
+      ctx->s1 = "xyz";
+      ctx->s2 = "abc";
+    text: |
+      While the string specified by ${../if/strcasecmp:/params[0]/name} is
+      greater than the string specified by ${../if/strcasecmp:/params[1]/name}
+      after ignoring differences in case.
+  - name: S1Longer
+    test-code: |
+      ctx->s1 = "Hello!";
+      ctx->s2 = "Hello";
+    text: |
+      While the string specified by ${../if/strcasecmp:/params[0]/name} is
+      longer than the string specified by ${../if/strcasecmp:/params[1]/name},
+      while both strings share the same prefix after ignoring differences in
+      case.
+  - name: BothEmpty
+    test-code: |
+      ctx->s1 = "";
+      ctx->s2 = "";
+    text: |
+      While both the string specified by ${../if/strcasecmp:/params[0]/name}
+      and the string specified by ${../if/strcasecmp:/params[1]/name} are
+      empty.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strcasecmp( ctx->s1, ctx->s2 );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/strcasecmp:/params[0]/name} parameter value.
+  description: null
+  member: const char *s1
+- brief: This member specifies the ${../if/strcasecmp:/params[1]/name} parameter value.
+  description: null
+  member: const char *s2
+- brief: This member contains the return value.
+  description: null
+  member: int retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- strings.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-strings-strcasecmp.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Cmp: Less
+      then: Less
+    - if:
+        pre-conditions:
+          Cmp:
+          - Equal
+          - BothEmpty
+      then: Equal
+    - else: Greater
+    # S1Longer and Greater both map to Greater via else
+  pre-conditions:
+    Cmp: all
+type: requirement
