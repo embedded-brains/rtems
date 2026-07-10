@@ -449,6 +449,10 @@ transition-map:
     - else: Invalid
     IdObj:
     - if:
+        pre-conditions:
+          Id: 'Null'
+      then: N/A
+    - if:
         post-conditions:
           Status: Ok
       then: Set
@@ -470,13 +474,13 @@ transition-map:
       then: Free
     - else: N/A
   pre-conditions:
-    Area: all
-    AreaSize: all
     Config: all
+    Name: all
     Id: all
     MaxPending: all
     MaxSize: all
-    Name: all
     Free: all
+    Area: all
+    AreaSize: all
     StorageFree: all
 type: requirement
