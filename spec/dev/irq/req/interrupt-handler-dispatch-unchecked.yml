@@ -279,21 +279,26 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: FatalError
-    FatalSource: SpuriousInterrupt
-    FatalCode: Vector
+    Result:
+    - if:
+        pre-conditions:
+          LoadFirst: Entry
+      then: Dispatch
+    - else: FatalError
+    FatalSource:
+    - if:
+        pre-conditions:
+          LoadFirst: Entry
+      then: N/A
+    - else: SpuriousInterrupt
+    FatalCode:
+    - if:
+        pre-conditions:
+          LoadFirst: Entry
+      then: N/A
+    - else: Vector
   pre-conditions:
-    LoadFirst:
-    - 'Null'
-    LoadFirstAgain: N/A
-- enabled-by: true
-  post-conditions:
-    Result: Dispatch
-    FatalSource: N/A
-    FatalCode: N/A
-  pre-conditions:
-    LoadFirst:
-    - Entry
+    LoadFirst: all
     LoadFirstAgain: N/A
 - enabled-by: RTEMS_SMP
   post-conditions:
