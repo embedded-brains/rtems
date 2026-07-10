@@ -173,6 +173,11 @@ transition-map:
     PrioObj:
     - if:
         pre-conditions:
+          Prio:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Id:
           - Scheduler
           Prio:
