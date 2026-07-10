@@ -1,0 +1,206 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strstr
+post-conditions:
+- name: Result
+  states:
+  - name: PointerToS1
+    test-code: |
+      T_eq_ptr( ctx->retval, ctx->s1 );
+    text: |
+      The return value shall be a pointer to the first character of the string
+      specified by the `s1` parameter.
+  - name: PointerToMatch
+    test-code: |
+      T_not_null( ctx->retval );
+      /* The first occurrence is usually right at s1 or at some offset depending on test data */
+      /* Since s2 occurs in s1, retval should point somewhere inside s1 */
+      T_true(
+        ctx->retval >= ctx->s1 && ctx->retval <= ctx->s1 + strlen( ctx->s1 ),
+        "in range"
+      );
+    text: |
+      The return value shall be a pointer to the first occurrence of the string
+      specified by the `s2` parameter in the string specified by the `s1` parameter.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->retval );
+    text: |
+      The return value shall be a null pointer.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: S2StringLength
+  states:
+  - name: Zero
+    test-code: |
+      ctx->s2 = "";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      equal to 0.
+  - name: One
+    test-code: |
+      ctx->s2 = "b";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      equal to 1.
+  - name: Two
+    test-code: |
+      ctx->s2 = "ab";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      equal to 2.
+  - name: Three
+    test-code: |
+      ctx->s2 = "abc";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      equal to 3.
+  - name: Four
+    test-code: |
+      ctx->s2 = "abcd";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      equal to 4.
+  - name: Short
+    test-code: |
+      ctx->s2 = "abcde";
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      greater than or equal to 5, while the length of the string specified by
+      ${../if/strstr:/params[1]/name} is less than or equal to 254.
+  - name: Long
+    test-code: |
+      memset( ctx->s2_buf, 'a', 260 );
+      ctx->s2_buf[ 260 ] = 'b';
+      ctx->s2_buf[ 261 ] = '\0';
+      ctx->s2 = ctx->s2_buf;
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[1]/name} is
+      greater than or equal to 255.
+  test-epilogue: null
+  test-prologue: null
+- name: Contains
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* Set s1 to contain s2 plus some prefix/suffix */
+      strcpy( ctx->s1_buf, "prefix_" );
+      strcat( ctx->s1_buf, ctx->s2 );
+      strcat( ctx->s1_buf, "_suffix" );
+      ctx->s1 = ctx->s1_buf;
+    text: |
+      While the sequence of characters from the string specified by
+      ${../if/strstr:/params[1]/name} occurs in the string specified by
+      ${../if/strstr:/params[0]/name}.
+  - name: 'No'
+    test-code: |
+      /* Set s1 to be longer than s2 but not containing it */
+      memset( ctx->s1_buf, 'X', 1000 );
+      ctx->s1_buf[ 1000 ] = '\0';
+      ctx->s1 = ctx->s1_buf;
+    text: |
+      While the sequence of characters from the string specified by
+      ${../if/strstr:/params[1]/name} does not occur in the string specified by
+      ${../if/strstr:/params[0]/name}, while the length of the string specified by
+      ${../if/strstr:/params[0]/name} is greater than or equal to the length of the
+      string specified by ${../if/strstr:/params[1]/name}.
+  - name: NoEdgeCase
+    test-code: |
+      size_t len = strlen( ctx->s2 );
+      /* 517 is ne_len | 512 for ne_len=5. We need length 518 */
+      size_t fill_len = ( len | 512 ) + 1;
+      memset( ctx->s1_buf, 'X', fill_len );
+      ctx->s1_buf[ fill_len ] = '\0';
+      ctx->s1 = ctx->s1_buf;
+    text: |
+      While the sequence of characters from the string specified by
+      ${../if/strstr:/params[1]/name} does not occur in the string specified by
+      ${../if/strstr:/params[0]/name}, while the length of the string specified by
+      ${../if/strstr:/params[0]/name} is exactly configured to trigger the
+      Quick-Search edge case.
+  - name: HaystackTooShort
+    test-code: |
+      size_t len = strlen( ctx->s2 );
+      if ( len > 0 ) {
+        memset( ctx->s1_buf, 'X', len - 1 );
+        ctx->s1_buf[ len - 1 ] = '\0';
+      } else {
+        ctx->s1_buf[ 0 ] = '\0';
+      }
+      ctx->s1 = ctx->s1_buf;
+    text: |
+      While the length of the string specified by ${../if/strstr:/params[0]/name} is
+      less than the length of the string specified by
+      ${../if/strstr:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strstr( ctx->s1, ctx->s2 );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/strstr:/params[0]/name} parameter value.
+  description: null
+  member: const char * s1
+- brief: This member specifies the ${../if/strstr:/params[1]/name} parameter value.
+  description: null
+  member: const char * s2
+- brief: This member contains the return value.
+  description: null
+  member: char *retval
+- brief: This member provides the ``s2`` string buffer.
+  description: null
+  member: char s2_buf[ 300 ]
+- brief: This member provides the ``s1`` string buffer.
+  description: null
+  member: char s1_buf[ 1200 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-string-strstr.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          S2StringLength: Zero
+      then: PointerToS1
+    - if:
+        pre-conditions:
+          Contains: 'Yes'
+      then: PointerToMatch
+    - else: 'Null'
+  pre-conditions:
+    S2StringLength: all
+    Contains:
+      applicable:
+        pre-conditions:
+          S2StringLength:
+          - One
+          - Two
+          - Three
+          - Four
+          - Short
+          - Long
+type: requirement
