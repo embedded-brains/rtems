@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/assert
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  Where ${/user/if/ndebug:/name} is not defined, while the expression passed as
+  the first and only parameter to the ${../if/assert:/name} macro evaluates to
+  ``true``, the macro expansion shall do nothing more.
+type: requirement

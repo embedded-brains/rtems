@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2024 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: interface-function
+  uid: ../if/assert
+functional-type: function
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  Where ${/user/if/ndebug:/name} is not defined, while the expression passed as
+  the first and only parameter to the ${../if/assert:/name} macro evaluates to
+  ``false``, the macro expansion shall terminate the system with a fatal source
+  of ${/score/interr/if/source-assert:/name} and a fatal code containing a
+  reference to an object of type ${/rtems/fatal/if/assert-context:/name}.
+type: requirement

@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2024 embedded brains GmbH & Co. KG
 enabled-by: true
 links: []
 test-actions:
@@ -109,6 +109,26 @@ test-actions:
   links:
   - role: validation
     uid: /c/string/req/strlen
+- action-brief: |
+    Call ${/c/assert/if/assert:/name} with an expression which evaluates to true.  We
+    expect that nothing will happen.
+  action-code: |
+    assert( 1 );
+  checks: []
+  links:
+  - role: validation
+    uid: /c/assert/req/assert-true
+- action-brief: |
+    Call ${/c/assert/if/assert:/name} with an expression which evaluates to false.
+    Check that the expected fatal error happened.
+  action-code: |
+    ProduceAndCheckFatalError( AssertFalse, CheckAssert, NULL );
+  checks: []
+  links:
+  - role: validation
+    uid: /c/assert/req/assert-false
+  - role: validation
+    uid: /score/interr/if/source-assert
 test-brief: |
   Tests C library functions.
 test-context: []
@@ -116,9 +136,11 @@ test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- assert.h
 - string.h
 - rtems.h
-test-local-includes: []
+test-local-includes:
+- tx-support.h
 test-setup: null
 test-stop: null
 test-support: |
@@ -146,6 +168,34 @@ test-support: |
     }
 
     return result;
+  }
+
+  static int expected_line;
+
+  static void CheckAssert(
+    rtems_fatal_source source,
+    rtems_fatal_code   code,
+    void              *arg
+  )
+  {
+    T_eq_int( source, RTEMS_FATAL_SOURCE_ASSERT );
+
+    if ( source == RTEMS_FATAL_SOURCE_ASSERT ) {
+      const rtems_assert_context *ctx;
+
+      ctx = (const rtems_assert_context *) code;
+      T_true( ContainsSubstring( ctx->file, "tc-c.c" ) );
+      T_eq_int( ctx->line, expected_line );
+      T_true( ContainsSubstring( ctx->failed_expression, "arg != NULL" ) );
+    }
+
+    T_null( arg );
+  }
+
+  static void AssertFalse( void *arg )
+  {
+    expected_line = __LINE__ + 1;
+    assert( arg != NULL );
   }
 test-target: testsuites/validation/tc-c.c
 test-teardown: null
