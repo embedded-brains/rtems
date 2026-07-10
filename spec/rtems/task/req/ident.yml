@@ -125,14 +125,13 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: OkAndWhoAmI
+    Status:
+    - if:
+        pre-conditions:
+          Name:
+          - NotWhoAmI
+      then: Skip
+    - else: OkAndWhoAmI
   pre-conditions:
-    Name:
-    - WhoAmI
-- enabled-by: true
-  post-conditions:
-    Status: Skip
-  pre-conditions:
-    Name:
-    - NotWhoAmI
+    Name: all
 type: requirement
