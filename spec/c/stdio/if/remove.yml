@@ -1,0 +1,54 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Remove the file or directory specified by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    Permission to remove the file is denied.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    The ${.:/params[0]/name} argument is too long.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    The specified file does not exist.
+  role: errno
+  uid: /c/errno/if/enoent
+name: remove
+notes: |
+  See [C23, <stdio.h>, remove()](https://en.cppreference.com/w/c/io/remove).
+params:
+- description: |
+    is the pointer to the path name.
+  dir: in
+  name: path
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

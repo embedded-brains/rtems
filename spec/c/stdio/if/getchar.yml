@@ -1,15 +1,14 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  Brief TODO.
+  Get a character from the standard input stream.
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
     body: null
-    params:
-    - ${/c/if/dir:/name} *${.:/params[0]/name}
-    return: ${/c/if/dirent:/name} *
+    params: []
+    return: int
   variants: []
 description: null
 enabled-by: true
@@ -17,16 +16,17 @@ index-entries: []
 interface-type: function
 links:
 - role: interface-placement
-  uid: /c/dirent/if/header
+  uid: header
 - role: interface-ingroup
   uid: group
 - role: constraint
   uid: /constraint/directive-not-pre-qualified
-name: readdir
-notes: null
-params:
-- description: null
-  dir: null
-  name: param_0
-return: null
+name: getchar
+notes: |
+  See [C23, <stdio.h>, getchar()](https://en.cppreference.com/w/c/io/getchar).
+params: []
+return:
+  return: |
+    Returns the character read, or EOF on end-of-file or error.
+  return-values: []
 type: interface

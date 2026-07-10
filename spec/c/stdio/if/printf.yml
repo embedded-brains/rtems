@@ -1,0 +1,39 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Print formatted output to the standard output stream according to the format
+  specified by ${.:/params[0]/name} and the optional arguments.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *restrict ${.:/params[0]/name}
+    - '...'
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: printf
+notes: |
+  See [C23, <stdio.h>, printf()](https://en.cppreference.com/w/c/io/fprintf).
+params:
+- description: |
+    is the pointer to the format string.
+  dir: in
+  name: format
+return:
+  return: |
+    Returns the number of characters printed, or a negative value on error.
+  return-values: []
+type: interface

@@ -1,0 +1,88 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Rename the file or directory specified by ${.:/params[0]/name} to the path
+  specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    Write permission is denied for the directory containing ${.:/params[0]/name} or
+    ${.:/params[1]/name}, or, search permission is denied for one of the
+    directories in the path prefix of ${.:/params[0]/name} or ${.:/params[1]/name},
+    or ${.:/params[0]/name} is a directory and does not allow write permission
+    (needed to update the .. entry). (See also path_resolution(7).).
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    The rename fails because ${.:/params[0]/name} or ${.:/params[1]/name} is a
+    directory that is in use by some process (perhaps as current working directory,
+    or as root directory, or because it was open for reading) or is in use by the
+    system (for example as a mount point), while the system considers this an
+    error. (Note that there is no requirement to return EBUSY in such cases—there
+    is nothing wrong with doing the rename anyway—but it is allowed to return EBUSY
+    if the system cannot otherwise han‐ dle such situations.).
+  role: errno
+  uid: /c/errno/if/ebusy
+- description: |
+    ${.:/params[0]/name} or ${.:/params[1]/name} points outside your accessible
+    address space.
+  role: errno
+  uid: /c/errno/if/efault
+- description: |
+    The ${.:/params[1]/name} ${.:/params[0]/name} contained a path prefix of the
+    ${.:/params[0]/name}, or, more generally, an attempt was made to make a
+    directory a subdirectory of itself.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    Too many symbolic links were encountered in resolving ${.:/params[0]/name} or
+    ${.:/params[1]/name}.
+  role: errno
+  uid: /c/errno/if/eloop
+- description: |
+    ${.:/params[0]/name} already has the maximum number of links to it, or it was a
+    directory and the directory containing ${.:/params[1]/name} has the maximum
+    number of links.
+  role: errno
+  uid: /c/errno/if/emlink
+name: rename
+notes: |
+  See [C23, <stdio.h>, rename()](https://en.cppreference.com/w/c/io/rename).
+params:
+- description: |
+    is the pointer to the old path name.
+  dir: in
+  name: old
+- description: |
+    is the pointer to the new path name.
+  dir: in
+  name: new
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
