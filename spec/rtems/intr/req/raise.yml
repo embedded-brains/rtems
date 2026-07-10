@@ -323,28 +323,39 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Pending: 'Yes'
+    Status:
+    - if:
+        pre-conditions:
+          Vector:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          CanRaise:
+          - 'No'
+          Vector:
+          - Valid
+      then: Unsat
+    - else: Ok
+    Pending:
+    - if:
+        pre-conditions:
+          Vector:
+          - Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          CanRaise:
+          - 'No'
+          Vector:
+          - Valid
+      then: 'No'
+    - else: 'Yes'
   pre-conditions:
-    Vector:
-    - Valid
+    Vector: all
     CanRaise:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Pending: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    CanRaise: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    Pending: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    CanRaise:
-    - 'No'
+      applicable:
+        pre-conditions:
+          Vector:
+          - Valid
 type: requirement
