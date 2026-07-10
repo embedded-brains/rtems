@@ -63,19 +63,29 @@
  */
 
 typedef enum {
-  CStringReqStrrchr_Pre_Status_Ok,
-  CStringReqStrrchr_Pre_Status_NA
-} CStringReqStrrchr_Pre_Status;
+  CStringReqStrrchr_Pre_C_Zero,
+  CStringReqStrrchr_Pre_C_NonZero,
+  CStringReqStrrchr_Pre_C_NA
+} CStringReqStrrchr_Pre_C;
 
 typedef enum {
-  CStringReqStrrchr_Post_Status_Ok,
-  CStringReqStrrchr_Post_Status_NA
-} CStringReqStrrchr_Post_Status;
+  CStringReqStrrchr_Pre_Match_NotFound,
+  CStringReqStrrchr_Pre_Match_FoundOnce,
+  CStringReqStrrchr_Pre_Match_FoundMultiple,
+  CStringReqStrrchr_Pre_Match_NA
+} CStringReqStrrchr_Pre_Match;
+
+typedef enum {
+  CStringReqStrrchr_Post_Result_Found,
+  CStringReqStrrchr_Post_Result_Null,
+  CStringReqStrrchr_Post_Result_NA
+} CStringReqStrrchr_Post_Result;
 
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_C_NA : 1;
+  uint8_t Pre_Match_NA : 1;
+  uint8_t Post_Result : 2;
 } CStringReqStrrchr_Entry;
 
 /**
@@ -83,12 +93,12 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the `s` parameter value.
+   * @brief This member specifies the ``s`` parameter value.
    */
   const char *s;
 
   /**
-   * @brief This member specifies the `c` parameter value.
+   * @brief This member specifies the ``c`` parameter value.
    */
   int c;
 
@@ -97,11 +107,28 @@ typedef struct {
    */
   char *retval;
 
+  /**
+   * @brief This member contains the index of the last occurrence of the
+   *   notable byte within the source buffer.
+   */
+  size_t match_pos;
+
+  /**
+   * @brief This member provides the source buffer.
+   */
+  char s_buf[ 16 ];
+
   struct {
+    /**
+     * @brief This member defines the pre-condition indices for the next
+     *   action.
+     */
+    size_t pci[ 2 ];
+
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 1 ];
+    size_t pcs[ 2 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -129,50 +156,131 @@ typedef struct {
 static CStringReqStrrchr_Context
   CStringReqStrrchr_Instance;
 
-static const char * const CStringReqStrrchr_PreDesc_Status[] = {
-  "Ok",
+static const char * const CStringReqStrrchr_PreDesc_C[] = {
+  "Zero",
+  "NonZero",
+  "NA"
+};
+
+static const char * const CStringReqStrrchr_PreDesc_Match[] = {
+  "NotFound",
+  "FoundOnce",
+  "FoundMultiple",
   "NA"
 };
 
 static const char * const * const CStringReqStrrchr_PreDesc[] = {
-  CStringReqStrrchr_PreDesc_Status,
+  CStringReqStrrchr_PreDesc_C,
+  CStringReqStrrchr_PreDesc_Match,
   NULL
 };
 
-static void CStringReqStrrchr_Pre_Status_Prepare(
-  CStringReqStrrchr_Pre_Status state
+static void CStringReqStrrchr_Pre_C_Prepare(
+  CStringReqStrrchr_Context *ctx,
+  CStringReqStrrchr_Pre_C    state
 )
 {
   switch ( state ) {
-    case CStringReqStrrchr_Pre_Status_Ok: {
+    case CStringReqStrrchr_Pre_C_Zero: {
       /*
-       * TODO
+       * While the byte specified by ``c`` is equal to the terminating null
+       * character.
        */
-      /* TODO */
+      strcpy( ctx->s_buf, "ABC" );
+      ctx->c = 0;
+      ctx->match_pos = 3;
       break;
     }
 
-    case CStringReqStrrchr_Pre_Status_NA:
+    case CStringReqStrrchr_Pre_C_NonZero: {
+      /*
+       * While the byte specified by ``c`` is not equal to the terminating null
+       * character.
+       */
+      ctx->c = 'X';
+      break;
+    }
+
+    case CStringReqStrrchr_Pre_C_NA:
       break;
   }
 }
 
-static void CStringReqStrrchr_Post_Status_Check(
-  CStringReqStrrchr_Post_Status state
+static void CStringReqStrrchr_Pre_Match_Prepare(
+  CStringReqStrrchr_Context  *ctx,
+  CStringReqStrrchr_Pre_Match state
 )
 {
   switch ( state ) {
-    case CStringReqStrrchr_Post_Status_Ok: {
+    case CStringReqStrrchr_Pre_Match_NotFound: {
       /*
-       * TODO
+       * While the byte specified by ``c`` does not occur in the string
+       * referenced by ``s`` before its terminating null character.
        */
-      /* TODO */
+      strcpy( ctx->s_buf, "ABC" );
       break;
     }
 
-    case CStringReqStrrchr_Post_Status_NA:
+    case CStringReqStrrchr_Pre_Match_FoundOnce: {
+      /*
+       * While the byte specified by ``c`` occurs exactly once in the string
+       * referenced by ``s`` before its terminating null character.
+       */
+      strcpy( ctx->s_buf, "ABXCD" );
+      ctx->match_pos = 2;
+      break;
+    }
+
+    case CStringReqStrrchr_Pre_Match_FoundMultiple: {
+      /*
+       * While the byte specified by ``c`` occurs more than once in the string
+       * referenced by ``s`` before its terminating null character.
+       */
+      strcpy( ctx->s_buf, "AXBXC" );
+      ctx->match_pos = 3;
+      break;
+    }
+
+    case CStringReqStrrchr_Pre_Match_NA:
       break;
   }
+}
+
+static void CStringReqStrrchr_Post_Result_Check(
+  CStringReqStrrchr_Context    *ctx,
+  CStringReqStrrchr_Post_Result state
+)
+{
+  switch ( state ) {
+    case CStringReqStrrchr_Post_Result_Found: {
+      /*
+       * The return value of strrchr() shall be a pointer to the last
+       * occurrence of the notable byte in the string referenced by ``s``.
+       */
+      T_eq_ptr( ctx->retval, ctx->s_buf + ctx->match_pos );
+      break;
+    }
+
+    case CStringReqStrrchr_Post_Result_Null: {
+      /*
+       * The return value of strrchr() shall be equal to NULL.
+       */
+      T_null( ctx->retval );
+      break;
+    }
+
+    case CStringReqStrrchr_Post_Result_NA:
+      break;
+  }
+}
+
+static void CStringReqStrrchr_Prepare( CStringReqStrrchr_Context *ctx )
+{
+  memset( ctx->s_buf, 0, sizeof( ctx->s_buf ) );
+  ctx->s = ctx->s_buf;
+  ctx->c = 0;
+  ctx->retval = NULL;
+  ctx->match_pos = 0;
 }
 
 static void CStringReqStrrchr_Action( CStringReqStrrchr_Context *ctx )
@@ -182,12 +290,14 @@ static void CStringReqStrrchr_Action( CStringReqStrrchr_Context *ctx )
 
 static const CStringReqStrrchr_Entry
 CStringReqStrrchr_Entries[] = {
-  { 0, 0, CStringReqStrrchr_Post_Status_Ok }
+  { 0, 0, 1, CStringReqStrrchr_Post_Result_Found },
+  { 0, 0, 0, CStringReqStrrchr_Post_Result_Found },
+  { 0, 0, 0, CStringReqStrrchr_Post_Result_Null }
 };
 
 static const uint8_t
 CStringReqStrrchr_Map[] = {
-  0
+  0, 0, 0, 2, 1, 1
 };
 
 static size_t CStringReqStrrchr_Scope( void *arg, char *buf, size_t n )
@@ -224,11 +334,25 @@ static inline CStringReqStrrchr_Entry CStringReqStrrchr_PopEntry(
   ];
 }
 
+static void CStringReqStrrchr_SetPreConditionStates(
+  CStringReqStrrchr_Context *ctx
+)
+{
+  ctx->Map.pcs[ 0 ] = ctx->Map.pci[ 0 ];
+
+  if ( ctx->Map.entry.Pre_Match_NA ) {
+    ctx->Map.pcs[ 1 ] = CStringReqStrrchr_Pre_Match_NA;
+  } else {
+    ctx->Map.pcs[ 1 ] = ctx->Map.pci[ 1 ];
+  }
+}
+
 static void CStringReqStrrchr_TestVariant( CStringReqStrrchr_Context *ctx )
 {
-  CStringReqStrrchr_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CStringReqStrrchr_Pre_C_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringReqStrrchr_Pre_Match_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringReqStrrchr_Action( ctx );
-  CStringReqStrrchr_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CStringReqStrrchr_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
 }
 
 /**
@@ -243,12 +367,20 @@ T_TEST_CASE_FIXTURE( CStringReqStrrchr, &CStringReqStrrchr_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringReqStrrchr_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CStringReqStrrchr_Pre_Status_NA;
-    ++ctx->Map.pcs[ 0 ]
+    ctx->Map.pci[ 0 ] = CStringReqStrrchr_Pre_C_Zero;
+    ctx->Map.pci[ 0 ] < CStringReqStrrchr_Pre_C_NA;
+    ++ctx->Map.pci[ 0 ]
   ) {
-    ctx->Map.entry = CStringReqStrrchr_PopEntry( ctx );
-    CStringReqStrrchr_TestVariant( ctx );
+    for (
+      ctx->Map.pci[ 1 ] = CStringReqStrrchr_Pre_Match_NotFound;
+      ctx->Map.pci[ 1 ] < CStringReqStrrchr_Pre_Match_NA;
+      ++ctx->Map.pci[ 1 ]
+    ) {
+      ctx->Map.entry = CStringReqStrrchr_PopEntry( ctx );
+      CStringReqStrrchr_SetPreConditionStates( ctx );
+      CStringReqStrrchr_Prepare( ctx );
+      CStringReqStrrchr_TestVariant( ctx );
+    }
   }
 }
 
