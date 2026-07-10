@@ -409,20 +409,20 @@ transition-map:
     CreateExt: 'Yes'
     DelExt: 'No'
   pre-conditions:
-    Ext:
-    - Ok
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk: all
     Prio:
     - Valid
+    Free:
+    - 'Yes'
     Stack:
     - Normal
     - Small
-    Free:
-    - 'Yes'
+    Ext:
+    - Ok
 - enabled-by: true
   post-conditions:
     Status: Ok
@@ -431,54 +431,60 @@ transition-map:
     CreateExt: 'Yes'
     DelExt: 'No'
   pre-conditions:
-    Ext:
-    - Ok
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk:
     - 'Yes'
     Prio:
     - Zero
+    Free:
+    - 'Yes'
     Stack:
     - Normal
     - Small
-    Free:
-    - 'Yes'
+    Ext:
+    - Ok
 - enabled-by: true
   post-conditions:
     Status: InvName
     Name: Invalid
-    IdVar: Nop
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - else: Nop
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id: all
     Name:
     - Inv
+    Id: all
     SysTsk: all
     Prio: all
-    Stack: all
     Free: all
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
-    IdVar: Nop
+    IdVar: N/A
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - 'Null'
     Name:
     - Valid
+    Id:
+    - 'Null'
     SysTsk: all
     Prio: all
-    Stack: all
     Free: all
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: InvPrio
@@ -487,16 +493,16 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk: all
     Prio:
     - Inv
-    Stack: all
     Free: all
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: InvPrio
@@ -505,17 +511,17 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk:
     - 'No'
     Prio:
     - Zero
-    Stack: all
     Free: all
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: TooMany
@@ -524,17 +530,17 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk: all
     Prio:
     - Valid
-    Stack: all
     Free:
     - 'No'
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: TooMany
@@ -543,18 +549,18 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk:
     - 'Yes'
     Prio:
     - Zero
-    Stack: all
     Free:
     - 'No'
+    Stack: all
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: Unsat
@@ -563,18 +569,18 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk: all
     Prio:
     - Valid
-    Stack:
-    - Huge
     Free:
     - 'Yes'
+    Stack:
+    - Huge
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: Unsat
@@ -583,19 +589,19 @@ transition-map:
     CreateExt: 'No'
     DelExt: 'No'
   pre-conditions:
-    Ext: all
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk:
     - 'Yes'
     Prio:
     - Zero
-    Stack:
-    - Huge
     Free:
     - 'Yes'
+    Stack:
+    - Huge
+    Ext: all
 - enabled-by: true
   post-conditions:
     Status: Unsat
@@ -604,20 +610,20 @@ transition-map:
     CreateExt: 'Yes'
     DelExt: 'Yes'
   pre-conditions:
-    Ext:
-    - Err
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk: all
     Prio:
     - Valid
+    Free:
+    - 'Yes'
     Stack:
     - Normal
     - Small
-    Free:
-    - 'Yes'
+    Ext:
+    - Err
 - enabled-by: true
   post-conditions:
     Status: Unsat
@@ -626,19 +632,19 @@ transition-map:
     CreateExt: 'Yes'
     DelExt: 'Yes'
   pre-conditions:
-    Ext:
-    - Err
-    Id:
-    - Valid
     Name:
+    - Valid
+    Id:
     - Valid
     SysTsk:
     - 'Yes'
     Prio:
     - Zero
+    Free:
+    - 'Yes'
     Stack:
     - Normal
     - Small
-    Free:
-    - 'Yes'
+    Ext:
+    - Err
 type: requirement
