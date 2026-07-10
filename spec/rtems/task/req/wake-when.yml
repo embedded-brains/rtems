@@ -253,65 +253,81 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Timer: Realtime
-    Expire: Absolute
-    Scheduler: Block
+    Status:
+    - if:
+        pre-conditions:
+          TOD:
+          - 'Null'
+          TODSet:
+          - 'Yes'
+      then: InvAddr
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - PastOrNow
+          TODSet:
+          - 'Yes'
+      then: InvClock
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - Invalid
+          TODSet:
+          - 'Yes'
+      then: InvClock
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - Future
+          TODSet:
+          - 'Yes'
+      then: Ok
+    - else: NotDef
+    Timer:
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - Future
+          TODSet:
+          - 'Yes'
+      then: Realtime
+    - else: Inactive
+    Expire:
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - Future
+          TODSet:
+          - 'Yes'
+      then: Absolute
+    - else: N/A
+    Scheduler:
+    - if:
+        pre-conditions:
+          TOD:
+          - Valid
+          TODObj:
+          - Future
+          TODSet:
+          - 'Yes'
+      then: Block
+    - else: Nop
   pre-conditions:
-    TODSet:
-    - 'Yes'
-    TOD:
-    - Valid
+    TODSet: all
+    TOD: all
     TODObj:
-    - Future
-- enabled-by: true
-  post-conditions:
-    Status: NotDef
-    Timer: Inactive
-    Expire: N/A
-    Scheduler: Nop
-  pre-conditions:
-    TODSet:
-    - 'No'
-    TOD:
-    - Valid
-    TODObj: all
-- enabled-by: true
-  post-conditions:
-    Status: NotDef
-    Timer: Inactive
-    Expire: N/A
-    Scheduler: Nop
-  pre-conditions:
-    TODSet:
-    - 'No'
-    TOD:
-    - 'Null'
-    TODObj: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    Timer: Inactive
-    Expire: N/A
-    Scheduler: Nop
-  pre-conditions:
-    TODSet:
-    - 'Yes'
-    TOD:
-    - 'Null'
-    TODObj: N/A
-- enabled-by: true
-  post-conditions:
-    Status: InvClock
-    Timer: Inactive
-    Expire: N/A
-    Scheduler: Nop
-  pre-conditions:
-    TODSet:
-    - 'Yes'
-    TOD:
-    - Valid
-    TODObj:
-    - PastOrNow
-    - Invalid
+      applicable:
+        pre-conditions:
+          TOD:
+          - Valid
 type: requirement
