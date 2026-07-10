@@ -332,28 +332,30 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    Cleared: 'Yes'
+    Status:
+    - if:
+        pre-conditions:
+          Vector: Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          CanClear: 'Yes'
+      then: Ok
+    - else: Unsat
+    Cleared:
+    - if:
+        pre-conditions:
+          Vector: Invalid
+      then: N/A
+    - if:
+        pre-conditions:
+          CanClear: 'Yes'
+      then: 'Yes'
+    - else: 'No'
   pre-conditions:
-    Vector:
-    - Valid
+    Vector: all
     CanClear:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    Cleared: N/A
-  pre-conditions:
-    Vector:
-    - Invalid
-    CanClear: N/A
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    Cleared: 'No'
-  pre-conditions:
-    Vector:
-    - Valid
-    CanClear:
-    - 'No'
+      applicable:
+        pre-conditions:
+          Vector: Valid
 type: requirement
