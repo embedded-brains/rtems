@@ -159,16 +159,20 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: EAGAIN
-    Enqueue: 'No'
+    Result:
+    - if:
+        pre-conditions:
+          State:
+          - NotEqual
+      then: EAGAIN
+    - else: Zero
+    Enqueue:
+    - if:
+        pre-conditions:
+          State:
+          - NotEqual
+      then: 'No'
+    - else: 'Yes'
   pre-conditions:
-    State:
-    - NotEqual
-- enabled-by: true
-  post-conditions:
-    Result: Zero
-    Enqueue: 'Yes'
-  pre-conditions:
-    State:
-    - Equal
+    State: all
 type: requirement
