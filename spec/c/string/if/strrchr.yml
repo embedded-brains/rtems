@@ -36,7 +36,11 @@ params:
   name: c
 return:
   return: |
-    Returns a pointer to the matched character or ${/c/if/null:/name} if the
-    character is not found.
-  return-values: []
+    Returns a pointer to the located character in the string referenced by
+    ${.:/params[0]/name}, including its terminating null character.
+  return-values:
+  - description: |
+      Returns ${/c/if/null:/name}, if the character specified by ${.:/params[1]/name}
+      does not occur in the string referenced by ${.:/params[0]/name}.
+    value: ${/c/if/null:/name}
 type: interface
