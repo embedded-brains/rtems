@@ -146,7 +146,7 @@ typedef struct {
   rtems_rate_monotonic_period_status period_status;
 
   /**
-   * @brief This member specifies the `id` parameter for the action.
+   * @brief This member specifies the ``id`` parameter for the action.
    */
   rtems_id id_param;
 
@@ -344,7 +344,7 @@ static void RtemsRatemonReqCancel_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsRatemonReqCancel_Pre_Id_Valid: {
       /*
-       * While the `id` parameter is valid.
+       * While the ``id`` parameter is valid.
        */
       ctx->id_param = ctx->period_id;
       break;
@@ -352,7 +352,7 @@ static void RtemsRatemonReqCancel_Pre_Id_Prepare(
 
     case RtemsRatemonReqCancel_Pre_Id_Invalid: {
       /*
-       * While the `id` parameter is invalid.
+       * While the ``id`` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -400,7 +400,7 @@ static void RtemsRatemonReqCancel_Pre_State_Prepare(
   switch ( state ) {
     case RtemsRatemonReqCancel_Pre_State_Inactive: {
       /*
-       * While the `id` parameter references an period object in inactive
+       * While the ``id`` parameter references an period object in inactive
        * state.
        */
       /* Nothing to do here as the period is newly created. */
@@ -410,7 +410,8 @@ static void RtemsRatemonReqCancel_Pre_State_Prepare(
 
     case RtemsRatemonReqCancel_Pre_State_Active: {
       /*
-       * While the `id` parameter references an period object in active state.
+       * While the ``id`` parameter references an period object in active
+       * state.
        */
       rtems_status_code status;
       status = rtems_rate_monotonic_period( ctx->period_id, period_length );
@@ -421,7 +422,8 @@ static void RtemsRatemonReqCancel_Pre_State_Prepare(
 
     case RtemsRatemonReqCancel_Pre_State_Expired: {
       /*
-       * While the `id` parameter references an period object in expired state.
+       * While the ``id`` parameter references an period object in expired
+       * state.
        */
       rtems_status_code status;
       status = rtems_rate_monotonic_period( ctx->period_id, period_length );
@@ -525,7 +527,7 @@ static void RtemsRatemonReqCancel_Post_State_Check(
 
     case RtemsRatemonReqCancel_Post_State_Nop: {
       /*
-       * Objects referenced by the `id` parameter in past calls to
+       * Objects referenced by the ``id`` parameter in past calls to
        * rtems_rate_monotonic_cancel() shall not be accessed by the
        * rtems_rate_monotonic_cancel() call (see also Nop).
        */
@@ -555,7 +557,7 @@ static void RtemsRatemonReqCancel_Post_Postponed_Check(
 
     case RtemsRatemonReqCancel_Post_Postponed_Nop: {
       /*
-       * Objects referenced by the `id` parameter in past calls to
+       * Objects referenced by the ``id`` parameter in past calls to
        * rtems_rate_monotonic_cancel() shall not be accessed by the
        * rtems_rate_monotonic_cancel() call (see also Nop).
        */
@@ -720,8 +722,8 @@ static void RtemsRatemonReqCancel_Cleanup( RtemsRatemonReqCancel_Context *ctx )
 static const RtemsRatemonReqCancel_Entry
 RtemsRatemonReqCancel_Entries[] = {
   { 0, 0, 0, 0, 0, RtemsRatemonReqCancel_Post_Status_InvId,
-    RtemsRatemonReqCancel_Post_State_Nop,
-    RtemsRatemonReqCancel_Post_Postponed_Nop,
+    RtemsRatemonReqCancel_Post_State_NA,
+    RtemsRatemonReqCancel_Post_Postponed_NA,
     RtemsRatemonReqCancel_Post_Scheduler_Nop },
   { 1, 0, 0, 0, 0, RtemsRatemonReqCancel_Post_Status_NA,
     RtemsRatemonReqCancel_Post_State_NA,
@@ -740,8 +742,8 @@ RtemsRatemonReqCancel_Entries[] = {
     RtemsRatemonReqCancel_Post_Postponed_NA,
     RtemsRatemonReqCancel_Post_Scheduler_NA },
   { 0, 0, 0, 0, 1, RtemsRatemonReqCancel_Post_Status_InvId,
-    RtemsRatemonReqCancel_Post_State_Nop,
-    RtemsRatemonReqCancel_Post_Postponed_Nop,
+    RtemsRatemonReqCancel_Post_State_NA,
+    RtemsRatemonReqCancel_Post_Postponed_NA,
     RtemsRatemonReqCancel_Post_Scheduler_Nop },
   { 0, 0, 0, 0, 1, RtemsRatemonReqCancel_Post_Status_Ok,
     RtemsRatemonReqCancel_Post_State_Inactive,
