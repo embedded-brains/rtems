@@ -73,14 +73,13 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Result: Zero
+    Result:
+    - if:
+        pre-conditions:
+          Value:
+          - NonZero
+      then: LastBitSet
+    - else: Zero
   pre-conditions:
-    Value:
-    - Zero
-- enabled-by: true
-  post-conditions:
-    Result: LastBitSet
-  pre-conditions:
-    Value:
-    - NonZero
+    Value: all
 type: requirement
