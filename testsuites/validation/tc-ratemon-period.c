@@ -172,12 +172,12 @@ typedef struct {
   rtems_rate_monotonic_period_status period_status;
 
   /**
-   * @brief This member specifies the `id` parameter for the action.
+   * @brief This member specifies the ``id`` parameter for the action.
    */
   rtems_id id_param;
 
   /**
-   * @brief This member specifies the `length` parameter for the action.
+   * @brief This member specifies the ``length`` parameter for the action.
    */
   rtems_interval length_param;
 
@@ -495,7 +495,7 @@ static void RtemsRatemonReqPeriod_Pre_Id_Prepare(
   switch ( state ) {
     case RtemsRatemonReqPeriod_Pre_Id_Valid: {
       /*
-       * While the `id` parameter is valid.
+       * While the ``id`` parameter is valid.
        */
       ctx->id_param = ctx->period_id;
       break;
@@ -503,7 +503,7 @@ static void RtemsRatemonReqPeriod_Pre_Id_Prepare(
 
     case RtemsRatemonReqPeriod_Pre_Id_Invalid: {
       /*
-       * While the `id` parameter is invalid.
+       * While the ``id`` parameter is invalid.
        */
       ctx->id_param = RTEMS_ID_NONE;
       break;
@@ -551,14 +551,15 @@ static void RtemsRatemonReqPeriod_Pre_Length_Prepare(
   switch ( state ) {
     case RtemsRatemonReqPeriod_Pre_Length_Ticks: {
       /*
-       * While the `length` parameter is a number larger than 0.
+       * While the ``length`` parameter is a number larger than 0.
        *
        * Note:
        *
        * * RTEMS_PERIOD_STATUS == 0
        *
-       * * The `length` parameter of all calls to rtems_rate_monotonic_period()
-       *   must have the same value (see interval).
+       * * The ``length`` parameter of all calls to
+       *   rtems_rate_monotonic_period() must have the same value (see
+       *   interval).
        */
       ctx->length_param = period_length;
       break;
@@ -566,7 +567,7 @@ static void RtemsRatemonReqPeriod_Pre_Length_Prepare(
 
     case RtemsRatemonReqPeriod_Pre_Length_Status: {
       /*
-       * While the `length` parameter is RTEMS_PERIOD_STATUS.
+       * While the ``length`` parameter is RTEMS_PERIOD_STATUS.
        */
       ctx->length_param = RTEMS_PERIOD_STATUS;
       break;
@@ -585,7 +586,7 @@ static void RtemsRatemonReqPeriod_Pre_State_Prepare(
   switch ( state ) {
     case RtemsRatemonReqPeriod_Pre_State_Inactive: {
       /*
-       * While the `id` parameter references an period object in inactive
+       * While the ``id`` parameter references an period object in inactive
        * state.
        */
       /* Nothing to do here as the period is newly created. */
@@ -595,7 +596,8 @@ static void RtemsRatemonReqPeriod_Pre_State_Prepare(
 
     case RtemsRatemonReqPeriod_Pre_State_Active: {
       /*
-       * While the `id` parameter references an period object in active state.
+       * While the ``id`` parameter references an period object in active
+       * state.
        */
       OwnerDoWork( ctx, CallPeriod );
       ctx->previous_state = RATE_MONOTONIC_ACTIVE;
@@ -604,7 +606,8 @@ static void RtemsRatemonReqPeriod_Pre_State_Prepare(
 
     case RtemsRatemonReqPeriod_Pre_State_Expired: {
       /*
-       * While the `id` parameter references an period object in expired state.
+       * While the ``id`` parameter references an period object in expired
+       * state.
        */
       OwnerDoWork( ctx, CallPeriod );
       ctx->previous_state = RATE_MONOTONIC_EXPIRED;
@@ -660,8 +663,8 @@ static void RtemsRatemonReqPeriod_Pre_InactiveCause_Prepare(
     case RtemsRatemonReqPeriod_Pre_InactiveCause_New: {
       /*
        * While rtems_rate_monotonic_period() has never been invoked with result
-       * RTEMS_SUCCESSFUL on the period object referenced by the `id` parameter
-       * since that period object has been created.
+       * RTEMS_SUCCESSFUL on the period object referenced by the ``id``
+       * parameter since that period object has been created.
        */
       /* Nothing to do here as the period is newly created. */
       ctx->postponed_jobs_count = 0;
@@ -671,8 +674,8 @@ static void RtemsRatemonReqPeriod_Pre_InactiveCause_Prepare(
     case RtemsRatemonReqPeriod_Pre_InactiveCause_Canceled: {
       /*
        * While rtems_rate_monotonic_period() has never been invoked with result
-       * RTEMS_SUCCESSFUL on the period object referenced by the `id` parameter
-       * since that period object has been canceled using
+       * RTEMS_SUCCESSFUL on the period object referenced by the ``id``
+       * parameter since that period object has been canceled using
        * rtems_rate_monotonic_cancel().
        */
       if ( ctx->period_calls == 0 ) {
@@ -780,7 +783,7 @@ static void RtemsRatemonReqPeriod_Post_State_Check(
 
     case RtemsRatemonReqPeriod_Post_State_Nop: {
       /*
-       * Objects referenced by the `id` parameter in past calls to
+       * Objects referenced by the ``id`` parameter in past calls to
        * rtems_rate_monotonic_period() shall not be accessed by the
        * rtems_rate_monotonic_period() call (see also Nop).
        */
@@ -827,7 +830,7 @@ static void RtemsRatemonReqPeriod_Post_Postponed_Check(
 
     case RtemsRatemonReqPeriod_Post_Postponed_Nop: {
       /*
-       * Objects referenced by the `id` parameter in past calls to
+       * Objects referenced by the ``id`` parameter in past calls to
        * rtems_rate_monotonic_period() shall not be accessed by the
        * rtems_rate_monotonic_period() call (see also Nop).
        */
@@ -1036,8 +1039,8 @@ static void RtemsRatemonReqPeriod_Cleanup( RtemsRatemonReqPeriod_Context *ctx )
 static const RtemsRatemonReqPeriod_Entry
 RtemsRatemonReqPeriod_Entries[] = {
   { 0, 0, 0, 0, 0, 0, 1, RtemsRatemonReqPeriod_Post_Status_InvId,
-    RtemsRatemonReqPeriod_Post_State_Nop,
-    RtemsRatemonReqPeriod_Post_Postponed_Nop,
+    RtemsRatemonReqPeriod_Post_State_NA,
+    RtemsRatemonReqPeriod_Post_Postponed_NA,
     RtemsRatemonReqPeriod_Post_Delay_None,
     RtemsRatemonReqPeriod_Post_Scheduler_Nop },
   { 0, 0, 0, 0, 0, 0, 1, RtemsRatemonReqPeriod_Post_Status_NotOwn,
@@ -1051,13 +1054,13 @@ RtemsRatemonReqPeriod_Entries[] = {
     RtemsRatemonReqPeriod_Post_Delay_NA,
     RtemsRatemonReqPeriod_Post_Scheduler_NA },
   { 0, 0, 0, 0, 0, 1, 0, RtemsRatemonReqPeriod_Post_Status_InvId,
-    RtemsRatemonReqPeriod_Post_State_Nop,
-    RtemsRatemonReqPeriod_Post_Postponed_Nop,
+    RtemsRatemonReqPeriod_Post_State_NA,
+    RtemsRatemonReqPeriod_Post_Postponed_NA,
     RtemsRatemonReqPeriod_Post_Delay_None,
     RtemsRatemonReqPeriod_Post_Scheduler_Nop },
   { 0, 0, 0, 0, 0, 0, 0, RtemsRatemonReqPeriod_Post_Status_InvId,
-    RtemsRatemonReqPeriod_Post_State_Nop,
-    RtemsRatemonReqPeriod_Post_Postponed_Nop,
+    RtemsRatemonReqPeriod_Post_State_NA,
+    RtemsRatemonReqPeriod_Post_Postponed_NA,
     RtemsRatemonReqPeriod_Post_Delay_None,
     RtemsRatemonReqPeriod_Post_Scheduler_Nop },
   { 0, 0, 0, 0, 0, 0, 1, RtemsRatemonReqPeriod_Post_Status_Ok,
