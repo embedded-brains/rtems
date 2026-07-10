@@ -222,6 +222,11 @@ transition-map:
     BufVar:
     - if:
         pre-conditions:
+          Buf:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
           Avail:
           - 'Yes'
           Buf:
