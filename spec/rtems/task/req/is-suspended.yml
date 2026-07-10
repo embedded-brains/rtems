@@ -136,25 +136,25 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Invalid
+      then: InvId
+    - if:
+        pre-conditions:
+          Id:
+          - Task
+          Suspended:
+          - 'No'
+      then: Ok
+    - else: AlrdySus
   pre-conditions:
-    Id:
-    - Task
+    Id: all
     Suspended:
-    - 'No'
-- enabled-by: true
-  post-conditions:
-    Status: AlrdySus
-  pre-conditions:
-    Id:
-    - Task
-    Suspended:
-    - 'Yes'
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-  pre-conditions:
-    Id:
-    - Invalid
-    Suspended: N/A
+      applicable:
+        pre-conditions:
+          Id:
+          - Task
 type: requirement
