@@ -22,8 +22,6 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
 - description: |
     The length of the string specified by ${.:/params[1]/name} exceeds the allowed
     limit.

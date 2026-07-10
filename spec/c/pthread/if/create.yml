@@ -23,8 +23,6 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
 - description: |
     This error number indicates the following error conditions:
 

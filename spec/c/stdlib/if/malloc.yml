@@ -20,8 +20,6 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
 - description: |
     There is insufficient memory available.
   role: errno
