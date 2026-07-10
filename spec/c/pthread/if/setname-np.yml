@@ -1,0 +1,50 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Set the name of a thread.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} ${.:/params[0]/name}
+    - const char *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- role: interface-function
+  uid: /c/errno/if/erange
+name: pthread_setname_np
+notes: null
+params:
+- description: |
+    is the thread
+  dir: null
+  name: thread
+- description: |
+    is the thread name
+  dir: in
+  name: name
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The length of the string pointed to by ${.:/params[1]/name} exceeds the
+      maximum
+      allowed length.
+    value: ${/c/errno/if/erange:/name}
+type: interface

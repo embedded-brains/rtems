@@ -1,0 +1,54 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Thread-specific data management.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_key_t:/name} ${.:/params[0]/name}
+    - const void *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- role: interface-function
+  uid: /c/errno/if/enomem
+- role: interface-function
+  uid: /c/errno/if/einval
+name: pthread_setspecific
+notes: null
+params:
+- description: |
+    is the thread-specific data key
+  dir: null
+  name: key
+- description: |
+    is the thread-specific data value
+  dir: null
+  name: value
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      Insufficient memory exists to associate the ${.:/params[1]/name} with the
+      key.
+    value: ${/c/errno/if/enomem:/name}
+  - description: |
+      The ${.:/params[0]/name} value is invalid.
+    value: ${/c/errno/if/einval:/name}
+type: interface

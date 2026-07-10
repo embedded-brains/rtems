@@ -1,0 +1,71 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Creates a new thread.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/pthread_attr_t:/name} *restrict ${.:/params[1]/name}
+    - void *( *${.:/params[2]/name} )( void * )
+    - void *restrict ${.:/params[3]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: pthread_create
+notes: null
+params:
+- description: |
+    is the thread object to create.
+  dir: out
+  name: thread
+- description: |
+    is the thread attributes object.
+  dir: in
+  name: attr
+- description: |
+    is the thread start routine.
+  dir: null
+  name: start_routine
+- description: |
+    is the argument to the thread start routine.
+  dir: null
+  name: arg
+return:
+  return: null
+  return-values:
+  - description: |
+      The successful completion returns zero.
+    value: 0
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The system lacked the necessary resources to create another thread.
+      - The system-imposed limit on the total number of threads in a process
+        would be exceeded.
+    value: ${/c/errno/if/eagain:/name}
+  - description: |
+      The value specified by ${.:/params[1]/name} is invalid.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      This error number indicates the following error conditions:
+
+      - The caller does not have appropriate permission to set the required
+        scheduling parameters.
+      - The caller does not have appropriate permission to set the required
+        scheduling policy.
+    value: ${/c/errno/if/eperm:/name}
+type: interface
