@@ -133,28 +133,32 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    IdVar: Set
-  pre-conditions:
-    Name:
-    - Valid
-    Id:
-    - Valid
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    IdVar: Nop
+    Status:
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Invalid
+      then: InvName
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Ok
+    - else: InvAddr
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - Valid
+          Name:
+          - Valid
+      then: Set
+    - else: Nop
   pre-conditions:
     Name: all
-    Id:
-    - 'Null'
-- enabled-by: true
-  post-conditions:
-    Status: InvName
-    IdVar: Nop
-  pre-conditions:
-    Name:
-    - Invalid
-    Id:
-    - Valid
+    Id: all
 type: requirement
