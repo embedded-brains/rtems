@@ -338,131 +338,137 @@ transition-map:
     Name: Valid
     IdVar: Set
   pre-conditions:
-    Id:
-    - Valid
-    Length:
-    - Valid
     Name:
     - Valid
-    Free:
-    - 'Yes'
-    Size:
+    Id:
     - Valid
     Start:
     - Valid
+    Length:
+    - Valid
+    Size:
+    - Valid
+    Free:
+    - 'Yes'
 - enabled-by: true
   post-conditions:
     Status: InvName
     Name: Invalid
-    IdVar: Nop
+    IdVar:
+    - if:
+        pre-conditions:
+          Id:
+          - 'Null'
+      then: N/A
+    - else: Nop
   pre-conditions:
-    Id: all
-    Length: all
     Name:
     - Invalid
-    Free: all
-    Size: all
+    Id: all
     Start: all
+    Length: all
+    Size: all
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
+    Name:
+    - Valid
     Id:
     - 'Null'
-    Length: all
-    Name:
-    - Valid
-    Free: all
-    Size: all
     Start: all
+    Length: all
+    Size: all
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
     IdVar: Nop
   pre-conditions:
-    Id:
-    - Valid
-    Length: all
     Name:
     - Valid
-    Free: all
-    Size: all
+    Id:
+    - Valid
     Start:
     - 'Null'
+    Length: all
+    Size: all
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: InvSize
     Name: Invalid
     IdVar: Nop
   pre-conditions:
-    Id:
-    - Valid
-    Length:
-    - Zero
-    - Invalid
     Name:
     - Valid
-    Free: all
-    Size: all
+    Id:
+    - Valid
     Start:
     - Valid
     - BadAlign
+    Length:
+    - Zero
+    - Invalid
+    Size: all
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: InvSize
     Name: Invalid
     IdVar: Nop
   pre-conditions:
-    Id:
-    - Valid
-    Length:
-    - Valid
     Name:
     - Valid
-    Free: all
+    Id:
+    - Valid
+    Start:
+    - Valid
+    - BadAlign
+    Length:
+    - Valid
     Size:
     - Zero
     - Skew
     - Small
-    Start:
-    - Valid
-    - BadAlign
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: InvAddr
     Name: Invalid
     IdVar: Nop
   pre-conditions:
-    Id:
-    - Valid
-    Length:
-    - Valid
     Name:
     - Valid
-    Free: all
-    Size:
+    Id:
     - Valid
     Start:
     - BadAlign
+    Length:
+    - Valid
+    Size:
+    - Valid
+    Free: all
 - enabled-by: true
   post-conditions:
     Status: TooMany
     Name: Invalid
     IdVar: Nop
   pre-conditions:
-    Id:
-    - Valid
-    Length:
-    - Valid
     Name:
     - Valid
-    Free:
-    - 'No'
-    Size:
+    Id:
     - Valid
     Start:
     - Valid
+    Length:
+    - Valid
+    Size:
+    - Valid
+    Free:
+    - 'No'
 type: requirement
