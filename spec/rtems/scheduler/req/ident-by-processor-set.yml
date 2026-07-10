@@ -279,7 +279,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
     CPUOwnedByScheduler:
     - 'Yes'
@@ -292,7 +292,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: InvAddr
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
     CPUOwnedByScheduler: N/A
     CPUSetObj:
@@ -384,7 +384,7 @@ transition-map:
 - enabled-by: RTEMS_SMP
   post-conditions:
     Status: InvAddr
-    IdVar: Nop
+    IdVar: N/A
   pre-conditions:
     CPUOwnedByScheduler:
     - 'No'
