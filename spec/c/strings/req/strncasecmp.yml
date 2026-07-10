@@ -1,0 +1,177 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/strncasecmp
+post-conditions:
+- name: Result
+  states:
+  - name: Less
+    test-code: |
+      T_lt_int( ctx->retval, 0 );
+    text: |
+      The return value shall be less than zero.
+  - name: Equal
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The return value shall be equal to zero.
+  - name: Greater
+    test-code: |
+      T_gt_int( ctx->retval, 0 );
+    text: |
+      The return value shall be greater than zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: N
+  states:
+  - name: Zero
+    test-code: |
+      ctx->n = 0;
+    text: |
+      While the value specified by ${../if/strncasecmp:/params[2]/name} is
+      equal to zero.
+  - name: Positive
+    test-code: |
+      ctx->n = 5;
+    text: |
+      While the value specified by ${../if/strncasecmp:/params[2]/name} is
+      greater than zero.
+  - name: LongPositive
+    test-code: |
+      ctx->n = 6;
+    text: |
+      While the value specified by ${../if/strncasecmp:/params[2]/name} is
+      greater than the length of the string specified by
+      ${../if/strncasecmp:/params[1]/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Cmp
+  states:
+  - name: Less
+    test-code: |
+      ctx->s1 = "abcde";
+      ctx->s2 = "xyzab";
+    text: |
+      While the first n characters of the string specified by
+      ${../if/strncasecmp:/params[0]/name} are less than the first n characters
+      of the string specified by ${../if/strncasecmp:/params[1]/name} after
+      ignoring differences in case.
+  - name: Equal
+    test-code: |
+      ctx->s1 = "Hello";
+      ctx->s2 = "hello";
+    text: |
+      While the first n characters of the string specified by
+      ${../if/strncasecmp:/params[0]/name} are equal to the first n characters
+      of the string specified by ${../if/strncasecmp:/params[1]/name} after
+      ignoring differences in case.
+  - name: Greater
+    test-code: |
+      ctx->s1 = "xyzab";
+      ctx->s2 = "abcde";
+    text: |
+      While the first n characters of the string specified by
+      ${../if/strncasecmp:/params[0]/name} are greater than the first n
+      characters of the string specified by
+      ${../if/strncasecmp:/params[1]/name} after ignoring differences in case.
+  - name: S1Longer
+    test-code: |
+      ctx->s1 = "Hello!";
+      ctx->s2 = "Hello";
+    text: |
+      While the string specified by ${../if/strncasecmp:/params[0]/name} is
+      longer than the string specified by ${../if/strncasecmp:/params[1]/name},
+      while both strings share the same prefix for the first n characters after
+      ignoring differences in case.
+  - name: LimitedByN
+    test-code: |
+      ctx->s1 = "HelloX";
+      ctx->s2 = "HelloY";
+    text: |
+      While the first n characters of the string specified by
+      ${../if/strncasecmp:/params[0]/name} are equal to the first n characters
+      of the string specified by ${../if/strncasecmp:/params[1]/name} after
+      ignoring differences in case, while the strings differ after the first n
+      characters.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->retval = strncasecmp( ctx->s1, ctx->s2, ctx->n );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: This member specifies the ${../if/strncasecmp:/params[0]/name} parameter
+    value.
+  description: null
+  member: const char *s1
+- brief: This member specifies the ${../if/strncasecmp:/params[1]/name} parameter
+    value.
+  description: null
+  member: const char *s2
+- brief: This member specifies the ${../if/strncasecmp:/params[2]/name} parameter
+    value.
+  description: null
+  member: size_t n
+- brief: This member contains the return value.
+  description: null
+  member: int retval
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- strings.h
+test-local-includes: []
+test-prepare: |
+  ctx->s1 = "Hello";
+  ctx->s2 = "hello";
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-strings-strncasecmp.c
+test-teardown: null
+text: ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          N: Zero
+      then: Equal
+    - if:
+        pre-conditions:
+          Cmp: Less
+      then: Less
+    - if:
+        pre-conditions:
+          Cmp:
+          - Equal
+          - LimitedByN
+      then: Equal
+    - else: Greater
+  pre-conditions:
+    N: all
+    Cmp:
+      applicable:
+        pre-conditions:
+          N:
+          - Positive
+          - LongPositive
+      not-applicable:
+        pre-conditions:
+          N: LongPositive
+          Cmp:
+          - Less
+          - Equal
+          - Greater
+          - LimitedByN
+type: requirement
