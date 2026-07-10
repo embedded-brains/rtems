@@ -123,6 +123,7 @@ source:
 - testsuites/validation/tc-task-suspend.c
 - testsuites/validation/tc-task-wake-after.c
 - testsuites/validation/tc-task-wake-when.c
+- testsuites/validation/tc-time-clock-gettime.c
 - testsuites/validation/tc-timer.c
 - testsuites/validation/tc-timer-cancel.c
 - testsuites/validation/tc-timer-create.c
