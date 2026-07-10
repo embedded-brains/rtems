@@ -385,6 +385,11 @@ transition-map:
     - if:
         pre-conditions:
           Enabled:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Enabled:
           - Obj
           IsEnabled:
           - 'No'
