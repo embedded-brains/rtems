@@ -150,7 +150,7 @@ pre-conditions:
 - name: Postponed
   states:
   - name: Zero
-    test-code:  |
+    test-code: |
       ctx->postponed_jobs_count = 0;
     text: |
       While the period is not in ${../glossary/expired:/term}
@@ -171,12 +171,12 @@ rationale: null
 references: []
 requirement-type: functional
 skip-reasons:
-  NotInInactiveState: |
-    ${../glossary/postponedjob:/plural} do not exist in
-    ${../glossary/inactive:/term} ${../glossary/state:/term}.
   NeverInExpiredState: |
     There must be ${../glossary/postponedjob:/plural} in
     ${../glossary/expired:/term} ${../glossary/state:/term}.
+  NotInInactiveState: |
+    ${../glossary/postponedjob:/plural} do not exist in
+    ${../glossary/inactive:/term} ${../glossary/state:/term}.
 test-action: |
   rtems_status_code status;
 
@@ -422,11 +422,11 @@ transition-map:
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     State:
-      - Inactive
+    - Inactive
     Postponed: N/A
 - enabled-by: true
   post-conditions:
@@ -436,39 +436,39 @@ transition-map:
     Scheduler: Called
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OwnerTask
+    - OwnerTask
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed: all
 - enabled-by: true
   post-conditions:
     Status: InvId
-    State: Nop
-    Postponed: Nop
+    State: N/A
+    Postponed: N/A
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Invalid
+    - Invalid
     Caller: all
     State:
-      - Inactive
+    - Inactive
     Postponed: N/A
 - enabled-by: true
   post-conditions:
     Status: InvId
-    State: Nop
-    Postponed: Nop
+    State: N/A
+    Postponed: N/A
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Invalid
+    - Invalid
     Caller: all
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed: all
 - enabled-by: true
   post-conditions:
@@ -478,11 +478,11 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OtherTask
+    - OtherTask
     State:
-      - Inactive
+    - Inactive
     Postponed: N/A
 - enabled-by: true
   post-conditions:
@@ -492,12 +492,12 @@ transition-map:
     Scheduler: Nop
   pre-conditions:
     Id:
-      - Valid
+    - Valid
     Caller:
-      - OtherTask
+    - OtherTask
     State:
-      - Active
-      - Expired
+    - Active
+    - Expired
     Postponed: all
 - enabled-by: true
   post-conditions: NotInInactiveState
@@ -505,17 +505,17 @@ transition-map:
     Id: all
     Caller: all
     State:
-      - Inactive
+    - Inactive
     Postponed:
-      - One
-      - Several
+    - One
+    - Several
 - enabled-by: true
   post-conditions: NeverInExpiredState
   pre-conditions:
     Id: all
     Caller: all
     State:
-      - Expired
+    - Expired
     Postponed:
-      - Zero
+    - Zero
 type: requirement
