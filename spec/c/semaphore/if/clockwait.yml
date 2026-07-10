@@ -1,0 +1,78 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the ${../glossary/semaphore:/term} referenced by ${.:/params[0]/name} with
+  a timeout referenced by ${.:/params[2]/name} using the clock specified by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/sem_t:/name} *restrict ${.:/params[0]/name}
+    - ${/c/if/clockid_t:/name} ${.:/params[1]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+- description: |
+    This error number indicates the following error conditions:
+
+    - The ${.:/params[0]/name} argument is not a valid
+      ${../glossary/semaphore:/term}.
+    - The thread would have blocked, and the ${.:/params[2]/name} parameter
+      specified a nanoseconds field value less than zero or greater than or equal
+      to 1000 million.
+    - The clock ID specified by ${.:/params[1]/name} is invalid.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The call was interrupted by a signal.
+  role: errno
+  uid: /c/errno/if/eintr
+- description: |
+    The ${../glossary/semaphore:/term} could not be locked before the specified
+    timeout expired.
+  role: errno
+  uid: /c/errno/if/etimedout
+- description: |
+    The clock ID specified by ${.:/params[1]/name} is not supported.
+  role: errno
+  uid: /c/errno/if/enotsup
+name: sem_clockwait
+notes: |
+  See [POSIX.1-2024, System Interfaces, sem_clockwait()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_clockwait.html).
+params:
+- description: |
+    is the pointer to the ${../glossary/semaphore:/term}.
+  dir: inout
+  name: sem
+- description: |
+    is the clock ID.
+  dir: null
+  name: clock_id
+- description: |
+    is the pointer to a timespec structure specifying the absolute timeout.
+  dir: in
+  name: abs_timeout
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

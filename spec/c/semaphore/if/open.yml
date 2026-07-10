@@ -68,6 +68,11 @@ links:
     There is insufficient memory.
   role: errno
   uid: /c/errno/if/enomem
+- description: |
+    Insufficient space for the creation of a new named
+    ${../glossary/semaphore:/term}.
+  role: errno
+  uid: /c/errno/if/enospc
 name: sem_open
 notes: |
   See [POSIX.1-2024, System Interfaces, sem_open()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_open.html).

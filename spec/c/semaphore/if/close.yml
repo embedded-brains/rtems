@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Close the named ${../glossary/semaphore:/term} referenced by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/sem_t:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} argument is not a valid
+    ${../glossary/semaphore:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    There are threads currently blocked on the ${../glossary/semaphore:/term}
+    referenced by ${.:/params[0]/name}.
+  role: errno
+  uid: /c/errno/if/ebusy
+name: sem_close
+notes: |
+  See [POSIX.1-2024, System Interfaces, sem_close()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_close.html).
+params:
+- description: |
+    is the pointer to the ${../glossary/semaphore:/term}.
+  dir: inout
+  name: sem
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

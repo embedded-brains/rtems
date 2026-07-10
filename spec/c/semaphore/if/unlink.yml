@@ -1,0 +1,53 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Remove the named ${../glossary/semaphore:/term} with the name specified by
+  ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const char *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    Permission is denied to unlink the named ${../glossary/semaphore:/term}.
+  role: errno
+  uid: /c/errno/if/eacces
+- description: |
+    The ${.:/params[0]/name} argument is too long.
+  role: errno
+  uid: /c/errno/if/enametoolong
+- description: |
+    The named ${../glossary/semaphore:/term} does not exist.
+  role: errno
+  uid: /c/errno/if/enoent
+name: sem_unlink
+notes: |
+  See [POSIX.1-2024, System Interfaces, sem_unlink()](https://pubs.opengroup.org/onlinepubs/9799919799/functions/sem_unlink.html).
+params:
+- description: |
+    is the pointer to the ${../glossary/semaphore:/term} name.
+  dir: in
+  name: name
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
