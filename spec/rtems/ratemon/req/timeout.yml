@@ -178,13 +178,13 @@ pre-conditions:
       ctx->postponed_jobs = 123;
     text: |
       While the count of ${../glossary/postponedjob:/plural} is not equal
-      to zero or ${/c/if/uint32_max:/name}.
+      to zero or ${/c/stdint/if/uint32_max:/name}.
   - name: Max
     test-code: |
       ctx->postponed_jobs = UINT32_MAX;
     text: |
       While the count of ${../glossary/postponedjob:/plural} is equal
-      to ${/c/if/uint32_max:/name}.
+      to ${/c/stdint/if/uint32_max:/name}.
   test-epilogue: null
   test-prologue: null
 rationale: null

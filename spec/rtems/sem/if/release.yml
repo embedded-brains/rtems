@@ -81,6 +81,6 @@ return:
     value: ${../../status/if/not-owner-of-resource:/name}
   - description: |
       The semaphore's count already had the maximum value of
-      ${/c/if/uint32_max:/name}.
+      ${/c/stdint/if/uint32_max:/name}.
     value: ${../../status/if/unsatisfied:/name}
 type: interface
