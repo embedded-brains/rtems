@@ -221,6 +221,10 @@ transition-map:
     - else: Invalid
     IdVar:
     - if:
+        pre-conditions:
+          Id: 'Null'
+      then: N/A
+    - if:
         post-conditions:
           Status: Ok
       then: Set
