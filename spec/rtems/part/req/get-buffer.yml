@@ -192,43 +192,46 @@ text: ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: Ok
-    BufVar: Set
+    Status:
+    - if:
+        pre-conditions:
+          Buf:
+          - Valid
+          Id:
+          - NoObj
+      then: InvId
+    - if:
+        pre-conditions:
+          Avail:
+          - 'Yes'
+          Buf:
+          - Valid
+          Id:
+          - Part
+      then: Ok
+    - if:
+        pre-conditions:
+          Avail:
+          - 'No'
+          Buf:
+          - Valid
+          Id:
+          - Part
+      then: Unsat
+    - else: InvAddr
+    BufVar:
+    - if:
+        pre-conditions:
+          Avail:
+          - 'Yes'
+          Buf:
+          - Valid
+          Id:
+          - Part
+      then: Set
+    - else: Nop
   pre-conditions:
-    Avail:
-    - 'Yes'
-    Buf:
-    - Valid
-    Id:
-    - Part
-- enabled-by: true
-  post-conditions:
-    Status: InvAddr
-    BufVar: Nop
-  pre-conditions:
-    Avail: all
-    Buf:
-    - 'Null'
     Id: all
-- enabled-by: true
-  post-conditions:
-    Status: InvId
-    BufVar: Nop
-  pre-conditions:
+    Buf: all
     Avail: all
-    Buf:
-    - Valid
-    Id:
-    - NoObj
-- enabled-by: true
-  post-conditions:
-    Status: Unsat
-    BufVar: Nop
-  pre-conditions:
-    Avail:
-    - 'No'
-    Buf:
-    - Valid
-    Id:
-    - Part
 type: requirement
