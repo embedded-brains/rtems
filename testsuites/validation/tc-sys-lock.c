@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,9 @@
 #include "tr-mtx-seize-try.h"
 #include "tr-mtx-seize-wait.h"
 #include "tr-mtx-surrender.h"
+#include "tr-sem-seize-try.h"
+#include "tr-sem-seize-wait.h"
+#include "tr-sem-surrender.h"
 #include "tr-tq-timeout-priority-inherit.h"
 #include "tx-thread-queue.h"
 
@@ -69,7 +72,7 @@
  *
  * @ingroup TestsuitesValidationNoClock0
  *
- * @brief Tests the `<sys/lock.h>` mutex directives.
+ * @brief Tests the `<sys/lock.h>` mutex and semaphore directives.
  *
  * This test case performs the following actions:
  *
@@ -87,7 +90,7 @@
  *
  *   - Validate the _Mutex_Acquire() directive.
  *
- *   - Validate the _Mutex_Try_acquire() directive.
+ *   - Validate the _Mutex_Release() directive.
  *
  *   - Destroy the mutex.
  *
@@ -105,9 +108,24 @@
  *
  *   - Validate the _Mutex_recursive_Acquire() directive.
  *
- *   - Validate the _Mutex_recursive_Try_acquire() directive.
+ *   - Validate the _Mutex_recursive_Release() directive.
  *
  *   - Destroy the mutex.
+ *
+ * - Create a semaphore and validate the semaphore directives.
+ *
+ *   - Validate the _Semaphore_Try_wait() directive.
+ *
+ *   - Validate the _Semaphore_Wait_timed_ticks() directive for valid timeout
+ *     parameters.
+ *
+ *   - Validate the _Semaphore_Wait() directive.
+ *
+ *   - Validate the _Semaphore_Post() directive.
+ *
+ *   - Validate the _Semaphore_Post_binary() directive.
+ *
+ *   - Destroy the semaphore.
  *
  * @{
  */
@@ -119,13 +137,17 @@ typedef struct {
   /**
    * @brief This member contains the thread queue test context.
    */
-  TQMtxContext tq_mtx_ctx;
+  union {
+    TQContext tq_ctx;
+    TQMtxContext tq_mtx_ctx;
+    TQSemContext tq_sem_ctx;
+  };
 } NewlibValSysLock_Context;
 
 static NewlibValSysLock_Context
   NewlibValSysLock_Instance;
 
-static Status_Control Enqueue( TQContext *ctx, TQWait wait )
+static Status_Control MutexEnqueue( TQContext *ctx, TQWait wait )
 {
   const struct timespec abstime = {
     .tv_sec = INT64_MAX,
@@ -152,7 +174,7 @@ static Status_Control Enqueue( TQContext *ctx, TQWait wait )
   return STATUS_BUILD( 0, eno );
 }
 
-static Status_Control Surrender( TQContext *ctx )
+static Status_Control MutexSurrender( TQContext *ctx )
 {
   _Mutex_Release( ctx->thread_queue_object );
 
@@ -161,11 +183,11 @@ static Status_Control Surrender( TQContext *ctx )
 
 static rtems_tcb *GetOwner( TQContext *ctx )
 {
-  const struct _Mutex_Control *mutex;
+  const struct _Thread_queue_Queue *tq;
 
-  mutex = ctx->thread_queue_object;
+  tq = ctx->thread_queue_object;
 
-  return mutex->_Queue._owner;
+  return tq->_owner;
 }
 
 static Status_Control RecursiveEnqueue( TQContext *ctx, TQWait wait )
@@ -205,26 +227,71 @@ static Status_Control RecursiveSurrender( TQContext *ctx )
   return STATUS_SUCCESSFUL;
 }
 
-static rtems_tcb *RecursiveGetOwner( TQContext *ctx )
+static Status_Control SemaphoreEnqueue( TQContext *ctx, TQWait wait )
 {
-  const struct _Mutex_recursive_Control *mutex;
+  int eno;
 
-  mutex = ctx->thread_queue_object;
+  switch ( wait ) {
+    case TQ_NO_WAIT:
+      eno = _Semaphore_Try_wait( ctx->thread_queue_object );
+      break;
+    case TQ_WAIT_FOREVER:
+      _Semaphore_Wait( ctx->thread_queue_object );
+      eno = 0;
+      break;
+    case TQ_WAIT_TIMED:
+      eno = _Semaphore_Wait_timed_ticks( ctx->thread_queue_object, UINT32_MAX );
+      break;
+    default:
+      T_unreachable();
+      break;
+  }
 
-  return mutex->_Mutex._Queue._owner;
+  return STATUS_BUILD( 0, eno );
+}
+
+static Status_Control SemaphorePost( TQContext *ctx )
+{
+  _Semaphore_Post( ctx->thread_queue_object );
+
+  return STATUS_SUCCESSFUL;
+}
+
+static Status_Control SemaphorePostBinary( TQContext *ctx )
+{
+  _Semaphore_Post_binary( ctx->thread_queue_object );
+
+  return STATUS_SUCCESSFUL;
+}
+
+static uint32_t SemaphoreGetCount( TQSemContext *ctx )
+{
+  const struct _Semaphore_Control *sem;
+
+  sem = ctx->base.thread_queue_object;
+
+  return sem->_count;
+}
+
+static void SemaphoreSetCount( TQSemContext *ctx, uint32_t count )
+{
+  struct _Semaphore_Control *sem;
+
+  sem = ctx->base.thread_queue_object;
+  sem->_count = count;
 }
 
 static void NewlibValSysLock_Setup( NewlibValSysLock_Context *ctx )
 {
   memset( ctx, 0, sizeof( *ctx ) );
-  ctx->tq_mtx_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
-  ctx->tq_mtx_ctx.base.discipline = TQ_PRIORITY;
-  ctx->tq_mtx_ctx.base.deadlock = TQ_DEADLOCK_FATAL;
-  ctx->tq_mtx_ctx.base.convert_status = TQConvertStatusPOSIX;
-  ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
-  ctx->tq_mtx_ctx.owner_check = TQ_MTX_NO_OWNER_CHECK;
-  ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
-  TQInitialize( &ctx->tq_mtx_ctx.base );
+  ctx->tq_ctx.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+  ctx->tq_ctx.discipline = TQ_PRIORITY;
+  ctx->tq_ctx.deadlock = TQ_DEADLOCK_FATAL;
+  ctx->tq_ctx.convert_status = TQConvertStatusPOSIX;
+  ctx->tq_ctx.enqueue_prepare = TQEnqueuePrepareDefault;
+  ctx->tq_ctx.enqueue_done = TQEnqueueDoneDefault;
+  ctx->tq_ctx.get_owner = GetOwner;
+  TQInitialize( &ctx->tq_ctx );
 }
 
 static void NewlibValSysLock_Setup_Wrap( void *arg )
@@ -237,7 +304,7 @@ static void NewlibValSysLock_Setup_Wrap( void *arg )
 
 static void NewlibValSysLock_Teardown( NewlibValSysLock_Context *ctx )
 {
-  TQDestroy( &ctx->tq_mtx_ctx.base );
+  TQDestroy( &ctx->tq_ctx );
   RestoreRunnerPriority();
 }
 
@@ -272,11 +339,11 @@ static void NewlibValSysLock_Action_0( NewlibValSysLock_Context *ctx )
   _Mutex_Initialize( &mutex );
 
   ctx->tq_mtx_ctx.base.thread_queue_object = &mutex;
-  ctx->tq_mtx_ctx.base.enqueue_prepare = TQEnqueuePrepareDefault;
-  ctx->tq_mtx_ctx.base.enqueue_done = TQEnqueueDoneDefault;
-  ctx->tq_mtx_ctx.base.enqueue = Enqueue;
-  ctx->tq_mtx_ctx.base.surrender = Surrender;
-  ctx->tq_mtx_ctx.base.get_owner = GetOwner;
+  ctx->tq_mtx_ctx.base.enqueue = MutexEnqueue;
+  ctx->tq_mtx_ctx.base.surrender = MutexSurrender;
+  ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
+  ctx->tq_mtx_ctx.owner_check = TQ_MTX_NO_OWNER_CHECK;
+  ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
 
   /*
    * Validate the _Mutex_Try_acquire() directive.
@@ -325,7 +392,7 @@ static void NewlibValSysLock_Action_0( NewlibValSysLock_Context *ctx )
   ScoreMtxReqSeizeWait_Run( &ctx->tq_mtx_ctx );
 
   /*
-   * Validate the _Mutex_Try_acquire() directive.
+   * Validate the _Mutex_Release() directive.
    */
   ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
   ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_DEADLOCK;
@@ -352,11 +419,11 @@ static void NewlibValSysLock_Action_1( NewlibValSysLock_Context *ctx )
   _Mutex_recursive_Initialize( &mutex );
 
   ctx->tq_mtx_ctx.base.thread_queue_object = &mutex;
-  ctx->tq_mtx_ctx.base.enqueue_prepare = TQEnqueuePrepareDefault;
-  ctx->tq_mtx_ctx.base.enqueue_done = TQEnqueueDoneDefault;
   ctx->tq_mtx_ctx.base.enqueue = RecursiveEnqueue;
   ctx->tq_mtx_ctx.base.surrender = RecursiveSurrender;
-  ctx->tq_mtx_ctx.base.get_owner = RecursiveGetOwner;
+  ctx->tq_mtx_ctx.protocol = TQ_MTX_PRIORITY_INHERIT;
+  ctx->tq_mtx_ctx.owner_check = TQ_MTX_NO_OWNER_CHECK;
+  ctx->tq_mtx_ctx.priority_ceiling = PRIO_INVALID;
 
   /*
    * Validate the _Mutex_recursive_Try_acquire() directive.
@@ -405,7 +472,7 @@ static void NewlibValSysLock_Action_1( NewlibValSysLock_Context *ctx )
   ScoreMtxReqSeizeWait_Run( &ctx->tq_mtx_ctx );
 
   /*
-   * Validate the _Mutex_recursive_Try_acquire() directive.
+   * Validate the _Mutex_recursive_Release() directive.
    */
   ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
   ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
@@ -415,6 +482,72 @@ static void NewlibValSysLock_Action_1( NewlibValSysLock_Context *ctx )
    * Destroy the mutex.
    */
   _Mutex_recursive_Destroy( &mutex );
+}
+
+/**
+ * @brief Create a semaphore and validate the semaphore directives.
+ */
+static void NewlibValSysLock_Action_2( NewlibValSysLock_Context *ctx )
+{
+  struct _Semaphore_Control sem;
+
+  _Semaphore_Initialize( &sem, 0 );
+
+  ctx->tq_sem_ctx.base.thread_queue_object = &sem;
+  ctx->tq_sem_ctx.base.enqueue = SemaphoreEnqueue;
+  ctx->tq_sem_ctx.get_count = SemaphoreGetCount;
+  ctx->tq_sem_ctx.set_count = SemaphoreSetCount;
+
+  /*
+   * Validate the _Semaphore_Try_wait() directive.
+   */
+  ctx->tq_sem_ctx.base.surrender = SemaphorePostBinary;
+  ctx->tq_sem_ctx.base.wait = TQ_NO_WAIT;
+  ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+  SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
+  ScoreSemReqSeizeTry_Run( &ctx->tq_sem_ctx );
+
+  /*
+   * Validate the _Semaphore_Wait_timed_ticks() directive for valid timeout
+   * parameters.
+   */
+  ctx->tq_sem_ctx.base.surrender = SemaphorePostBinary;
+  ctx->tq_sem_ctx.base.wait = TQ_WAIT_TIMED;
+  ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+  SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
+  ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+
+  /*
+   * Validate the _Semaphore_Wait() directive.
+   */
+  ctx->tq_sem_ctx.base.surrender = SemaphorePostBinary;
+  ctx->tq_sem_ctx.base.wait = TQ_WAIT_FOREVER;
+  ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+  SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
+  ScoreSemReqSeizeWait_Run( &ctx->tq_sem_ctx );
+
+  /*
+   * Validate the _Semaphore_Post() directive.
+   */
+  ctx->tq_sem_ctx.base.surrender = SemaphorePost;
+  ctx->tq_sem_ctx.base.wait = TQ_WAIT_FOREVER;
+  ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING_MODULO;
+  SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
+  ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
+
+  /*
+   * Validate the _Semaphore_Post_binary() directive.
+   */
+  ctx->tq_sem_ctx.base.surrender = SemaphorePostBinary;
+  ctx->tq_sem_ctx.base.wait = TQ_WAIT_FOREVER;
+  ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
+  SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
+  ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
+
+  /*
+   * Destroy the semaphore.
+   */
+  _Semaphore_Destroy( &sem );
 }
 
 /**
@@ -428,6 +561,7 @@ T_TEST_CASE_FIXTURE( NewlibValSysLock, &NewlibValSysLock_Fixture )
 
   NewlibValSysLock_Action_0( ctx );
   NewlibValSysLock_Action_1( ctx );
+  NewlibValSysLock_Action_2( ctx );
 }
 
 /** @} */
