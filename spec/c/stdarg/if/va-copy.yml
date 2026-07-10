@@ -1,0 +1,39 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Copy the variable argument list ${.:/params[1]/name} to ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: _ImplementationDefined
+    params:
+    - ${/c/if/va_list:/name} ${.:/params[0]/name}
+    - ${/c/if/va_list:/name} ${.:/params[1]/name}
+    return: void
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: va_copy
+notes: |
+  See [C23, <stdarg.h>, va_copy()](https://en.cppreference.com/w/c/variadic/va_copy).
+params:
+- description: |
+    is the destination variable argument list.
+  dir: out
+  name: dest
+- description: |
+    is the source variable argument list.
+  dir: in
+  name: src
+return:
+  return: null
+  return-values: []
+type: interface
