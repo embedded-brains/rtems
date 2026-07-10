@@ -4,7 +4,7 @@ brief: |
 copyrights:
 - Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 definition:
-  default: _ImplementationDefined ${.:/name}
+  default: _ImplementationDefined
   variants: []
 description: null
 enabled-by: true

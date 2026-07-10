@@ -1,8 +1,9 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
-  This is a greatest-width signed integer type.
+  This is a fastest minimum-width unsigned integer type with a width of at least
+  64 bits.
 copyrights:
-- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
 definition:
   default: _ImplementationDefined
   variants: []
@@ -15,7 +16,7 @@ links:
   uid: /c/stdint/if/header
 - role: interface-ingroup
   uid: /c/stdint/if/group
-name: intmax_t
+name: uint_fast64_t
 notes: null
 params: []
 return: null

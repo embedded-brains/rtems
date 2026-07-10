@@ -1,0 +1,33 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This macro expands to an integer constant of the corresponding type.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: _ImplementationDefined
+    params:
+    - ${.:/params[0]/name}
+    return: ${/c/if/uint_least16_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: macro
+links:
+- role: interface-placement
+  uid: /c/stdint/if/header
+- role: interface-ingroup
+  uid: /c/stdint/if/group
+name: UINT16_C
+notes: null
+params:
+- description: null
+  dir: null
+  name: value
+return:
+  return: |
+    This macro expands to an integer constant of the corresponding type.
+  return-values: []
+type: interface
