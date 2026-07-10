@@ -257,7 +257,7 @@ static void CStringReqMemccpy_Pre_N_Prepare(
        * specified by ``n`` is less than the size of a `long` integer on the
        * target architecture.
        */
-      ctx->n = 5;
+      ctx->n = sizeof( long ) - 1;
       break;
     }
 
