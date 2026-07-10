@@ -153,6 +153,11 @@ transition-map:
     - if:
         pre-conditions:
           Id:
+          - 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Id:
           - Valid
           Name:
           - Valid
