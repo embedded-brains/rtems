@@ -188,8 +188,8 @@ workspace-type: component
     subprocess.run(cmd, check=True)
     if not args.do_not_decimate:
         cmd = [
-            "specmakedecimate", "--spec-directories",
-            str(tools_directory / args.rtems_version / "build" / "spec"), "--"
+            "specmakedecimate", "--spec-directory",
+            str(tools_directory / args.rtems_version / "build" / "spec"),
         ] + sorted(keep)
         logging.info("run: %s", " ".join(cmd))
         subprocess.run(cmd, check=True)
