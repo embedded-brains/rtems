@@ -76,7 +76,7 @@ static const char* const r_E01 = "E01";
 rtems_debugger_server* rtems_debugger;
 
 /**
- * Print lock ot make the prints sequential. This is to debug the debugger in
+ * Print lock to make the prints sequential. This is to debug the debugger in
  * SMP.
  */
 RTEMS_INTERRUPT_LOCK_DEFINE(static, printk_lock, "printk_lock")
@@ -743,7 +743,6 @@ static int remote_packet_dispatch(const rtems_debugger_packet* packet,
 static int remote_detach(uint8_t* buffer, int size) {
   (void)buffer;
   (void)size;
-
   remote_packet_out_str(r_OK);
   remote_packet_out_send();
   rtems_debugger_remote_disconnect();
@@ -753,14 +752,12 @@ static int remote_detach(uint8_t* buffer, int size) {
 static int remote_ut_features(uint8_t* buffer, int size) {
   (void)buffer;
   (void)size;
-
   return -1;
 }
 
 static int remote_ut_osdata(uint8_t* buffer, int size) {
   (void)buffer;
   (void)size;
-
   return -1;
 }
 
@@ -778,10 +775,9 @@ static int remote_gq_uninterpreted_transfer(uint8_t* buffer, int size) {
 }
 
 static int remote_gq_thread_info_subsequent(uint8_t* buffer, int size) {
+  rtems_debugger_threads* threads = rtems_debugger->threads;
   (void)buffer;
   (void)size;
-
-  rtems_debugger_threads* threads = rtems_debugger->threads;
   if (threads->next >= threads->current.level) {
     remote_packet_out_str("l");
   } else {
@@ -810,9 +806,8 @@ static int remote_gq_thread_info_first(uint8_t* buffer, int size) {
 }
 
 static int remote_gq_thread_extra_info(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* comma;
+  (void)size;
   remote_packet_out_reset();
   comma = strchr((const char*)buffer, ',');
   if (comma != NULL) {
@@ -844,7 +839,9 @@ static int remote_gq_thread_extra_info(uint8_t* buffer, int size) {
                      rtems_debugger_thread_stack_area(thread));
         remote_packet_out_append_hex((const uint8_t*)buf, l);
         rtems_debugger_thread_state_str(thread, str, sizeof(str));
-        l = snprintf(buf, sizeof(buf), "state(%s)", str);
+        l = snprintf(buf, sizeof(buf), "state(%s), ", str);
+        remote_packet_out_append_hex((const uint8_t*)buf, l);
+        l = snprintf(buf, sizeof(buf), "tcb:%p", thread->tcb);
         remote_packet_out_append_hex((const uint8_t*)buf, l);
       }
     }
@@ -854,8 +851,6 @@ static int remote_gq_thread_extra_info(uint8_t* buffer, int size) {
 }
 
 static int remote_gq_supported(uint8_t* buffer, int size) {
-  (void)size;
-
   uint32_t capabilities = rtems_debugger_target_capabilities();
   const char* p;
   bool swbreak = false;
@@ -863,6 +858,7 @@ static int remote_gq_supported(uint8_t* buffer, int size) {
   bool vCont = false;
   bool no_resumed = false;
   bool multiprocess = false;
+  (void)size;
   remote_packet_out("qSupported:PacketSize=%d;QNonStop-",
                     RTEMS_DEBUGGER_BUFFER_SIZE);
   p = strchr((const char*)buffer, ':');
@@ -933,10 +929,9 @@ static int remote_gq_supported(uint8_t* buffer, int size) {
 }
 
 static int remote_gq_attached(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* response = "1";
   const char* colon = strchr((const char*)buffer, ':');
+  (void)size;
   if (colon != NULL) {
     DB_UINT pid = hex_decode_uint((const uint8_t*)colon + 1);
     if ((pid_t)pid != rtems_debugger->pid) {
@@ -1068,10 +1063,9 @@ static int remote_general_query(uint8_t* buffer, int size) {
 }
 
 static int remote_gs_non_stop(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* response = r_E01;
   char* p = strchr((char*)buffer, ':');
+  (void)size;
   if (p != NULL) {
     ++p;
     response = r_OK;
@@ -1099,10 +1093,9 @@ static int remote_general_set(uint8_t* buffer, int size) {
 }
 
 static int remote_v_stopped(uint8_t* buffer, int size) {
+  rtems_debugger_threads* threads = rtems_debugger->threads;
   (void)buffer;
   (void)size;
-
-  rtems_debugger_threads* threads = rtems_debugger->threads;
   if (threads->next >= threads->stopped.level) {
     remote_packet_out_str(r_OK);
   } else {
@@ -1207,7 +1200,7 @@ static int remote_v_continue(uint8_t* buffer, int size) {
             }
             break;
           default:
-            rtems_debugger_printf("rtems-db: vCont: unkown action: %c\n",
+            rtems_debugger_printf("rtems-db: vCont: unknown action: %c\n",
                                   action);
             ok = false;
             break;
@@ -1257,10 +1250,10 @@ static int remote_v_packets(uint8_t* buffer, int size) {
 }
 
 static int remote_thread_select(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* response = r_OK;
   int* index = NULL;
+
+  (void)size;
 
   if (buffer[1] == 'g') {
     index = &rtems_debugger->threads->selector_gen;
@@ -1299,12 +1292,11 @@ static int remote_thread_select(uint8_t* buffer, int size) {
 }
 
 static int remote_thread_alive(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* response = r_E01;
   DB_UINT pid = 0;
   DB_UINT tid = 0;
   bool extended;
+  (void)size;
   extended = thread_id_decode((const char*)&buffer[1], &pid, &tid);
   if (!extended || (extended && check_pid(pid))) {
     int r;
@@ -1321,14 +1313,12 @@ static int remote_thread_alive(uint8_t* buffer, int size) {
 static int remote_argc_argv(uint8_t* buffer, int size) {
   (void)buffer;
   (void)size;
-
   return -1;
 }
 
 static int remote_continue_at(uint8_t* buffer, int size) {
   (void)buffer;
   (void)size;
-
   if (!rtems_debugger_server_flag(RTEMS_DEBUGGER_FLAG_VCONT)) {
     char* vCont_c = "vCont;c:p1.-1";
     return remote_v_continue((uint8_t*)vCont_c, strlen(vCont_c));
@@ -1397,11 +1387,10 @@ static int remote_write_general_regs(uint8_t* buffer, int size) {
 }
 
 static int remote_read_reg(uint8_t* buffer, int size) {
-  (void)size;
-
   rtems_debugger_threads* threads = rtems_debugger->threads;
   bool ok = false;
   int r;
+  (void)size;
   if (threads->selector_gen >= 0 &&
       threads->selector_gen < (int)threads->current.level) {
     size_t reg = hex_decode_int(&buffer[1]);
@@ -1431,10 +1420,9 @@ static int remote_read_reg(uint8_t* buffer, int size) {
 }
 
 static int remote_write_reg(uint8_t* buffer, int size) {
-  (void)size;
-
   rtems_debugger_threads* threads = rtems_debugger->threads;
   const char* response = r_E01;
+  (void)size;
   if (threads->selector_gen >= 0 &&
       threads->selector_gen < (int)threads->current.level) {
     const char* equals;
@@ -1467,9 +1455,8 @@ static int remote_write_reg(uint8_t* buffer, int size) {
 }
 
 static int remote_read_memory(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* comma;
+  (void)size;
   comma = strchr((const char*)buffer, ',');
   if (comma == NULL) {
     remote_packet_out_str(r_E01);
@@ -1503,11 +1490,10 @@ static int remote_read_memory(uint8_t* buffer, int size) {
 }
 
 static int remote_write_memory(uint8_t* buffer, int size) {
-  (void)size;
-
   const char* response = r_E01;
   const char* comma;
   const char* colon;
+  (void)size;
   comma = strchr((const char*)buffer, ',');
   colon = strchr((const char*)buffer, ':');
   if (comma != NULL && colon != NULL) {
@@ -1927,9 +1913,9 @@ static int rtems_debugger_destroy(void) {
 }
 
 static void rtems_debugger_main(rtems_task_argument arg) {
-  (void)arg;
-
   int r;
+
+  (void)arg;
 
   rtems_debugger_lock();
   rtems_debugger->server_running = true;

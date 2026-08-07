@@ -73,7 +73,7 @@ typedef struct{
   uint32_t ROM;               /*ROM Mask Register*/
   uint32_t ALGO;              /*ROM Algorithm Mask Register*/
   uint32_t RINFOL;            /*RAM Info Mask Lower Register*/
-  uint32_t RINFOUL;           /*RAM Info Mask Lower Register*/
+  uint32_t RINFOU;            /*RAM Info Mask Upper Register*/
 } tms570_pbist_t;
 
 
@@ -117,16 +117,15 @@ typedef struct{
 /* field: DLR4 - Config access: setting this bit allows the host processor to configure the PBIST controller registers */
 #define TMS570_PBIST_DLR_DLR4 BSP_BIT32(4)
 
-/* field: DLR2 - ROM-based testing: setting this bit enables the PBIST controller to execute test algorithms that are */
+/* field: DLR2 - ROM-based testing: setting this bit enables the PBIST controller to execute test algorithms from ROM */
 #define TMS570_PBIST_DLR_DLR2 BSP_BIT32(2)
 
 
 /*---------------------TMS570_PBIST_PACT---------------------*/
-/* field: PACT1 - PBIST Activate */
-#define TMS570_PBIST_PACT_PACT1 BSP_BIT32(1)
-
-/* field: PACT0 - ROM Clock Enable Register */
+/* field: PACT0 - PBIST internal clocks enable */
 #define TMS570_PBIST_PACT_PACT0 BSP_BIT32(0)
+
+#define TMS570_PBIST_PACT_ENABLE TMS570_PBIST_PACT_PACT0
 
 
 /*--------------------TMS570_PBIST_PBISTID--------------------*/
@@ -197,7 +196,7 @@ typedef struct{
 /* field: RAM_ALG_MASK_LOW - Each bit corresponds to a specific algorithm */
 /* Whole 32 bits */
 
-/*--------------------TMS570_PBIST_RINFOUL--------------------*/
+/*--------------------TMS570_PBIST_RINFOU--------------------*/
 /* field: RAM_ALG_MASK_UP - Each bit corresponds to a specific algorithm */
 /* Whole 32 bits */
 

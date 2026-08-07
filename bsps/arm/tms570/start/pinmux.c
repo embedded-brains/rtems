@@ -49,24 +49,26 @@ RTEMS_STATIC_ASSERT(
   TMS570_PIN_CONFIG
 );
 
-static inline void
-tms570_bsp_pin_to_pinmmrx(volatile uint32_t **pinmmrx, uint32_t *pin_shift,
-                          uint32_t config)
+static inline void tms570_bsp_pin_to_pinmmrx(
+  volatile uint32_t **pinmmrx,
+  uint32_t           *pin_shift,
+  uint32_t            config
+)
 {
-  uint32_t pin_num = (config & TMS570_PIN_NUM_MASK) >> TMS570_PIN_NUM_SHIFT;
-  *pinmmrx = TMS570_PINMUX + (pin_num >> 2);
-  *pin_shift = (pin_num & 0x3)*8;
+  uint32_t pin_num = ( config & TMS570_PIN_NUM_MASK ) >> TMS570_PIN_NUM_SHIFT;
+  *pinmmrx = TMS570_PINMUX + ( pin_num >> 2 );
+  *pin_shift = ( pin_num & 0x3 ) * 8;
 }
 
 /**
  * @brief select desired function of pin/ball
  *
- * The function setups multiplexer to interconnect pin with
+ * The function sets up the multiplexer to interconnect the pin with the 
  * specified function/peripheral. Pin number is index into pinmux
  * entries array. Predefined values for pins are in a format
  * TMS570_BALL_ \c column \c row (for example \c TMS570_BALL_N19).
  * The multiplexer allows to interconnect one pin to multiple
- * signal sources/sinks in the theory but it is usually bad choice.
+ * signal sources/sinks in theory, but it is usually a bad choice.
  * The function sets only specified function and clears all other
  * connections.
  *
@@ -76,17 +78,30 @@ tms570_bsp_pin_to_pinmmrx(volatile uint32_t **pinmmrx, uint32_t *pin_shift,
  *                     pin_num argument
  * @retval Void
  */
-void
-tms570_bsp_pin_set_function(int pin_num, int pin_fnc)
+void tms570_bsp_pin_set_function( int pin_num, int pin_fnc )
 {
-  unsigned int pin_shift;
+  rtems_interrupt_level intlev;
+
+  rtems_interrupt_disable( intlev );
+  tms570_pin_config_prepare();
+  tms570_bsp_pin_set_function_unlocked( pin_num, pin_fnc );
+  tms570_pin_config_complete();
+  rtems_interrupt_enable( intlev );
+}
+
+void tms570_bsp_pin_set_function_unlocked( int pin_num, int pin_fnc )
+{
+  unsigned int       pin_shift;
   volatile uint32_t *pinmmrx;
 
   if ( pin_fnc == TMS570_PIN_FNC_AUTO ) {
-    pin_fnc = (pin_num & TMS570_PIN_FNC_MASK) >> TMS570_PIN_FNC_SHIFT;
+    pin_fnc = ( pin_num & TMS570_PIN_FNC_MASK ) >> TMS570_PIN_FNC_SHIFT;
   }
-  tms570_bsp_pin_to_pinmmrx(&pinmmrx, &pin_shift, pin_num);
-  *pinmmrx = (*pinmmrx & ~(0xff << pin_shift)) | (1 << (pin_fnc + pin_shift));
+
+  tms570_bsp_pin_to_pinmmrx( &pinmmrx, &pin_shift, pin_num );
+
+  *pinmmrx = ( *pinmmrx & ~( 0xffU << pin_shift ) ) |
+             ( 1U << ( pin_fnc + pin_shift ) );
 }
 
 /**
@@ -101,62 +116,74 @@ tms570_bsp_pin_set_function(int pin_num, int pin_fnc)
  *                     pin_num argument
  * @retval Void
  */
-void
-tms570_bsp_pin_clear_function(int pin_num, int pin_fnc)
+void tms570_bsp_pin_clear_function( int pin_num, int pin_fnc )
 {
-  unsigned int pin_shift;
+  rtems_interrupt_level intlev;
+
+  rtems_interrupt_disable( intlev );
+  tms570_pin_config_prepare();
+  tms570_bsp_pin_clear_function_unlocked( pin_num, pin_fnc );
+  tms570_pin_config_complete();
+  rtems_interrupt_enable( intlev );
+}
+
+void tms570_bsp_pin_clear_function_unlocked( int pin_num, int pin_fnc )
+{
+  unsigned int       pin_shift;
   volatile uint32_t *pinmmrx;
 
   if ( pin_fnc == TMS570_PIN_FNC_AUTO ) {
-    pin_fnc = (pin_num & TMS570_PIN_FNC_MASK) >> TMS570_PIN_FNC_SHIFT;
+    pin_fnc = ( pin_num & TMS570_PIN_FNC_MASK ) >> TMS570_PIN_FNC_SHIFT;
   }
-  tms570_bsp_pin_to_pinmmrx(&pinmmrx, &pin_shift, pin_num);
-  *pinmmrx = *pinmmrx & ~(1 << (pin_fnc+pin_shift));
+
+  tms570_bsp_pin_to_pinmmrx( &pinmmrx, &pin_shift, pin_num );
+
+  *pinmmrx = *pinmmrx & ~( 1U << ( pin_fnc + pin_shift ) );
 }
 
 /**
  * @brief configure one pin according to its function specification
  *
- * The function setups multiplexer to interconnect pin with
+ * The function sets up the multiplexer to interconnect the pin with the 
  * specified function/peripheral. Predefined values for pins combined with
  * function are in a format TMS570_BALL_ \c column \c row \c function
  * (for example \c TMS570_BALL_W3_SCIRX).
  * If the function can be connected to more pins then specification
- * includes infomation which allows to disconnect alternative pin to peripheral
- * input connection or switch input multiplexer to right pin.
+ * includes information which allows disconnecting the alternative
+ * pin-to-peripheral input connection or switching the input multiplexer to 
+ * the right pin.
  *
- * @param[in] pin_num_and_fnc pin function descriptor is build by macro
+ * @param[in] pin_num_and_fnc pin function descriptor is built by the macro
  *               \c TMS570_PIN_AND_FNC which takes pin/pinmmr specification
- *               build by \c TMS570_BALL_WITH_MMR and function index in output
- *               multiplexer. If the peripheral can be connected to other input
- *               alternative then actual pin description and alternative to
- *               disconnected/reconnect are combined together by
- *               \c TMS570_PIN_WITH_IN_ALT macro. If clear of alternative
+ *               built by \c TMS570_BALL_WITH_MMR and function index in the
+ *               output multiplexer. If the peripheral can be connected to
+ *               another input alternative, then the actual pin description and
+ *               alternative to disconnect/reconnect are combined together by
+ *               \c TMS570_PIN_WITH_IN_ALT macro. If clearing the alternative
  *               connection is required then flag \c TMS570_PIN_CLEAR_RQ_MASK
- *               is ored to alternative description.
+ *               is OR'ed with the alternative description.
  *
  * @retval Void
  */
-void
-tms570_bsp_pin_config_one(uint32_t pin_num_and_fnc)
+void tms570_bsp_pin_config_one( uint32_t pin_num_and_fnc )
 {
   rtems_interrupt_level intlev;
 
-  rtems_interrupt_disable(intlev);
+  rtems_interrupt_disable( intlev );
   tms570_pin_config_prepare();
-  tms570_pin_config_apply(pin_num_and_fnc);
+  tms570_pin_config_apply( pin_num_and_fnc );
   tms570_pin_config_complete();
-  rtems_interrupt_enable(intlev);
+  rtems_interrupt_enable( intlev );
 }
 
 /**
  * @brief configure block or whole pin multiplexer
  *
- * Function change multiplexer content. It is intended for initial
+ * This function changes the multiplexer content. It is intended for initial
  * chip setup and does not use locking. If complete reconfiguration
- * is required at runtime then it is application responsibility
- * to protect and serialize change with peripherals drivers
- * and parallel calls
+ * is required at runtime then it is the application's responsibility
+ * to protect and serialize the change with peripheral drivers
+ * and concurrent calls.
  *
  * @param[in] pinmmr_values pointer to array with required multiplexer setup
  * @param[in] reg_start starting register, this allows to configure non-consecutive
@@ -166,15 +193,19 @@ tms570_bsp_pin_config_one(uint32_t pin_num_and_fnc)
  *
  * @retval Void
  */
-void
-tms570_bsp_pinmmr_config(const uint32_t *pinmmr_values, int reg_start, int reg_count)
+void tms570_bsp_pinmmr_config(
+  const uint32_t *pinmmr_values,
+  int             reg_start,
+  int             reg_count
+)
 {
   volatile uint32_t *pinmmrx;
-  const uint32_t *pval;
-  int cnt;
+  const uint32_t    *pval;
+  int                cnt;
 
-  if ( reg_count <= 0)
+  if ( reg_count <= 0 ) {
     return;
+  }
 
   tms570_pin_config_prepare();
 
@@ -186,64 +217,63 @@ tms570_bsp_pinmmr_config(const uint32_t *pinmmr_values, int reg_start, int reg_c
     *pinmmrx = *pval;
     pinmmrx++;
     pval++;
-  } while( --cnt );
+  } while ( --cnt );
 
   tms570_pin_config_complete();
 }
 
-void tms570_pin_config_prepare(void)
+void tms570_pin_config_prepare( void )
 {
-  TMS570_IOMM.KICK_REG0 = 0x83E70B13U;
-  TMS570_IOMM.KICK_REG1 = 0x95A4F1E0U;
+  TMS570_IOMM.KICK_REG0 = 0x83E70B13U; /* Hardcoded KICK0 unlock code (see TRM) */
+  TMS570_IOMM.KICK_REG1 = 0x95A4F1E0U; /* Hardcoded KICK1 unlock code (see TRM) */
 }
 
-static void
-tms570_pin_set_function(uint32_t config)
+static void tms570_pin_set_function( uint32_t config )
 {
   volatile uint32_t *pinmmrx;
-  uint32_t pin_shift;
-  uint32_t pin_fnc;
-  uint32_t bit;
-  uint32_t val;
+  uint32_t           pin_shift;
+  uint32_t           pin_fnc;
+  uint32_t           bit;
+  uint32_t           val;
 
-  tms570_bsp_pin_to_pinmmrx(&pinmmrx, &pin_shift, config);
-  pin_fnc = (config & TMS570_PIN_FNC_MASK) >> TMS570_PIN_FNC_SHIFT;
-  bit = 1U << (pin_fnc + pin_shift);
+  tms570_bsp_pin_to_pinmmrx( &pinmmrx, &pin_shift, config );
+  pin_fnc = ( config & TMS570_PIN_FNC_MASK ) >> TMS570_PIN_FNC_SHIFT;
+  bit = 1U << ( pin_fnc + pin_shift );
   val = *pinmmrx;
-  val &= ~(0xffU << pin_shift);
+  val &= ~( 0xffU << pin_shift );
 
-  if ((config & TMS570_PIN_CLEAR_RQ_MASK) == 0) {
+  if ( ( config & TMS570_PIN_CLEAR_RQ_MASK ) == 0 ) {
     val |= bit;
   }
 
   *pinmmrx = val;
 }
 
-void tms570_pin_config_apply(uint32_t config)
+void tms570_pin_config_apply( uint32_t config )
 {
   uint32_t pin_in_alt;
   uint32_t pin_num_and_fnc;
 
   pin_in_alt = config & TMS570_PIN_IN_ALT_MASK;
-  if (pin_in_alt != 0) {
+  if ( pin_in_alt != 0 ) {
     pin_in_alt >>= TMS570_PIN_IN_ALT_SHIFT;
-    tms570_pin_set_function(pin_in_alt);
+    tms570_pin_set_function( pin_in_alt );
   }
 
   pin_num_and_fnc = config & TMS570_PIN_NUM_FNC_MASK;
-  tms570_pin_set_function(pin_num_and_fnc);
+  tms570_pin_set_function( pin_num_and_fnc );
 }
 
-void tms570_pin_config_array_apply(const uint32_t *config, size_t count)
+void tms570_pin_config_array_apply( const uint32_t *config, size_t count )
 {
   size_t i;
 
-  for (i = 0; i < count; ++i) {
-    tms570_pin_config_apply(config[i]);
+  for ( i = 0; i < count; ++i ) {
+    tms570_pin_config_apply( config[ i ] );
   }
 }
 
-void tms570_pin_config_complete(void)
+void tms570_pin_config_complete( void )
 {
   TMS570_IOMM.KICK_REG0 = 0;
   TMS570_IOMM.KICK_REG1 = 0;
