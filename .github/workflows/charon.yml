@@ -1,0 +1,171 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+# Charon ferries the upstreamable commits of a pull request onto a branch
+# based on the rtems.org mirror and opens a review-only pull request for it.
+#
+# This workflow runs with a GitHub Actions token scoped to 'contents: write'
+# and 'pull-requests: write' in the eb repository, while it handles commits
+# from a contributor fork.  Nothing from the fork is ever executed: every
+# script comes from the base branch, and the fork content is touched by Git
+# plumbing only.
+#
+# The one step which reads fork content is the specverify run over the
+# extracted tree.  That is parsing, not execution: specitems loads items with
+# the YAML SafeLoader, which cannot construct Python objects, and no config
+# file of this repository reaches the extracted tree.  Verifying in a separate
+# job whose GitHub Actions token has no write scopes is therefore not needed.
+#
+# This changes the moment anything here configures or builds the extracted
+# tree.  Build option items may carry 'script:' actions with arbitrary Python
+# which waf executes at configure time.  Running waf, make or specbuild on
+# fork content in this workflow would require moving that work into a job
+# whose GitHub Actions token has no write scopes.
+name: Charon
+on:
+  pull_request_target:
+    types:
+    - labeled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+  pull-requests: write
+env:
+  LABEL: rtems.org ready
+  MIRROR: origin/rtems.org/main
+  BASE: rtems.org/main
+jobs:
+  extract:
+    name: Charon
+    if: ${{ github.event.label.name == 'rtems.org ready' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      PR: ${{ github.event.pull_request.number }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      ACTOR: ${{ github.event.sender.login }}
+      REPORT: ${{ runner.temp }}/charon-report.md
+    steps:
+    - name: Check the permission of the label sender
+      env:
+        GH_TOKEN: ${{ github.token }}
+      # A label proves nothing on its own.  Anyone with triage access can set
+      # one, and pull_request_target hands out the GitHub Actions token with
+      # its 'contents: write' and 'pull-requests: write' scopes regardless of
+      # who triggered it.
+      run: |
+        permission="$(gh api \
+          "repos/${GITHUB_REPOSITORY}/collaborators/${ACTOR}/permission" \
+          --jq '.permission')"
+        echo "${ACTOR} has ${permission} permission"
+        case "${permission}" in
+        admin|maintain|write) ;;
+        *)
+          echo "::error::${ACTOR} is not an eb repository maintainer"
+          exit 1
+          ;;
+        esac
+    - name: Check out the base branch
+      # Never the pull request head: every script executed below must come from
+      # the base branch.
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ github.event.pull_request.base.ref }}
+        fetch-depth: 0
+    - name: Fetch the pull request head
+      # Data only.  It is never checked out into the workspace.
+      run: |
+        git fetch --no-tags origin "refs/pull/${PR}/head:refs/heads/charon-head"
+        if ! git rev-parse --verify --quiet "${MIRROR}" >/dev/null; then
+          echo "::error::The ${BASE} mirror does not exist.  Run Echo first."
+          exit 1
+        fi
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Install the tools
+      run: uv sync --all-groups --frozen
+    - name: Inspect the changes
+      # The label may have been set after the head moved, so do not trust the
+      # earlier Olympos run.
+      run: |
+        base="$(git merge-base origin/${{ github.event.pull_request.base.ref }} charon-head)"
+        uv run ./.github/inspect_changes.py \
+          --upstream-ref="${MIRROR}" \
+          --output="${REPORT}" \
+          "${{ github.event.repository.html_url }}" \
+          "${base}" charon-head
+    - name: Extract the upstreamable commits
+      id: extract
+      run: |
+        base="$(git merge-base origin/${{ github.event.pull_request.base.ref }} charon-head)"
+        uv run ./.github/extract_changes.py \
+          --upstream-ref="${MIRROR}" \
+          --branch="rtems.org/pr-${PR}" \
+          --output="${REPORT}" \
+          "${base}" charon-head
+    - name: Push the upstreaming branch
+      run: |
+        git push --force origin "rtems.org/pr-${PR}"
+    - name: Open the review pull request
+      id: review
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        branch="rtems.org/pr-${PR}"
+        number="$(gh pr list --head "${branch}" --base "${BASE}" \
+          --state open --json number --jq '.[0].number // empty')"
+        if test -z "${number}"; then
+          body="${RUNNER_TEMP}/body.md"
+          {
+            echo "Upstreaming of #${PR}, requested by @${ACTOR}."
+            echo
+            echo 'This pull request exists for review only and is **never'
+            echo 'merged**.  The delivery is a merge request created by an eb'
+            echo "repository maintainer from the \`${BASE}\` branch."
+            echo
+            cat "${REPORT}"
+          } >"${body}"
+          # gh pr create prints the URL of the new pull request.
+          url="$(gh pr create --base "${BASE}" --head "${branch}" \
+            --title "Upstreaming of #${PR}" --body-file "${body}")"
+          number="${url##*/}"
+        fi
+        echo "number=${number}" >>"${GITHUB_OUTPUT}"
+        echo "review pull request #${number}"
+    - name: Request the Copilot review
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh api --method POST \
+          "repos/${GITHUB_REPOSITORY}/pulls/${{ steps.review.outputs.number }}/requested_reviewers" \
+          -f 'reviewers[]=copilot-pull-request-reviewer[bot]'
+    - name: Report the failure
+      if: ${{ failure() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      # Remove the label so that setting it again re-triggers the extraction.
+      # A failed run which keeps the label looks exactly like a successful one.
+      run: |
+        body="${RUNNER_TEMP}/failure.md"
+        {
+          echo '## Charon'
+          echo
+          echo 'The extraction failed.  The label was removed; set it again'
+          echo 'after fixing the issues below.'
+          echo
+          if test -s "${REPORT}"; then
+            cat "${REPORT}"
+          else
+            echo 'See the workflow log for details.'
+          fi
+        } >"${body}"
+        gh pr comment "${PR}" --body-file "${body}"
+        gh pr edit "${PR}" --remove-label "${LABEL}" || true
