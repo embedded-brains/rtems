@@ -144,19 +144,27 @@ def main(argv: list[str]) -> int:
         content, resolved, remaining = _resolve(path)
         if remaining:
             blocked = True
-            report.append(f"* `{path}`: {resolved} mechanical, "
-                          f"**{remaining} need a scope decision**")
+            report.append(
+                f"* `{path}`: {resolved} declined, **{remaining} need a "
+                "qualification scope decision**")
             continue
-        report.append(f"* `{path}`: {resolved} mechanical, 0 remaining")
+        report.append(
+            f"* `{path}`: {resolved} declined, file unchanged")
         if args.dry_run:
             continue
         with open(path, "w", encoding="utf-8",
                   errors="surrogateescape") as dst:
             dst.write(content)
         subprocess.run(["git", "add", "--", path], check=True)
-    print("Conflict hunks whose `ours` side is empty were resolved in favour")
-    print("of `ours`: a new source of the rtems.org repository stays outside")
-    print("the qualification scope until it is added deliberately.")
+    print("The merge conflicted in the files below.  A conflicting hunk with")
+    print("an empty `ours` side means the rtems.org repository extended a")
+    print("region which this repository deleted.  Such a hunk is declined: an")
+    print("upstream build change does not enter the pre-qualified set by")
+    print("itself.")
+    print()
+    print("Declining a hunk keeps `ours`, which leaves the file unchanged.  A")
+    print("file whose hunks were all declined therefore does **not** appear in")
+    print("the diff of this pull request; there is nothing to show for it.")
     print()
     print("\n".join(report))
     return 1 if blocked else 0
