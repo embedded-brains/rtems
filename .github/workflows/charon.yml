@@ -47,7 +47,9 @@ jobs:
       PR: ${{ github.event.pull_request.number }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       ACTOR: ${{ github.event.sender.login }}
-      REPORT: ${{ runner.temp }}/charon-report.md
+      # RUNNER_TEMP is an environment variable of the runner.  The runner
+      # context is not available in a job level env, only inside a step.
+      REPORT_NAME: charon-report.md
     steps:
     - name: Check the permission of the label sender
       env:
@@ -99,7 +101,7 @@ jobs:
         base="$(git merge-base origin/${{ github.event.pull_request.base.ref }} charon-head)"
         uv run ./.github/inspect_changes.py \
           --upstream-ref="${MIRROR}" \
-          --output="${REPORT}" \
+          --output="${RUNNER_TEMP}/${REPORT_NAME}" \
           "${{ github.event.repository.html_url }}" \
           "${base}" charon-head
     - name: Extract the upstreamable commits
@@ -109,7 +111,7 @@ jobs:
         uv run ./.github/extract_changes.py \
           --upstream-ref="${MIRROR}" \
           --branch="rtems.org/pr-${PR}" \
-          --output="${REPORT}" \
+          --output="${RUNNER_TEMP}/${REPORT_NAME}" \
           "${base}" charon-head
     - name: Push the upstreaming branch
       run: |
@@ -131,7 +133,7 @@ jobs:
             echo 'merged**.  The delivery is a merge request created by an eb'
             echo "repository maintainer from the \`${BASE}\` branch."
             echo
-            cat "${REPORT}"
+            cat "${RUNNER_TEMP}/${REPORT_NAME}"
           } >"${body}"
           # gh pr create prints the URL of the new pull request.
           url="$(gh pr create --base "${BASE}" --head "${branch}" \
@@ -161,8 +163,8 @@ jobs:
           echo 'The extraction failed.  The label was removed; set it again'
           echo 'after fixing the issues below.'
           echo
-          if test -s "${REPORT}"; then
-            cat "${REPORT}"
+          if test -s "${RUNNER_TEMP}/${REPORT_NAME}"; then
+            cat "${RUNNER_TEMP}/${REPORT_NAME}"
           else
             echo 'See the workflow log for details.'
           fi
