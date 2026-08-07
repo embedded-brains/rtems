@@ -6,13 +6,18 @@ name: Hermes
 on:
   workflow_run:
     workflows:
-    - Zerberus
+    - Olympos
     types:
     - completed
+concurrency:
+  # Serialise the sticky comment updates per pull request head.
+  group: ${{ github.workflow }}-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
 jobs:
   comment:
     if: ${{ github.event.workflow_run.event == 'pull_request' && (github.event.workflow_run.conclusion == 'success' || github.event.workflow_run.conclusion == 'failure') }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       actions: read
       contents: read
@@ -22,17 +27,45 @@ jobs:
     - name: Find PR by commit
       id: pr
       uses: ./.github/actions/find-pr-by-commit
-    - name: Download artifacts
+    - name: Download the Argos report
+      # The GitHub Actions token here is scoped to 'actions: read',
+      # 'contents: read' and 'pull-requests: write' in the eb repository.
       if: ${{ steps.pr.outputs.pr != '0' }}
-      uses: actions/download-artifact@v4
+      continue-on-error: true
+      uses: actions/download-artifact@v8
+      with:
+        name: inspect-changes
+        run-id: ${{ github.event.workflow_run.id }}
+        github-token: ${{ github.token }}
+        path: argos
+    - name: Download the package summary
+      if: ${{ steps.pr.outputs.pr != '0' }}
+      continue-on-error: true
+      uses: actions/download-artifact@v8
       with:
         name: log-pkg-primary
         run-id: ${{ github.event.workflow_run.id }}
         github-token: ${{ github.token }}
         path: .
+    - name: Assemble the comment
+      if: ${{ steps.pr.outputs.pr != '0' }}
+      run: |
+        : >comment.md
+        if test -f argos/inspect-changes.md; then
+          echo '## Argos' >>comment.md
+          cat argos/inspect-changes.md >>comment.md
+          echo >>comment.md
+        fi
+        if test -f workspace/package-summary.md; then
+          echo '## Zerberus' >>comment.md
+          cat workspace/package-summary.md >>comment.md
+        fi
+        if ! test -s comment.md; then
+          echo 'No report was produced by this run.' >>comment.md
+        fi
     - name: Post comment
       if: ${{ steps.pr.outputs.pr != '0' }}
       uses: marocchino/sticky-pull-request-comment@v3
       with:
         number: ${{ steps.pr.outputs.pr }}
-        path: workspace/package-summary.md
+        path: comment.md

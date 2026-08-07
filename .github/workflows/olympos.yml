@@ -1,0 +1,242 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+name: Olympos
+on:
+  push:
+    branches:
+    - eb/next
+  pull_request:
+    branches:
+    - eb/next
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  argos:
+    name: Argos
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        # Inspect the commits of the pull request, not the merge commit.  The
+        # full history is required to determine the merge base.
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: 0
+    - name: Fetch the rtems.org repository
+      # Until Echo maintains the rtems.org/main mirror, fetch the branch
+      # directly.  It is required by the category invariant and the
+      # extractability check.
+      run: |
+        git fetch --no-tags --depth=1 \
+          https://gitlab.rtems.org/rtems/rtos/rtems.git \
+          main:refs/heads/rtems.org/main
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Install the tools
+      run: uv sync --all-groups --frozen
+    - name: Inspect the changes
+      run: |
+        base="$(git merge-base '${{ github.event.pull_request.base.sha }}' HEAD)"
+        echo "base commit: ${base}"
+        uv run ./.github/inspect_changes.py \
+          --output=inspect-changes.md \
+          '${{ github.event.repository.html_url }}' \
+          "${base}" HEAD
+    - name: Report
+      if: ${{ !cancelled() && hashFiles('inspect-changes.md') != '' }}
+      run: |
+        cat inspect-changes.md >>"${GITHUB_STEP_SUMMARY}"
+    - name: Report artifact
+      if: ${{ !cancelled() && hashFiles('inspect-changes.md') != '' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: inspect-changes
+        path: inspect-changes.md
+        overwrite: true
+
+  hephaistos:
+    name: Hephaistos
+    needs: argos
+    # Argos is skipped for pushes.  Only an Argos failure stops the forge.
+    if: ${{ always() && (needs.argos.result == 'success' || needs.argos.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+        - aarch64
+        - arm
+        - i386
+        - m68k
+        - microblaze
+        - mips
+        - moxie
+        - nios2
+        - or1k
+        - powerpc
+        - riscv
+        - sparc
+        - x86_64
+    env:
+      TOOLS_ARCH: ${{ matrix.arch }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Restore tools cache
+      id: restore-tools
+      uses: actions/cache/restore@v5
+      with:
+        path: tools
+        key: tools-${{ matrix.arch }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+    - name: Build tools
+      if: ${{ steps.restore-tools.outputs.cache-hit != 'true' }}
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install binutils-multiarch build-essential git gnutls-dev meson libglib2.0-dev libpixman-1-dev libssl-dev ninja-build
+        make tools >log-tools.txt 2>&1
+    - name: Tools log tail
+      if: ${{ !cancelled() && steps.restore-tools.outputs.cache-hit != 'true' }}
+      run: |
+        tail -n 1000 log-tools.txt
+    - name: Tools log artifact
+      uses: actions/upload-artifact@v7
+      if: ${{ !cancelled() && steps.restore-tools.outputs.cache-hit != 'true' }}
+      with:
+        name: log-tools-${{ matrix.arch }}
+        path: log-tools.txt
+        overwrite: true
+    - name: Save tools cache
+      uses: actions/cache/save@v5
+      if: ${{ steps.restore-tools.outputs.cache-hit != 'true' }}
+      with:
+        path: tools
+        key: tools-${{ matrix.arch }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+
+  zerberus:
+    name: Zerberus
+    needs: [argos, hephaistos]
+    # Run whenever the sparc toolchain exists.  A toolchain failure for an
+    # unrelated architecture must not hide a gr740 test regression.
+    if: ${{ always() && (needs.argos.result == 'success' || needs.argos.result == 'skipped') && needs.hephaistos.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      PKG_BSP: gr740
+      TOOLS_ARCH: sparc
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Restore tools cache
+      # Hephaistos owns the toolchains.  A miss here means the cache was
+      # evicted between jobs; fail loudly instead of rebuilding silently.
+      uses: actions/cache/restore@v5
+      with:
+        path: tools
+        key: tools-${{ env.TOOLS_ARCH }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+        fail-on-cache-miss: true
+    - name: Cache workspace
+      uses: actions/cache@v5
+      with:
+        path: workspace
+        key: workspace-${{ env.TOOLS_ARCH }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+    - name: Make
+      run: |
+        make pkg >log-pkg.txt 2>&1
+    - name: Package log tail
+      if: ${{ !cancelled() }}
+      run: |
+        tail -n 1000 log-pkg.txt
+    - name: Package log artifact
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: log-pkg-primary
+        path: |
+          log-pkg.txt
+          workspace/package-summary.md
+        overwrite: true
+
+  sisyphos:
+    name: Sisyphos
+    needs: [argos, hephaistos]
+    if: ${{ always() && (needs.argos.result == 'success' || needs.argos.result == 'skipped') && needs.hephaistos.result != 'cancelled' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+        - aarch64
+        - arm
+        - i386
+        - m68k
+        - microblaze
+        - mips
+        - moxie
+        - nios2
+        - or1k
+        - powerpc
+        - riscv
+        - sparc
+        - x86_64
+    env:
+      TOOLS_ARCH: ${{ matrix.arch }}
+    steps:
+    - uses: actions/checkout@v6
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Restore tools cache
+      uses: actions/cache/restore@v5
+      with:
+        path: tools
+        key: tools-${{ matrix.arch }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+        fail-on-cache-miss: true
+    - name: Cache build
+      uses: actions/cache@v5
+      with:
+        path: build
+        key: build-${{ matrix.arch }}-${{ hashFiles('build_tools.py', 'spec-pkg-tools/**/*.yml') }}
+    - name: Make
+      run: |
+        make bsps >log-bsps.txt 2>&1
+    - name: BSPs log tail
+      if: ${{ !cancelled() }}
+      run: |
+        tail -n 1000 log-bsps.txt
+    - name: BSPs log artifact
+      if: ${{ !cancelled() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: log-bsps-${{ matrix.arch }}
+        path: log-bsps.txt
+        overwrite: true
