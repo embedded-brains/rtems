@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+name: Harmonia
+on:
+  workflow_run:
+    workflows:
+    - Echo
+    types:
+    - completed
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+  pull-requests: write
+env:
+  BRANCH: harmonia/rtems.org
+  MIRROR: origin/rtems.org/main
+jobs:
+  merge:
+    name: Harmonia
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        ref: eb/next
+        fetch-depth: 0
+    - name: Check for an open merge pull request
+      id: open
+      env:
+        # The GitHub Actions token, scoped to 'contents: write' and
+        # 'pull-requests: write' in the eb repository.
+        GH_TOKEN: ${{ github.token }}
+      # An open pull request may carry conflict resolutions pushed by a
+      # maintainer.  Never touch its branch.
+      run: |
+        number="$(gh pr list --head "${BRANCH}" --base eb/next --state open \
+          --json number --jq '.[0].number // empty')"
+        echo "number=${number}" >>"${GITHUB_OUTPUT}"
+        if test -n "${number}"; then
+          echo "Pull request #${number} is still open; nothing to do."
+        fi
+    - name: Check for pending commits
+      id: pending
+      if: ${{ steps.open.outputs.number == '' }}
+      run: |
+        if ! git rev-parse --verify --quiet "${MIRROR}" >/dev/null; then
+          echo 'The rtems.org/main mirror does not exist yet.  Run Echo first.'
+          exit 1
+        fi
+        count="$(git rev-list --count "${MIRROR}" "^eb/next")"
+        echo "count=${count}" >>"${GITHUB_OUTPUT}"
+        echo "${count} commits to merge"
+    - name: Merge
+      if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
+      run: |
+        git config user.name 'github-actions[bot]'
+        git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+        git checkout -B "${BRANCH}" eb/next
+        report="${RUNNER_TEMP}/harmonia-report.md"
+        if git merge --no-edit -m 'Merge rtems.org/main into eb/next' "${MIRROR}"; then
+          echo 'The merge was clean.' >"${report}"
+          cat "${report}" >>"${GITHUB_STEP_SUMMARY}"
+          exit 0
+        fi
+        # A conflict whose 'ours' side is empty is mechanical: the eb
+        # repository deleted that region and an upstream build change must not
+        # enter the pre-qualified set by itself.  Anything else is a
+        # qualification scope decision for a human.
+        if python3 ./.github/resolve_merge.py >"${report}" 2>&1; then
+          git commit --no-edit -m 'Merge rtems.org/main into eb/next'
+          {
+            echo '## Harmonia'
+            echo
+            cat "${report}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+          cat "${report}"
+          exit 0
+        fi
+        git merge --abort
+        {
+          echo '## Harmonia'
+          echo
+          echo 'The merge of `rtems.org/main` into `eb/next` needs a'
+          echo 'qualification scope decision.  Resolve it locally; no pull'
+          echo 'request was created.'
+          echo
+          cat "${report}"
+        } >>"${GITHUB_STEP_SUMMARY}"
+        cat "${report}"
+        exit 1
+    - name: Open the pull request
+      if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+        COUNT: ${{ steps.pending.outputs.count }}
+      # The branch has no open pull request, so it carries no work of anyone
+      # else and may be replaced.
+      run: |
+        git push --force origin "${BRANCH}"
+        body="${RUNNER_TEMP}/harmonia-body.md"
+        {
+          echo "Automatic merge of ${COUNT} commits from the rtems.org"
+          echo "repository."
+          echo
+          cat "${RUNNER_TEMP}/harmonia-report.md"
+        } >"${body}"
+        gh pr create \
+          --base eb/next \
+          --head "${BRANCH}" \
+          --title 'Merge rtems.org/main into eb/next' \
+          --body-file "${body}"

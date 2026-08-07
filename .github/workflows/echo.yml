@@ -1,0 +1,53 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+name: Echo
+on:
+  schedule:
+  # Daily, before Harmonia which is triggered by this workflow.
+  - cron: '17 2 * * *'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  mirror:
+    name: Echo
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: Mirror the rtems.org repository
+      # Pushes with the GitHub Actions token scoped to 'contents: write' in the
+      # eb repository.  The rtems.org repository itself is fetched
+      # anonymously and never needs a credential.
+      #
+      # The push is deliberately not forced.  The rtems.org/main branch is a
+      # fast-forward mirror; a rejected push means the branch was written by
+      # something other than this workflow and must be investigated, not
+      # overwritten.
+      run: |
+        git fetch --no-tags https://gitlab.rtems.org/rtems/rtos/rtems.git main
+        before="$(git rev-parse --verify --quiet refs/remotes/origin/rtems.org/main || true)"
+        after="$(git rev-parse FETCH_HEAD)"
+        if test "${before}" = "${after}"; then
+          echo "rtems.org/main is up to date at ${after}"
+          exit 0
+        fi
+        git push origin "FETCH_HEAD:refs/heads/rtems.org/main"
+        {
+          echo "## Echo"
+          echo
+          echo "Mirrored \`rtems.org/main\` to \`${after}\`."
+          if test -n "${before}"; then
+            echo
+            echo "New commits:"
+            echo
+            git log --oneline "${before}..${after}" | sed 's/^/- /'
+          fi
+        } >>"${GITHUB_STEP_SUMMARY}"
