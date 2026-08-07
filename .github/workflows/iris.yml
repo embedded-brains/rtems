@@ -1,0 +1,162 @@
+# SPDX-License-Identifier: BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+# Iris carries the upstreaming branch to the GitLab fork of the eb repository
+# maintainer who set the label, using that maintainer's own GitLab personal
+# access token.
+#
+# Two different credentials are in play here.  The GitHub Actions token is
+# scoped to 'contents: read' and 'pull-requests: write' in the eb repository
+# and is used for the permission check and the pull request comment.  The
+# GitLab personal access token is scoped to 'write_repository' in the
+# maintainer's own fork and is used for the push, and for nothing else.
+#
+# It deliberately does NOT create the merge request.  The GitLab personal
+# access token has the 'write_repository' scope only, without 'api', so
+# creating one is not merely unimplemented, it is impossible.  Opening the
+# merge request stays a deliberate act of the maintainer, who is its author on
+# gitlab.rtems.org.
+name: Iris
+on:
+  pull_request_target:
+    types:
+    - labeled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+permissions:
+  contents: read
+  pull-requests: write
+env:
+  LABEL: rtems.org push
+jobs:
+  push:
+    name: Iris
+    # Only the review-only pull requests created by Charon, which are the ones
+    # based on the rtems.org mirror.
+    if: ${{ github.event.label.name == 'rtems.org push' && github.event.pull_request.base.ref == 'rtems.org/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PR: ${{ github.event.pull_request.number }}
+      BRANCH: ${{ github.event.pull_request.head.ref }}
+      ACTOR: ${{ github.event.sender.login }}
+      # Resolves to the GitLab personal access token ('write_repository'
+      # scope) of the maintainer who set the label, and to nothing at all for
+      # anybody else.
+      GITLAB_TOKEN: ${{ secrets[format('GITLAB_TOKEN_{0}', github.event.sender.login)] }}
+    steps:
+    - name: Check the permission of the label sender
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        permission="$(gh api \
+          "repos/${GITHUB_REPOSITORY}/collaborators/${ACTOR}/permission" \
+          --jq '.permission')"
+        echo "${ACTOR} has ${permission} permission"
+        case "${permission}" in
+        admin|maintain|write) ;;
+        *)
+          echo "::error::${ACTOR} is not an eb repository maintainer"
+          exit 1
+          ;;
+        esac
+    - name: Check out the eb branch
+      # Not the base of this pull request: its base is the rtems.org mirror,
+      # which carries no scripts of this repository.
+      uses: actions/checkout@v6
+      with:
+        ref: eb/next
+    - name: Set up Python
+      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
+      with:
+        enable-cache: true
+        version: 0.11.9
+    - name: Install the tools
+      run: uv sync --all-groups --frozen
+    - name: Resolve the push target
+      id: target
+      run: |
+        uv run ./.github/upstream_target.py "${ACTOR}" >>"${GITHUB_OUTPUT}"
+    - name: Check the GitLab personal access token
+      run: |
+        if test -z "${GITLAB_TOKEN}"; then
+          echo "::error::The secret ${{ steps.target.outputs.secret }} is not set for ${ACTOR}"
+          exit 1
+        fi
+    - name: Push to the GitLab fork
+      id: push
+      env:
+        FORK: ${{ steps.target.outputs.fork }}
+      # The credential store keeps the GitLab personal access token off the
+      # command line.  GitLab answers a push of a new branch with a URL which
+      # pre-fills the merge request form; that URL is the hand-over to the
+      # maintainer.
+      run: |
+        git fetch --no-tags origin "${BRANCH}:${BRANCH}"
+        credentials="${RUNNER_TEMP}/git-credentials"
+        printf 'https://oauth2:%s@gitlab.rtems.org\n' "${GITLAB_TOKEN}" \
+          >"${credentials}"
+        chmod 600 "${credentials}"
+        target="eb-pr-${PR}"
+        set +e
+        git -c "credential.helper=store --file=${credentials}" \
+          push --force "${FORK}" "${BRANCH}:refs/heads/${target}" \
+          >"${RUNNER_TEMP}/push.log" 2>&1
+        status=$?
+        set -e
+        rm -f "${credentials}"
+        sed 's/^/  /' "${RUNNER_TEMP}/push.log"
+        if test "${status}" -ne 0; then
+          echo '::error::The push to the GitLab fork failed'
+          exit "${status}"
+        fi
+        url="$(grep -o 'https://gitlab.rtems.org/[^[:space:]]*merge_requests/new[^[:space:]]*' \
+          "${RUNNER_TEMP}/push.log" | head -1 || true)"
+        echo "target=${target}" >>"${GITHUB_OUTPUT}"
+        echo "url=${url}" >>"${GITHUB_OUTPUT}"
+    - name: Report
+      env:
+        GH_TOKEN: ${{ github.token }}
+        URL: ${{ steps.push.outputs.url }}
+        TARGET: ${{ steps.push.outputs.target }}
+        FORK: ${{ steps.target.outputs.fork }}
+      run: |
+        body="${RUNNER_TEMP}/comment.md"
+        {
+          echo '## Iris'
+          echo
+          echo "Pushed \`${BRANCH}\` to \`${TARGET}\` in the GitLab fork of"
+          echo "@${ACTOR} (${FORK})."
+          echo
+          if test -n "${URL}"; then
+            echo "Open the merge request: ${URL}"
+          else
+            echo 'GitLab did not return a merge request URL; create the merge'
+            echo 'request from the branch in the fork.'
+          fi
+          echo
+          echo 'No merge request was created automatically: the GitLab'
+          echo 'personal access token used for the push has the'
+          echo '`write_repository` scope only, without `api`.'
+        } >"${body}"
+        cat "${body}" >>"${GITHUB_STEP_SUMMARY}"
+        gh pr comment "${PR}" --body-file "${body}"
+    - name: Report the failure
+      if: ${{ failure() }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        body="${RUNNER_TEMP}/failure.md"
+        {
+          echo '## Iris'
+          echo
+          echo "The push to the GitLab fork of @${ACTOR} failed.  See the"
+          echo 'workflow log for details.  The label was removed; set it again'
+          echo 'after fixing the issue.'
+        } >"${body}"
+        gh pr comment "${PR}" --body-file "${body}"
+        gh pr edit "${PR}" --remove-label "${LABEL}" || true

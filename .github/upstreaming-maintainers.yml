@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+
+# Copyright (C) 2026 embedded brains GmbH & Co. KG
+
+# Maps an eb repository maintainer to their own fork of the rtems.org
+# repository.  Iris pushes the upstreaming branch to the fork of the
+# maintainer who set the label, using that maintainer's own GitLab personal
+# access token.
+#
+# For each entry there must be a repository secret named
+# GITLAB_TOKEN_<GITHUB-LOGIN>.  Its value is a GitLab personal access token
+# with the 'write_repository' scope and nothing else.  Without the 'api' scope
+# such a token cannot create a merge request, so opening one stays a
+# deliberate act of the maintainer.  This secret is unrelated to the GitHub
+# Actions token, which the workflows scope through their 'permissions' key.
+#
+# A GitHub login containing a character which is not allowed in a secret name,
+# such as a hyphen, cannot be resolved this way.  Iris fails with a clear
+# message in that case.
+maintainers:
+  sebhub:
+    fork: https://gitlab.rtems.org/sebhub/rtems.git
+    secret: GITLAB_TOKEN_SEBHUB
