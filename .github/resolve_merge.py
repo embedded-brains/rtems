@@ -39,6 +39,7 @@
 # qualification scope decision and must be made by a human.
 
 import argparse
+import pathlib
 import subprocess
 import sys
 
@@ -121,6 +122,165 @@ def _resolve(path: str) -> tuple[str, int, int]:
     return "".join(out), resolved, remaining
 
 
+# A build item lists its sources either in a flat "source:" list or inside
+# "install:" groups keyed by a destination.  The files are generated, so the
+# layout is regular enough to edit by line, which keeps the rest of the file
+# byte for byte as it was.
+#
+#   install:
+#   - destination: ${BSP_INCLUDEDIR}/bsp
+#     source:
+#     - bsps/include/bsp/fdt.h
+#   source:
+#   - bsps/shared/dev/i2c/eeprom.c
+
+_EXTRA = "objextra.yml"
+
+
+def _entries(text: str) -> set[tuple[str, str]]:
+    """ Returns the (destination, source) pairs of a build item.  The flat
+    source list uses an empty destination. """
+    found: set[tuple[str, str]] = set()
+    where = None
+    destination = ""
+    for line in text.splitlines():
+        if line == "source:":
+            where, destination = "flat", ""
+        elif line == "install:":
+            where = "install"
+        elif line.startswith("- destination: ") and where == "install":
+            destination = line[len("- destination: "):]
+        elif line == "  source:" and where == "install":
+            pass
+        elif where == "flat" and line.startswith("- "):
+            found.add(("", line[2:]))
+        elif where == "install" and line.startswith("  - "):
+            found.add((destination, line[4:]))
+        elif line and not line[0].isspace() and not line.startswith("- "):
+            where = None
+    return found
+
+
+def _is_key(line: str) -> bool:
+    """ Returns true, if the line starts a top level key of the item. """
+    return bool(line) and not line[0].isspace() and not line.startswith("- ")
+
+
+def _slots(lines: list[str]) -> tuple[dict[int, str], dict[str, tuple[int, str]]]:
+    """ Returns the key of every entry line, and for every list the index of
+    its last entry with the indentation to use for a new one. """
+    key_of: dict[int, str] = {}
+    last: dict[str, tuple[int, str]] = {}
+    install_last = -1
+    where = None
+    destination = ""
+    for index, line in enumerate(lines):
+        stripped = line.lstrip("- ")
+        indent = line[:len(line) - len(line.lstrip())]
+        if line in ("source:", "  source:"):
+            where, destination = ("flat", "") if line == "source:" else (
+                "install", destination)
+            continue
+        if line == "install:":
+            where, destination = "install", ""
+            continue
+        if where == "install" and line.startswith("- destination: "):
+            destination = line[len("- destination: "):]
+            install_last = index
+            continue
+        if _is_key(line) or not line.strip():
+            where, destination = None, ""
+            continue
+        if where and line.lstrip().startswith("- "):
+            key = "" if where == "flat" else destination
+            key_of[index] = key
+            last[key] = (index, indent + "- " if where == "flat" else
+                         line[:line.index("- ")] + "- ")
+            if where == "install":
+                install_last = index
+            del stripped
+    return key_of, last, install_last
+
+
+def _edit(text: str, add: set[tuple[str, str]],
+          drop: set[tuple[str, str]]) -> tuple[str, int, int]:
+    """ Adds and drops entries of a build item.  Only the lines of an added or
+    a dropped entry are touched, so a file with nothing to change comes back
+    byte for byte as it was. """
+    lines = text.splitlines()
+    key_of, last, install_last = _slots(lines)
+    out: list[str] = []
+    added = dropped = 0
+    for index, line in enumerate(lines):
+        key = key_of.get(index)
+        if key is not None:
+            source = line.lstrip()[2:]
+            if (key, source) in drop:
+                dropped += 1
+                continue
+        out.append(line)
+        if key is not None and last.get(key, (None, ""))[0] == index:
+            prefix = last[key][1]
+            for source in sorted(s for d, s in add if d == key):
+                out.append(f"{prefix}{source}")
+                added += 1
+        # A destination which the item does not have yet needs its own group,
+        # placed at the end of the install list rather than the end of the
+        # file, where it would read as a flat source entry.
+        if index == install_last:
+            for destination in sorted({d for d, _ in add
+                                       if d and d not in last}):
+                out.append(f"- destination: {destination}")
+                out.append("  source:")
+                for source in sorted(s for d, s in add if d == destination):
+                    out.append(f"  - {source}")
+                    added += 1
+    # Keep the file exactly as it was, including a missing final newline.
+    return "\n".join(out) + ("\n" if text.endswith("\n") else ""), added, dropped
+
+
+def _stage(number: int, path: str) -> str | None:
+    result = subprocess.run(["git", "show", f":{number}:{path}"],
+                            check=False,
+                            capture_output=True,
+                            encoding="utf-8")
+    return result.stdout if result.returncode == 0 else None
+
+
+def _merge_build_item(path: str, dry_run: bool) -> str | None:
+    """ Merges a conflicting build item by moving what the rtems.org
+    repository added or removed into or out of its objextra sibling.  Returns a
+    report line, or None if the item has no such sibling. """
+    sibling = str(pathlib.PurePosixPath(path).parent / _EXTRA)
+    if path.endswith(_EXTRA) or not pathlib.Path(sibling).is_file():
+        return None
+    stages = [_stage(n, path) for n in (1, 2, 3)]
+    if any(s is None for s in stages):
+        return None
+    base, ours, theirs = (_entries(s) for s in stages)
+    extra = _entries(pathlib.Path(sibling).read_text(encoding="utf-8"))
+    add = (theirs - base) - ours - extra
+    drop = (base - theirs) & extra
+    text, added, dropped = _edit(
+        pathlib.Path(sibling).read_text(encoding="utf-8"), add, drop)
+    # Never let an entry go missing quietly.  A destination which the sibling
+    # does not have yet is the case which is easy to drop by accident.
+    result = _entries(text)
+    lost = add - result
+    kept = drop & result
+    if lost or kept:
+        raise RuntimeError(f"{sibling}: {len(lost)} entries were not added and "
+                           f"{len(kept)} were not removed: "
+                           f"{sorted(lost | kept)[:4]}")
+    if not dry_run:
+        pathlib.Path(sibling).write_text(text, encoding="utf-8")
+        subprocess.run(["git", "add", "--", sibling], check=True)
+        pathlib.Path(path).write_text(stages[1], encoding="utf-8")
+        subprocess.run(["git", "add", "--", path], check=True)
+    return (f"* `{path}`: kept as is; `{sibling}` gained {added} and lost "
+            f"{dropped} entries")
+
+
 def _conflicted_files() -> list[str]:
     stdout = subprocess.check_output(
         ["git", "diff", "--name-only", "--diff-filter=U"], encoding="utf-8")
@@ -141,6 +301,10 @@ def main(argv: list[str]) -> int:
     report: list[str] = []
     blocked = False
     for path in files:
+        moved = _merge_build_item(path, args.dry_run)
+        if moved is not None:
+            report.append(moved)
+            continue
         content, resolved, remaining = _resolve(path)
         if remaining:
             blocked = True
@@ -156,15 +320,29 @@ def main(argv: list[str]) -> int:
                   errors="surrogateescape") as dst:
             dst.write(content)
         subprocess.run(["git", "add", "--", path], check=True)
-    print("The merge conflicted in the files below.  A conflicting hunk with")
-    print("an empty `ours` side means the rtems.org repository extended a")
-    print("region which this repository deleted.  Such a hunk is declined: an")
-    print("upstream build change does not enter the pre-qualified set by")
-    print("itself.")
+    print("### How the merge conflicts were resolved")
     print()
-    print("Declining a hunk keeps `ours`, which leaves the file unchanged.  A")
-    print("file whose hunks were all declined therefore does **not** appear in")
-    print("the diff of this pull request; there is nothing to show for it.")
+    print("The eb repository builds a qualified subset, so it moves whatever")
+    print("is outside that subset from a build item into its `objextra`")
+    print("sibling, which is built only when `RTEMS_QUAL` is not set.  The")
+    print("rtems.org repository keeps changing the original item, and every")
+    print("such change conflicts.")
+    print()
+    print("A conflicting build item is resolved by keeping the qualified")
+    print("subset exactly as it is and applying what the rtems.org repository")
+    print("did to the `objextra` sibling instead:")
+    print()
+    print("* a source it **added** is added to `objextra`, so the eb")
+    print("  repository still builds it outside the qualified subset;")
+    print("* a source it **removed** is removed from `objextra`, so no build")
+    print("  item is left pointing at a file which no longer exists.")
+    print()
+    print("Whether such a source belongs in the qualified subset stays a")
+    print("decision for a maintainer, and nothing here makes it.")
+    print()
+    print("A build item resolved this way is itself unchanged, so it does")
+    print("**not** appear in the diff of this pull request; only its")
+    print("`objextra` sibling does.")
     print()
     print("\n".join(report))
     return 1 if blocked else 0

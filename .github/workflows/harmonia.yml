@@ -19,6 +19,7 @@ permissions:
 env:
   BRANCH: harmonia/rtems.org
   MIRROR: origin/rtems.org/main
+  REPORT_NAME: harmonia-report.md
 jobs:
   merge:
     name: Harmonia
@@ -62,7 +63,7 @@ jobs:
         git config user.name 'github-actions[bot]'
         git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
         git checkout -B "${BRANCH}" eb/next
-        report="${RUNNER_TEMP}/harmonia-report.md"
+        report="${RUNNER_TEMP}/${REPORT_NAME}"
         if git merge --no-edit -m 'Merge rtems.org/main into eb/next' "${MIRROR}"; then
           echo 'The merge was clean.' >"${report}"
           cat "${report}" >>"${GITHUB_STEP_SUMMARY}"
@@ -94,6 +95,23 @@ jobs:
         } >>"${GITHUB_STEP_SUMMARY}"
         cat "${report}"
         exit 1
+    - name: Check for references to deleted files
+      if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
+      # The rtems.org repository relocates sources.  A build item of this
+      # repository which still lists the old path merges without a conflict
+      # and leaves the build specification pointing at a file which is gone.
+      run: |
+        report="${RUNNER_TEMP}/${REPORT_NAME}"
+        if ! python3 ./.github/check_sources.py eb/next HEAD >>"${report}"; then
+          {
+            echo '## Harmonia'
+            echo
+            cat "${report}"
+          } >>"${GITHUB_STEP_SUMMARY}"
+          cat "${report}"
+          exit 1
+        fi
+
     - name: Open the pull request
       if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
       env:
@@ -105,10 +123,22 @@ jobs:
         git push --force origin "${BRANCH}"
         body="${RUNNER_TEMP}/harmonia-body.md"
         {
-          echo "Automatic merge of ${COUNT} commits from the rtems.org"
-          echo "repository."
+          echo "Merges ${COUNT} commits of the rtems.org repository into"
+          echo '`eb/next`.'
           echo
-          cat "${RUNNER_TEMP}/harmonia-report.md"
+          echo 'Echo mirrors `main` of the rtems.org repository into'
+          echo '`rtems.org/main` once a day.  Harmonia merges that mirror into'
+          echo '`eb/next` and opens this pull request.  Review and merge it'
+          echo 'like any other.'
+          echo
+          cat "${RUNNER_TEMP}/${REPORT_NAME}"
+          echo
+          echo '### What this pull request does not decide'
+          echo
+          echo 'Nothing here moves a source into or out of the qualified'
+          echo 'subset.  A source which the rtems.org repository added is'
+          echo 'built outside that subset until a maintainer decides'
+          echo 'otherwise, in a separate pull request.'
         } >"${body}"
         gh pr create \
           --base eb/next \
