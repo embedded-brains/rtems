@@ -34,6 +34,7 @@ import sys
 import tempfile
 import tomllib
 
+from check_sources import find_references
 from specitems import CommonMarkContent, get_arguments
 
 _OK = ":white_check_mark:"
@@ -362,6 +363,28 @@ def _check_export(worktree: Path, items: list[str], findings: _Findings,
     return _OK
 
 
+def _check_deleted(worktree: Path, commit: str, findings: _Findings,
+                   url: str) -> str:
+    """ Checks that no build item still lists a file the commit deleted. """
+    deleted = _lines(
+        _git("diff-tree", "--no-commit-id", "--name-only", "--no-renames",
+             "--diff-filter=D", "-r", commit))
+    if not deleted:
+        return _SKIP
+    found = find_references(deleted, cwd=worktree)
+    if not found:
+        return _OK
+    detail = [
+        f"{item} still lists {path}" for path in sorted(found)
+        for item in sorted(found[path])
+    ]
+    findings.error(
+        f"In {url}, the commit deletes files which a build item still lists, "
+        "so the build specification refers to files which do not exist:",
+        "\n".join(detail))
+    return _ERROR
+
+
 def _check_extractable(repository: Path, upstream_ref: str,
                        commits: list[tuple[str, str]],
                        categories: dict[str, list[str]],
@@ -460,7 +483,7 @@ def main(argv: list[str]) -> int:
                            args.upstream_ref if has_upstream else None)
     logging.info("inspect %d commits in %s..%s", len(commits), base_ref,
                  head_ref)
-    rows = [["Subject", "Category", "Format", "Export", "Status"]]
+    rows = [["Subject", "Category", "Format", "Export", "Sources", "Status"]]
     categories: dict[str, list[str]] = {}
     with tempfile.TemporaryDirectory() as tmp_dir:
         worktree = Path(tmp_dir) / "inspect"
@@ -495,13 +518,15 @@ def main(argv: list[str]) -> int:
                 c_status = _check_c_format(worktree, c_files, findings,
                                            commit_url)
                 export = _check_export(worktree, items, findings, commit_url)
+                deleted = _check_deleted(worktree, commit, findings,
+                                         commit_url)
                 fmt = _ERROR if _ERROR in (spec_status, c_status) else (
                     _OK if _OK in (spec_status, c_status) else _SKIP)
                 status = (_OK if findings.error_count == errors_before else
                           _ERROR)
                 rows.append([
                     f"[{subject}]({commit_url})", ", ".join(found), fmt,
-                    export, status
+                    export, deleted, status
                 ])
         finally:
             subprocess.run(
