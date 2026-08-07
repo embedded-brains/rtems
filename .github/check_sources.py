@@ -38,22 +38,25 @@ import argparse
 from pathlib import Path
 import subprocess
 import sys
+import textwrap
 
 _SPEC = "spec/build"
 
 
-def deleted_files(base_ref: str, head_ref: str,
+def deleted_files(base_ref: str, head_ref: str | None = None,
                   cwd: Path | str | None = None) -> list[str]:
-    """ Returns the files deleted between the two references. """
+    """ Returns the files deleted between the base reference and the head
+    reference, or the work tree if there is no head reference. """
     # Without --no-renames a moved file is reported as a rename rather than a
     # deletion, and a move is exactly how the rtems.org repository relocates
     # sources.  The old path has to count as deleted.
-    stdout = subprocess.check_output([
+    command = [
         "git", "diff", "--name-only", "--no-renames", "--diff-filter=D",
-        base_ref, head_ref
-    ],
-                                     cwd=cwd,
-                                     encoding="utf-8")
+        base_ref
+    ]
+    if head_ref:
+        command.append(head_ref)
+    stdout = subprocess.check_output(command, cwd=cwd, encoding="utf-8")
     return [line for line in stdout.splitlines() if line.strip()]
 
 
@@ -82,28 +85,40 @@ def find_references(paths: list[str],
 
 
 def report(found: dict[str, list[str]]) -> str:
-    """ Returns a Markdown report of the dangling references. """
-    lines = [
-        "The change deletes files which a build item still lists.  The build "
-        "specification refers to files which do not exist:", ""
+    """ Returns a plain text report of the dangling references. """
+    # Every entry is a paragraph of its own, since the report is shown as
+    # Markdown as well, where a line break inside a paragraph is not one.
+    parts = [
+        "The change deletes files which a build item still lists, so the\n"
+        "build specification refers to files which do not exist."
     ]
-    for path in sorted(found):
-        for item in sorted(found[path]):
-            lines.append(f"* `{item}` still lists `{path}`")
-    return "\n".join(lines)
+    parts += [
+        textwrap.fill(f"{item} still lists {path}.",
+                      width=72,
+                      subsequent_indent="  ") for path in sorted(found)
+        for item in sorted(found[path])
+    ]
+    return "\n\n".join(parts)
 
 
 def main(argv: list[str]) -> int:
     """ Reports build items which refer to a file the change deleted. """
     parser = argparse.ArgumentParser(description=sys.modules[__name__].__doc__)
     parser.add_argument("base_ref", metavar="BASE_REF")
-    parser.add_argument("head_ref", metavar="HEAD_REF")
+    parser.add_argument("head_ref", metavar="HEAD_REF", nargs="?")
     args = parser.parse_args(argv[1:])
     deleted = deleted_files(args.base_ref, args.head_ref)
     found = find_references(deleted)
+    # The report becomes part of the message of the merge commit, so it is
+    # plain text wrapped at 72 columns and carries no markup.
     if not found:
-        print(f"None of the {len(deleted)} deleted files is listed by a "
-              "build item.")
+        if len(deleted) > 1:
+            print(f"None of the {len(deleted)} deleted files is listed by a "
+                  "build item.")
+        elif deleted:
+            print("The deleted file is not listed by a build item.")
+        else:
+            print("The change deletes no file.")
         return 0
     print(report(found))
     return 1

@@ -19,7 +19,8 @@ permissions:
 env:
   BRANCH: harmonia/rtems.org
   MIRROR: origin/rtems.org/main
-  REPORT_NAME: harmonia-report.md
+  REPORT_NAME: harmonia-report.txt
+  MESSAGE_NAME: harmonia-message.txt
 jobs:
   merge:
     name: Harmonia
@@ -59,89 +60,103 @@ jobs:
         echo "${count} commits to merge"
     - name: Merge
       if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
+      env:
+        COUNT: ${{ steps.pending.outputs.count }}
+      # GitHub builds the message of the merge commit from the title and the
+      # body of the pull request, so both are written as a commit message:
+      # plain text wrapped at 72 columns, no markup.  The same text is the
+      # message of the merge commit of this branch.
+      #
+      # The merge is left uncommitted until the checks have run, so their
+      # report goes into that message.
       run: |
         git config user.name 'github-actions[bot]'
         git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
         git checkout -B "${BRANCH}" eb/next
         report="${RUNNER_TEMP}/${REPORT_NAME}"
-        if git merge --no-edit -m 'Merge rtems.org/main into eb/next' "${MIRROR}"; then
-          echo 'The merge was clean.' >"${report}"
-          cat "${report}" >>"${GITHUB_STEP_SUMMARY}"
-          exit 0
-        fi
+        # Only the report may reach the message, so the scripts write anything
+        # else to the standard error stream, which is kept for the summary.
+        errors="${RUNNER_TEMP}/harmonia-errors.txt"
+        : >"${errors}"
+        failed=
         # A conflict whose 'ours' side is empty is mechanical: the eb
         # repository deleted that region and an upstream build change must not
         # enter the pre-qualified set by itself.  Anything else is a
         # qualification scope decision for a human.
-        if python3 ./.github/resolve_merge.py >"${report}" 2>&1; then
-          git commit --no-edit -m 'Merge rtems.org/main into eb/next'
+        if git merge --no-commit --no-ff "${MIRROR}"; then
+          echo 'The merge was clean.' >"${report}"
+        else
+          python3 ./.github/resolve_merge.py >"${report}" 2>"${errors}" \
+            || failed=yes
+        fi
+        # The rtems.org repository relocates sources.  A build item of this
+        # repository which still lists the old path merges without a conflict
+        # and leaves the build specification pointing at a file which is gone.
+        if test -z "${failed}"; then
+          echo >>"${report}"
+          python3 ./.github/check_sources.py eb/next >>"${report}" \
+            2>>"${errors}" || failed=yes
+        fi
+        cat "${errors}"
+        if test -n "${failed}"; then
+          cat "${report}"
           {
             echo '## Harmonia'
             echo
-            cat "${report}"
+            echo 'Harmonia could not finish the merge of `rtems.org/main`'
+            echo 'into `eb/next`.  Resolve it locally; no pull request was'
+            echo 'created.'
+            echo
+            echo '```'
+            cat "${errors}" "${report}"
+            echo '```'
           } >>"${GITHUB_STEP_SUMMARY}"
-          cat "${report}"
-          exit 0
+          git merge --abort
+          exit 1
         fi
-        git merge --abort
+        commits="${COUNT} commits"
+        if test "${COUNT}" -eq 1; then
+          commits='1 commit'
+        fi
+        message="${RUNNER_TEMP}/${MESSAGE_NAME}"
+        {
+          echo 'Merge rtems.org/main into eb/next'
+          echo
+          echo "Merge ${commits} of the rtems.org repository.  Echo"
+          echo 'mirrors main of the rtems.org repository into rtems.org/main'
+          echo 'once a day, and Harmonia merges that mirror into eb/next.'
+          echo
+          cat "${report}"
+          echo
+          echo 'A source which the rtems.org repository added is built outside'
+          echo 'the qualified subset until a maintainer decides otherwise,'
+          echo 'which is a change of its own.  This merge moves nothing into'
+          echo 'or out of that subset.'
+        } >"${message}"
+        git commit -F "${message}"
+        cat "${message}"
         {
           echo '## Harmonia'
           echo
-          echo 'The merge of `rtems.org/main` into `eb/next` needs a'
-          echo 'qualification scope decision.  Resolve it locally; no pull'
-          echo 'request was created.'
+          echo 'The message of the merge commit:'
           echo
-          cat "${report}"
+          echo '```'
+          cat "${message}"
+          echo '```'
         } >>"${GITHUB_STEP_SUMMARY}"
-        cat "${report}"
-        exit 1
-    - name: Check for references to deleted files
-      if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
-      # The rtems.org repository relocates sources.  A build item of this
-      # repository which still lists the old path merges without a conflict
-      # and leaves the build specification pointing at a file which is gone.
-      run: |
-        report="${RUNNER_TEMP}/${REPORT_NAME}"
-        if ! python3 ./.github/check_sources.py eb/next HEAD >>"${report}"; then
-          {
-            echo '## Harmonia'
-            echo
-            cat "${report}"
-          } >>"${GITHUB_STEP_SUMMARY}"
-          cat "${report}"
-          exit 1
-        fi
-
     - name: Open the pull request
       if: ${{ steps.open.outputs.number == '' && steps.pending.outputs.count != '0' }}
       env:
         GH_TOKEN: ${{ github.token }}
-        COUNT: ${{ steps.pending.outputs.count }}
       # The branch has no open pull request, so it carries no work of anyone
       # else and may be replaced.
       run: |
         git push --force origin "${BRANCH}"
-        body="${RUNNER_TEMP}/harmonia-body.md"
-        {
-          echo "Merges ${COUNT} commits of the rtems.org repository into"
-          echo '`eb/next`.'
-          echo
-          echo 'Echo mirrors `main` of the rtems.org repository into'
-          echo '`rtems.org/main` once a day.  Harmonia merges that mirror into'
-          echo '`eb/next` and opens this pull request.  Review and merge it'
-          echo 'like any other.'
-          echo
-          cat "${RUNNER_TEMP}/${REPORT_NAME}"
-          echo
-          echo '### What this pull request does not decide'
-          echo
-          echo 'Nothing here moves a source into or out of the qualified'
-          echo 'subset.  A source which the rtems.org repository added is'
-          echo 'built outside that subset until a maintainer decides'
-          echo 'otherwise, in a separate pull request.'
-        } >"${body}"
+        message="${RUNNER_TEMP}/${MESSAGE_NAME}"
+        body="${RUNNER_TEMP}/harmonia-body.txt"
+        tail -n +3 "${message}" >"${body}"
         gh pr create \
           --base eb/next \
           --head "${BRANCH}" \
-          --title 'Merge rtems.org/main into eb/next' \
+          --title "$(head -n 1 "${message}")" \
           --body-file "${body}"

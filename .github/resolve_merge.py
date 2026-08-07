@@ -42,6 +42,7 @@ import argparse
 import pathlib
 import subprocess
 import sys
+import textwrap
 
 _BEGIN = "<<<<<<< "
 
@@ -280,14 +281,48 @@ def _merge_build_item(path: str, dry_run: bool) -> str | None:
         subprocess.run(["git", "add", "--", sibling], check=True)
         pathlib.Path(path).write_text(stages[1], encoding="utf-8")
         subprocess.run(["git", "add", "--", path], check=True)
-    return (f"* `{path}`: kept as is; `{sibling}` gained {added} and lost "
-            f"{dropped} entries")
+    return _fill(f"{path} is unchanged; its sibling {sibling} gained "
+                 f"{added} and lost {dropped} entries.")
 
 
 def _conflicted_files() -> list[str]:
     stdout = subprocess.check_output(
         ["git", "diff", "--name-only", "--diff-filter=U"], encoding="utf-8")
     return [line for line in stdout.splitlines() if line.strip()]
+
+
+# The report becomes the message of the merge commit, so it is plain text
+# wrapped at 72 columns and carries no markup.  GitHub shows the same text as
+# the body of the pull request, where it is rendered as Markdown, so every
+# entry is a paragraph of its own.  A line break inside a paragraph is not one
+# there, and a trailing space to force one does not survive the commit.
+_MOVED = """\
+The eb repository builds a qualified subset, so it moves whatever is
+outside that subset from a build item into its objextra sibling.  The
+rtems.org repository keeps changing the original item, and every such
+change conflicts.  Each conflict below was resolved by keeping the
+qualified subset exactly as it is and applying what the rtems.org
+repository did to the objextra sibling instead.  The build item itself
+is unchanged and therefore absent from the diff."""
+
+_DECLINED = """\
+A conflict inside a region which the eb repository deleted was
+declined, so an upstream build change does not enter the qualified
+subset by itself."""
+
+
+def _hunks(count: int) -> tuple[str, str]:
+    """ Returns the hunk count and its verb. """
+    if count == 1:
+        return "1 hunk", "was"
+    return f"{count} hunks", "were"
+
+
+def _fill(text: str) -> str:
+    """ Returns the text wrapped as one paragraph of the report. """
+    # A path is longer than what is left of the line more often than not, so
+    # the continuation is indented to keep the entry readable.
+    return textwrap.fill(text, width=72, subsequent_indent="  ")
 
 
 def main(argv: list[str]) -> int:
@@ -299,59 +334,47 @@ def main(argv: list[str]) -> int:
     args = parser.parse_args(argv[1:])
     files = _conflicted_files()
     if not files:
-        print("There are no conflicted files.")
+        # Anything which is not the report goes to stderr.  Whatever this
+        # writes to stdout becomes the message of the merge commit.
+        print("There are no conflicted files.", file=sys.stderr)
         return 0
-    report: list[str] = []
+    moved: list[str] = []
+    declined: list[str] = []
     blocked = False
     for path in files:
         try:
-            moved = _merge_build_item(path, args.dry_run)
+            line = _merge_build_item(path, args.dry_run)
         except RuntimeError as err:
-            print(f"The merge of `{path}` could not be applied: {err}")
+            print(f"The merge of {path} could not be applied: {err}",
+                  file=sys.stderr)
             return 1
-        if moved is not None:
-            report.append(moved)
+        if line is not None:
+            moved.append(line)
             continue
         content, resolved, remaining = _resolve(path)
+        hunks, was = _hunks(resolved)
         if remaining:
             blocked = True
-            report.append(
-                f"* `{path}`: {resolved} declined, **{remaining} need a "
-                "qualification scope decision**")
+            need = "needs" if remaining == 1 else "need"
+            declined.append(
+                _fill(f"{hunks} of {path} {was} declined; {remaining} {need} "
+                      "a qualification scope decision."))
             continue
-        report.append(
-            f"* `{path}`: {resolved} declined, file unchanged")
+        declined.append(
+            _fill(f"{hunks} of {path} {was} declined and the file is "
+                  "unchanged."))
         if args.dry_run:
             continue
         with open(path, "w", encoding="utf-8",
                   errors="surrogateescape") as dst:
             dst.write(content)
         subprocess.run(["git", "add", "--", path], check=True)
-    print("### How the merge conflicts were resolved")
-    print()
-    print("The eb repository builds a qualified subset, so it moves whatever")
-    print("is outside that subset from a build item into its `objextra`")
-    print("sibling, which is built only when `RTEMS_QUAL` is not set.  The")
-    print("rtems.org repository keeps changing the original item, and every")
-    print("such change conflicts.")
-    print()
-    print("A conflicting build item is resolved by keeping the qualified")
-    print("subset exactly as it is and applying what the rtems.org repository")
-    print("did to the `objextra` sibling instead:")
-    print()
-    print("* a source it **added** is added to `objextra`, so the eb")
-    print("  repository still builds it outside the qualified subset;")
-    print("* a source it **removed** is removed from `objextra`, so no build")
-    print("  item is left pointing at a file which no longer exists.")
-    print()
-    print("Whether such a source belongs in the qualified subset stays a")
-    print("decision for a maintainer, and nothing here makes it.")
-    print()
-    print("A build item resolved this way is itself unchanged, so it does")
-    print("**not** appear in the diff of this pull request; only its")
-    print("`objextra` sibling does.")
-    print()
-    print("\n".join(report))
+    sections = [
+        "\n\n".join([intro] + lines)
+        for intro, lines in ((_MOVED, moved), (_DECLINED, declined)) if lines
+    ]
+    if sections:
+        print("\n\n".join(sections))
     return 1 if blocked else 0
 
 
