@@ -166,17 +166,18 @@ def _is_key(line: str) -> bool:
     return bool(line) and not line[0].isspace() and not line.startswith("- ")
 
 
-def _slots(lines: list[str]) -> tuple[dict[int, str], dict[str, tuple[int, str]]]:
-    """ Returns the key of every entry line, and for every list the index of
-    its last entry with the indentation to use for a new one. """
+def _slots(
+    lines: list[str]
+) -> tuple[dict[int, str], dict[str, tuple[int, str]], int]:
+    """ Returns the key of every entry line, for every list the index of its
+    last entry with the prefix to use for a new one, and the index of the last
+    line of the install list. """
     key_of: dict[int, str] = {}
     last: dict[str, tuple[int, str]] = {}
     install_last = -1
     where = None
     destination = ""
     for index, line in enumerate(lines):
-        stripped = line.lstrip("- ")
-        indent = line[:len(line) - len(line.lstrip())]
         if line in ("source:", "  source:"):
             where, destination = ("flat", "") if line == "source:" else (
                 "install", destination)
@@ -194,11 +195,9 @@ def _slots(lines: list[str]) -> tuple[dict[int, str], dict[str, tuple[int, str]]
         if where and line.lstrip().startswith("- "):
             key = "" if where == "flat" else destination
             key_of[index] = key
-            last[key] = (index, indent + "- " if where == "flat" else
-                         line[:line.index("- ")] + "- ")
+            last[key] = (index, line[:line.index("- ")] + "- ")
             if where == "install":
                 install_last = index
-            del stripped
     return key_of, last, install_last
 
 
@@ -254,15 +253,19 @@ def _merge_build_item(path: str, dry_run: bool) -> str | None:
     sibling = str(pathlib.PurePosixPath(path).parent / _EXTRA)
     if path.endswith(_EXTRA) or not pathlib.Path(sibling).is_file():
         return None
+    if sibling in _conflicted_files():
+        # Editing a file which still holds conflict markers would write them
+        # into the result.  Leave both to the hunk rule.
+        return None
     stages = [_stage(n, path) for n in (1, 2, 3)]
     if any(s is None for s in stages):
         return None
     base, ours, theirs = (_entries(s) for s in stages)
-    extra = _entries(pathlib.Path(sibling).read_text(encoding="utf-8"))
+    before = pathlib.Path(sibling).read_text(encoding="utf-8")
+    extra = _entries(before)
     add = (theirs - base) - ours - extra
     drop = (base - theirs) & extra
-    text, added, dropped = _edit(
-        pathlib.Path(sibling).read_text(encoding="utf-8"), add, drop)
+    text, added, dropped = _edit(before, add, drop)
     # Never let an entry go missing quietly.  A destination which the sibling
     # does not have yet is the case which is easy to drop by accident.
     result = _entries(text)
@@ -301,7 +304,11 @@ def main(argv: list[str]) -> int:
     report: list[str] = []
     blocked = False
     for path in files:
-        moved = _merge_build_item(path, args.dry_run)
+        try:
+            moved = _merge_build_item(path, args.dry_run)
+        except RuntimeError as err:
+            print(f"The merge of `{path}` could not be applied: {err}")
+            return 1
         if moved is not None:
             report.append(moved)
             continue
