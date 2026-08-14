@@ -44,14 +44,18 @@
 
 #include <rtems/libio_.h>
 
-static int duplicate_iop( rtems_libio_t *iop )
+static int duplicate_iop( rtems_libio_t *iop, int minimum )
 {
   int            rv;
   int            oflag;
   rtems_libio_t *diop;
 
+  if ( minimum < 0 || (uint32_t) minimum >= rtems_libio_number_iops ) {
+    rtems_set_errno_and_return_minus_one( EINVAL );
+  }
+
   oflag = rtems_libio_to_fcntl_flags( rtems_libio_iop_flags( iop ) );
-  diop = rtems_libio_allocate();
+  diop = rtems_libio_allocate_minimum( minimum );
 
   if ( diop != NULL ) {
     rtems_filesystem_instance_lock( &iop->pathinfo );
@@ -70,8 +74,15 @@ static int duplicate_iop( rtems_libio_t *iop )
       rv = rtems_libio_iop_to_descriptor( diop );
     } else {
       rtems_libio_free( diop );
+
+      if ( rv > 0 ) {
+        errno = rv;
+      }
+
+      rv = -1;
     }
   } else {
+    errno = EMFILE;
     rv = -1;
   }
 
@@ -81,7 +92,8 @@ static int duplicate_iop( rtems_libio_t *iop )
 static int duplicate2_iop( rtems_libio_t *iop, int fd2 )
 {
   rtems_libio_t *iop2;
-  int            rv = 0;
+  int            oflag;
+  int            rv;
 
   if ( (uint32_t) fd2 >= rtems_libio_number_iops ) {
     rtems_set_errno_and_return_minus_one( EBADF );
@@ -89,32 +101,46 @@ static int duplicate2_iop( rtems_libio_t *iop, int fd2 )
 
   iop2 = rtems_libio_iop( fd2 );
 
-  if ( iop != iop2 ) {
-    int oflag;
+  if ( iop == iop2 ) {
+    return fd2;
+  }
 
-    if ( ( rtems_libio_iop_flags( iop2 ) & LIBIO_FLAGS_OPEN ) != 0 ) {
-      rv = ( *iop2->pathinfo.handlers->close_h )( iop2 );
+  if ( ( rtems_libio_iop_flags( iop2 ) & LIBIO_FLAGS_OPEN ) != 0 ) {
+    rv = ( *iop2->pathinfo.handlers->close_h )( iop2 );
+    if ( rv != 0 ) {
+      return rv;
     }
 
-    if ( rv == 0 ) {
-      oflag = rtems_libio_to_fcntl_flags( rtems_libio_iop_flags( iop ) );
-      rtems_libio_iop_flags_set( iop2, rtems_libio_from_fcntl_flags( oflag ) );
+    rtems_filesystem_location_free( &iop2->pathinfo );
+  } else if ( rtems_libio_allocate_specific( fd2 ) == NULL ) {
+    rtems_set_errno_and_return_minus_one( EBADF );
+  }
 
-      rtems_filesystem_instance_lock( &iop->pathinfo );
-      rtems_filesystem_location_clone( &iop2->pathinfo, &iop->pathinfo );
-      rtems_filesystem_instance_unlock( &iop->pathinfo );
+  oflag = rtems_libio_to_fcntl_flags( rtems_libio_iop_flags( iop ) );
+  rtems_libio_iop_flags_set( iop2, rtems_libio_from_fcntl_flags( oflag ) );
 
-      /*
-       * XXX: We call the open handler here to have a proper open and close
-       *      pair.
-       *
-       * FIXME: What to do with the path?
-       */
-      rv = ( *iop2->pathinfo.handlers->open_h )( iop2, NULL, oflag, 0 );
-      if ( rv == 0 ) {
-        rv = fd2;
-      }
+  rtems_filesystem_instance_lock( &iop->pathinfo );
+  rtems_filesystem_location_clone( &iop2->pathinfo, &iop->pathinfo );
+  rtems_filesystem_instance_unlock( &iop->pathinfo );
+
+  /*
+   * XXX: We call the open handler here to have a proper open and close
+   *      pair.
+   *
+   * FIXME: What to do with the path?
+   */
+  rv = ( *iop2->pathinfo.handlers->open_h )( iop2, NULL, oflag, 0 );
+  if ( rv == 0 ) {
+    rtems_libio_iop_flags_set( iop2, LIBIO_FLAGS_OPEN );
+    rv = fd2;
+  } else {
+    rtems_libio_free( iop2 );
+
+    if ( rv > 0 ) {
+      errno = rv;
     }
+
+    rv = -1;
   }
 
   return rv;
@@ -140,7 +166,19 @@ static int vfcntl( int fd, int cmd, va_list ap )
 
   switch ( cmd ) {
     case F_DUPFD: /* dup */
-      ret = duplicate_iop( iop );
+      fd2 = va_arg( ap, int );
+      ret = duplicate_iop( iop, fd2 );
+      break;
+
+    case F_DUPFD_CLOEXEC: /* dup, close on exec */
+      fd2 = va_arg( ap, int );
+      ret = duplicate_iop( iop, fd2 );
+      if ( ret >= 0 ) {
+        rtems_libio_iop_flags_set(
+          rtems_libio_iop( ret ),
+          LIBIO_FLAGS_CLOSE_ON_EXEC
+        );
+      }
       break;
 
     case F_DUP2FD: /* dup2 */
