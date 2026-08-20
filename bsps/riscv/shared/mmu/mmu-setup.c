@@ -37,28 +37,56 @@
 
 #include <bsp/fatal.h>
 
-#include <rtems/score/riscv-utility.h>
 #include <rtems/score/assert.h>
+#include <rtems/score/basedefs.h>
+#include <rtems/score/riscv-utility.h>
 
-BSP_START_DATA_SECTION RTEMS_ALIGNED( RISCV_PGSIZE ) static uintptr_t
-    riscv_root_page_table[1 << RISCV_PGLEVEL_BITS];
+BSP_START_DATA_SECTION RTEMS_ALIGNED(
+  RISCV_PGSIZE
+) static uintptr_t riscv_root_page_table[ 1 << RISCV_PGLEVEL_BITS ] = {};
 
 #if __riscv_xlen == 64
-BSP_START_DATA_SECTION RTEMS_ALIGNED( RISCV_PGSIZE ) static uintptr_t
-    riscv_l1_ram_page_table[1 << RISCV_PGLEVEL_BITS];
+BSP_START_DATA_SECTION RTEMS_ALIGNED(
+  RISCV_PGSIZE
+) static uintptr_t riscv_l1_ram_page_table[ 1 << RISCV_PGLEVEL_BITS ] = {};
 
-BSP_START_DATA_SECTION RTEMS_ALIGNED( RISCV_PGSIZE ) static uintptr_t
-    riscv_l1_mmio_page_table[1 << RISCV_PGLEVEL_BITS];
+BSP_START_DATA_SECTION RTEMS_ALIGNED(
+  RISCV_PGSIZE
+) static uintptr_t riscv_l1_mmio_page_table[ 1 << RISCV_PGLEVEL_BITS ] = {};
+#if RISCV_MMU_VIRTUAL_ADDRESS_BITS > 39
+BSP_START_DATA_SECTION RTEMS_ALIGNED(
+  RISCV_PGSIZE
+) static uintptr_t riscv_l2_page_table[ 1 << RISCV_PGLEVEL_BITS ] = {};
+#endif
+#if RISCV_MMU_VIRTUAL_ADDRESS_BITS > 48
+BSP_START_DATA_SECTION RTEMS_ALIGNED(
+  RISCV_PGSIZE
+) static uintptr_t riscv_l3_page_table[ 1 << RISCV_PGLEVEL_BITS ] = {};
+#endif
 #endif
 
 BSP_START_DATA_SECTION riscv_mmu_control riscv_mmu_instance = {
   .root = (uintptr_t *) riscv_root_page_table,
-#if __riscv_xlen == 64
-  .va_bits = SV39
-#else
-  .va_bits = SV32
-#endif
+  .va_bits = RTEMS_XCONCAT( SV, RISCV_MMU_VIRTUAL_ADDRESS_BITS )
 };
+
+BSP_START_TEXT_SECTION static inline uintptr_t riscv_page_to_ppn(
+  uintptr_t page,
+  int       level
+)
+{
+  const uint32_t mask = ( 1 << RISCV_PGLEVEL_BITS ) - 1;
+  uintptr_t      ppn = page;
+
+  _Assert( level >= 0 );
+  _Assert( level < 5 );
+
+  ppn >>= RISCV_PGLEVEL_BITS * level;
+  ppn &= mask;
+  ppn <<= PTE_PPN_SHIFT + RISCV_PGLEVEL_BITS * level;
+
+  return ppn;
+}
 
 BSP_START_TEXT_SECTION static inline uintptr_t riscv_create_pte(
   riscv_mmu_control *control,
@@ -66,38 +94,28 @@ BSP_START_TEXT_SECTION static inline uintptr_t riscv_create_pte(
   uint32_t flags
 )
 {
-  uintptr_t ppn0, ppn1;
-#if __riscv_xlen == 64
-  uintptr_t ppn2;
-#endif
-  uintptr_t pte = 0;
+  uintptr_t pte = flags;
 
   uintptr_t page = address >> RISCV_PGSHIFT;
-  const uint32_t mask = (1 << RISCV_PGLEVEL_BITS) - 1;
 
-  ppn0 = page & mask;
-  ppn0 <<= PTE_PPN_SHIFT;
+  pte |= riscv_page_to_ppn( page, 0 );
 
-  ppn1 = (page >> RISCV_PGLEVEL_BITS);
-#if __riscv_xlen == 64
-  ppn1 &= mask;
-#else
-  if ( control->va_bits != SV32 ) {
+  switch ( control->va_bits ) {
+    case SV57:
+      pte |= riscv_page_to_ppn( page, 4 );
+      RTEMS_FALL_THROUGH();
+    case SV48:
+      pte |= riscv_page_to_ppn( page, 3 );
+      RTEMS_FALL_THROUGH();
+    case SV39:
+      pte |= riscv_page_to_ppn( page, 2 );
+      RTEMS_FALL_THROUGH();
+    case SV32:
+      pte |= riscv_page_to_ppn( page, 1 );
+      break;
+    default:
       bsp_fatal( RISCV_FATAL_MMU_CANNOT_MAP_BLOCK );
   }
-#endif
-  ppn1 <<= PTE_PPN_SHIFT + RISCV_PGLEVEL_BITS;
-
-#if __riscv_xlen == 64
-  ppn2 = (page >> 2 * RISCV_PGLEVEL_BITS);
-  ppn2 <<= PTE_PPN_SHIFT + 2 * RISCV_PGLEVEL_BITS;
-  if ( control->va_bits != SV39 ) {
-      bsp_fatal( RISCV_FATAL_MMU_CANNOT_MAP_BLOCK );
-  }
-  pte |= ppn2;
-#endif
-
-  pte |= ppn1 | ppn0 | flags;
 
   return pte;
 }
@@ -110,8 +128,8 @@ BSP_START_TEXT_SECTION static inline uint32_t riscv_mmu_get_index(
   uint32_t shift_bits;
   const uint32_t mask = (1 << RISCV_PGLEVEL_BITS) - 1;
 
-  if ( level == 0 || level > 2 ) {
-      bsp_fatal( RISCV_FATAL_MMU_CANNOT_MAP_BLOCK );
+  if ( level == 0 || level > 4 ) {
+    bsp_fatal( RISCV_FATAL_MMU_CANNOT_MAP_BLOCK );
   }
 
   shift_bits = RISCV_PGSHIFT + level * RISCV_PGLEVEL_BITS;
@@ -127,17 +145,27 @@ BSP_START_TEXT_SECTION static inline void riscv_map_megapages(
   uint32_t flags,
   int level,
   size_t megapage_size
-) {
+)
+{
   size_t i;
 
   uintptr_t index;
 
-  for ( i = 0; i < size / megapage_size; i++ )
-  {
+  for ( i = 0; i < size / megapage_size; i++ ) {
     index = riscv_mmu_get_index( address, level );
     page_table[index] = riscv_create_pte( control, address, flags );
     address += (uintptr_t) megapage_size;
   }
+}
+
+BSP_START_TEXT_SECTION static inline uintptr_t riscv_pte_to_paddr(
+  uintptr_t pte
+)
+{
+  uintptr_t addr = pte & ~PTE_ATTR;
+  addr >>= PTE_PPN_SHIFT;
+  addr <<= RISCV_PGSHIFT;
+  return addr;
 }
 
 BSP_START_TEXT_SECTION static inline void riscv_mmu_add_subtable(
@@ -150,13 +178,57 @@ BSP_START_TEXT_SECTION static inline void riscv_mmu_add_subtable(
 {
   uint32_t nonleaf_flags = PTE_V | PTE_G;
   size_t two_MiB = 2 * 1024 * 1024;
-  uintptr_t index = riscv_mmu_get_index( address, 2 );
+  uintptr_t *table;
+  uintptr_t index;
+  int level;
 
-  control->root[index] = riscv_create_pte(
+  switch ( control->va_bits ) {
+    case SV57:
+      level = 4;
+      break;
+    case SV48:
+      level = 3;
+      break;
+    case SV39:
+      level = 2;
+      break;
+    default:
+      bsp_fatal( RISCV_FATAL_MMU_CANNOT_MAP_BLOCK );
+  }
+
+  index = riscv_mmu_get_index( address, level );
+  table = control->root;
+#if RISCV_MMU_VIRTUAL_ADDRESS_BITS > 39
+  while ( level > 2 ) {
+    uintptr_t st = table[ index ];
+    if ( st == 0 ) {
+      if ( level == 3 ) {
+        st = (uintptr_t) riscv_l2_page_table;
+      } else {
+        _Assert( level == 4 );
+#if RISCV_MMU_VIRTUAL_ADDRESS_BITS > 48
+        st = (uintptr_t) riscv_l3_page_table;
+#endif
+      }
+      table[ index ] = riscv_create_pte( control, st, nonleaf_flags );
+    } else {
+      st = riscv_pte_to_paddr( st );
+    }
+    _Assert( st );
+    level--;
+    index = riscv_mmu_get_index( address, level );
+    table = (uintptr_t *) st;
+  }
+#endif
+  if ( table[ index ] == 0 ) {
+    table[ index ] = riscv_create_pte(
       control,
       (uintptr_t) subtable,
       nonleaf_flags
-  );
+    );
+  } else {
+    _Assert( table[ index ] == (uintptr_t) subtable );
+  }
 
   /* TODO: check that size fits in the root index PTE */
   riscv_map_megapages( control, subtable, address, size, flags, 1, two_MiB );
