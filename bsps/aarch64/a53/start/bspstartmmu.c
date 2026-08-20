@@ -1,15 +1,15 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @brief RTEMS Malloc Family Implementation
- *  @ingroup libcsupport
+ * @ingroup RTEMSBSPsAArch64A53
+ *
+ * @brief This source file contains the MMU and cache setup.
  */
 
 /*
- *  COPYRIGHT (c) 1989-2007.
- *  On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,60 +33,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <bsp.h>
+#include <bsp/aarch64-mmu.h>
+#include <bsp/start.h>
+#include <libcpu/mmu-vmsav8-64.h>
 
-#ifdef RTEMS_NEWLIB
-#include <stdlib.h>
-#include <errno.h>
-#include <malloc.h>
-
-#include "malloc_p.h"
-
-void *malloc( size_t size )
+BSP_START_TEXT_SECTION void a53_setup_mmu_and_cache( void )
 {
-  void *return_this;
+  aarch64_mmu_control *control = &aarch64_mmu_instance;
 
-  if ( size == 0 ) {
-    return NULL;
-  }
+  aarch64_mmu_setup();
 
-  return_this = rtems_heap_allocate_aligned_with_boundary( size, 0, 0 );
-  if ( !return_this ) {
-    errno = ENOMEM;
-    return (void *) 0;
-  }
-
-  return return_this;
-}
-
-size_t malloc_usable_size( void *area )
-{
-  uintptr_t   size = 0;
-  bool        needs_lock;
-
-  if ( area == NULL ) {
-    return 0;
-  }
-
-  needs_lock = _Malloc_System_state() == MALLOC_SYSTEM_STATE_NORMAL;
-
-  if ( needs_lock ) {
-    _RTEMS_Lock_allocator();
-  }
-
-  _Heap_Size_of_alloc_area(
-    RTEMS_Malloc_Heap,
-    area,
-    &size
+  aarch64_mmu_setup_translation_table(
+    control,
+    &aarch64_mmu_config_table[ 0 ],
+    aarch64_mmu_config_table_size
   );
 
-  if ( needs_lock ) {
-    _RTEMS_Unlock_allocator();
-  }
-
-  return (size_t) size;
+  aarch64_mmu_enable( control );
 }
-
-#endif

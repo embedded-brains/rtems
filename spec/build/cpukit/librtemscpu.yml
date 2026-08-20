@@ -203,6 +203,7 @@ install:
   - cpukit/include/rtems/score/freechainimpl.h
   - cpukit/include/rtems/score/hash.h
   - cpukit/include/rtems/score/heap.h
+  - cpukit/include/rtems/score/heapfirstfitimpl.h
   - cpukit/include/rtems/score/heapimpl.h
   - cpukit/include/rtems/score/heapinfo.h
   - cpukit/include/rtems/score/interr.h

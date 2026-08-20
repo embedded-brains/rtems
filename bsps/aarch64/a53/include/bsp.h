@@ -63,6 +63,11 @@ extern "C" {
 #define BSP_A53_QEMU_VPL011_BASE 0x9000000
 #define BSP_A53_QEMU_VPL011_LENGTH 0x1000
 
+/**
+ * @brief Sets up the MMU translation table and enables the MMU and the caches.
+ */
+BSP_START_TEXT_SECTION void a53_setup_mmu_and_cache( void );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -1,15 +1,16 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /**
- *  @file
+ * @file
  *
- *  @brief RTEMS Malloc Family Implementation
- *  @ingroup libcsupport
+ * @ingroup RTEMSBSPsAArch64A53
+ *
+ * @brief This source file contains the definition of ::aarch64_mmu_config_table
+ *   and ::aarch64_mmu_config_table_size.
  */
 
 /*
- *  COPYRIGHT (c) 1989-2007.
- *  On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,60 +34,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <bsp.h>
+#include <bsp/aarch64-mmu.h>
+#include <bsp/start.h>
+#include <libcpu/mmu-vmsav8-64.h>
 
-#ifdef RTEMS_NEWLIB
-#include <stdlib.h>
-#include <errno.h>
-#include <malloc.h>
-
-#include "malloc_p.h"
-
-void *malloc( size_t size )
-{
-  void *return_this;
-
-  if ( size == 0 ) {
-    return NULL;
+BSP_START_DATA_SECTION const aarch64_mmu_config_entry
+aarch64_mmu_config_table[] = {
+  AARCH64_MMU_DEFAULT_SECTIONS,
+  { /* GIC distributor, CPU interface and redistributors */
+    .begin = 0x08000000U,
+    .end = 0x09000000U,
+    .flags = AARCH64_MMU_DEVICE
+  }, { /* PL011 console */
+    .begin = BSP_A53_QEMU_VPL011_BASE,
+    .end = BSP_A53_QEMU_VPL011_BASE + BSP_A53_QEMU_VPL011_LENGTH,
+    .flags = AARCH64_MMU_DEVICE
   }
+};
 
-  return_this = rtems_heap_allocate_aligned_with_boundary( size, 0, 0 );
-  if ( !return_this ) {
-    errno = ENOMEM;
-    return (void *) 0;
-  }
-
-  return return_this;
-}
-
-size_t malloc_usable_size( void *area )
-{
-  uintptr_t   size = 0;
-  bool        needs_lock;
-
-  if ( area == NULL ) {
-    return 0;
-  }
-
-  needs_lock = _Malloc_System_state() == MALLOC_SYSTEM_STATE_NORMAL;
-
-  if ( needs_lock ) {
-    _RTEMS_Lock_allocator();
-  }
-
-  _Heap_Size_of_alloc_area(
-    RTEMS_Malloc_Heap,
-    area,
-    &size
-  );
-
-  if ( needs_lock ) {
-    _RTEMS_Unlock_allocator();
-  }
-
-  return (size_t) size;
-}
-
-#endif
+BSP_START_DATA_SECTION const size_t aarch64_mmu_config_table_size =
+  RTEMS_ARRAY_SIZE( aarch64_mmu_config_table );
