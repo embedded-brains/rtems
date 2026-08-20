@@ -28,6 +28,7 @@
 import fnmatch
 import logging
 from pathlib import Path
+import shlex
 import shutil
 import subprocess
 import sys
@@ -44,6 +45,11 @@ _WARNING = ":warning:"
 _ERROR = ":x:"
 
 _SKIP = ":heavy_minus_sign:"
+
+# The committer of the commits which the extractability check makes.
+_COMMITTER_NAME = "inspect_changes"
+
+_COMMITTER_EMAIL = "inspect_changes@example.com"
 
 # The change set categories.  Only CATEGORY_SOURCE is upstreamable to the
 # rtems.org repository.
@@ -161,10 +167,15 @@ def get_source_prefixes() -> list[str]:
 
 
 def _git(*args: str, cwd: Path | str | None = None) -> str:
-    return subprocess.check_output(["git", *args],
-                                   cwd=cwd,
-                                   encoding="utf-8",
-                                   stderr=subprocess.DEVNULL)
+    try:
+        return subprocess.check_output(["git", *args],
+                                       cwd=cwd,
+                                       encoding="utf-8",
+                                       stderr=subprocess.PIPE)
+    except subprocess.CalledProcessError as err:
+        command = shlex.join(["git", *args])
+        raise RuntimeError(f"the command '{command}' failed with exit status "
+                           f"{err.returncode}:\n{err.stderr}") from err
 
 
 def _git_ok(*args: str, cwd: Path | str | None = None) -> bool:
@@ -419,7 +430,19 @@ def _check_extractable(repository: Path, upstream_ref: str,
                         "branch and resolve the conflicts in:",
                         "\n".join(conflicts))
                     return
-                _git("commit", "--no-edit", "--allow-empty", "-C", commit,
+                # The commit only gives the next cherry-pick a clean index.
+                # The script deletes it with the worktree, so the identity
+                # and the hooks of the caller must not affect it.
+                _git("-c",
+                     f"user.name={_COMMITTER_NAME}",
+                     "-c",
+                     f"user.email={_COMMITTER_EMAIL}",
+                     "commit",
+                     "--no-verify",
+                     "--no-edit",
+                     "--allow-empty",
+                     "-C",
+                     commit,
                      cwd=worktree)
         finally:
             subprocess.run(
@@ -471,73 +494,82 @@ def main(argv: list[str]) -> int:
     head_ref = args.head_ref[0]
     url = args.url[0]
     findings = _Findings()
-    ignore = _Ignore(repository / _IGNORE_FILE)
-    has_upstream = _git_ok("rev-parse", "--verify", f"{args.upstream_ref}^{{commit}}")
-    if has_upstream:
-        _check_invariant(args.upstream_ref, findings)
-    else:
-        findings.warning(
-            f"The upstream reference `{args.upstream_ref}` does not exist.  "
-            "The category invariant and the extractability check are skipped.")
-    commits = _get_commits(base_ref, head_ref,
-                           args.upstream_ref if has_upstream else None)
-    logging.info("inspect %d commits in %s..%s", len(commits), base_ref,
-                 head_ref)
     rows = [["Subject", "Category", "Format", "Export", "Sources", "Status"]]
-    categories: dict[str, list[str]] = {}
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        worktree = Path(tmp_dir) / "inspect"
-        _git("worktree", "add", "--detach", str(worktree), head_ref,
-             cwd=repository)
-        try:
-            for commit, subject in commits:
-                commit_url = f"{url}/commit/{commit}"
-                files = _get_files(commit)
-                found = sorted({get_category(f) for f in files})
-                categories[commit] = found
-                errors_before = findings.error_count
-                if len(found) != 1 or CATEGORY_UNKNOWN in found:
-                    findings.error(
-                        f"In {commit_url}, the change set belongs to more "
-                        f"than one category: {', '.join(found)}.  Split it "
-                        "into one commit per category.")
-                _git("checkout", "--detach", commit, cwd=worktree)
-                existing = _get_existing_files(commit, files)
-                items = [
-                    f for f in existing
-                    if f.startswith("spec/") and f.endswith(".yml")
-                ]
-                c_files = [
-                    f for f in existing
-                    if f.endswith(_C_SUFFIXES)
-                    and not ignore.is_excluded(f, "format")
-                    and not _is_generated(worktree, f)
-                ]
-                spec_status = _check_spec_format(worktree, items, findings,
-                                                 commit_url)
-                c_status = _check_c_format(worktree, c_files, findings,
+    try:
+        ignore = _Ignore(repository / _IGNORE_FILE)
+        has_upstream = _git_ok("rev-parse", "--verify",
+                               f"{args.upstream_ref}^{{commit}}")
+        if has_upstream:
+            _check_invariant(args.upstream_ref, findings)
+        else:
+            findings.warning(
+                f"The upstream reference `{args.upstream_ref}` does not "
+                "exist.  The category invariant and the extractability "
+                "check are skipped.")
+        commits = _get_commits(base_ref, head_ref,
+                               args.upstream_ref if has_upstream else None)
+        logging.info("inspect %d commits in %s..%s", len(commits), base_ref,
+                     head_ref)
+        categories: dict[str, list[str]] = {}
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            worktree = Path(tmp_dir) / "inspect"
+            _git("worktree", "add", "--detach", str(worktree), head_ref,
+                 cwd=repository)
+            try:
+                for commit, subject in commits:
+                    commit_url = f"{url}/commit/{commit}"
+                    files = _get_files(commit)
+                    found = sorted({get_category(f) for f in files})
+                    categories[commit] = found
+                    errors_before = findings.error_count
+                    if len(found) != 1 or CATEGORY_UNKNOWN in found:
+                        findings.error(
+                            f"In {commit_url}, the change set belongs to "
+                            f"more than one category: {', '.join(found)}.  "
+                            "Split it into one commit per category.")
+                    _git("checkout", "--detach", commit, cwd=worktree)
+                    existing = _get_existing_files(commit, files)
+                    items = [
+                        f for f in existing
+                        if f.startswith("spec/") and f.endswith(".yml")
+                    ]
+                    c_files = [
+                        f for f in existing
+                        if f.endswith(_C_SUFFIXES)
+                        and not ignore.is_excluded(f, "format")
+                        and not _is_generated(worktree, f)
+                    ]
+                    spec_status = _check_spec_format(worktree, items, findings,
+                                                     commit_url)
+                    c_status = _check_c_format(worktree, c_files, findings,
+                                               commit_url)
+                    export = _check_export(worktree, items, findings,
                                            commit_url)
-                export = _check_export(worktree, items, findings, commit_url)
-                deleted = _check_deleted(worktree, commit, findings,
-                                         commit_url)
-                fmt = _ERROR if _ERROR in (spec_status, c_status) else (
-                    _OK if _OK in (spec_status, c_status) else _SKIP)
-                status = (_OK if findings.error_count == errors_before else
-                          _ERROR)
-                rows.append([
-                    f"[{subject}]({commit_url})", ", ".join(found), fmt,
-                    export, deleted, status
-                ])
-        finally:
-            subprocess.run(
-                ["git", "worktree", "remove", "--force",
-                 str(worktree)],
-                cwd=repository,
-                check=False,
-                capture_output=True)
-    if has_upstream:
-        _check_extractable(repository, args.upstream_ref, commits, categories,
-                           findings)
+                    deleted = _check_deleted(worktree, commit, findings,
+                                             commit_url)
+                    fmt = _ERROR if _ERROR in (spec_status, c_status) else (
+                        _OK if _OK in (spec_status, c_status) else _SKIP)
+                    status = (_OK if findings.error_count == errors_before else
+                              _ERROR)
+                    rows.append([
+                        f"[{subject}]({commit_url})", ", ".join(found), fmt,
+                        export, deleted, status
+                    ])
+            finally:
+                subprocess.run(
+                    ["git", "worktree", "remove", "--force",
+                     str(worktree)],
+                    cwd=repository,
+                    check=False,
+                    capture_output=True)
+        if has_upstream:
+            _check_extractable(repository, args.upstream_ref, commits,
+                               categories, findings)
+    except Exception as err:
+        logging.exception("the inspection failed")
+        findings.error(
+            "The inspection failed.  This is a defect of the inspection "
+            "itself and not of the change set:", str(err))
     content = CommonMarkContent()
     content.add_simple_table(rows)
     content.add(findings.content)
