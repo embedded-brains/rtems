@@ -151,6 +151,85 @@ rtems_libio_t *rtems_libio_allocate( void )
   return iop;
 }
 
+rtems_libio_t *rtems_libio_allocate_minimum( int minimum )
+{
+  rtems_libio_t *best;
+  void         **best_link;
+  rtems_libio_t *iop;
+  void         **link;
+
+  rtems_libio_lock();
+
+  /*
+   * The free list is kept in close order, not index order, so pick the
+   * entry with the lowest file descriptor number at or above the minimum.
+   */
+  best = NULL;
+  best_link = NULL;
+  link = &rtems_libio_iop_free_head;
+
+  for ( iop = *link; iop != NULL; iop = iop->data1 ) {
+    if (
+      rtems_libio_iop_to_descriptor( iop ) >= minimum &&
+      ( best == NULL ||
+        rtems_libio_iop_to_descriptor( iop ) <
+          rtems_libio_iop_to_descriptor( best ) )
+    ) {
+      best = iop;
+      best_link = link;
+    }
+
+    link = &iop->data1;
+  }
+
+  if ( best != NULL ) {
+    rtems_libio_iop_flags_clear( best, LIBIO_FLAGS_FREE );
+
+    *best_link = best->data1;
+
+    if ( best->data1 == NULL ) {
+      rtems_libio_iop_free_tail = best_link;
+    }
+  }
+
+  rtems_libio_unlock();
+
+  return best;
+}
+
+rtems_libio_t *rtems_libio_allocate_specific( int fd )
+{
+  rtems_libio_t  *wanted;
+  rtems_libio_t  *iop;
+  void          **link;
+
+  wanted = rtems_libio_iop( fd );
+
+  rtems_libio_lock();
+
+  link = &rtems_libio_iop_free_head;
+
+  for ( iop = *link; iop != NULL; iop = iop->data1 ) {
+    if ( iop == wanted ) {
+      rtems_libio_iop_flags_clear( iop, LIBIO_FLAGS_FREE );
+
+      *link = iop->data1;
+
+      if ( iop->data1 == NULL ) {
+        rtems_libio_iop_free_tail = link;
+      }
+
+      break;
+    }
+
+    link = &iop->data1;
+  }
+
+  rtems_libio_unlock();
+
+  return iop;
+}
+
 void rtems_libio_free_iop( rtems_libio_t *iop )
 {
   size_t zero;

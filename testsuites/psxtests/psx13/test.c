@@ -53,6 +53,7 @@
 
 #include <rtems.h>
 #include <rtems/libio.h>
+#include <rtems/libio_.h>
 #include <rtems/score/timespec.h>
 #include <rtems/score/todimpl.h>
 #include <sys/time.h>
@@ -170,6 +171,153 @@ static void DupTest( void )
 }
 
 /**
+ * @brief Exercises the file descriptor minimum of fcntl( F_DUPFD ).
+ */
+static void FcntlDupMinimumTest( void )
+{
+  int fd1, fd2, lo, hi;
+  int rv;
+
+  fd1 = open( "testfile1.tst", O_RDONLY );
+  rtems_test_assert( fd1 != -1 );
+
+  /* Occupy two free descriptors to learn their numbers. */
+  lo = fcntl( fd1, F_DUPFD, 0 );
+  rtems_test_assert( lo != -1 );
+
+  hi = fcntl( fd1, F_DUPFD, 0 );
+  rtems_test_assert( hi != -1 );
+
+  if ( hi < lo ) {
+    fd2 = lo;
+    lo = hi;
+    hi = fd2;
+  }
+
+  /*
+   * Free the higher descriptor first, so that a duplication which
+   * ignores the minimum and recycles descriptors in close order would
+   * yield the higher one.
+   */
+  rv = close( hi );
+  rtems_test_assert( rv == 0 );
+
+  rv = close( lo );
+  rtems_test_assert( rv == 0 );
+
+  /* The duplicate is the lowest free descriptor at or above the
+   * minimum. */
+  fd2 = fcntl( fd1, F_DUPFD, lo );
+  rtems_test_assert( fd2 == lo );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* A free descriptor below the minimum is not eligible. */
+  fd2 = fcntl( fd1, F_DUPFD, hi );
+  rtems_test_assert( fd2 == hi );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* A negative or out-of-range minimum is EINVAL. */
+  errno = 0;
+  rv = fcntl( fd1, F_DUPFD, -1 );
+  rtems_test_assert( rv == -1 );
+  rtems_test_assert( errno == EINVAL );
+
+  errno = 0;
+  rv = fcntl( fd1, F_DUPFD, 1000000 );
+  rtems_test_assert( rv == -1 );
+  rtems_test_assert( errno == EINVAL );
+
+  rv = close( fd1 );
+  rtems_test_assert( rv == 0 );
+}
+
+/**
+ * @brief Exercises fcntl( F_DUPFD_CLOEXEC ).
+ */
+static void FcntlDupCloexecTest( void )
+{
+  int fd1, fd2;
+  int rv;
+
+  fd1 = open( "testfile1.tst", O_RDONLY );
+  rtems_test_assert( fd1 != -1 );
+
+  /* The duplicate has FD_CLOEXEC set. */
+  fd2 = fcntl( fd1, F_DUPFD_CLOEXEC, 0 );
+  rtems_test_assert( fd2 != -1 );
+
+  rv = fcntl( fd2, F_GETFD );
+  rtems_test_assert( rv == 1 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* A plain F_DUPFD duplicate does not. */
+  fd2 = fcntl( fd1, F_DUPFD, 0 );
+  rtems_test_assert( fd2 != -1 );
+
+  rv = fcntl( fd2, F_GETFD );
+  rtems_test_assert( rv == 0 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  rv = close( fd1 );
+  rtems_test_assert( rv == 0 );
+}
+
+/**
+ * @brief Exercises fcntl( F_DUP2FD ) with a target that is not open.
+ */
+static void FcntlDup2FreeTargetTest( void )
+{
+  int fd1, fd2, fd3;
+  int rv;
+  struct stat st;
+
+  fd1 = open( "testfile1.tst", O_RDONLY );
+  rtems_test_assert( fd1 != -1 );
+
+  /* Learn a free descriptor number. */
+  fd2 = dup( fd1 );
+  rtems_test_assert( fd2 != -1 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* Duplicate onto the free descriptor. */
+  rv = fcntl( fd1, F_DUP2FD, fd2 );
+  rtems_test_assert( rv == fd2 );
+
+  /* The duplicate is a live descriptor. */
+  rv = fstat( fd2, &st );
+  rtems_test_assert( rv == 0 );
+
+  /* The duplicate left the free list; a fresh duplicate must not
+   * alias it. */
+  fd3 = dup( fd1 );
+  rtems_test_assert( fd3 != -1 );
+  rtems_test_assert( fd3 != fd2 );
+
+  rv = close( fd3 );
+  rtems_test_assert( rv == 0 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* Duplicating a descriptor onto itself answers the descriptor. */
+  rv = fcntl( fd1, F_DUP2FD, fd1 );
+  rtems_test_assert( rv == fd1 );
+
+  rv = close( fd1 );
+  rtems_test_assert( rv == 0 );
+}
+
+/**
  * @brief Exercises dup2().
  */
 static void Dup2Test( void )
@@ -209,6 +357,45 @@ static void Dup2Test( void )
 
   rv = dup2( fd1, fd2 );
   rtems_test_assert( rv == -1 );
+
+  rv = close( fd1 );
+  rtems_test_assert( rv == 0 );
+}
+
+/**
+ * @brief Exercises dup2() with a target that is not open.
+ */
+static void Dup2ClosedTargetTest( void )
+{
+  int fd1, fd2;
+  int rv;
+
+  fd1 = open( "testfile1.tst", O_RDONLY );
+  rtems_test_assert( fd1 != -1 );
+
+  /* Learn a free descriptor number. */
+  fd2 = dup( fd1 );
+  rtems_test_assert( fd2 != -1 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* dup2() onto a closed descriptor reuses that descriptor. */
+  rv = dup2( fd1, fd2 );
+  rtems_test_assert( rv == fd2 );
+
+  rv = close( fd2 );
+  rtems_test_assert( rv == 0 );
+
+  /* dup2() of a descriptor onto itself answers the descriptor. */
+  rv = dup2( fd1, fd1 );
+  rtems_test_assert( rv == fd1 );
+
+  /* An out-of-range target is EBADF. */
+  errno = 0;
+  rv = dup2( fd1, 1000000 );
+  rtems_test_assert( rv == -1 );
+  rtems_test_assert( errno == EBADF );
 
   rv = close( fd1 );
   rtems_test_assert( rv == 0 );
@@ -886,7 +1073,11 @@ int test_main( void )
 
   DeviceLSeekTest();
   DupTest();
+  FcntlDupMinimumTest();
+  FcntlDupCloexecTest();
+  FcntlDup2FreeTargetTest();
   Dup2Test();
+  Dup2ClosedTargetTest();
   FDataSyncTest();
   UMaskTest();
   UTimeTest();

@@ -187,9 +187,58 @@ def _enable_asm_explicit_target(self):
     self.mappings[".S"] = _asm_explicit_target
 
 
+def _c_explicit_target(self, node):
+    task = self.create_task("c", node,
+                            self.bld.bldnode.make_node(self.target))
+    task.dep_nodes.extend(self.to_nodes(getattr(self, "explicit_deps", [])))
+    try:
+        self.compiled_tasks.append(task)
+    except AttributeError:
+        self.compiled_tasks = [task]
+    return task
+
+
+@feature("c_explicit_target")
+@before_method("process_source")
+def _enable_c_explicit_target(self):
+    self.mappings = dict(self.mappings)  # Copy
+    self.mappings[".c"] = _c_explicit_target
+
+
+def _cxx_explicit_target(self, node):
+    task = self.create_task("cxx", node,
+                            self.bld.bldnode.make_node(self.target))
+    task.dep_nodes.extend(self.to_nodes(getattr(self, "explicit_deps", [])))
+    try:
+        self.compiled_tasks.append(task)
+    except AttributeError:
+        self.compiled_tasks = [task]
+    return task
+
+
+@feature("cxx_explicit_target")
+@before_method("process_source")
+def _enable_cxx_explicit_target(self):
+    self.mappings = dict(self.mappings)  # Copy
+    self.mappings[".cc"] = _cxx_explicit_target
+
+
+def _cfg_file_nodes(bld):
+    # The configuration files (for example a generated linker script) are
+    # written during ./waf configure.  Depend on them so that a reconfiguration
+    # which changes a linker script triggers a relink of the executables.
+    try:
+        return bld.cfg_file_nodes
+    except AttributeError:
+        nodes = [bld.root.make_node(f) for f in bld.env.cfg_files]
+        bld.cfg_file_nodes = nodes
+        return nodes
+
+
 @after("apply_link")
 @feature("cprogram", "cxxprogram")
 def process_start_files(self):
+    self.link_task.dep_nodes.extend(_cfg_file_nodes(self.bld))
     if getattr(self, "start_files", False):
         self.link_task.dep_nodes.extend(self.bld.start_files)
 
@@ -334,12 +383,11 @@ class Item(object):
             cflags=bic.cflags + self.substitute(bld, self.data["cflags"]),
             cppflags=bic.cppflags + cppflags +
             self.substitute(bld, self.data["cppflags"]),
-            features="c",
+            explicit_deps=deps,
+            features="c_explicit_target c",
             includes=bic.includes +
             self.substitute(bld, self.data["includes"]),
-            rule=
-            "${CC} ${CFLAGS} ${CPPFLAGS} ${DEFINES_ST:DEFINES} ${CPPPATH_ST:INCPATHS} -c ${SRC[0]} -o ${TGT}",
-            source=[source] + deps,
+            source=[source],
             target=target,
         )
         return target
@@ -352,12 +400,11 @@ class Item(object):
             self.substitute(bld, self.data["cppflags"]),
             cxxflags=bic.cxxflags +
             self.substitute(bld, self.data["cxxflags"]),
-            features="cxx",
+            explicit_deps=deps,
+            features="cxx_explicit_target cxx",
             includes=bic.includes +
             self.substitute(bld, self.data["includes"]),
-            rule=
-            "${CXX} ${CXXFLAGS} ${CPPFLAGS} ${DEFINES_ST:DEFINES} ${CPPPATH_ST:INCPATHS} -c ${SRC[0]} -o ${TGT}",
-            source=[source] + deps,
+            source=[source],
             target=target,
         )
         return target
@@ -400,6 +447,7 @@ class Item(object):
                    bic.ldflags + self.substitute(bld, self.data["ldflags"]))
         tsk.set_inputs([bld.bldnode.make_node(s) for s in source])
         tsk.set_outputs(bld.bldnode.make_node(target))
+        tsk.dep_nodes.extend(_cfg_file_nodes(bld))
         bld.add_to_group(tsk)
         return target
 
@@ -469,6 +517,7 @@ class Item(object):
                 )
 
         tsk = gnatmake(bld, bic, objdir, objs, main, target, self)
+        tsk.dep_nodes.extend(_cfg_file_nodes(bld))
         bld.add_to_group(tsk)
         return target
 
