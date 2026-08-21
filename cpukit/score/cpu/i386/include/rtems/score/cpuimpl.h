@@ -58,25 +58,18 @@
 extern "C" {
 #endif
 
-static inline void _CPU_Context_volatile_clobber( uintptr_t pattern )
-{
-  (void) pattern;
+void _CPU_Context_volatile_clobber( uintptr_t pattern );
 
-  /* TODO */
-}
-
-static inline void _CPU_Context_validate( uintptr_t pattern )
-{
-  (void) pattern;
-
-  while (1) {
-    /* TODO */
-  }
-}
+void _CPU_Context_validate( uintptr_t pattern );
 
 static inline void _CPU_Instruction_illegal( void )
 {
-  __asm__ volatile ( ".word 0" );
+  /*
+   * The two zero bytes of a ".word 0" are a valid instruction on this
+   * architecture.  The undefined instruction is the architected way to raise
+   * the invalid opcode exception.
+   */
+  __asm__ volatile ( "ud2" );
 }
 
 static inline void _CPU_Instruction_no_operation( void )
@@ -114,7 +107,18 @@ static inline void *_CPU_Get_TLS_thread_pointer(
   const Context_Control *context
 )
 {
-  return (void *) &context->gs;
+  uint32_t base;
+
+  /*
+   * The thread pointer is the base address of the segment which
+   * _CPU_Use_thread_local_storage() installs in the descriptor of GS, not the
+   * address of the descriptor in the context.
+   */
+  base = ( (uint32_t) context->gs.base_address_31_24 << 24 ) |
+    ( (uint32_t) context->gs.base_address_23_16 << 16 ) |
+    (uint32_t) context->gs.base_address_15_0;
+
+  return (void *) base;
 }
 
 #ifdef __cplusplus
