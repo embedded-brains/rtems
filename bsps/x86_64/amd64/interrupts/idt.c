@@ -39,6 +39,7 @@
 #include <rtems.h>
 #include <rtems/score/idt.h>
 #include <rtems/score/basedefs.h>
+#include <rtems/score/interr.h>
 #include <rtems/score/x86_64.h>
 #include <rtems/score/cpuimpl.h>
 #include <rtems/score/processormaskimpl.h>
@@ -57,44 +58,54 @@ struct idt_record amd64_idtr = {
 };
 
 /**
+ * Exception vectors of the processor
+ * @see EXCEPTION_ENTRY
+ */
+static const uintptr_t amd64_exceptions[BSP_VECTOR_APIC_FIRST] = {
+  (uintptr_t) amd64_exception_prologue_0,
+  (uintptr_t) amd64_exception_prologue_1,
+  (uintptr_t) amd64_exception_prologue_2,
+  (uintptr_t) amd64_exception_prologue_3,
+  (uintptr_t) amd64_exception_prologue_4,
+  (uintptr_t) amd64_exception_prologue_5,
+  (uintptr_t) amd64_exception_prologue_6,
+  (uintptr_t) amd64_exception_prologue_7,
+  (uintptr_t) amd64_exception_prologue_8,
+  (uintptr_t) amd64_exception_prologue_9,
+  (uintptr_t) amd64_exception_prologue_10,
+  (uintptr_t) amd64_exception_prologue_11,
+  (uintptr_t) amd64_exception_prologue_12,
+  (uintptr_t) amd64_exception_prologue_13,
+  (uintptr_t) amd64_exception_prologue_14,
+  (uintptr_t) amd64_exception_prologue_15,
+  (uintptr_t) amd64_exception_prologue_16,
+  (uintptr_t) amd64_exception_prologue_17,
+  (uintptr_t) amd64_exception_prologue_18,
+  (uintptr_t) amd64_exception_prologue_19,
+  (uintptr_t) amd64_exception_prologue_20,
+  (uintptr_t) amd64_exception_prologue_21,
+  (uintptr_t) amd64_exception_prologue_22,
+  (uintptr_t) amd64_exception_prologue_23,
+  (uintptr_t) amd64_exception_prologue_24,
+  (uintptr_t) amd64_exception_prologue_25,
+  (uintptr_t) amd64_exception_prologue_26,
+  (uintptr_t) amd64_exception_prologue_27,
+  (uintptr_t) amd64_exception_prologue_28,
+  (uintptr_t) amd64_exception_prologue_29,
+  (uintptr_t) amd64_exception_prologue_30,
+  (uintptr_t) amd64_exception_prologue_31
+};
+
+/**
  * IRQs that the RTEMS Interrupt Manager will manage
  * @see DISTINCT_INTERRUPT_ENTRY
  */
-static uintptr_t rtemsIRQs[BSP_IRQ_VECTOR_NUMBER] = {
-  (uintptr_t) rtems_irq_prologue_0,
-  (uintptr_t) rtems_irq_prologue_1,
-  (uintptr_t) rtems_irq_prologue_2,
-  (uintptr_t) rtems_irq_prologue_3,
-  (uintptr_t) rtems_irq_prologue_4,
-  (uintptr_t) rtems_irq_prologue_5,
-  (uintptr_t) rtems_irq_prologue_6,
-  (uintptr_t) rtems_irq_prologue_7,
-  (uintptr_t) rtems_irq_prologue_8,
-  (uintptr_t) rtems_irq_prologue_9,
-  (uintptr_t) rtems_irq_prologue_10,
-  (uintptr_t) rtems_irq_prologue_11,
-  (uintptr_t) rtems_irq_prologue_12,
-  (uintptr_t) rtems_irq_prologue_13,
-  (uintptr_t) rtems_irq_prologue_14,
-  (uintptr_t) rtems_irq_prologue_15,
-  (uintptr_t) rtems_irq_prologue_16,
-  (uintptr_t) rtems_irq_prologue_17,
-  (uintptr_t) rtems_irq_prologue_18,
-  (uintptr_t) rtems_irq_prologue_19,
-  (uintptr_t) rtems_irq_prologue_20,
-  (uintptr_t) rtems_irq_prologue_21,
-  (uintptr_t) rtems_irq_prologue_22,
-  (uintptr_t) rtems_irq_prologue_23,
-  (uintptr_t) rtems_irq_prologue_24,
-  (uintptr_t) rtems_irq_prologue_25,
-  (uintptr_t) rtems_irq_prologue_26,
-  (uintptr_t) rtems_irq_prologue_27,
-  (uintptr_t) rtems_irq_prologue_28,
-  (uintptr_t) rtems_irq_prologue_29,
-  (uintptr_t) rtems_irq_prologue_30,
-  (uintptr_t) rtems_irq_prologue_31,
+static const uintptr_t rtemsIRQs[
+  BSP_IRQ_VECTOR_NUMBER - BSP_VECTOR_APIC_FIRST
+] = {
   (uintptr_t) rtems_irq_prologue_32,
-  (uintptr_t) rtems_irq_prologue_33
+  (uintptr_t) rtems_irq_prologue_33,
+  (uintptr_t) rtems_irq_prologue_34
 };
 
 void lidt(struct idt_record *ptr)
@@ -140,14 +151,48 @@ void amd64_install_raw_interrupt(
 
 void amd64_dispatch_isr(rtems_vector_number vector)
 {
+  /*
+   * Acknowledge before the handlers run.  All interrupt sources of this BSP
+   * are edge triggered, so the request is not raised again by the
+   * acknowledge.  It clears the in service bit and thus the processor
+   * priority, which is what allows a handler to enable interrupts and take a
+   * nested interrupt of the same vector.
+   */
+  lapic_eoi();
+
   bsp_interrupt_handler_dispatch(vector);
+}
+
+void amd64_exception_handler(CPU_Exception_frame *frame)
+{
+  _Terminate(RTEMS_FATAL_SOURCE_EXCEPTION, (rtems_fatal_code) frame);
+}
+
+bool bsp_interrupt_is_valid_vector(rtems_vector_number vector)
+{
+  /*
+   * The vectors below the first Local APIC vector are the exception vectors of
+   * the processor.  They terminate the system and are not vectors of the
+   * interrupt manager.
+   */
+  return vector >= BSP_VECTOR_APIC_FIRST &&
+    vector < (rtems_vector_number) BSP_INTERRUPT_VECTOR_COUNT;
 }
 
 void bsp_interrupt_facility_initialize(void)
 {
   uintptr_t old;
-  for (uint32_t i = 0; i < BSP_IRQ_VECTOR_NUMBER; i++) {
-    amd64_install_raw_interrupt(i, rtemsIRQs[i], &old);
+
+  for (uint32_t i = 0; i < BSP_VECTOR_APIC_FIRST; i++) {
+    amd64_install_raw_interrupt(i, amd64_exceptions[i], &old);
+  }
+
+  for (uint32_t i = BSP_VECTOR_APIC_FIRST; i < BSP_IRQ_VECTOR_NUMBER; i++) {
+    amd64_install_raw_interrupt(
+      i,
+      rtemsIRQs[i - BSP_VECTOR_APIC_FIRST],
+      &old
+    );
   }
 
   lidt(&amd64_idtr);
@@ -157,11 +202,20 @@ void bsp_interrupt_facility_initialize(void)
   }
 }
 
+/*
+ * Only the local vector table entry of the Local APIC timer has a mask bit.
+ * The interprocessor and software vectors are delivered by a write to the
+ * interrupt command register and there is nothing which masks them.
+ */
 rtems_status_code bsp_interrupt_vector_disable(rtems_vector_number vector)
 {
-  (void) vector;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
 
-  /* XXX: Should be implemented once I/O APIC support is added */
+  if (vector != BSP_VECTOR_APIC_TIMER) {
+    return RTEMS_UNSATISFIED;
+  }
+
+  lapic_timer_set_masked(true);
   return RTEMS_SUCCESSFUL;
 }
 
@@ -195,8 +249,21 @@ rtems_status_code bsp_interrupt_get_attributes(
   rtems_interrupt_attributes *attributes
 )
 {
-  (void) vector;
-  (void) attributes;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
+
+  attributes->is_maskable = true;
+  attributes->can_raise = true;
+  attributes->cleared_by_acknowledge = true;
+#ifdef RTEMS_SMP
+  attributes->can_raise_on = true;
+#endif
+
+  if (vector == BSP_VECTOR_APIC_TIMER) {
+    attributes->can_enable = true;
+    attributes->maybe_enable = true;
+    attributes->can_disable = true;
+    attributes->maybe_disable = true;
+  }
 
   return RTEMS_SUCCESSFUL;
 }
@@ -206,20 +273,19 @@ rtems_status_code bsp_interrupt_is_pending(
   bool               *pending
 )
 {
-  (void) vector;
-
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bsp_interrupt_assert(pending != NULL);
-  *pending = false;
-  return RTEMS_UNSATISFIED;
+
+  *pending = lapic_is_pending(vector);
+  return RTEMS_SUCCESSFUL;
 }
 
 rtems_status_code bsp_interrupt_raise(rtems_vector_number vector)
 {
-  (void) vector;
-
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  return RTEMS_UNSATISFIED;
+
+  lapic_raise_self(vector);
+  return RTEMS_SUCCESSFUL;
 }
 
 rtems_status_code bsp_interrupt_clear(rtems_vector_number vector)
@@ -235,19 +301,27 @@ rtems_status_code bsp_interrupt_vector_is_enabled(
   bool               *enabled
 )
 {
-  (void) vector;
-
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
   bsp_interrupt_assert(enabled != NULL);
-  *enabled = false;
-  return RTEMS_UNSATISFIED;
+
+  if (vector == BSP_VECTOR_APIC_TIMER) {
+    *enabled = !lapic_timer_is_masked();
+  } else {
+    *enabled = true;
+  }
+
+  return RTEMS_SUCCESSFUL;
 }
 
 rtems_status_code bsp_interrupt_vector_enable(rtems_vector_number vector)
 {
-  (void) vector;
+  bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
 
-  /* XXX: Should be implemented once I/O APIC support is added */
+  if (vector != BSP_VECTOR_APIC_TIMER) {
+    return RTEMS_UNSATISFIED;
+  }
+
+  lapic_timer_set_masked(false);
   return RTEMS_SUCCESSFUL;
 }
 
@@ -279,10 +353,9 @@ rtems_status_code bsp_interrupt_raise_on(
   uint32_t            cpu_index
 )
 {
-  (void) vector;
-  (void) cpu_index;
-
   bsp_interrupt_assert(bsp_interrupt_is_valid_vector(vector));
-  return RTEMS_UNSATISFIED;
+
+  lapic_send_ipi(cpu_index, (uint8_t) vector);
+  return RTEMS_SUCCESSFUL;
 }
 #endif

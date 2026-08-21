@@ -39,8 +39,14 @@
 #include <rtems/irq.h>
 #include <rtems/irq-extension.h>
 
-#define BSP_IRQ_VECTOR_NUMBER     34
-#define BSP_INTERRUPT_VECTOR_COUNT (BSP_IRQ_VECTOR_NUMBER + 1)
+#define BSP_IRQ_VECTOR_NUMBER     35
+#define BSP_INTERRUPT_VECTOR_COUNT BSP_IRQ_VECTOR_NUMBER
+
+/*
+ * Only the vectors delivered by the Local APIC are vectors of the interrupt
+ * manager.  The vectors below are the exception vectors of the processor.
+ */
+#define BSP_INTERRUPT_CUSTOM_VALID_VECTOR
 
 #endif /* !ASM */
 #endif /* LIBBSP_GENERIC_RISCV_IRQ_H */

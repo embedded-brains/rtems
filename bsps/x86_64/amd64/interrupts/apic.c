@@ -319,6 +319,43 @@ void lapic_timer_enable(uint32_t reload_value)
   amd64_lapic_base[LAPIC_REGISTER_TIMER_INITCNT] = reload_value;
 }
 
+void lapic_timer_set_masked(bool masked)
+{
+  uint32_t lvt = amd64_lapic_base[LAPIC_REGISTER_LVT_TIMER];
+
+  if (masked) {
+    lvt |= LAPIC_LVT_MASK;
+  } else {
+    lvt &= ~LAPIC_LVT_MASK;
+  }
+
+  amd64_lapic_base[LAPIC_REGISTER_LVT_TIMER] = lvt;
+}
+
+bool lapic_timer_is_masked(void)
+{
+  return (amd64_lapic_base[LAPIC_REGISTER_LVT_TIMER] & LAPIC_LVT_MASK) != 0;
+}
+
+void lapic_raise_self(uint32_t vector)
+{
+  amd64_lapic_base[LAPIC_REGISTER_ICR_LOW] =
+    (amd64_lapic_base[LAPIC_REGISTER_ICR_LOW] & LAPIC_ICR_LOW_MASK) |
+      LAPIC_ICR_DEST_SELF | LAPIC_ICR_ASSERT | vector;
+
+  while (amd64_lapic_base[LAPIC_REGISTER_ICR_LOW] & LAPIC_ICR_DELIV_STAT_PEND) {
+    amd64_spinwait();
+  }
+}
+
+bool lapic_is_pending(uint32_t vector)
+{
+  uint32_t reg = LAPIC_REGISTER_IRR_BASE +
+    (vector / 32) * LAPIC_REGISTER_IRR_STRIDE;
+
+  return (amd64_lapic_base[reg] & (UINT32_C(1) << (vector % 32))) != 0;
+}
+
 uint64_t amd64_tsc_frequency(void)
 {
   return amd64_tsc_ticks_per_sec;
