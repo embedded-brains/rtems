@@ -101,7 +101,7 @@ static T_interrupt_test_state any_satisfy_before_timeout_interrupt(void *arg)
     );
     rtems_test_assert(_Thread_Wait_get_status(thread) == STATUS_SUCCESSFUL);
 
-    _Thread_Timeout(&thread->Timer.Watchdog);
+    _Thread_Timeout(&thread->Timer.Watchdog, thread->Timer.Watchdog.token);
 
     rtems_test_assert(
       *(rtems_event_set *) thread->Wait.return_argument == GREEN
@@ -193,7 +193,7 @@ static T_interrupt_test_state all_satisfy_before_timeout_interrupt(void *arg)
     );
     rtems_test_assert(_Thread_Wait_get_status(thread) == STATUS_SUCCESSFUL);
 
-    _Thread_Timeout(&thread->Timer.Watchdog);
+    _Thread_Timeout(&thread->Timer.Watchdog, thread->Timer.Watchdog.token);
 
     rtems_test_assert(
       *(rtems_event_set *) thread->Wait.return_argument == EVENTS
@@ -262,7 +262,7 @@ static T_interrupt_test_state timeout_before_satisfied_interrupt(void *arg)
     );
     rtems_test_assert(_Thread_Wait_get_status(thread) == STATUS_SUCCESSFUL);
 
-    _Thread_Timeout(&thread->Timer.Watchdog);
+    _Thread_Timeout(&thread->Timer.Watchdog, thread->Timer.Watchdog.token);
 
     rtems_test_assert(
       *(rtems_event_set *) thread->Wait.return_argument == DEADBEEF
