@@ -70,7 +70,7 @@ static T_interrupt_test_state any_satisfy_before_timeout_interrupt(void *arg)
   rtems_status_code sc;
   test_context *ctx = arg;
   Thread_Control *thread = ctx->thread;
-  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread);
+  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK;
   T_interrupt_test_state state;
 
   if (blocks_for_event(flags)) {
@@ -110,7 +110,8 @@ static T_interrupt_test_state any_satisfy_before_timeout_interrupt(void *arg)
 
     if (state == T_INTERRUPT_TEST_DONE) {
       rtems_test_assert(
-        _Thread_Wait_flags_get(thread) == THREAD_WAIT_STATE_READY
+        (_Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK)
+          == THREAD_WAIT_STATE_READY
       );
     }
 
@@ -161,7 +162,7 @@ static T_interrupt_test_state all_satisfy_before_timeout_interrupt(void *arg)
   rtems_status_code sc;
   test_context *ctx = arg;
   Thread_Control *thread = ctx->thread;
-  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread);
+  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK;
   T_interrupt_test_state state;
 
   if (blocks_for_event(flags)) {
@@ -201,7 +202,8 @@ static T_interrupt_test_state all_satisfy_before_timeout_interrupt(void *arg)
 
     if (state == T_INTERRUPT_TEST_DONE) {
       rtems_test_assert(
-        _Thread_Wait_flags_get(thread) == THREAD_WAIT_STATE_READY
+        (_Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK)
+          == THREAD_WAIT_STATE_READY
       );
     }
 
@@ -245,7 +247,7 @@ static T_interrupt_test_state timeout_before_satisfied_interrupt(void *arg)
   rtems_status_code sc;
   test_context *ctx = arg;
   Thread_Control *thread = ctx->thread;
-  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread);
+  Thread_Wait_flags flags = _Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK;
   T_interrupt_test_state state;
 
   if (blocks_for_event(flags)) {
@@ -277,7 +279,8 @@ static T_interrupt_test_state timeout_before_satisfied_interrupt(void *arg)
 
     if (state == T_INTERRUPT_TEST_DONE) {
       rtems_test_assert(
-        _Thread_Wait_flags_get(thread) == THREAD_WAIT_STATE_READY
+        (_Thread_Wait_flags_get(thread) & THREAD_WAIT_MASK)
+          == THREAD_WAIT_STATE_READY
       );
     }
 

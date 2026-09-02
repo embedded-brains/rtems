@@ -82,7 +82,7 @@ static T_interrupt_test_state event_from_isr_interrupt(
   rtems_status_code      status;
 
   ctx = arg;
-  flags = _Thread_Wait_flags_get( ctx->main_thread );
+  flags = _Thread_Wait_flags_get( ctx->main_thread ) & THREAD_WAIT_MASK;
 
   if ( interrupts_blocking_op( flags ) ) {
     /*
@@ -167,7 +167,7 @@ static T_interrupt_test_state event_with_timeout_from_isr_interrupt(
   rtems_status_code       status;
 
   ctx = arg;
-  flags = _Thread_Wait_flags_get( ctx->main_thread );
+  flags = _Thread_Wait_flags_get( ctx->main_thread ) & THREAD_WAIT_MASK;
 
   if ( interrupts_blocking_op( flags ) ) {
     /*
