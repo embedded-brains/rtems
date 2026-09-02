@@ -544,6 +544,13 @@ T_TEST_CASE(BroadcastDuringMultitaskingDispatchDisabled)
 
 static void Init(rtems_task_argument arg)
 {
+  /*
+   * after_drivers() makes the idle thread of the boot processor the runner.
+   * A report of a thread which is not the runner goes into the output buffer,
+   * and this test has none.
+   */
+  T_make_runner();
+
   T_register();
   T_make_runner();
   T_run_all();
