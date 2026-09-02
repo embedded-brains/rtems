@@ -101,7 +101,7 @@ void TQWaitForIntendToBlock( const TQContext *ctx, TQWorkerKind worker )
   thread = ctx->worker_tcb[ worker ];
 
   while (
-    _Thread_Wait_flags_get_acquire( thread ) != THREAD_WAIT_CLASS_OBJECT
+    _Thread_Wait_flags_get_acquire( thread ) != THREAD_WAIT_CLASS_QUEUE
   ) {
     /* Wait */
   }
@@ -139,7 +139,7 @@ void TQSendAndWaitForExecutionStopOrIntendToBlock(
 
   while (
     _Thread_Is_executing_on_a_processor( thread ) &&
-    _Thread_Wait_flags_get_acquire( thread ) != THREAD_WAIT_CLASS_OBJECT
+    _Thread_Wait_flags_get_acquire( thread ) != THREAD_WAIT_CLASS_QUEUE
   ) {
     /* Wait */
   }
