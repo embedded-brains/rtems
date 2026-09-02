@@ -2322,6 +2322,11 @@ static inline void _Thread_Wait_cancel(
 #define THREAD_WAIT_CLASS_PERIOD 0x800U
 
 /**
+ * @brief Indicates that the thread waits for a point in time.
+ */
+#define THREAD_WAIT_CLASS_TIME 0x1000U
+
+/**
  * @brief Sets the thread's wait flags.
  *
  * @param[in, out] the_thread The thread to set the wait flags of.
