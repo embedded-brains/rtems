@@ -441,6 +441,7 @@ void _Thread_queue_Enqueue(
 
   the_thread->Wait.return_code = STATUS_SUCCESSFUL;
   wait_flags = _Thread_Wait_flags_start( the_thread, THREAD_WAIT_CLASS_QUEUE );
+  queue_context->timeout_token = wait_flags;
   cpu_self = _Thread_queue_Dispatch_disable( queue_context );
   _Thread_queue_Queue_release( queue, &queue_context->Lock_context.Lock_context );
 
@@ -514,6 +515,7 @@ Status_Control _Thread_queue_Enqueue_sticky(
 
   the_thread->Wait.return_code = STATUS_SUCCESSFUL;
   wait_flags = _Thread_Wait_flags_start( the_thread, THREAD_WAIT_CLASS_QUEUE );
+  queue_context->timeout_token = wait_flags;
   cpu_self = _Thread_queue_Dispatch_disable( queue_context );
   _Thread_queue_Queue_release( queue, &queue_context->Lock_context.Lock_context );
 

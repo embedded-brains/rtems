@@ -128,7 +128,7 @@ static void action(void *arg)
 
   _Thread_Timeout(
     &ctx->semaphore_task_tcb->Timer.Watchdog,
-    ctx->semaphore_task_tcb->Timer.Watchdog.token
+    _Thread_Wait_flags_get( ctx->semaphore_task_tcb )
   );
 
   switch (_Thread_Wait_get_status(ctx->semaphore_task_tcb)) {

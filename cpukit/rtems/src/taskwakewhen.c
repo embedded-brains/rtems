@@ -51,6 +51,7 @@ rtems_status_code rtems_task_wake_when(
 {
   uint32_t          seconds;
   Thread_Control   *executing;
+  Thread_Wait_flags wait_flags;
   Per_CPU_Control  *cpu_self;
   rtems_status_code status;
 
@@ -71,12 +72,16 @@ rtems_status_code rtems_task_wake_when(
   cpu_self = _Thread_Dispatch_disable();
     executing = _Per_CPU_Get_executing( cpu_self );
     _Thread_Set_state( executing, STATES_WAITING_FOR_TIME );
-    _Thread_Wait_flags_start_blocked( executing, THREAD_WAIT_CLASS_TIME );
+    wait_flags = _Thread_Wait_flags_start_blocked(
+      executing,
+      THREAD_WAIT_CLASS_TIME
+    );
     _Thread_Timer_insert_realtime(
       executing,
       cpu_self,
       _Thread_Timeout,
-      _Watchdog_Ticks_from_seconds( seconds )
+      _Watchdog_Ticks_from_seconds( seconds ),
+      wait_flags
     );
   _Thread_Dispatch_direct( cpu_self );
   return RTEMS_SUCCESSFUL;
