@@ -454,6 +454,46 @@ static inline void sparc_enable_interrupts(uint32_t psr)
 }
 
 /**
+ * @brief Reads the number of register windows which the processor implements.
+ *
+ * The WIM carries one bit per register window.  A write of all ones therefore
+ * sets the bits of the implemented windows and leaves the rest zero.
+ *
+ * Every window is invalid while the probe runs.  So the probe disables the
+ * interrupts and executes no SAVE and no RESTORE.
+ *
+ * @return The number of register windows of the processor.
+ */
+static inline uint32_t sparc_get_number_of_register_windows( void )
+{
+  uint32_t level;
+  uint32_t wim;
+  uint32_t probe;
+  uint32_t count;
+
+  /* The accessor reads and writes its argument, so it needs a value. */
+  wim = 0;
+  probe = 0;
+
+  level = sparc_disable_interrupts();
+  sparc_get_wim( wim );
+  probe = 0xffffffff;
+  sparc_set_wim( probe );
+  sparc_get_wim( probe );
+  sparc_set_wim( wim );
+  sparc_enable_interrupts( level );
+
+  count = 0;
+
+  while ( probe != 0 ) {
+    probe &= probe - 1;
+    ++count;
+  }
+
+  return count;
+}
+
+/**
  * @brief SPARC exit through system call 1
  *
  * This method is invoked to go into system error halt. The optional

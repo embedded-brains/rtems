@@ -43,6 +43,7 @@
 #include "config.h"
 #endif
 
+#include <rtems/score/assert.h>
 #include <rtems/score/percpu.h>
 #include <rtems/score/tls.h>
 #include <rtems/score/thread.h>
@@ -232,6 +233,16 @@ RTEMS_STATIC_ASSERT(
 
 void _CPU_Initialize(void)
 {
+  /*
+   * The exception frame, the window flush of the context switch and the
+   * exception resume each use SPARC_NUMBER_OF_REGISTER_WINDOWS.  The header
+   * defines it and derives it from no multilib setting.
+   */
+  _Assert(
+    sparc_get_number_of_register_windows() ==
+      SPARC_NUMBER_OF_REGISTER_WINDOWS
+  );
+
 #if defined(SPARC_USE_LAZY_FP_SWITCH)
   __asm__ volatile (
     ".global SPARC_THREAD_CONTROL_REGISTERS_FP_CONTEXT_OFFSET\n"
