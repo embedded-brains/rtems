@@ -432,6 +432,7 @@ source:
 - cpukit/score/src/apimutexlock.c
 - cpukit/score/src/apimutexunlock.c
 - cpukit/score/src/chain.c
+- cpukit/score/src/condition.c
 - cpukit/score/src/corebarrier.c
 - cpukit/score/src/corebarrierwait.c
 - cpukit/score/src/coremsg.c
