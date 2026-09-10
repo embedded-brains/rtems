@@ -41,6 +41,7 @@
 
 #include <rtems/score/todimpl.h>
 #include <rtems/score/assert.h>
+#include <rtems/score/objectimpl.h>
 #include <rtems/score/chainimpl.h>
 
 Status_Control _TOD_Hook_Run(
@@ -55,9 +56,9 @@ Status_Control _TOD_Hook_Run(
 
   /*
    * This is assumed to be called only from _TOD_Set() which is supposed
-   * to be called only while holding the TOD lock.
+   * to be called only while holding the object allocator mutex.
    */
-  _Assert( _TOD_Is_owner() );
+  _Assert( _Objects_Allocator_is_owner() );
 
   for (
     the_node = _Chain_Immutable_first( &_TOD_Hooks );
