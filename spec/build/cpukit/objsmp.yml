@@ -27,4 +27,5 @@ source:
 - cpukit/score/src/smpmulticastaction.c
 - cpukit/score/src/smpothercastaction.c
 - cpukit/score/src/threadunpin.c
+- cpukit/score/src/watchdogwait.c
 type: build
