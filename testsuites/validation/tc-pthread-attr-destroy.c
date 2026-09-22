@@ -7,6 +7,7 @@
  */
 
 /*
+ * Copyright (C) 2026 Critical Software S.A.
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +53,9 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <pthread.h>
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -63,19 +66,28 @@
  */
 
 typedef enum {
-  CPthreadReqAttrDestroy_Pre_Status_Ok,
-  CPthreadReqAttrDestroy_Pre_Status_NA
-} CPthreadReqAttrDestroy_Pre_Status;
+  CPthreadReqAttrDestroy_Pre_Attr_Valid,
+  CPthreadReqAttrDestroy_Pre_Attr_Null,
+  CPthreadReqAttrDestroy_Pre_Attr_Invalid,
+  CPthreadReqAttrDestroy_Pre_Attr_NA
+} CPthreadReqAttrDestroy_Pre_Attr;
 
 typedef enum {
   CPthreadReqAttrDestroy_Post_Status_Ok,
+  CPthreadReqAttrDestroy_Post_Status_Einval,
   CPthreadReqAttrDestroy_Post_Status_NA
 } CPthreadReqAttrDestroy_Post_Status;
 
+typedef enum {
+  CPthreadReqAttrDestroy_Post_AttrObj_NotInitialized,
+  CPthreadReqAttrDestroy_Post_AttrObj_NA
+} CPthreadReqAttrDestroy_Post_AttrObj;
+
 typedef struct {
   uint8_t Skip : 1;
-  uint8_t Pre_Status_NA : 1;
-  uint8_t Post_Status : 1;
+  uint8_t Pre_Attr_NA : 1;
+  uint8_t Post_Status : 2;
+  uint8_t Post_AttrObj : 1;
 } CPthreadReqAttrDestroy_Entry;
 
 /**
@@ -91,6 +103,11 @@ typedef struct {
    * @brief This member contains the return value.
    */
   int retval;
+
+  /**
+   * @brief This member contains the thread attributes object.
+   */
+  pthread_attr_t attr_obj;
 
   struct {
     /**
@@ -124,48 +141,101 @@ typedef struct {
 static CPthreadReqAttrDestroy_Context
   CPthreadReqAttrDestroy_Instance;
 
-static const char * const CPthreadReqAttrDestroy_PreDesc_Status[] = {
-  "Ok",
+static const char * const CPthreadReqAttrDestroy_PreDesc_Attr[] = {
+  "Valid",
+  "Null",
+  "Invalid",
   "NA"
 };
 
 static const char * const * const CPthreadReqAttrDestroy_PreDesc[] = {
-  CPthreadReqAttrDestroy_PreDesc_Status,
+  CPthreadReqAttrDestroy_PreDesc_Attr,
   NULL
 };
 
-static void CPthreadReqAttrDestroy_Pre_Status_Prepare(
-  CPthreadReqAttrDestroy_Pre_Status state
+static void CPthreadReqAttrDestroy_Pre_Attr_Prepare(
+  CPthreadReqAttrDestroy_Context *ctx,
+  CPthreadReqAttrDestroy_Pre_Attr state
 )
 {
   switch ( state ) {
-    case CPthreadReqAttrDestroy_Pre_Status_Ok: {
+    case CPthreadReqAttrDestroy_Pre_Attr_Valid: {
       /*
-       * TODO
+       * While the `attr` parameter references an initialized thread attributes
+       * object.
        */
-      /* TODOD */
+      ctx->attr = &ctx->attr_obj;
+      pthread_attr_init( &ctx->attr_obj );
       break;
     }
 
-    case CPthreadReqAttrDestroy_Pre_Status_NA:
+    case CPthreadReqAttrDestroy_Pre_Attr_Null: {
+      /*
+       * While the `attr` parameter is NULL.
+       */
+      ctx->attr = NULL;
+      break;
+    }
+
+    case CPthreadReqAttrDestroy_Pre_Attr_Invalid: {
+      /*
+       * While the thread attributes object referenced by the `attr` parameter
+       * is not initialized.
+       */
+      ctx->attr = &ctx->attr_obj;
+      memset( &ctx->attr_obj, 0x0, sizeof( ctx->attr_obj ) );
+      break;
+    }
+
+    case CPthreadReqAttrDestroy_Pre_Attr_NA:
       break;
   }
 }
 
 static void CPthreadReqAttrDestroy_Post_Status_Check(
+  CPthreadReqAttrDestroy_Context    *ctx,
   CPthreadReqAttrDestroy_Post_Status state
 )
 {
   switch ( state ) {
     case CPthreadReqAttrDestroy_Post_Status_Ok: {
       /*
-       * TODO
+       * The return status of pthread_attr_destroy() shall be zero.
        */
-      /* TODOD */
+      T_rsc_success( ctx->retval );
+      break;
+    }
+
+    case CPthreadReqAttrDestroy_Post_Status_Einval: {
+      /*
+       * The return status of pthread_attr_destroy() shall be EINVAL.
+       */
+      T_rsc( ctx->retval, EINVAL );
       break;
     }
 
     case CPthreadReqAttrDestroy_Post_Status_NA:
+      break;
+  }
+}
+
+static void CPthreadReqAttrDestroy_Post_AttrObj_Check(
+  CPthreadReqAttrDestroy_Context     *ctx,
+  CPthreadReqAttrDestroy_Post_AttrObj state
+)
+{
+  switch ( state ) {
+    case CPthreadReqAttrDestroy_Post_AttrObj_NotInitialized: {
+      /*
+       * The value of the is_initialized member of the thread attributes object
+       * referenced by the `attr` parameter shall be false after the return of
+       * the pthread_attr_destroy() call.
+       */
+      T_eq_int( ctx->attr_obj.is_initialized, 0 );
+      break;
+    }
+
+    case CPthreadReqAttrDestroy_Post_AttrObj_NA:
       break;
   }
 }
@@ -179,12 +249,17 @@ static void CPthreadReqAttrDestroy_Action(
 
 static const CPthreadReqAttrDestroy_Entry
 CPthreadReqAttrDestroy_Entries[] = {
-  { 0, 0, CPthreadReqAttrDestroy_Post_Status_Ok }
+  { 0, 0, CPthreadReqAttrDestroy_Post_Status_Ok,
+    CPthreadReqAttrDestroy_Post_AttrObj_NotInitialized },
+  { 0, 0, CPthreadReqAttrDestroy_Post_Status_Einval,
+    CPthreadReqAttrDestroy_Post_AttrObj_NA },
+  { 0, 0, CPthreadReqAttrDestroy_Post_Status_Einval,
+    CPthreadReqAttrDestroy_Post_AttrObj_NotInitialized }
 };
 
 static const uint8_t
 CPthreadReqAttrDestroy_Map[] = {
-  0
+  0, 1, 2
 };
 
 static size_t CPthreadReqAttrDestroy_Scope( void *arg, char *buf, size_t n )
@@ -225,9 +300,13 @@ static void CPthreadReqAttrDestroy_TestVariant(
   CPthreadReqAttrDestroy_Context *ctx
 )
 {
-  CPthreadReqAttrDestroy_Pre_Status_Prepare( ctx->Map.pcs[ 0 ] );
+  CPthreadReqAttrDestroy_Pre_Attr_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CPthreadReqAttrDestroy_Action( ctx );
-  CPthreadReqAttrDestroy_Post_Status_Check( ctx->Map.entry.Post_Status );
+  CPthreadReqAttrDestroy_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
+  CPthreadReqAttrDestroy_Post_AttrObj_Check(
+    ctx,
+    ctx->Map.entry.Post_AttrObj
+  );
 }
 
 /**
@@ -242,8 +321,8 @@ T_TEST_CASE_FIXTURE( CPthreadReqAttrDestroy, &CPthreadReqAttrDestroy_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = CPthreadReqAttrDestroy_Pre_Status_Ok;
-    ctx->Map.pcs[ 0 ] < CPthreadReqAttrDestroy_Pre_Status_NA;
+    ctx->Map.pcs[ 0 ] = CPthreadReqAttrDestroy_Pre_Attr_Valid;
+    ctx->Map.pcs[ 0 ] < CPthreadReqAttrDestroy_Pre_Attr_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     ctx->Map.entry = CPthreadReqAttrDestroy_PopEntry( ctx );
