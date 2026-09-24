@@ -9,5 +9,5 @@ links:
 term: OpenMP
 text: |
   This term is an acronym for
-  `Open Multi-Processing <https://www.openmp.org/>`_.
+  `Open Multi-Processing <https://www.openmp.org/>`\_.
 type: glossary
