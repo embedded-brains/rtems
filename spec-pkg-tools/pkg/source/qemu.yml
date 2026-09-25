@@ -1,0 +1,140 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+archive-file: ${.:/component/workspace-directory}/src/qemu-11.1.1.tar.xz
+archive-hash: 8ws2gAtErANw5jNBqMVZEBlkinjVkp4YsBd4c8C25KDLvdwGkzfLBqO10g0Vd5ybl4bQqSBzxCH7B64Upn1GRg==
+archive-patches:
+- enabled-by: true
+  patch: "From 75c9bbebc02583c7bde0a4fe39e4088d1e568d83 Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Fri, 21 Aug\
+    \ 2026 14:54:40 +0200\nSubject: [PATCH 1/2] hw/timer/xilinx_timer: Start on the\
+    \ enable edge\n\nEvery write to a control register which has the enable bit set\n\
+    restarted the count from the load value.  A guest which clears the\ninterrupt\
+    \ of a periodic timer writes that register with the enable bit\nstill set, so\
+    \ every period gained the latency of the interrupt.  The\nRTEMS clock tick of\
+    \ the petalogix-s3adsp1800 machine ran 0.5 percent\nlong with -icount and 2.5\
+    \ to 3.4 percent long in host time.\n\nStart the count only where the enable bit\
+    \ goes from zero to one.  The\ndata sheet of the AXI Timer gives the reload of\
+    \ the counter to the load\nbit.\n\nAssisted-by: Claude:claude-opus-5 claude-code\n\
+    Signed-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n---\n hw/timer/xilinx_timer.c\
+    \ | 12 ++++++++++--\n 1 file changed, 10 insertions(+), 2 deletions(-)\n\ndiff\
+    \ --git a/hw/timer/xilinx_timer.c b/hw/timer/xilinx_timer.c\nindex 8a502dae0e..dff439c623\
+    \ 100644\n--- a/hw/timer/xilinx_timer.c\n+++ b/hw/timer/xilinx_timer.c\n@@ -175,17\
+    \ +175,25 @@ timer_write(void *opaque, hwaddr addr,\n     addr &= 3;\n     switch\
+    \ (addr) \n     {\n-        case R_TCSR:\n+        case R_TCSR: {\n+         \
+    \   uint32_t old = xt->regs[R_TCSR];\n+\n             if (value & TCSR_TINT)\n\
+    \                 value &= ~TCSR_TINT;\n \n             xt->regs[addr] = value\
+    \ & 0x7ff;\n-            if (value & TCSR_ENT) {\n+            /*\n+         \
+    \    * Only a transition of the enable bit to one starts the count.\n+       \
+    \      * A write which leaves the bit set, such as the acknowledge of\n+     \
+    \        * an interrupt, does not restart it.\n+             */\n+           \
+    \ if ((value & TCSR_ENT) && !(old & TCSR_ENT)) {\n                 ptimer_transaction_begin(xt->ptimer);\n\
+    \                 timer_enable(xt);\n                 ptimer_transaction_commit(xt->ptimer);\n\
+    \             }\n             break;\n+        }\n  \n         default:\n    \
+    \         if (addr < ARRAY_SIZE(xt->regs))\n-- \n2.53.0\n\n"
+  type: inline
+- enabled-by: true
+  patch: "From 932c652973b53a5c67eb64dc8f60e0491fe649a6 Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Fri, 21 Aug\
+    \ 2026 14:54:40 +0200\nSubject: [PATCH 2/2] hw/timer/xilinx_timer: Reload at the\
+    \ expiry\n\nThe callback of a timer with the auto reload and hold bit set restarted\n\
+    the count.  It restarted it at the moment the callback ran, so every\nperiod gained\
+    \ the latency of the callback and the period moved with the\nload of the host.\n\
+    \nRun the ptimer in the periodic mode, so that it reloads at the expiry.\nA write\
+    \ of the load register while the count runs sets the limit for\nthe next reload,\
+    \ which keeps the load value live.\n\nThe clock tick of the petalogix-s3adsp1800\
+    \ machine measures 62000.01\ncounts of a second timer against a programmed 62000\
+    \ with -icount, and\n61929 to 62036 counts in host time.  The values before this\
+    \ series are\n62327 and 63535 to 64083.\n\nAssisted-by: Claude:claude-opus-5 claude-code\n\
+    Signed-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n---\n hw/timer/xilinx_timer.c\
+    \ | 36 ++++++++++++++++++++++++++++--------\n 1 file changed, 28 insertions(+),\
+    \ 8 deletions(-)\n\ndiff --git a/hw/timer/xilinx_timer.c b/hw/timer/xilinx_timer.c\n\
+    index dff439c623..7120c339ec 100644\n--- a/hw/timer/xilinx_timer.c\n+++ b/hw/timer/xilinx_timer.c\n\
+    @@ -139,6 +139,14 @@ timer_read(void *opaque, hwaddr addr, unsigned int size)\n\
+    \     return r;\n }\n \n+static uint64_t timer_limit(struct xlx_timer *xt)\n+{\n\
+    +    if (xt->regs[R_TCSR] & TCSR_UDT)\n+        return xt->regs[R_TLR];\n+   \
+    \ else\n+        return ~0 - xt->regs[R_TLR];\n+}\n+\n /* Must be called inside\
+    \ ptimer transaction block */\n static void timer_enable(struct xlx_timer *xt)\n\
+    \ {\n@@ -149,12 +157,14 @@ static void timer_enable(struct xlx_timer *xt)\n \n\
+    \     ptimer_stop(xt->ptimer);\n \n-    if (xt->regs[R_TCSR] & TCSR_UDT)\n-  \
+    \      count = xt->regs[R_TLR];\n-    else\n-        count = ~0 - xt->regs[R_TLR];\n\
+    +    count = timer_limit(xt);\n     ptimer_set_limit(xt->ptimer, count, 1);\n\
+    -    ptimer_run(xt->ptimer, 1);\n+    /*\n+     * The auto reload and hold bit\
+    \ makes the count periodic.  Let the ptimer\n+     * carry the period, so that\
+    \ it reloads at the expiry rather than when the\n+     * callback runs.\n+   \
+    \  */\n+    ptimer_run(xt->ptimer, !(xt->regs[R_TCSR] & TCSR_ARHT));\n }\n \n\
+    \ static void\n@@ -195,6 +205,19 @@ timer_write(void *opaque, hwaddr addr,\n \
+    \            break;\n         }\n  \n+        case R_TLR:\n+            xt->regs[addr]\
+    \ = value;\n+            /*\n+             * A running periodic count takes the\
+    \ new load value at its next\n+             * reload.\n+             */\n+   \
+    \         if (xt->regs[R_TCSR] & TCSR_ENT) {\n+                ptimer_transaction_begin(xt->ptimer);\n\
+    +                ptimer_set_limit(xt->ptimer, timer_limit(xt), 0);\n+        \
+    \        ptimer_transaction_commit(xt->ptimer);\n+            }\n+           \
+    \ break;\n+\n         default:\n             if (addr < ARRAY_SIZE(xt->regs))\n\
+    \                 xt->regs[addr] = value;\n@@ -226,9 +249,6 @@ static void timer_hit(void\
+    \ *opaque)\n     XpsTimerState *t = xt->parent;\n     D(fprintf(stderr, \"%s %d\\\
+    n\", __func__, xt->nr));\n     xt->regs[R_TCSR] |= TCSR_TINT;\n-\n-    if (xt->regs[R_TCSR]\
+    \ & TCSR_ARHT)\n-        timer_enable(xt);\n     timer_update_irq(t);\n }\n \n\
+    -- \n2.53.0\n\n"
+  type: inline
+- enabled-by: true
+  patch: "From ee58daa8fc7c52baa578fc54a1aa6b4dbfd6b8ad Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Fri, 11 Sep\
+    \ 2026 03:28:13 +0200\nSubject: [PATCH] target/mips/tcg: Gate rdhwr on Config3.ULRI\n\
+    \nThe user local register of a MIPS processor exists where Config3.ULRI\nis set.\
+    \  gen_rdhwr() read CP0_UserLocal for hardware register 29\nwhatever that bit\
+    \ held.  A processor which implements no such register\nreturned a value nobody\
+    \ wrote.  A 24Kf leaves ULRI clear, so an\noperating system which supplies the\
+    \ thread pointer through the\nreserved instruction exception never saw that exception.\n\
+    \nGate the read on the bit.  A processor without the register then takes\nthe\
+    \ reserved instruction exception.  The operating system emulates the\ninstruction\
+    \ and supplies the value.\n\nRTEMS on the malta machine reads the thread pointer\
+    \ this way.\n\nAssisted-by: Claude:claude-opus-5 claude-code\nSigned-off-by: Sebastian\
+    \ Huber <sebastian.huber@embedded-brains.de>\n---\n target/mips/tcg/translate.c\
+    \ | 9 +++++++--\n 1 file changed, 7 insertions(+), 2 deletions(-)\n\ndiff --git\
+    \ a/target/mips/tcg/translate.c b/target/mips/tcg/translate.c\nindex e3467d1525..37f562df0d\
+    \ 100644\n--- a/target/mips/tcg/translate.c\n+++ b/target/mips/tcg/translate.c\n\
+    @@ -10915,8 +10915,13 @@ void gen_rdhwr(DisasContext *ctx, int rt, int rd, int\
+    \ sel)\n         gen_store_gpr(t0, rt);\n         break;\n #else\n-        if\
+    \ ((ctx->hflags & MIPS_HFLAG_CP0) ||\n-            (ctx->hflags & MIPS_HFLAG_HWRENA_ULR))\
+    \ {\n+        /*\n+         * The user local register exists where Config3.ULRI\
+    \ says so.  A\n+         * processor without it takes a reserved instruction exception,\
+    \ which\n+         * lets an operating system supply the value.\n+         */\n\
+    +        if (ctx->ulri && ((ctx->hflags & MIPS_HFLAG_CP0) ||\n+              \
+    \            (ctx->hflags & MIPS_HFLAG_HWRENA_ULR))) {\n             tcg_gen_ld_tl(t0,\
+    \ tcg_env,\n                           offsetof(CPUMIPSState, active_tc.CP0_UserLocal));\n\
+    \             gen_store_gpr(t0, rt);\n-- \n2.53.0\n\n"
+  type: inline
+archive-url: https://download.qemu.org/qemu-11.1.1.tar.xz
+copyrights:
+- Copyright (C) 2020, 2025 embedded brains GmbH & Co. KG
+description: |
+  Qemu sources.
+destination-directory: ${.:/component/deployment-directory}/src
+enabled-by:
+- pkg.arch.aarch64
+- pkg.arch.arm
+- pkg.arch.i386
+- pkg.arch.microblaze
+- pkg.arch.mips
+- pkg.arch.or1k
+- pkg.arch.riscv
+- pkg.arch.x86_64
+license-files:
+  description: |
+    The Qemu sources are used to provide host tools to simulate
+    ${/glossary/target:/plural}.
+  files:
+  - LICENSE
+license-info: []
+links:
+- hash: null
+  name: component
+  role: input
+  uid: ../component
+- hash: null
+  name: member
+  role: input-to
+  uid: ../deployment/archive
+pkg-type: workspace
+symbolic-links: []
+type: pkg
+workspace-type: archive
