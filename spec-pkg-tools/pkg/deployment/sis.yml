@@ -4,45 +4,42 @@ actions:
   enabled-by: true
   missing-ok: true
   path: ${.:/params/build-directory}
-- action: mkdir
+- action: remove-glob
   enabled-by: true
-  exist-ok: false
-  parents: true
-  path: ${.:/params/build-directory}
+  path: ${../source/sis:/directory}
+  patterns:
+  - .lock-waf*
+  - .waf*
+  remove-tree: true
 - action: subprocess
   command:
-  - ${../source/sis:/directory}/configure
+  - ./waf
+  - configure
+  - --out=${.:/params/build-directory}
   - --prefix=${.:/component/deployment-directory}
   enabled-by: true
   env: []
   expected-return-code: 0
-  working-directory: ${.:/params/build-directory}
+  working-directory: ${../source/sis:/directory}
 - action: subprocess
   command:
-  - make
+  - ./waf
+  - build
   - -j
   - ${.:/host-processor-count}
   enabled-by: true
-  env:
-  - action: set
-    name: AM_UPDATE_INFO_DIR
-    value: 'no'
+  env: []
   expected-return-code: 0
-  working-directory: ${.:/params/build-directory}
+  working-directory: ${../source/sis:/directory}
 - action: subprocess
   command:
-  - make
-  - -j
-  - ${.:/host-processor-count}
+  - ./waf
   - install
-  - DESTDIR=${.:/params/build-directory}/destdir
+  - --destdir=${.:/params/build-directory}/destdir
   enabled-by: true
-  env:
-  - action: set
-    name: AM_UPDATE_INFO_DIR
-    value: 'no'
+  env: []
   expected-return-code: 0
-  working-directory: ${.:/params/build-directory}
+  working-directory: ${../source/sis:/directory}
 - action: directory-state-discard-and-clear
   enabled-by: true
   output-name: .
@@ -61,6 +58,13 @@ actions:
   env: []
   expected-return-code: null
   working-directory: ${.:/params/build-directory}
+- action: remove-glob
+  enabled-by: true
+  path: ${../source/sis:/directory}
+  patterns:
+  - .lock-waf*
+  - .waf*
+  remove-tree: true
 - action: remove-tree
   enabled-by: true
   missing-ok: true
