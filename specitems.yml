@@ -1,25 +1,34 @@
-spec:
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+item-cache:
   cache-directory: cache
   paths:
-  - spec
+    spec-license: /
+    spec: /
   resolve-proxies: true
   spec-type-root-uid: /spec/root
-automatically-generated-warning: |
-  This file is part of the RTEMS quality process and was automatically
-  generated.  If you find something that needs to be fixed or
-  worded better please post a report or patch to an RTEMS mailing list
-  or raise a bug report:
+links: []
+tasks:
+- task-name: glossary
+  task-type: glossary
+  license: CC-BY-SA-4.0
+  automatically-generated-warning: &warning |
+    This file is part of the RTEMS quality process and was automatically
+    generated.  If you find something that needs to be fixed or
+    worded better please post a report or patch to an RTEMS mailing list
+    or raise a bug report:
 
-  https://www.rtems.org/bugs.html
+    https://www.rtems.org/bugs.html
 
-  For information on updating and regenerating please refer to the How-To
-  section in the Software Requirements Engineering chapter of the
-  RTEMS Software Engineering manual.  The manual is provided as a part of
-  a release.  For development sources please refer to the online
-  documentation at:
+    For information on updating and regenerating please refer to the How-To
+    section in the Software Requirements Engineering chapter of the
+    RTEMS Software Engineering manual.  The manual is provided as a part of
+    a release.  For development sources please refer to the online
+    documentation at:
 
-  https://docs.rtems.org
-glossary:
+    https://docs.rtems.org
   project-groups:
   - /glossary/group
   project-header: Glossary
@@ -30,7 +39,11 @@ glossary:
     rest-source-paths:
     - ../rtems-docs/eng
     target: ../rtems-docs/eng/glossary.rst
-appl-config:
+- task-name: appl-config
+  task-type: appl-config
+  documentation-license: CC-BY-SA-4.0
+  doxygen-license: BSD-2-Clause
+  automatically-generated-warning: *warning
   doxygen-target: cpukit/doxygen/appl-config.h
   enabled-source:
   - RTEMS_QUAL
@@ -65,9 +78,25 @@ appl-config:
     target: ../rtems-docs/c-user/config/scheduler-general.rst
   - uid: /acfg/if/group-stackalloc
     target: ../rtems-docs/c-user/config/task-stack-alloc.rst
-validation:
+- task-name: validation
+  task-type: validation
+  license: BSD-2-Clause
+  option-expressions:
+  - expression: ( ${.:/option-name} == TRUE )
+    pattern: CPU_.*
+  - expression: defined(${.:/option-name})
+    pattern: .*
+  automatically-generated-warning: *warning
   base-directory-map: []
-interface:
+- task-name: interface
+  task-type: interface
+  license: BSD-2-Clause
+  option-expressions:
+  - expression: ( ${.:/option-name} == TRUE )
+    pattern: CPU_.*
+  - expression: defined(${.:/option-name})
+    pattern: .*
+  automatically-generated-warning: *warning
   enabled:
   - RTEMS_QUAL
   item-level-interfaces:
@@ -77,7 +106,10 @@ interface:
   domains:
     /if/domain: .
     /dev/if/domain: .
-interface-documentation:
+- task-name: interface-documentation
+  task-type: interface-documentation
+  license: CC-BY-SA-4.0
+  automatically-generated-warning: *warning
   enabled:
   - RTEMS_QUAL
   groups:
@@ -156,9 +188,13 @@ interface-documentation:
     groups:
     - /rtems/type/if/group
     target: ../rtems-docs/c-user/rtems_data_types.rst
-spec-verification:
+- task-name: spec-verification
+  task-type: spec-verification
   root-type: /spec/root
-spec-documentation:
+- task-name: spec-documentation
+  task-type: spec-documentation
+  license: CC-BY-SA-4.0
+  automatically-generated-warning: *warning
   target: ../rtems-docs/eng/req/items.rst
   hierarchy-subsection-name: Specification Item Hierarchy
   hierarchy-text: |
@@ -170,3 +206,4 @@ spec-documentation:
   section-label-prefix: ReqEng
   section-name: Specification Items
   value-types-subsection-name: Specification Attribute Sets and Value Types
+type: tool-config
