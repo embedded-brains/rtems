@@ -3,7 +3,7 @@ archive-file: ${.:/component/workspace-directory}/src/gmp-6.3.0.tar.xz
 archive-hash: 6FoNq1GViJlIo0YhifDgWY0zHTRXYS4tM1B5nbouJEMW0lb4Fh31IZU46wA-S1ND-YmqoA-WMhVZBj7YyPKf0g==
 archive-patches:
 - enabled-by: true
-  patch: |
+  patch: |2
 
     # HG changeset patch
     # User Marc Glisse <marc.glisse@inria.fr>
@@ -24,10 +24,9 @@ archive-patches:
      void h(){}
      static __inline__ t1 e(t2 rp,t2 up,int n,t1 v0)
      {t1 c,x,r;int i;if(v0){c=1;for(i=1;i<n;i++){x=up[i];r=x+1;rp[i]=r;}}return c;}
-
   type: inline
 - enabled-by: true
-  patch: |
+  patch: |2
 
     # HG changeset patch
     # User Marc Glisse <marc.glisse@inria.fr>
@@ -48,7 +47,6 @@ archive-patches:
      void h(){}
      static __inline__ t1 e(t2 rp,t2 up,int n,t1 v0)
      {t1 c,x,r;int i;if(v0){c=1;for(i=1;i<n;i++){x=up[i];r=x+1;rp[i]=r;}}return c;}
-
   type: inline
 - enabled-by: true
   patch: |
@@ -66,20 +64,20 @@ archive-patches:
      static __inline__ t1 e(t2 rp,t2 up,int n,t1 v0)
      {t1 c,x,r;int i;if(v0){c=1;for(i=1;i<n;i++){x=up[i];r=x+1;rp[i]=r;}}return c;}
   type: inline
-symbolic-links: []
 archive-url: https://ftp.gwdg.de/pub/gnu/ftp/gnu/gmp/gmp-6.3.0.tar.xz
 copyrights:
 - Copyright (C) 2020, 2025 embedded brains GmbH & Co. KG
-copyrights-by-license:
+description: |
+  GMP sources.
+destination-directory: ${.:/component/deployment-directory}/src
+enabled-by: true
+license-files:
   description: |
     The GMP library is used by host tools such as GDB and GCC.
   files:
   - COPYINGv3
   - COPYING.LESSERv3
-description: |
-  GMP sources.
-destination-directory: ${.:/component/deployment-directory}/src
-enabled-by: true
+license-info: []
 links:
 - hash: null
   name: component
@@ -90,5 +88,6 @@ links:
   role: input-to
   uid: ../deployment/archive
 pkg-type: workspace
+symbolic-links: []
 type: pkg
 workspace-type: archive

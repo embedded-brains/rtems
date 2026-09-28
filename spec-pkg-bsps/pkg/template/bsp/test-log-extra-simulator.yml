@@ -1,11 +1,11 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 attribute-actions: []
 attributes:
-  copyrights-by-license: {}
   destination-directory: ${.:/documentation-directory}/test-logs
   destination-file: extra-simulator.json
   directory: ${.:/component/workspace-directory}/test-logs
   enabled-by: target/simulator
+  license-info: []
   links:
   - hash: null
     name: component

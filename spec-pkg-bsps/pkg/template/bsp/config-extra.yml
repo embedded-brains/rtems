@@ -38,7 +38,6 @@ attributes:
         value: 'False'
       name: ${.:/component/arch}/${.:/component/bsp}${.:/component/config:dash}${.:/component/bsp-extra:dash}
     target: null
-  copyrights-by-license: {}
   directory: $${/pkg/source/rtems:/directory}
   directory-state-type: explicit
   enabled-by: true
@@ -46,6 +45,7 @@ attributes:
   - file: config-${.:/component/arch}-${.:/bsp}${.:/config:dash}.ini
     hash: null
   hash: null
+  license-info: []
   links:
   - hash: null
     name: component

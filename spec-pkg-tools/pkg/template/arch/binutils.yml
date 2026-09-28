@@ -30,12 +30,12 @@ attribute-actions:
     role: input
     uid: /pkg/source/binutils-2.42
 attributes:
-  copyrights-by-license: {}
   directory: ${.:/component/deployment-directory}
   directory-state-type: explicit
   enabled-by: true
   files: []
   hash: null
+  license-info: []
   links:
   - hash: null
     name: component

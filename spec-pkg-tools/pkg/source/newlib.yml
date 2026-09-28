@@ -5,17 +5,18 @@ archive-patches: []
 archive-url: https://codeload.github.com/RTEMS/sourceware-mirror-newlib-cygwin/tar.gz/fbc5496
 copyrights:
 - Copyright (C) 2020, 2025 embedded brains GmbH & Co. KG
-copyrights-by-license:
-  description: |
-    The Newlib sources are used to provide the ${/glossary/target-arch:/term}
-    standard C library.
-  files:
-  - COPYING.NEWLIB
 description: |
   The Newlib sources are used to provide the ${/glossary/target-arch:/term}
   standard C library.
 destination-directory: ${.:/component/deployment-directory}/src
 enabled-by: true
+license-files:
+  description: |
+    The Newlib sources are used to provide the ${/glossary/target-arch:/term}
+    standard C library.
+  files:
+  - COPYING.NEWLIB
+license-info: []
 links:
 - hash: null
   name: component

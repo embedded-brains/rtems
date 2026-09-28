@@ -56,12 +56,12 @@ actions:
   path: ${.:/params/build-directory}
 copyrights:
 - Copyright (C) 2023 embedded brains GmbH & Co. KG
-copyrights-by-license: {}
 directory: ${.:/component/deployment-directory}
 directory-state-type: explicit
 enabled-by: true
 files: []
 hash: null
+license-info: []
 links:
 - hash: null
   name: component

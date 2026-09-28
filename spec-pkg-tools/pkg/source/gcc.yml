@@ -5,7 +5,11 @@ archive-patches: []
 archive-url: https://ftp.gwdg.de/pub/gnu/ftp/gnu/gcc/gcc-13.4.0/gcc-13.4.0.tar.xz
 copyrights:
 - Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
-copyrights-by-license:
+description: |
+  This repository contains the GCC sources.  It is used to build host tools.
+destination-directory: ${.:/component/deployment-directory}/src
+enabled-by: true
+license-files:
   description: |
     The GCC sources are used to provide host tools such as the
     ${/glossary/target-arch:/term} compiler.
@@ -15,10 +19,7 @@ copyrights-by-license:
   - COPYING.RUNTIME
   - COPYING3
   - COPYING3.LIB
-description: |
-  This repository contains the GCC sources.  It is used to build host tools.
-destination-directory: ${.:/component/deployment-directory}/src
-enabled-by: true
+license-info: []
 links:
 - hash: null
   name: component

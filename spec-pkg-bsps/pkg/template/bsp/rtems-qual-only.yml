@@ -20,7 +20,6 @@ attributes:
   - /build/testsuites/membench/grp
   - /build/testsuites/validation/grp
   - /build/testsuites/unit/grp
-  copyrights-by-license: {}
   directory: $${.:/component/deployment-directory}/src/rtems-${.:/component/arch}-${.:/bsp}${.:/config:dash}-qual-only
   directory-state-type: repository-subset
   enabled-by: RTEMS_QUAL
@@ -70,6 +69,7 @@ attributes:
   files: []
   hash: null
   include-test-header: true
+  license-info: []
   links:
   - hash: null
     name: component
