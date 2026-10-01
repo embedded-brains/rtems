@@ -4,6 +4,8 @@
  *  COPYRIGHT (c) 1989-2012.
  *  On-Line Applications Research Corporation (OAR).
  *
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -43,6 +45,7 @@ const char rtems_test_name[] = "PSXMSGQ 3";
 
 /* forward declarations to avoid warnings */
 rtems_timer_service_routine mq_send_timer(rtems_id timer, void *arg);
+rtems_timer_service_routine mq_send_priority_timer(rtems_id timer, void *arg);
 
 mqd_t Queue;
 volatile bool tsr_fired;
@@ -62,6 +65,19 @@ rtems_timer_service_routine mq_send_timer(
   tsr_errno = errno;
 }
 
+rtems_timer_service_routine mq_send_priority_timer(
+  rtems_id  timer,
+  void     *arg
+)
+{
+  int msg = 5;
+
+  tsr_fired = true;
+
+  tsr_status = mq_send( Queue, (const char *)&msg, sizeof(int), 7 );
+  tsr_errno = errno;
+}
+
 void *POSIX_Init(
   void *argument
 )
@@ -70,6 +86,9 @@ void *POSIX_Init(
   int                status;
   rtems_id           timer;
   rtems_status_code  rc;
+  int                msg;
+  unsigned int       priority;
+  ssize_t            size;
 
   TEST_BEGIN();
 
@@ -126,6 +145,36 @@ void *POSIX_Init(
   }
 
   puts( "Init - mq_send from ISR returned correct status" );
+
+  puts( "Init - mq_receive from a full queue returns the priority" );
+  msg = -1;
+  priority = 0xdeadbeef;
+  size = mq_receive( Queue, (char *)&msg, sizeof(msg), &priority );
+  rtems_test_assert( size == (ssize_t) sizeof(msg) );
+  rtems_test_assert( priority == 1 );
+
+  puts( "Init - Fire After Classic API Timer to send with priority 7" );
+  tsr_fired = false;
+
+  rc = rtems_timer_fire_after(
+    timer,
+    rtems_clock_get_ticks_per_second(),
+    mq_send_priority_timer,
+    NULL
+  );
+  directive_failed( rc, "rtems_timer_fire_after" );
+
+  puts( "Init - mq_receive blocks on the empty queue" );
+  msg = -1;
+  priority = 0xdeadbeef;
+  size = mq_receive( Queue, (char *)&msg, sizeof(msg), &priority );
+  rtems_test_assert( tsr_fired );
+  rtems_test_assert( tsr_status == 0 );
+  rtems_test_assert( size == (ssize_t) sizeof(msg) );
+  rtems_test_assert( msg == 5 );
+  rtems_test_assert( priority == 7 );
+
+  puts( "Init - mq_receive after the wait returned the priority" );
 
   TEST_END();
   rtems_test_exit( 0 );
