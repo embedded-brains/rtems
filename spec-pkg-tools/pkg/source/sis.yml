@@ -2917,6 +2917,108 @@ archive-patches:
     --- a/wscript\n+++ b/wscript\n@@ -38,6 +38,7 @@ SOURCES = [\n     'greth.c',\n\
     \     'tap.c',\n     'gr740.c',\n+    'gr765.c',\n     'rv32.c',\n ]\n \n"
   type: inline
+- enabled-by: true
+  patch: "From e75dc5d02b10c3eacdc0c553a4bff940a1868539 Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Mon, 5 Oct 2026\
+    \ 15:04:29 +0200\nSubject: [PATCH] sparc: Model the nonstandard mode of the GRFPU\n\
+    \nA load of the FSR kept the old NS bit, so a program could not enter the\nnonstandard\
+    \ mode.  The FPU then computed with a denormalized operand.\nOn the GR740 the\
+    \ bit reads back as one, and the product of the smallest\ndenormal and one is\
+    \ zero.\n\nLet a load of the FSR write NS on every processor except the ERC32.\n\
+    While NS is one, run each arithmetic and conversion operation with the\ndenormals-are-zero\
+    \ flag of the host.\n\nAssisted-by: Claude:claude-opus-5-5 claude-code\nSigned-off-by:\
+    \ Sebastian Huber <sebastian.huber@embedded-brains.de>\n---\n sparc.c | 66 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++-\n\
+    \ sparc.h |  5 +++++\n 2 files changed, 70 insertions(+), 1 deletion(-)\n\ndiff\
+    \ --git a/sparc.c b/sparc.c\nindex 2c350a7..2ee78d6 100644\n--- a/sparc.c\n+++\
+    \ b/sparc.c\n@@ -24,6 +24,12 @@\n #include <stdio.h>\n #include <ctype.h>\n #include\
+    \ <fenv.h>\n+#ifdef __SSE__\n+#include <xmmintrin.h>\n+\n+/* The denormals-are-zero\
+    \ flag of the host MXCSR */\n+#define MXCSR_DAZ 0x0040\n+#endif\n #include \"\
+    sparc.h\"\n \n static int fpexec (uint32 op3, uint32 rd, uint32 rs1, uint32 rs2,\n\
+    @@ -185,6 +191,7 @@ sparc_dispatch_instruction (sregs)\n \n   uint32 cwp, op,\
+    \ op2, op3, asi, rd, cond, rs1, rs2;\n   uint32 ldep, icc, *rdd, data;\n+  uint32\
+    \ mask;\n   int32 operand1, operand2, result, eicc, new_cwp;\n   int32 pc, npc,\
+    \ address, ws, mexc, fcc, annul;\n   uint32 ddata[2];\n@@ -1305,7 +1312,11 @@\
+    \ sparc_dispatch_instruction (sregs)\n \t    }\n \t  else\n \t    {\n-\t     \
+    \ sregs->fsr = (sregs->fsr & 0x7FF000) | (data & ~0x7FF000);\n+\t      if (cputype\
+    \ != CPU_ERC32)\n+\t\tmask = FSR_RO_LEON;\n+\t      else\n+\t\tmask = FSR_RO_ERC32;\n\
+    +\t      sregs->fsr = (sregs->fsr & mask) | (data & ~mask);\n \t      sparc_set_fsr\
+    \ (sregs->fsr);\n \t    }\n \t  break;\n@@ -1681,12 +1692,63 @@ static int isnansd(double\
+    \ *d)\n   return(isnan(*d) && (!(((*(unsigned long int *) d) >> 51) & 1)));\n\
+    \ }\n \n+/*\n+ * In the nonstandard mode, FSR[NS] is one.  The GRFPU then treats\
+    \ a\n+ * denormalized operand of an arithmetic or a conversion operation as a\n\
+    + * zero.  A compare, a move, a negate and an absolute value operation handle\n\
+    + * a denormalized operand in both modes.\n+ */\n+static int\n+sparc_begin_nonstandard\
+    \ (struct pstate *sregs, uint32 opf)\n+{\n+#ifdef __SSE__\n+  unsigned int csr;\n\
+    +\n+  if (cputype == CPU_ERC32 || (sregs->fsr & FSR_NS) == 0)\n+    return 0;\n\
+    +\n+  switch (opf)\n+    {\n+    case FABSs:\n+    case FCMPs:\n+    case FCMPEs:\n\
+    +    case FCMPd:\n+    case FCMPEd:\n+    case FMOVs:\n+    case FNEGs:\n+   \
+    \   return 0;\n+    default:\n+      break;\n+    }\n+\n+  csr = _mm_getcsr ();\n\
+    +  _mm_setcsr (csr | MXCSR_DAZ);\n+  return 1;\n+#else\n+  (void) sregs;\n+  (void)\
+    \ opf;\n+  return 0;\n+#endif\n+}\n+\n+static void\n+sparc_end_nonstandard (int\
+    \ daz)\n+{\n+#ifdef __SSE__\n+  if (daz)\n+    _mm_setcsr (_mm_getcsr () & ~MXCSR_DAZ);\n\
+    +#else\n+  (void) daz;\n+#endif\n+}\n+\n static int\n fpexec (op3, rd, rs1, rs2,\
+    \ sregs)\n      uint32 op3, rd, rs1, rs2;\n      struct pstate *sregs;\n {\n \
+    \  uint32 opf, tem, accex;\n+  int daz;\n   int32 fcc = 0;\n   uint32 ldadj;\n\
+    \   int fcmpexc = 0;\n@@ -1753,6 +1815,7 @@ fpexec (op3, rd, rs1, rs2, sregs)\n\
+    \   sregs->ftime = sregs->simtime + sregs->hold + sregs->fhold;\n \n   clear_accex\
+    \ ();\n+  daz = sparc_begin_nonstandard (sregs, opf);\n \n   switch (opf)\n  \
+    \   {\n@@ -1937,6 +2000,7 @@ fpexec (op3, rd, rs1, rs2, sregs)\n     }\n #endif\n\
+    \ \n+  sparc_end_nonstandard (daz);\n   accex = sparc_get_accex () | fcmpexc;\n\
+    \ \n   if (sregs->fpstate == FP_EXC_PE)\ndiff --git a/sparc.h b/sparc.h\nindex\
+    \ 28fe210..4af2f5a 100644\n--- a/sparc.h\n+++ b/sparc.h\n@@ -37,6 +37,11 @@\n\
+    \ #define T_DIV\t35\n \n #define FSR_QNE \t0x2000\n+#define FSR_NS\t\t0x400000\n\
+    +\n+/* The fields of the FSR which a load leaves unchanged */\n+#define FSR_RO_ERC32\t\
+    0x7FF000\n+#define FSR_RO_LEON\t0x3FF000\n #define FP_EXE_MODE 0\n #define\tFP_EXC_PE\
+    \   1\n #define FP_EXC_MODE 2\n-- \n2.53.0\n\n"
+  type: inline
+- enabled-by: true
+  patch: "From 519e226e143efab1c9caaaf38e0a8a684853762b Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Mon, 5 Oct 2026\
+    \ 15:55:07 +0200\nSubject: [PATCH] sparc: Clear PS on a trap from user mode\n\n\
+    A trap set PSR[PS] if PSR[S] was one and left it unchanged otherwise.\nA trap\
+    \ from user mode then kept the PS bit of an earlier trap, and the\nreturn from\
+    \ the trap entered supervisor mode.  On the GR740 the same\nreturn enters user\
+    \ mode.\n\nCopy PSR[S] to PSR[PS] on every trap.\n\nAssisted-by: Claude:claude-opus-5-5\
+    \ claude-code\nSigned-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n\
+    ---\n sparc.c | 2 +-\n 1 file changed, 1 insertion(+), 1 deletion(-)\n\ndiff --git\
+    \ a/sparc.c b/sparc.c\nindex 2ee78d6..cfdf443 100644\n--- a/sparc.c\n+++ b/sparc.c\n\
+    @@ -2070,7 +2070,7 @@ sparc_execute_trap (sregs)\n       sregs->tbr = (sregs->tbr\
+    \ & 0xfffff000) | (sregs->trap << 4);\n       sregs->trap = 0;\n       sregs->psr\
+    \ &= ~PSR_ET;\n-      sregs->psr |= ((sregs->psr & PSR_S) >> 1);\n+      sregs->psr\
+    \ = (sregs->psr & ~PSR_PS) | ((sregs->psr & PSR_S) >> 1);\n       sregs->psr =\n\
+    \ \t(((sregs->psr & PSR_CWP) - 1) & 0x7) | (sregs->psr & ~PSR_CWP);\n       cwp\
+    \ = ((sregs->psr & PSR_CWP) << 4);\n-- \n2.53.0\n\n"
+  type: inline
+- enabled-by: true
+  patch: "From f71bac20591d2de78e811c6b6b807d0e4d528c89 Mon Sep 17 00:00:00 2001\n\
+    From: Sebastian Huber <sebastian.huber@embedded-brains.de>\nDate: Mon, 5 Oct 2026\
+    \ 15:55:07 +0200\nSubject: [PATCH] sparc: Raise cp_disabled for a coprocessor\
+    \ access\n\nA coprocessor operate instruction and a coprocessor load or store\n\
+    raised the illegal instruction trap.  The SPARC architecture requires\nthe cp_disabled\
+    \ trap while PSR[EC] is zero.  The GR740 has no\ncoprocessor and raises cp_disabled.\n\
+    \nRaise the cp_disabled trap for these instructions.\n\nAssisted-by: Claude:claude-opus-5-5\
+    \ claude-code\nSigned-off-by: Sebastian Huber <sebastian.huber@embedded-brains.de>\n\
+    ---\n sparc.c | 17 +++++++++++++++++\n sparc.h | 14 ++++++++++++++\n 2 files changed,\
+    \ 31 insertions(+)\n\ndiff --git a/sparc.c b/sparc.c\nindex cfdf443..38cf076 100644\n\
+    --- a/sparc.c\n+++ b/sparc.c\n@@ -1015,6 +1015,12 @@ sparc_dispatch_instruction\
+    \ (sregs)\n \t\t}\n \t      break;\n \n+\t    case SPARC_CPOP1:\n+\t    case SPARC_CPOP2:\n\
+    +\t      /* No coprocessor is present, so PSR[EC] is zero */\n+\t      sregs->trap\
+    \ = TRAP_CPDIS;\n+\t      break;\n+\n \t    default:\n \t      sregs->trap = TRAP_UNIMP;\n\
+    \ \t      break;\n@@ -1593,6 +1599,17 @@ sparc_dispatch_instruction (sregs)\n\
+    \ #endif\n \t  break;\n \n+\tcase SPARC_LDC:\n+\tcase SPARC_LDCSR:\n+\tcase SPARC_LDDC:\n\
+    +\tcase SPARC_STC:\n+\tcase SPARC_STCSR:\n+\tcase SPARC_STDCQ:\n+\tcase SPARC_STDC:\n\
+    +\t  /* No coprocessor is present, so PSR[EC] is zero */\n+\t  sregs->trap = TRAP_CPDIS;\n\
+    +\t  break;\n+\n \tdefault:\n \t  sregs->trap = TRAP_UNIMP;\n \t  break;\ndiff\
+    \ --git a/sparc.h b/sparc.h\nindex 4af2f5a..8723e62 100644\n--- a/sparc.h\n+++\
+    \ b/sparc.h\n@@ -99,6 +99,20 @@\n #define TRAP_DEXC 9\n #define TRAP_TAG 10\n\
+    \ #define TRAP_DIV0 0x2a\n+#define TRAP_CPDIS 0x24\n+\n+/* The op3 values of the\
+    \ coprocessor operate instructions */\n+#define SPARC_CPOP1\t0x36\n+#define SPARC_CPOP2\t\
+    0x37\n+\n+/* The op3 values of the coprocessor load and store instructions */\n\
+    +#define SPARC_LDC\t0x30\n+#define SPARC_LDCSR\t0x31\n+#define SPARC_LDDC\t0x33\n\
+    +#define SPARC_STC\t0x34\n+#define SPARC_STCSR\t0x35\n+#define SPARC_STDCQ\t0x36\n\
+    +#define SPARC_STDC\t0x37\n \n #define FSR_TT\t\t0x1C000\n #define FP_IEEE\t\t\
+    0x04000\n-- \n2.53.0\n\n"
+  type: inline
 archive-url: https://gitlab.rtems.org/rtems/tools/rtems-sis/-/archive/551bdcd4bcda1d1795b3a19a8cbe192c960d7b84/sis-551bdcd4bcda1d1795b3a19a8cbe192c960d7b84.tar.bz2
 copyrights:
 - Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
