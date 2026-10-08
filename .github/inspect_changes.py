@@ -48,6 +48,9 @@ _SKIP = ":heavy_minus_sign:"
 # clang-format style of the repository.
 _EXPORT_OPTIONS = ("--format-code", "--no-documentation")
 
+_NO_EXPORT_TOOL = ("The specwareexport or the clang-format tool is not "
+                   "available.")
+
 # The change set categories.  Only CATEGORY_SOURCE is upstreamable to the
 # rtems.org repository.
 CATEGORY_SOURCE = "source"
@@ -340,10 +343,17 @@ class _ExportResult:
 
 def _export(worktree: Path) -> _ExportResult | None:
     """ Exports all items and returns the result, or None if the export tool
-    is not available.  The documentation lives in another repository and is
-    not exported. """
+    or the clang-format tool is not available.  The documentation lives in
+    another repository and is not exported. """
+    clang_format = shutil.which("clang-format")
+    if clang_format is None:
+        return None
     try:
-        result = subprocess.run(["specwareexport", *_EXPORT_OPTIONS],
+        result = subprocess.run([
+            "specwareexport", *_EXPORT_OPTIONS,
+            f"--clang-format-path={clang_format}",
+            "--clang-format-style=file:_clang-format"
+        ],
                                 cwd=worktree,
                                 check=False,
                                 capture_output=True,
@@ -433,7 +443,7 @@ def _check_tree(worktree: Path, items: list[str],
     if _has_export_configuration(worktree):
         exported = _export(worktree)
         if exported is None:
-            details.append("The specwareexport tool is not available.")
+            details.append(_NO_EXPORT_TOOL)
             export = _ERROR
         elif exported.clean:
             export = _OK
@@ -479,12 +489,13 @@ def _check_export(worktree: Path, category: list[str],
                   pending: _PendingExport | None, findings: _Findings,
                   url: str) -> tuple[str, _PendingExport | None]:
     """ Checks that the export reproduces the tree of the commit.  A
-    specification commit may leave the generated files to the next commit,
-    which has to be a source commit.  A merge may leave the items to the next
-    commit, which has to be a specification commit. """
+    specification commit may leave the generated files to the next commit
+    which is no build-qual commit, and that commit has to be a source commit.
+    A merge may leave the items to the next commit, which has to be a
+    specification commit. """
     result = _export(worktree)
     if result is None:
-        findings.error("The specwareexport tool is not available.")
+        findings.error(_NO_EXPORT_TOOL)
         return _ERROR, None
     status = _OK
     if pending is not None:
@@ -528,7 +539,7 @@ def _check_merge(worktree: Path, pending: _PendingExport | None,
         return (_SKIP if pending is None else _ERROR), None
     result = _export(worktree)
     if result is None:
-        findings.error("The specwareexport tool is not available.")
+        findings.error(_NO_EXPORT_TOOL)
         return _ERROR, None
     status = _OK if pending is None else _ERROR
     if result.clean:
@@ -652,10 +663,11 @@ def _check_commit(
     ]
     fmt = _check_spec_format(worktree, items, findings, f"In {url}")
     export = _SKIP
-    if _has_export_configuration(worktree) and (
-            pending is not None or any(
-                f.startswith("spec/") or f.endswith(_C_SUFFIXES)
-                for f in files)):
+    # A change of the build items of the pre-qualified build changes no
+    # generated file, so a pending export passes such a commit unchanged.
+    exports = found != [CATEGORY_BUILD_QUAL] and (pending is not None or any(
+        f.startswith("spec/") or f.endswith(_C_SUFFIXES) for f in files))
+    if exports and _has_export_configuration(worktree):
         export, pending = _check_export(worktree, found, pending, findings,
                                         url)
     deleted = _check_deleted(worktree, commit, findings, url)
