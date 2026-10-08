@@ -19,17 +19,21 @@ Work in a worktree of `eb/qual`. It holds the items, the export configuration
 git worktree add -b <topic> ../rtems-<topic> eb/qual
 cd ../rtems-<topic>
 make prepare
-printf '[sparc/gr712rc]\nBUILD_VALIDATIONTESTS = True\n' > uni.ini
-printf '[sparc/gr712rc]\nBUILD_VALIDATIONTESTS = True\nRTEMS_SMP = True\n' > smp.ini
-for c in uni smp; do
-  WAFLOCK=.lock-waf-$c ./waf configure -o build/$c --rtems-config=$c.ini \
-    --rtems-tools=<tools>
-done
+cat > config.ini <<'EOF'
+[sparc/gr740]
+BUILD_VALIDATIONTESTS = True
+
+[sparc/gr740-smp]
+INHERIT = gr740
+RTEMS_SMP = True
+EOF
+./waf configure --rtems-tools=<tools>
 ```
 
 `make prepare` creates `.venv` with the spec tools. `<tools>` is the prefix
-which `make tools TOOLS_ARCH=sparc` fills, `tools/7` of a checkout. `WAFLOCK`
-gives each build directory its own lock file, so the two builds coexist.
+which `make tools TOOLS_ARCH=sparc` fills, `tools/7` of a checkout. The
+reference BSP of the tests is `sparc/gr740`. The BSP `gr740-smp` inherits the
+options of `gr740` and adds the SMP configuration.
 
 ## Steps
 
@@ -66,11 +70,11 @@ gives each build directory its own lock file, so the two builds coexist.
 5. Build and run both configurations:
 
    ```sh
-   for c in uni smp; do
-     WAFLOCK=.lock-waf-$c ./waf
-     <tools>/bin/sis -leon3 -m 2 -r \
-       build/$c/sparc/gr712rc/testsuites/validation/<suite>.exe
-   done
+   ./waf
+   <tools>/bin/sis -gr740 -extirq 10 -dumbio -r \
+     build/sparc/gr740/testsuites/validation/<suite>.exe </dev/null
+   <tools>/bin/sis -gr740 -extirq 10 -dumbio -m 4 -r \
+     build/sparc/gr740-smp/testsuites/validation/<suite>.exe </dev/null
    ```
 
    `<suite>` is the test suite whose build item lists the test, for example
@@ -80,8 +84,10 @@ gives each build directory its own lock file, so the two builds coexist.
 6. Split the commits. The item goes to a branch of `eb/qual`. The generated
    test and its line in the build item of the suite go to a branch of
    `eb/main`. A kernel fix which the test needs goes there first. A commit
-   holds one category: `source`, `spec`, `pkg` or `ci`. A `spec` commit may
-   leave its generated files to the next commit, a `source` commit.
+   holds one category: `source`, `spec`, `build-qual`, `pkg` or `ci`. The
+   category gives the subject prefix, see [CONTRIBUTING.md](CONTRIBUTING.md). A
+   `spec` commit may leave its generated files to the next commit, a `source`
+   commit.
 
 7. Inspect each branch:
 
@@ -89,9 +95,3 @@ gives each build directory its own lock file, so the two builds coexist.
    PATH=$PWD/.venv/bin:$PATH python .github/inspect_changes.py \
      https://github.com/embedded-brains/rtems <base> <head>
    ```
-
-## Item text
-
-An item text describes the directive or the device. Every observable result of
-a state is a post-condition. The test runner, the test suite and the simulator
-appear only in the test code.
