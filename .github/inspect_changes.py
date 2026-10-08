@@ -324,12 +324,17 @@ def _check_spec_format(worktree: Path, items: list[str],
 
 
 class _ExportResult:
-    """ Holds the result of an export of all items. """
+    """ Holds the result of an export of the items of a change set. """
 
-    def __init__(self, ok: bool, stale: list[str], message: str):
+    def __init__(self,
+                 ok: bool,
+                 stale: list[str],
+                 message: str,
+                 exported: bool = True):
         self.ok = ok
         self.stale = stale
         self.message = message
+        self.exported = exported
 
     @property
     def clean(self) -> bool:
@@ -341,10 +346,22 @@ class _ExportResult:
         return self.message if not self.ok else "\n".join(self.stale)
 
 
-def _export(worktree: Path) -> _ExportResult | None:
-    """ Exports all items and returns the result, or None if the export tool
-    or the clang-format tool is not available.  The documentation lives in
-    another repository and is not exported. """
+def _get_export_items(worktree: Path, paths: list[str]) -> list[str]:
+    """ Returns the specification item files of the paths which exist in the
+    worktree.  The exporter adds the files which these items affect. """
+    return sorted(
+        path for path in paths
+        if path.startswith("spec/") and path.endswith(".yml")
+        and not path.startswith("spec/build/") and (worktree / path).is_file())
+
+
+def _export(worktree: Path, paths: list[str]) -> _ExportResult | None:
+    """ Exports the specification items of the paths and returns the result,
+    or None if the export tool or the clang-format tool is not available.  The
+    documentation lives in another repository and is not exported. """
+    items = _get_export_items(worktree, paths)
+    if not items:
+        return _ExportResult(True, [], "", exported=False)
     clang_format = shutil.which("clang-format")
     if clang_format is None:
         return None
@@ -352,7 +369,7 @@ def _export(worktree: Path) -> _ExportResult | None:
         result = subprocess.run([
             "specwareexport", *_EXPORT_OPTIONS,
             f"--clang-format-path={clang_format}",
-            "--clang-format-style=file:_clang-format"
+            "--clang-format-style=file:_clang-format", *items
         ],
                                 cwd=worktree,
                                 check=False,
@@ -379,9 +396,14 @@ class _PendingExport:
     commit has to provide the generated files of a specification commit.  It
     has to provide the items of a merge. """
 
-    def __init__(self, url: str, result: _ExportResult, merge: bool = False):
+    def __init__(self,
+                 url: str,
+                 result: _ExportResult,
+                 paths: list[str],
+                 merge: bool = False):
         self.url = url
         self.result = result
+        self.paths = paths
         self.merge = merge
 
 
@@ -414,10 +436,11 @@ def _get_head_items(base_ref: str, head_ref: str) -> list[str]:
     ]
 
 
-def _check_tree(worktree: Path, items: list[str],
-                verify: bool) -> _TreeResult:
+def _check_tree(worktree: Path, items: list[str], verify: bool,
+                paths: list[str]) -> _TreeResult:
     """ Checks the tree.  The items are formatted, all items pass the
-    verification, the export reproduces the tree, and the tree is clean. """
+    verification, the export of the paths reproduces the tree, and the tree
+    is clean. """
     details: list[str] = []
     fmt = _SKIP
     unformatted = _format_items(worktree, items) if items else []
@@ -441,10 +464,12 @@ def _check_tree(worktree: Path, items: list[str],
                            f"{(result.stderr or result.stdout).strip()}")
     export = _SKIP
     if _has_export_configuration(worktree):
-        exported = _export(worktree)
+        exported = _export(worktree, paths)
         if exported is None:
             details.append(_NO_EXPORT_TOOL)
             export = _ERROR
+        elif not exported.exported:
+            export = _SKIP
         elif exported.clean:
             export = _OK
         else:
@@ -459,13 +484,13 @@ def _check_tree(worktree: Path, items: list[str],
     return _TreeResult(fmt, export, details)
 
 
-def _check_base(worktree: Path, base_ref: str,
+def _check_base(worktree: Path, base_ref: str, paths: list[str],
                 findings: _Findings) -> _TreeResult:
     """ Checks that the change set starts from a clean state.  A dirty base is
     a warning.  The first commit of the change set has to make the tree
     clean. """
     _git("checkout", "--detach", base_ref, cwd=worktree)
-    result = _check_tree(worktree, [], False)
+    result = _check_tree(worktree, [], False, paths)
     if not result.clean:
         findings.warning(
             f"The base `{base_ref}` of the change set is not clean.  The first "
@@ -473,19 +498,21 @@ def _check_base(worktree: Path, base_ref: str,
     return result
 
 
-def _check_head(worktree: Path, base_ref: str, head_ref: str,
-                findings: _Findings) -> _TreeResult:
-    """ Checks the tree after the last commit of the change set. """
+def _check_head(worktree: Path, base_ref: str, head_ref: str, paths: list[str],
+                findings: _Findings, name: str) -> _TreeResult:
+    """ Checks the tree after the last commit of the change set.  The name
+    denotes the head in the report. """
     _git("checkout", "--detach", head_ref, cwd=worktree)
-    result = _check_tree(worktree, _get_head_items(base_ref, head_ref), True)
+    result = _check_tree(worktree, _get_head_items(base_ref, head_ref), True,
+                         paths)
     if not result.clean:
         findings.error(
-            f"After the last commit `{head_ref}` of the change set, the tree "
+            f"After the last commit `{name}` of the change set, the tree "
             "is not clean:", "\n".join(result.details))
     return result
 
 
-def _check_export(worktree: Path, category: list[str],
+def _check_export(worktree: Path, category: list[str], files: list[str],
                   pending: _PendingExport | None, findings: _Findings,
                   url: str) -> tuple[str, _PendingExport | None]:
     """ Checks that the export reproduces the tree of the commit.  A
@@ -493,11 +520,12 @@ def _check_export(worktree: Path, category: list[str],
     which is no build-qual commit, and that commit has to be a source commit.
     A merge may leave the items to the next commit, which has to be a
     specification commit. """
-    result = _export(worktree)
+    paths = sorted(set(files) | set(pending.paths if pending else []))
+    result = _export(worktree, paths)
     if result is None:
         findings.error(_NO_EXPORT_TOOL)
         return _ERROR, None
-    status = _OK
+    status = _OK if result.exported else _SKIP
     if pending is not None:
         if pending.merge:
             expected = CATEGORY_SPEC
@@ -520,13 +548,13 @@ def _check_export(worktree: Path, category: list[str],
     if result.clean:
         return status, None
     if category == [CATEGORY_SPEC] and (pending is None or not pending.merge):
-        return status, _PendingExport(url, result)
+        return status, _PendingExport(url, result, paths)
     findings.error(f"In {url}, the export does not reproduce the tree:",
                    result.describe())
     return _ERROR, None
 
 
-def _check_merge(worktree: Path, pending: _PendingExport | None,
+def _check_merge(worktree: Path, commit: str, pending: _PendingExport | None,
                  findings: _Findings,
                  url: str) -> tuple[str, _PendingExport | None]:
     """ Checks that the export reproduces the tree of the merge.  If it does
@@ -537,14 +565,15 @@ def _check_merge(worktree: Path, pending: _PendingExport | None,
             f"the next commit {url} is a merge:", pending.result.describe())
     if not _has_export_configuration(worktree):
         return (_SKIP if pending is None else _ERROR), None
-    result = _export(worktree)
+    paths = _lines(_git("diff", "--name-only", f"{commit}^1", commit))
+    result = _export(worktree, paths)
     if result is None:
         findings.error(_NO_EXPORT_TOOL)
         return _ERROR, None
-    status = _OK if pending is None else _ERROR
+    status = (_OK if result.exported else _SKIP) if pending is None else _ERROR
     if result.clean:
         return status, None
-    return status, _PendingExport(url, result, merge=True)
+    return status, _PendingExport(url, result, paths, merge=True)
 
 
 def _check_deleted(worktree: Path, commit: str, findings: _Findings,
@@ -570,9 +599,10 @@ def _check_deleted(worktree: Path, commit: str, findings: _Findings,
 
 
 def _check_extractable(repository: Path, upstream_ref: str,
-                       commits: list[tuple[str, str]],
-                       categories: dict[str, list[str]],
-                       findings: _Findings) -> None:
+                       commits: list[tuple[str,
+                                           str]], categories: dict[str,
+                                                                   list[str]],
+                       originals: dict[str, str], findings: _Findings) -> None:
     """ Checks that the upstreamable commits apply to the upstream branch. """
     source = [
         commit for commit, _ in commits
@@ -600,10 +630,10 @@ def _check_extractable(repository: Path, upstream_ref: str,
                     # The rtems.org baseline is frozen, so the result is a
                     # note for a later upstream submission.
                     findings.warning(
-                        f"The commit `{commit[:10]}` does not apply to "
+                        f"The commit `{originals.get(commit, commit)[:10]}` "
+                        "does not apply to "
                         f"`{upstream_ref}`.  A submission to the rtems.org "
-                        "repository would conflict in:",
-                        "\n".join(conflicts))
+                        "repository would conflict in:", "\n".join(conflicts))
                     return
                 # A runner of the CI has no committer identity.  The commit
                 # exists only in the temporary worktree.
@@ -668,8 +698,8 @@ def _check_commit(
     exports = found != [CATEGORY_BUILD_QUAL] and (pending is not None or any(
         f.startswith("spec/") or f.endswith(_C_SUFFIXES) for f in files))
     if exports and _has_export_configuration(worktree):
-        export, pending = _check_export(worktree, found, pending, findings,
-                                        url)
+        export, pending = _check_export(worktree, found, files, pending,
+                                        findings, url)
     deleted = _check_deleted(worktree, commit, findings, url)
     return fmt, export, deleted, pending
 
@@ -681,6 +711,91 @@ def _get_repository_path() -> Path:
             raise RuntimeError("no Git repository found")
         repository = repository.parent
     return repository
+
+
+def _is_update_merge(merge: str, base_ref: str) -> bool:
+    """ Is true, if the merge brings in nothing but commits of the base, as the
+    branch update of a pull request does. """
+    parents = _git("rev-list", "--parents", "-n", "1", merge).split()[2:]
+    return all(
+        _git_ok("merge-base", "--is-ancestor", parent, base_ref)
+        for parent in parents)
+
+
+def _rebase_change_set(repository: Path, base_ref: str, head_ref: str,
+                       findings: _Findings) -> tuple[str, dict[str, str]]:
+    """ Rebases the commits of a change set onto the base if each of its merges
+    only updates the branch.  Returns the head to inspect and the original
+    commit of each rebased commit.  Another merge, such as a merge of
+    Harmonia, keeps the change set as it is. """
+    merges = _lines(_git("rev-list", "--merges", f"{base_ref}..{head_ref}"))
+    if not merges or not all(_is_update_merge(m, base_ref) for m in merges):
+        return head_ref, {}
+    commits = _lines(
+        _git("rev-list", "--reverse", "--topo-order", "--no-merges",
+             f"{base_ref}..{head_ref}"))
+    originals: dict[str, str] = {}
+    skipped: list[str] = []
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        worktree = Path(tmp_dir) / "rebase"
+        _git("worktree",
+             "add",
+             "--detach",
+             str(worktree),
+             base_ref,
+             cwd=repository)
+        try:
+            for commit in commits:
+                if not _git_ok(
+                        "cherry-pick", "--no-commit", commit, cwd=worktree):
+                    conflicts = _lines(
+                        _git("diff",
+                             "--name-only",
+                             "--diff-filter=U",
+                             cwd=worktree))
+                    findings.error(
+                        f"The commit `{commit[:10]}` does not apply to the "
+                        f"base `{base_ref}`.  Rebase the change set onto the "
+                        "base.  It conflicts in:", "\n".join(conflicts))
+                    return head_ref, {}
+                if _git_ok("diff", "--cached", "--quiet", cwd=worktree):
+                    skipped.append(commit)
+                    continue
+                # A runner of the CI has no committer identity.  The commit
+                # exists only in the object store of the repository.
+                _git("-c",
+                     "user.name=inspect_changes",
+                     "-c",
+                     "user.email=inspect_changes@invalid",
+                     "commit",
+                     "--no-edit",
+                     "--no-verify",
+                     "-C",
+                     commit,
+                     cwd=worktree)
+                rebased = _git("rev-parse", "HEAD", cwd=worktree).strip()
+                originals[rebased] = commit
+            head = _git("rev-parse", "HEAD", cwd=worktree).strip()
+        finally:
+            subprocess.run(["git", "cherry-pick", "--quit"],
+                           cwd=worktree,
+                           check=False,
+                           capture_output=True)
+            subprocess.run(
+                ["git", "worktree", "remove", "--force",
+                 str(worktree)],
+                cwd=repository,
+                check=False,
+                capture_output=True)
+    findings.warning(
+        "The merges of the change set only bring in the base.  The inspection "
+        f"checks the commits of the change set rebased onto `{base_ref}`.")
+    if skipped:
+        findings.warning(
+            "These commits change nothing on top of the base:",
+            "\n".join(f"{c[:10]} {_git('log', '-1', '--format=%s', c).strip()}"
+                      for c in skipped))
+    return head, originals
 
 
 def main(argv: list[str]) -> int:
@@ -727,20 +842,29 @@ def main(argv: list[str]) -> int:
             f"The upstream reference `{args.upstream_ref}` does not exist.  "
             "The category invariant and the extractability check are skipped.")
     exclude_ref = args.upstream_ref if has_upstream else None
-    commits = _get_commits(base_ref, head_ref, exclude_ref)
-    commit_rows = _get_rows(base_ref, head_ref, exclude_ref)
+    inspect_ref, originals = _rebase_change_set(repository, base_ref, head_ref,
+                                                findings)
+    commits = _get_commits(base_ref, inspect_ref, exclude_ref)
+    commit_rows = _get_rows(base_ref, inspect_ref, exclude_ref)
     logging.info("inspect %d commits in %s..%s", len(commit_rows), base_ref,
-                 head_ref)
+                 inspect_ref)
     rows = [["Subject", "Category", "Format", "Export", "Sources", "Status"]]
     categories = {commit: _get_categories(commit) for commit, _ in commits}
+    # The export covers the items which the change set touches and the files
+    # which they affect.
+    changed = _lines(_git("diff", "--name-only", base_ref, inspect_ref))
     with tempfile.TemporaryDirectory() as tmp_dir:
         worktree = Path(tmp_dir) / "inspect"
-        _git("worktree", "add", "--detach", str(worktree), head_ref,
+        _git("worktree",
+             "add",
+             "--detach",
+             str(worktree),
+             inspect_ref,
              cwd=repository)
         pending: _PendingExport | None = None
         pending_row: list[str] = []
         try:
-            base = _check_base(worktree, base_ref, findings)
+            base = _check_base(worktree, base_ref, changed, findings)
             rows.append([
                 f"Base `{base_ref}`", "", base.fmt, base.export, _SKIP,
                 _OK if base.clean else _WARNING
@@ -748,11 +872,11 @@ def main(argv: list[str]) -> int:
             base_row = rows[-1]
             dirty_base = not base.clean
             for commit, is_merge, subject in commit_rows:
-                commit_url = f"{url}/commit/{commit}"
+                commit_url = f"{url}/commit/{originals.get(commit, commit)}"
                 errors_before = findings.error_count
                 _git("checkout", "--detach", commit, cwd=worktree)
                 if is_merge:
-                    export, pending = _check_merge(worktree, pending,
+                    export, pending = _check_merge(worktree, commit, pending,
                                                    findings, commit_url)
                     fmt = _SKIP
                     deleted = _SKIP
@@ -764,7 +888,7 @@ def main(argv: list[str]) -> int:
                         commit_url)
                 if dirty_base:
                     dirty_base = False
-                    tree = _check_tree(worktree, [], False)
+                    tree = _check_tree(worktree, [], False, changed)
                     if not tree.clean:
                         findings.error(
                             f"The base `{base_ref}` of the change set is not "
@@ -788,7 +912,8 @@ def main(argv: list[str]) -> int:
                     f"tree, and no commit follows which provides the "
                     f"{missing}:", pending.result.describe())
             errors_before = findings.error_count
-            head = _check_head(worktree, base_ref, head_ref, findings)
+            head = _check_head(worktree, base_ref, inspect_ref, changed,
+                               findings, head_ref)
             rows.append([
                 f"Head `{head_ref}`", "", head.fmt, head.export, _SKIP,
                 _OK if findings.error_count == errors_before else _ERROR
@@ -802,7 +927,7 @@ def main(argv: list[str]) -> int:
                 capture_output=True)
     if has_upstream:
         _check_extractable(repository, args.upstream_ref, commits, categories,
-                           findings)
+                           originals, findings)
     content = CommonMarkContent(context="CC-BY-SA-4.0")
     content.add_simple_table(rows)
     content.add(findings.content)
