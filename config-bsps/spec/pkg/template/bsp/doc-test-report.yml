@@ -39,36 +39,12 @@ attributes:
     role: input
     uid: aggregate-test-results
   - hash: null
-    name: images
-    role: input
-    uid: perf-images
-  - hash: null
     name: source
     role: input
     uid: /pkg/source/doc-test-report
-  - expected: $${/pkg/component:/gcc-reported-version}
-    hash: null
-    key: compiler-version
-    name: test-property
-    property-name: GCC Version
-    role: input
-    type: default
-    uid: /pkg/component
-  - expected: $${/pkg/source/rtems:/commit}
-    hash: null
-    key: rtems-commit
-    name: test-property
-    property-name: RTEMS Git Commit
-    role: input
-    type: rtems-version
-    uid: /pkg/source/rtems
   - name: build
     role: output
     uid: build-test-report
-  - hash: null
-    name: test-report
-    role: input-to
-    uid: /pkg/deployment/doc-package-summary
   output-html: null
   output-pdf: null
   pkg-type: directory-state
