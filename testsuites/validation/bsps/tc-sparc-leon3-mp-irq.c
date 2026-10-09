@@ -3,13 +3,11 @@
 /**
  * @file
  *
- * @ingroup RTEMSImplKernelCharIO
- *
- * @brief This source file contains the implementation of rtems_putc().
+ * @ingroup BspSparcLeon3ValMpIrq
  */
 
 /*
- * Copyright (C) 2012, 2026 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,30 +31,53 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @defgroup RTEMSImplKernelCharIO Kernel Character Input and Output
- *
- * @ingroup RTEMSImpl
- *
- * @brief This group contains the kernel character input and output
- *   implementation.
- */
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <rtems/bspIo.h>
+#include <bsp.h>
 
-void rtems_putc( char c )
+#include <rtems/test.h>
+
+/**
+ * @defgroup BspSparcLeon3ValMpIrq spec:/bsp/sparc/leon3/val/mp-irq
+ *
+ * @ingroup TestsuitesBspsValidationBsp0
+ *
+ * @brief Tests the default value of LEON3_mp_irq.
+ *
+ * This test case performs the following actions:
+ *
+ * - Read the value of LEON3_mp_irq. The test program defines no LEON3_mp_irq
+ *   constant.
+ *
+ *   - Check that the value is the value of the BSP option LEON3_IPI_BUS_LINE.
+ *
+ * @{
+ */
+
+/**
+ * @brief Read the value of LEON3_mp_irq. The test program defines no
+ *   LEON3_mp_irq constant.
+ */
+static void BspSparcLeon3ValMpIrq_Action_0( void )
 {
-  BSP_output_char_function_type output_char;
+  unsigned char bus_line;
 
-  output_char = BSP_output_char;
+  bus_line = LEON3_mp_irq;
 
-  if ( c == '\n' ) {
-    ( *output_char )( '\r' );
-  }
-
-  ( *output_char )( c );
+  /*
+   * Check that the value is the value of the BSP option LEON3_IPI_BUS_LINE.
+   */
+  T_eq_uint( bus_line, LEON3_IPI_BUS_LINE );
 }
+
+/**
+ * @fn void T_case_body_BspSparcLeon3ValMpIrq( void )
+ */
+T_TEST_CASE( BspSparcLeon3ValMpIrq )
+{
+  BspSparcLeon3ValMpIrq_Action_0();
+}
+
+/** @} */
