@@ -108,6 +108,8 @@ links:
 - role: validation
   uid: /c/pthread/if/inherit-sched
 - role: validation
+  uid: /c/if/file
+- role: validation
   uid: /c/if/int16_t
 - role: validation
   uid: /c/if/int32_t
