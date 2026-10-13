@@ -17,6 +17,8 @@ test-code: |
 
   #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS TEST_RECORD_PER_PROCESSOR_ITEMS
 
+  #define CONFIGURE_STACK_CHECKER_ENABLED
+
   #include "ts-default.h"
 test-description: null
 test-includes: []
