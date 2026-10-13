@@ -58,6 +58,8 @@ const char rtems_test_name[] = "TestsuitesValidationRecord0";
 
 #define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS TEST_RECORD_PER_PROCESSOR_ITEMS
 
+#define CONFIGURE_STACK_CHECKER_ENABLED
+
 #include "ts-default.h"
 
 /** @} */

@@ -54,6 +54,8 @@ const char rtems_test_name[] = "TestsuitesValidationRecord1";
 
 #define CONFIGURE_RECORD_EXTENSIONS_ENABLED
 
+#define CONFIGURE_STACK_CHECKER_ENABLED
+
 #include "ts-default.h"
 
 /** @} */
