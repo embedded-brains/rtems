@@ -13,6 +13,8 @@ test-code: |
 
   #define CONFIGURE_MAXIMUM_PROCESSORS 5
 
+  #define CONFIGURE_MAXIMUM_THREAD_NAME_SIZE 32
+
   #define CONFIGURE_STACK_CHECKER_ENABLED
 
   #include "ts-default.h"
