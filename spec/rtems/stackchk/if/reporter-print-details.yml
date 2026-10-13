@@ -1,0 +1,48 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Prints the details of the failed stack check and terminates the system.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2007 On-Line Applications Research Corporation (OAR)
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const ${/rtems/task/if/tcb:/name} *${.:/params[0]/name}
+    - ${/c/if/bool:/name} ${.:/params[1]/name}
+    return: void
+  variants: []
+description: |
+  The reporter prints the thread, the ${/glossary/allocatedstackarea:/term} of
+  the thread and, if the pattern is damaged, the
+  ${/glossary/stackcheckerpatternarea:/term} with ${/rtems/io/if/printk:/name}.
+  It then terminates the system with the fatal source
+  ${/score/interr/if/source-stack-checker:/name} and the object name of the
+  thread specified by ${.:/params[0]/name} as the fatal code.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-not-pre-qualified
+name: rtems_stack_checker_reporter_print_details
+notes: null
+params:
+- description: |
+    is the thread whose stack failed a check.
+  dir: in
+  name: running
+- description: |
+    is ${/c/if/true:/name} if the ${/glossary/stackcheckerpatternarea:/term} of the
+    stack holds the pattern, otherwise it is ${/c/if/false:/name}.
+  dir: null
+  name: pattern_ok
+return:
+  return: null
+  return-values: []
+type: interface

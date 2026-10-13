@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Stack checker reporters shall have this type.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+- Copyright (C) 2007 On-Line Applications Research Corporation (OAR)
+definition:
+  default: void ( *${.:/name} )( const ${/rtems/task/if/tcb:/name} *, bool )
+  variants: []
+description: |
+  The first parameter is the thread whose stack failed a check. The second
+  parameter is ${/c/if/true:/name} if the
+  ${/glossary/stackcheckerpatternarea:/term} of this stack holds the pattern,
+  otherwise it is ${/c/if/false:/name}. The application configuration option
+  `CONFIGURE_STACK_CHECKER_REPORTER` selects the reporter.
+enabled-by: true
+index-entries: []
+interface-type: typedef
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: Stack_checker_Reporter_handler
+notes: null
+params: []
+return: null
+type: interface
