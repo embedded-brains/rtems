@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite runs its test cases in the device driver
+  initialization context.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define CONFIGURE_INTERRUPT_STACK_SIZE ( 4 * RTEMS_MINIMUM_STACK_SIZE )
+
+  #define CONFIGURE_STACK_CHECKER_ENABLED
+
+  #include "ts-sysinit.h"
+test-description: |
+  A system initialization handler of the device driver initialization step runs
+  the test cases before the start of the multitasking. The system initialization
+  runs on the interrupt stack of the boot processor, so the suite configures a
+  larger interrupt stack.
+test-includes: []
+test-local-includes: []
+test-target: testsuites/validation/ts-validation-sysinit-0.c
+type: test-suite

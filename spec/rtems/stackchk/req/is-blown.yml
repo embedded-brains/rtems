@@ -1,0 +1,595 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/is-blown
+post-conditions:
+- name: Result
+  states:
+  - name: 'False'
+    test-code: |
+      T_true( ctx->returned );
+      T_false( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/is-blown:/name} shall be
+      ${/c/if/false:/name}.
+  - name: NoReturn
+    test-code: |
+      T_false( ctx->returned );
+    text: |
+      The ${../if/is-blown:/name} call shall not return to the caller.
+  test-epilogue: null
+  test-prologue: null
+- name: Fatal
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->fatal_counter, 0 );
+    text: |
+      The ${../if/is-blown:/name} call shall raise no fatal error.
+  - name: StackChecker
+    test-code: |
+      T_eq_u32( ctx->fatal_counter, 1 );
+      T_eq_int(
+        ctx->fatal_source,
+        ${/score/interr/if/source-stack-checker:/name}
+      );
+      T_eq_ulong( ctx->fatal_code, ctx->name );
+    text: |
+      The ${../if/is-blown:/name} call shall raise the fatal error with the fatal
+      source ${/score/interr/if/source-stack-checker:/name} and the object name of
+      the executing thread as the fatal code.
+  - name: StackCheckerInterrupt
+    test-code: |
+      T_eq_u32( ctx->fatal_counter, 1 );
+      T_eq_int(
+        ctx->fatal_source,
+        ${/score/interr/if/source-stack-checker:/name}
+      );
+      T_eq_ulong( ctx->fatal_code, rtems_build_name( 'I', 'N', 'T', 'R' ) );
+    text: |
+      The ${../if/is-blown:/name} call shall raise the fatal error with the fatal
+      source ${/score/interr/if/source-stack-checker:/name} and the object name built
+      from the characters `INTR` as the fatal code.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Context
+  states:
+  - name: Multitasking
+    test-code: |
+      if ( !_System_state_Is_up( _System_state_Get() ) ) {
+        ${.:skip}
+      }
+
+      ctx->initialization = false;
+    text: |
+      While the multitasking started.
+  - name: Initialization
+    test-code: |
+      if ( !_System_state_Is_before_multitasking( _System_state_Get() ) ) {
+        ${.:skip}
+      }
+
+      ctx->initialization = true;
+    text: |
+      While the multitasking did not start.
+  test-epilogue: null
+  test-prologue: null
+- name: StackPointer
+  states:
+  - name: Below
+    test-code: |
+      ctx->position = POSITION_BELOW;
+    text: |
+      While the ${/glossary/stackpointer:/term} of the caller is below the begin
+      address of the ${/glossary/allocatedstackarea:/term} of the checked stack.
+  - name: Inside
+    test-code: |
+      ctx->position = POSITION_INSIDE;
+    text: |
+      While the ${/glossary/stackpointer:/term} of the caller is inside the
+      ${/glossary/allocatedstackarea:/term} of the checked stack.
+  - name: Above
+    test-code: |
+      ctx->position = POSITION_ABOVE;
+    text: |
+      While the ${/glossary/stackpointer:/term} of the caller is above the end
+      address of the ${/glossary/allocatedstackarea:/term} of the checked stack.
+  test-epilogue: null
+  test-prologue: null
+- name: Pattern
+  states:
+  - name: Intact
+    test-code: |
+      ctx->damage = false;
+    text: |
+      While the ${/glossary/stackcheckerpatternarea:/term} of the stack of the
+      executing thread holds the pattern.
+  - name: Damaged
+    representatives:
+    - name: First
+      test-code: |
+        ctx->damage_offset = 0;
+    - name: Last
+      test-code: |
+        ctx->damage_offset = STACK_CHECK_PATTERN_SIZE - 1;
+    test-code: |
+      ctx->damage = true;
+    text: |
+      While the ${/glossary/stackcheckerpatternarea:/term} of the stack of the
+      executing thread does not hold the pattern.
+  test-epilogue: null
+  test-prologue: null
+- name: InterruptStackPattern
+  states:
+  - name: Intact
+    test-code: |
+      ctx->damage_interrupt_stack = false;
+    text: |
+      While the ${/glossary/stackcheckerpatternarea:/term} of the
+      ${/glossary/interruptstack:/term} of the current processor holds the pattern.
+  - name: Damaged
+    representatives:
+    - name: First
+      test-code: |
+        ctx->interrupt_damage_offset = 0;
+    - name: Last
+      test-code: |
+        ctx->interrupt_damage_offset = STACK_CHECK_PATTERN_SIZE - 1;
+    test-code: |
+      ctx->damage_interrupt_stack = true;
+    text: |
+      While the ${/glossary/stackcheckerpatternarea:/term} of the
+      ${/glossary/interruptstack:/term} of the current processor does not hold the
+      pattern.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Context covers the start of the multitasking, 2 states. The
+  description of ${../if/is-blown:/name} states the checked stack of each state.
+  After the start of the multitasking, the checked stack is the stack of the
+  executing thread. Before the start of the multitasking, the system
+  initialization runs on the interrupt stack of the current processor, so this
+  stack is the checked stack. Dimension Pattern does not apply before the start
+  of the multitasking.
+
+  Dimension StackPointer covers the position of the stack pointer of the caller
+  relative to the allocated stack area of the checked stack, 3 states. The manual
+  states a check of the stack pointer against the bounds of the allocated stack
+  area. The domain therefore holds the position below the begin address, the
+  position inside the bounds and the position above the end address.
+
+  Dimension Pattern covers the content of the stack checker pattern area of the
+  stack of the executing thread, 2 states. The manual states that the stack
+  checker pattern area is the last bytes of the stack in the direction of growth.
+  The representatives of state Damaged damage the first or the last byte of the
+  area, the two ends of the compared bytes.
+
+  Dimension InterruptStackPattern covers the content of the stack checker pattern
+  area of the interrupt stack of the current processor, 2 states. The description
+  of ${../if/is-blown:/name} states this check. The representatives of state
+  Damaged are those of dimension Pattern.
+
+  The fatal error chapter of the manual states the fatal source and the fatal
+  code of the thread. The chapter of the stack checker states that a detected
+  overflow shuts the system down. The notes of ${../if/is-blown:/name} state the
+  fatal code of the interrupt stack and the order of the two checks.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  uint8_t buffer[ BUFFER_SIZE ] RTEMS_ALIGNED( CPU_STACK_ALIGNMENT );
+
+  Act( ctx, buffer );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member is true, if the test runs in the system initialization context.
+  description: null
+  member: |
+    bool initialization
+- brief: |
+    This member references the checked stack.
+  description: null
+  member: |
+    Stack_Control *stack
+- brief: |
+    This member contains a copy of the checked stack before the arrangement.
+  description: null
+  member: |
+    Stack_Control saved_stack
+- brief: |
+    This member contains the interrupt stack of the current processor.
+  description: null
+  member: |
+    Stack_Control interrupt_stack
+- brief: |
+    This member contains the saved interrupt stack begin of the current processor.
+  description: null
+  member: |
+    void *interrupt_stack_low
+- brief: |
+    This member contains the saved interrupt stack end of the current processor.
+  description: null
+  member: |
+    void *interrupt_stack_high
+- brief: |
+    This member specifies the position of the stack pointer of the caller relative
+    to the allocated stack area of the checked stack.
+  description: null
+  member: |
+    Position position
+- brief: |
+    This member is true, if the pattern area of the stack of the executing thread
+    shall be damaged.
+  description: null
+  member: |
+    bool damage
+- brief: |
+    This member contains the offset of the damaged byte in the pattern area of the
+    stack of the executing thread.
+  description: null
+  member: |
+    size_t damage_offset
+- brief: |
+    This member contains the offset of the damaged byte in the pattern area of the
+    interrupt stack of the current processor.
+  description: null
+  member: |
+    size_t interrupt_damage_offset
+- brief: |
+    This member is true, if the pattern area of the interrupt stack of the current
+    processor shall be damaged.
+  description: null
+  member: |
+    bool damage_interrupt_stack
+- brief: |
+    This member contains the processor of the thread dispatch disable.
+  description: null
+  member: |
+    Per_CPU_Control *cpu_self
+- brief: |
+    This member provides the context to return from the fatal error.
+  description: null
+  member: |
+    jmp_buf before
+- brief: |
+    This member is true, if the ${../if/is-blown:/name} call returned.
+  description: null
+  member: |
+    bool returned
+- brief: |
+    This member contains the return value of the ${../if/is-blown:/name} call.
+  description: null
+  member: |
+    bool result
+- brief: |
+    This member contains the count of fatal errors.
+  description: null
+  member: |
+    uint32_t fatal_counter
+- brief: |
+    This member contains the fatal source of the last fatal error.
+  description: null
+  member: |
+    rtems_fatal_source fatal_source
+- brief: |
+    This member contains the fatal code of the last fatal error.
+  description: null
+  member: |
+    rtems_fatal_code fatal_code
+- brief: |
+    This member contains the object name of the executing thread.
+  description: null
+  member: |
+    rtems_name name
+test-context-support: |
+  typedef enum { POSITION_BELOW, POSITION_INSIDE, POSITION_ABOVE } Position;
+test-description: |
+  State Below of a stack which grows down uses a buffer in the stack frame of the
+  action. State Above of a stack which grows up uses the same buffer. The action
+  passes the buffer to a function which it calls. A local variable of that
+  function is therefore beyond the buffer in the direction of stack growth. The
+  case takes the address of this variable as the stack pointer of the caller.
+
+  The test suite of each context runs the test case. The test case skips the
+  states of dimension Context which do not match the system state. In the system
+  initialization context, the checked stack is the interrupt stack of the current
+  processor. The action sets the interrupt stack bounds of this processor to the
+  arranged allocated stack area. The interrupt processing uses these bounds, so
+  the action disables interrupts until it restores them.
+test-header: null
+test-includes:
+- rtems.h
+- rtems/stackchk.h
+- rtems/stackchkimpl.h
+- rtems/score/sysstate.h
+- rtems/score/threaddispatch.h
+- rtems/score/threadimpl.h
+- setjmp.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->damage = false;
+  ctx->damage_offset = 0;
+  ctx->interrupt_damage_offset = 0;
+test-setup:
+  brief: null
+  code: |
+    ctx->name = _Thread_Get_executing()->Object.name.name_u32;
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define BUFFER_SIZE 512
+
+  /*
+   * The pattern area sits at the end of the allocated stack area in the
+   * direction of stack growth.  Each arrangement keeps the content of that end.
+   */
+  static RTEMS_NO_INLINE void ArrangeStackPointer(
+    Context       *ctx,
+    Stack_Control *stack,
+    uint8_t       *buffer,
+    uintptr_t      stack_pointer
+  )
+  {
+    void     *area;
+    uintptr_t size;
+    bool      copy;
+
+    area = stack->area;
+    size = stack->size;
+    copy = false;
+
+    switch ( ctx->position ) {
+      case POSITION_BELOW:
+  #if CPU_STACK_GROWS_UP == TRUE
+        area = (char *) stack->area + stack->size - BUFFER_SIZE;
+  #else
+        area = buffer;
+        copy = true;
+  #endif
+        size = BUFFER_SIZE;
+        T_assert_lt_uptr( stack_pointer, (uintptr_t) area );
+        break;
+      case POSITION_ABOVE:
+  #if CPU_STACK_GROWS_UP == TRUE
+        area = buffer;
+        copy = true;
+  #endif
+        size = BUFFER_SIZE;
+        T_assert_gt_uptr( stack_pointer, (uintptr_t) area + size );
+        break;
+      default:
+        T_assert_ge_uptr( stack_pointer, (uintptr_t) area );
+        T_assert_le_uptr( stack_pointer, (uintptr_t) area + size );
+        break;
+    }
+
+    if ( copy ) {
+  #if CPU_STACK_GROWS_UP == TRUE
+      memcpy(
+        buffer,
+        (const char *) stack->area + stack->size - BUFFER_SIZE,
+        BUFFER_SIZE
+      );
+  #else
+      memcpy( buffer, stack->area, BUFFER_SIZE );
+  #endif
+    }
+
+    stack->area = area;
+    stack->size = size;
+  }
+
+  static void SetInterruptStackBounds( Context *ctx, const Stack_Control *stack )
+  {
+    if ( ctx->initialization ) {
+      ctx->cpu_self->interrupt_stack_low = stack->area;
+      ctx->cpu_self->interrupt_stack_high = (char *) stack->area + stack->size;
+    }
+  }
+
+  static void RestoreInterruptStackBounds( Context *ctx )
+  {
+    if ( ctx->initialization ) {
+      ctx->cpu_self->interrupt_stack_low = ctx->interrupt_stack_low;
+      ctx->cpu_self->interrupt_stack_high = ctx->interrupt_stack_high;
+    }
+  }
+
+  static void Fatal(
+    rtems_fatal_source source,
+    rtems_fatal_code   code,
+    void              *arg
+  )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ctx->fatal_source = source;
+    ctx->fatal_code = code;
+    ++ctx->fatal_counter;
+    RestoreInterruptStackBounds( ctx );
+    longjmp( ctx->before, 1 );
+  }
+
+  static void CallIsBlown( Context *const ctx )
+  {
+    SetFatalHandler( Fatal, ctx );
+
+    if ( setjmp( ctx->before ) == 0 ) {
+      ctx->result = rtems_stack_checker_is_blown();
+      ctx->returned = true;
+      RestoreInterruptStackBounds( ctx );
+    }
+
+    SetFatalHandler( NULL, NULL );
+  }
+
+  static RTEMS_NO_INLINE void Act( Context *ctx, uint8_t *buffer )
+  {
+    Stack_Control *stack;
+    Stack_Control  interrupt_stack;
+    uint8_t       *pattern;
+    uint8_t       *interrupt_pattern;
+    uintptr_t      stack_pointer;
+    ISR_Level      level;
+
+    stack_pointer = (uintptr_t) &stack_pointer;
+    ctx->cpu_self = _Thread_Dispatch_disable();
+    _ISR_Local_disable( level );
+
+    if ( ctx->initialization ) {
+      ctx->interrupt_stack_low = ctx->cpu_self->interrupt_stack_low;
+      ctx->interrupt_stack_high = ctx->cpu_self->interrupt_stack_high;
+      ctx->interrupt_stack.area = ctx->interrupt_stack_low;
+      ctx->interrupt_stack.size = (uintptr_t) ctx->interrupt_stack_high -
+                                  (uintptr_t) ctx->interrupt_stack_low;
+      ctx->stack = &ctx->interrupt_stack;
+    } else {
+      ctx->stack = &_Thread_Get_executing()->Start.Initial_stack;
+    }
+
+    stack = ctx->stack;
+    ctx->saved_stack = *stack;
+    ArrangeStackPointer( ctx, stack, buffer, stack_pointer );
+    SetInterruptStackBounds( ctx, stack );
+
+    pattern = (uint8_t *) _Stack_check_Get_pattern( stack ) + ctx->damage_offset;
+
+    if ( ctx->damage ) {
+      *pattern = (uint8_t) ~*pattern;
+    }
+
+    ctx->returned = false;
+    ctx->result = true;
+    ctx->fatal_counter = 0;
+
+    interrupt_stack.area = ctx->cpu_self->interrupt_stack_low;
+    interrupt_stack.size = (uintptr_t) ctx->cpu_self->interrupt_stack_high -
+                           (uintptr_t) ctx->cpu_self->interrupt_stack_low;
+    interrupt_pattern = (uint8_t *) _Stack_check_Get_pattern(
+                          &interrupt_stack
+                        ) +
+                        ctx->interrupt_damage_offset;
+
+    if ( ctx->damage_interrupt_stack ) {
+      *interrupt_pattern = (uint8_t) ~*interrupt_pattern;
+    }
+
+    CallIsBlown( ctx );
+
+    if ( ctx->damage_interrupt_stack ) {
+      *interrupt_pattern = (uint8_t) ~*interrupt_pattern;
+    }
+
+    _ISR_Local_enable( level );
+    _Thread_Dispatch_enable( ctx->cpu_self );
+
+    if ( ctx->damage ) {
+      *pattern = (uint8_t) ~*pattern;
+    }
+
+    *ctx->stack = ctx->saved_stack;
+  }
+test-target: testsuites/validation/tc-stackchk-is-blown.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result: 'False'
+    Fatal: Nop
+  pre-conditions:
+    Context:
+    - Multitasking
+    StackPointer:
+    - Inside
+    Pattern:
+    - Intact
+    InterruptStackPattern:
+    - Intact
+- enabled-by: true
+  post-conditions:
+    Result: NoReturn
+    Fatal: StackCheckerInterrupt
+  pre-conditions:
+    Context:
+    - Multitasking
+    StackPointer:
+    - Inside
+    Pattern:
+    - Intact
+    InterruptStackPattern:
+    - Damaged
+- enabled-by: true
+  post-conditions:
+    Result: NoReturn
+    Fatal: StackChecker
+  pre-conditions:
+    Context:
+    - Multitasking
+    StackPointer:
+    - Below
+    - Above
+    Pattern: all
+    InterruptStackPattern: all
+- enabled-by: true
+  post-conditions:
+    Result: NoReturn
+    Fatal: StackChecker
+  pre-conditions:
+    Context:
+    - Multitasking
+    StackPointer:
+    - Inside
+    Pattern:
+    - Damaged
+    InterruptStackPattern: all
+- enabled-by: true
+  post-conditions:
+    Result: 'False'
+    Fatal: Nop
+  pre-conditions:
+    Context:
+    - Initialization
+    StackPointer:
+    - Inside
+    Pattern: N/A
+    InterruptStackPattern:
+    - Intact
+- enabled-by: true
+  post-conditions:
+    Result: NoReturn
+    Fatal: StackCheckerInterrupt
+  pre-conditions:
+    Context:
+    - Initialization
+    StackPointer:
+    - Below
+    - Above
+    Pattern: N/A
+    InterruptStackPattern: all
+- enabled-by: true
+  post-conditions:
+    Result: NoReturn
+    Fatal: StackCheckerInterrupt
+  pre-conditions:
+    Context:
+    - Initialization
+    StackPointer:
+    - Inside
+    Pattern: N/A
+    InterruptStackPattern:
+    - Damaged
+type: requirement
