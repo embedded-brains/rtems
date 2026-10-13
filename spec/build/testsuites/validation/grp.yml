@@ -15,6 +15,7 @@ extra-files:
 - testsuites/validation/ts-fatal-sysinit.h
 - testsuites/validation/ts-idle.h
 - testsuites/validation/ts-record.h
+- testsuites/validation/ts-sysinit.h
 - testsuites/validation/tx-assert.h
 - testsuites/validation/tx-isr-lock.h
 - testsuites/validation/tx-register-check.h
@@ -111,6 +112,8 @@ links:
   uid: validation-smp-only-1
 - role: build-dependency
   uid: validation-smp-only-2
+- role: build-dependency
+  uid: validation-sysinit-0
 - role: build-dependency
   uid: validation-timecounter-0
 - role: build-dependency

@@ -40,6 +40,7 @@ actions:
     - validation-record-1
     - validation-record-2
     - validation-record-3
+    - validation-sysinit-0
     - validation-timecounter-0
     - validation-timecounter-1
     - validation-tls-0
