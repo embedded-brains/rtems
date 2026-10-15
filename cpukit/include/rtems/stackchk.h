@@ -3,14 +3,16 @@
 /**
  * @file
  *
- * @ingroup libmisc_stackchk
+ * @ingroup RTEMSAPIStackChecker
  *
- * @brief This header file provides the Stack Checker API.
+ * @brief This header file provides the stack checker API.
  */
 
 /*
- * COPYRIGHT (c) 1989-2024 On-Line Applications Research Corporation (OAR).
- * COPYRIGHT (c) 2024 Mohamed Hassan <muhammad.hamdy.hassan@gmail.com>
+ * Copyright (C) 2024 Mohamed Hassan
+ * Copyright (C) 2022, 2026 embedded brains GmbH & Co. KG
+ * Copyright (C) 2016 Chris Johns
+ * Copyright (C) 2007, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,182 +36,371 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * The spec:/... comments allow you to identify content which is
+ * duplicated in the rtems and rtems-docs repositories.
+ */
+
+/* Find related documentation with spec:/rtems/stackchk/if/header */
+
 #ifndef _RTEMS_STACKCHK_H
 #define _RTEMS_STACKCHK_H
 
-#include <rtems.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <rtems/print.h>
+#include <rtems/rtems/tasks.h>
+#include <rtems/rtems/types.h>
 
-/**
- *  @defgroup libmisc_stackchk Stack Checker Mechanism
- *
- *  @ingroup RTEMSAPIClassic
- */
-/**@{*/
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/* Find related documentation with spec:/rtems/stackchk/if/group */
+
 /**
- * @brief Checks if current task is blown its stack.
+ * @defgroup RTEMSAPIStackChecker Stack Checker
  *
- * This method is used to determine if the current stack pointer
- * of the currently executing task is within bounds.
+ * @ingroup RTEMSAPIClassic
  *
- * @retval This method returns true if the currently executing task
- *         has blown its stack.
+ * @brief The stack checker directives check the stack of the executing thread.
+ *   They report the stack usage of the threads and the interrupt stacks.
+ */
+
+/* Find related documentation with spec:/rtems/stackchk/if/info */
+
+/**
+ * @ingroup RTEMSAPIStackChecker
+ *
+ * @brief This structure provides the information of a stack.
+ */
+typedef struct {
+  /**
+   * @brief This member contains the object identifier of the thread which uses
+   *   the stack.
+   *
+   * For an interrupt stack, the member contains the processor index.
+   */
+  rtems_id id;
+
+  /**
+   * @brief This member references the name of the object which uses the stack.
+   *
+   * For a thread, the member references the first 21 characters of the name of
+   * the thread, or the whole name if it is shorter. For an interrupt stack, the
+   * member references the string "Interrupt Stack".
+   */
+  const char *name;
+
+  /**
+   * @brief This member references the begin of the allocated stack area without
+   *   the stack checker pattern area.
+   */
+  const void *begin;
+
+  /**
+   * @brief This member contains the size in bytes of the allocated stack area
+   *   without the stack checker pattern area.
+   */
+  uintptr_t size;
+
+  /**
+   * @brief This member references the stack pointer of the stack.
+   *
+   * For a thread, the member contains the stack pointer of the saved thread
+   * context. For an interrupt stack, the member is NULL.
+   */
+  const void *current;
+
+  /**
+   * @brief This member contains the maximum size in bytes which the used stack
+   *   area reached.
+   *
+   * The stack checker fills the stack with a fill pattern when it sets up the
+   * stack. The member is the distance in bytes from the begin of the used stack
+   * area to the deepest word without the fill pattern. The deepest word is the
+   * word farthest from this begin in the direction of stack growth. In case the
+   * stack checker is not initialized, the member is UINTPTR_MAX.
+   */
+  uintptr_t used;
+} rtems_stack_checker_info;
+
+/* Find related documentation with spec:/rtems/stackchk/if/is-blown */
+
+/**
+ * @ingroup RTEMSAPIStackChecker
+ *
+ * @brief Checks the stack of the executing thread.
+ *
+ * Before the multitasking starts, the system initialization runs on the
+ * interrupt stack of the current processor. The directive then checks that the
+ * stack pointer of the caller is inside the allocated stack area of this
+ * interrupt stack. It checks that the stack checker pattern area of this
+ * interrupt stack holds the pattern.
+ *
+ * After the multitasking started, the directive checks that the stack pointer
+ * of the caller is inside the allocated stack area of the executing thread. It
+ * checks that the stack checker pattern area of this stack holds the pattern.
+ * If a thread started on the current processor, the directive checks that the
+ * stack checker pattern area of the interrupt stack of the current processor
+ * holds the pattern.
+ *
+ * @retval false The checks passed.
+ *
+ * @par Notes
+ * The directive checks the stack of the executing thread before the interrupt
+ * stack. A check of the stack of the executing thread which fails invokes the
+ * stack checker reporter. The default reporter
+ * rtems_stack_checker_reporter_quiet() terminates the system with the fatal
+ * source RTEMS_FATAL_SOURCE_STACK_CHECKER and the object name of the executing
+ * thread as the fatal code. A failed check of the interrupt stack terminates
+ * the system. Its fatal source is RTEMS_FATAL_SOURCE_STACK_CHECKER and its
+ * fatal code is the object name built from the characters `INTR`. With the
+ * default reporter, the directive therefore returns only when all checks pass.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within device driver initialization
+ *   context.
+ *
+ * - The directive may be called from within task context.
+ * @endparblock
  */
 bool rtems_stack_checker_is_blown( void );
 
+/* Find related documentation with spec:/rtems/stackchk/if/report-usage */
+
 /**
- * @brief Print the stack usage report using printk.
+ * @ingroup RTEMSAPIStackChecker
  *
- * This method prints a stack usage report for the curently executing
- * task.
+ * @brief Reports the stack usage of the threads and the interrupt stacks using
+ *   the printk() printer.
  *
- * @note It uses printk to print the report.
+ * @par Notes
+ * See also rtems_stack_checker_report_usage_with_plugin().
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within device driver initialization
+ *   context.
+ *
+ * - The directive may be called from within task context.
+ *
+ * - The directive may obtain and release the object allocator mutex. This may
+ *   cause the calling task to be preempted.
+ * @endparblock
  */
 void rtems_stack_checker_report_usage( void );
 
+/* Find related documentation with spec:/rtems/stackchk/if/report-usage-with-plugin */
+
 /**
- * @brief Print the stack usage report using caller's routine.
+ * @ingroup RTEMSAPIStackChecker
  *
- * This method prints a stack usage report for the curently executing
- * task.
+ * @brief Reports the stack usage of the threads and the interrupt stacks using
+ *   the printer plugin.
  *
- * @param[in] context is the context to pass to the print handler
+ * @param printer is the printer plugin to output the report.
  *
- * @param[in] print is the print handler
+ * The directive outputs the report through the printer. Each line of the
+ * report ends with a newline character. The first line holds the title of the
+ * report. The second line holds the column titles ID, NAME, LOW, HIGH,
+ * CURRENT, AVAIL and USED.
  *
- * @note It uses the caller's routine to print the report.
+ * Each further line describes one stack which rtems_stack_checker_iterate()
+ * visits, in the order of the visits. One space character separates two fields
+ * of the line. The fields are the following:
+ *
+ * - the id member as `0x` followed by hexadecimal digits padded on the left
+ *   with zeros to eight digits,
+ *
+ * - the name member padded on the right with space characters to 21
+ *   characters,
+ *
+ * - the begin member as `0x` followed by hexadecimal digits padded on the left
+ *   with zeros to eight digits,
+ *
+ * - the address of the last byte of the area which the begin and size members
+ *   describe as `0x` followed by hexadecimal digits padded on the left with
+ *   zeros to eight digits,
+ *
+ * - the current member as `0x` followed by hexadecimal digits padded on the
+ *   left with zeros to eight digits,
+ *
+ * - the size member as a decimal number padded with space characters to six
+ *   characters, and
+ *
+ * - the used member as a decimal number padded with space characters to six
+ *   characters, or `N/A` where the member is UINTPTR_MAX.
+ *
+ * A hexadecimal digit is a digit or a lower case letter. A decimal number is
+ * padded on the left. A field of a member which exceeds the size takes the
+ * digits or characters which it needs.
+ *
+ * @par Notes
+ * See also rtems_stack_checker_report_usage().
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within device driver initialization
+ *   context.
+ *
+ * - The directive may be called from within task context.
+ *
+ * - The directive may obtain and release the object allocator mutex. This may
+ *   cause the calling task to be preempted.
+ * @endparblock
  */
 void rtems_stack_checker_report_usage_with_plugin(
   const rtems_printer *printer
 );
 
+/* Find related documentation with spec:/rtems/stackchk/if/reporter-handler */
+
 /**
- * @brief Stack information provided by the stack checker.
+ * @ingroup RTEMSAPIStackChecker
+ *
+ * @brief Stack checker reporters shall have this type.
+ *
+ * The first parameter is the thread whose stack failed a check. The second
+ * parameter is true if the stack checker pattern area of this stack holds the
+ * pattern, otherwise it is false. The application configuration option
+ * `CONFIGURE_STACK_CHECKER_REPORTER` selects the reporter.
  */
-typedef struct {
-  /**
-   * This member contains the object identifier associated with the
-   * object using the stack.
-   *
-   * For interrupt stacks, the object identifier is the processor index.
-   */
-  rtems_id id;
+typedef void ( *Stack_checker_Reporter_handler )( const rtems_tcb *, bool );
 
-  /**
-   * This member provides the object name associated with the
-   * object using the stack.
-   *
-   * For interrupt stacks, the object name is "Interrupt Stack".
-   */
-  const char *name;
-
-  /**
-   * This member provides the begin address of the stack area.
-   */
-  const void *begin;
-
-  /**
-   *  This member contains the size in bytes of the stack area.
-   */
-  uintptr_t size;
-
-  /**
-   * This member provides the current stack pointer of the stack.
-   *
-   * If the current stack pointer is not available, then the value is
-   * set to NULL.
-   */
-  const void *current;
-
-  /**
-   * This member contains the size in bytes of the used stack area.
-   *
-   * If the stack checker is not initialized, then the value is set to
-   * UINTPTR_MAX.
-   */
-  uintptr_t used;
-} rtems_stack_checker_info;
+/* Find related documentation with spec:/rtems/stackchk/if/reporter-print-details */
 
 /**
- * @brief Visitor routines invoked by rtems_stack_checker_iterate() shall
- *        have this type.
+ * @ingroup RTEMSAPIStackChecker
  *
- * @param[in] info is the stack information.
+ * @brief Prints the details of the failed stack check and terminates the
+ *   system.
  *
- * @param[in] arg is the argument passed to rtems_stack_checker_iterate().
- */
-typedef void ( *rtems_stack_checker_visitor )(
-  const rtems_stack_checker_info *info,
-  void                           *arg
-);
-
-/**
- * @brief Iterates over all stacks used by the system and invokes the visitor
- *        routine for each stack.
+ * @param[in] running is the thread whose stack failed a check.
  *
- * This method prints a stack usage report for the curently executing
- * task.
+ * @param pattern_ok is true if the stack checker pattern area of the stack
+ *   holds the pattern, otherwise it is false.
  *
- * @param[in] visitor is the visitor routine invoked for each stack.
+ * The reporter prints the thread, the allocated stack area of the thread and,
+ * if the pattern is damaged, the stack checker pattern area with printk(). It
+ * then terminates the system with the fatal source
+ * RTEMS_FATAL_SOURCE_STACK_CHECKER and the object name of the thread specified
+ * by `running` as the fatal code.
  *
- * @param[in] arg is the argument passed to each visitor routine invocation
- *                during the iteration.
- */
-void rtems_stack_checker_iterate(
-  rtems_stack_checker_visitor visit,
-  void                       *arg
-);
-
-/**
- * @brief A Quiet Version of Stack Checker Reporter.
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
  *
- * @param[in] running running points to the currently executing thread which
- *                    is being context switched out.
- *
- * @param[in] pattern_ok bool variable to check if the pattern is
- *                       still valid or not
- */
-
-void rtems_stack_checker_reporter_quiet(
-  const rtems_tcb *running,
-  bool             pattern_ok
-);
-
-/**
- * @brief The Default Function to Report a Blown Stack.
- *
- * @param[in] running running points to the currently executing thread which
- *                    is being context switched out.
- *
- * @param[in] pattern_ok bool variable to check if the pattern is
- *                       still valid or not
+ * - The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
 void rtems_stack_checker_reporter_print_details(
   const rtems_tcb *running,
   bool             pattern_ok
 );
 
+/* Find related documentation with spec:/rtems/stackchk/if/reporter-quiet */
+
 /**
- * @brief The Stack Checker Reporter Initialization Handler.
+ * @ingroup RTEMSAPIStackChecker
  *
- * @param[in] running running points to the currently executing thread which
- *                    is being context switched out.
+ * @brief Terminates the system with the object name of the thread as the fatal
+ *   code.
  *
- * @param[in] pattern_ok bool variable to check if the pattern is
- *                       still valid or not.
+ * @param[in] running is the thread whose stack failed a check.
+ *
+ * @param pattern_ok is true if the stack checker pattern area of the stack
+ *   holds the pattern, otherwise it is false.
+ *
+ * The reporter terminates the system with the fatal source
+ * RTEMS_FATAL_SOURCE_STACK_CHECKER and the object name of the thread specified
+ * by `running` as the fatal code. The stack checker uses this reporter unless
+ * the application configures another one with
+ * `CONFIGURE_STACK_CHECKER_REPORTER`.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive is not included in the pre-qualified feature set of RTEMS.
+ *   Applications which are restricted to only use interfaces of the
+ *   pre-qualified feature set of RTEMS shall not use the directive.
+ * @endparblock
  */
-typedef void ( *Stack_checker_Reporter_handler )(
+void rtems_stack_checker_reporter_quiet(
   const rtems_tcb *running,
   bool             pattern_ok
+);
+
+/* Find related documentation with spec:/rtems/stackchk/if/visitor */
+
+/**
+ * @ingroup RTEMSAPIStackChecker
+ *
+ * @brief Visitor routines invoked by rtems_stack_checker_iterate() shall have
+ *   this type.
+ *
+ * The first parameter is the stack information. The second parameter is the
+ * argument passed to rtems_stack_checker_iterate(). The stack information and
+ * the name which it references are valid only while the visitor routine runs.
+ */
+typedef void ( *rtems_stack_checker_visitor )(
+  const rtems_stack_checker_info *,
+  void *
+);
+
+/* Find related documentation with spec:/rtems/stackchk/if/iterate */
+
+/**
+ * @ingroup RTEMSAPIStackChecker
+ *
+ * @brief Iterates over the stacks of the threads and the interrupt stacks and
+ *   invokes the visitor routine for each stack.
+ *
+ * @param visit is the visitor routine invoked for each stack.
+ *
+ * @param arg is the argument passed to each visitor routine invocation.
+ *
+ * The directive invokes the visitor routine specified by `visit` for the stack
+ * of each thread. It then invokes the visitor routine for the interrupt stack
+ * of each processor whose index is less than the value returned by
+ * rtems_scheduler_get_processor_maximum(). It skips a stack which has no
+ * allocated stack area. The interrupt stack of a processor has its allocated
+ * stack area after the first thread started on that processor.
+ *
+ * @par Notes
+ * The directive holds the object allocator lock while it invokes the visitor
+ * routine for the stacks of the threads.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within device driver initialization
+ *   context.
+ *
+ * - The directive may be called from within task context.
+ *
+ * - The directive may obtain and release the object allocator mutex. This may
+ *   cause the calling task to be preempted.
+ * @endparblock
+ */
+void rtems_stack_checker_iterate(
+  rtems_stack_checker_visitor visit,
+  void                       *arg
 );
 
 #ifdef __cplusplus
 }
 #endif
-/**@}*/
-#endif
-/* end of include file */
+
+#endif /* _RTEMS_STACKCHK_H */
