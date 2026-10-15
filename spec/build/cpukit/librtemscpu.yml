@@ -93,6 +93,7 @@ install:
   - cpukit/include/rtems/recordimpl.h
   - cpukit/include/rtems/seterr.h
   - cpukit/include/rtems/scheduler.h
+  - cpukit/include/rtems/stackchk.h
   - cpukit/include/rtems/sysinit.h
   - cpukit/include/rtems/timecounter.h
   - cpukit/include/rtems/thread.h
@@ -356,6 +357,7 @@ source:
 - cpukit/libcsupport/src/vprintk.c
 - cpukit/libmisc/cpuuse/cpuusagedata.c
 - cpukit/libmisc/cpuuse/cpuusagereset.c
+- cpukit/libmisc/stackchk/check.c
 - cpukit/libtrace/record/record-dump-base64.c
 - cpukit/libtrace/record/record-dump-fatal.c
 - cpukit/libtrace/record/record-dump.c
