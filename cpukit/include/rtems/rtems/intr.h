@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2025 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1022,20 +1022,16 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param _options is the interrupt handler option set to check.
  *
+ * The interrupt handler shared option #RTEMS_INTERRUPT_SHARED has the value
+ * zero. It excludes the interrupt handler unique option
+ * #RTEMS_INTERRUPT_UNIQUE. The macro therefore checks that the unique option
+ * is cleared.
+ *
  * @return Returns true, if the interrupt handler shared option
  *   #RTEMS_INTERRUPT_SHARED is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_SHARED( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_SHARED )
+  ( ( ( _options ) & RTEMS_INTERRUPT_UNIQUE ) == 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/is-unique */
 
@@ -1046,18 +1042,9 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler unique option
  *   #RTEMS_INTERRUPT_UNIQUE is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_UNIQUE( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_UNIQUE )
+  ( ( ( _options ) & RTEMS_INTERRUPT_UNIQUE ) != 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/is-replace */
 
@@ -1068,18 +1055,9 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler replace option
  *   #RTEMS_INTERRUPT_REPLACE is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_REPLACE( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_REPLACE )
+  ( ( ( _options ) & RTEMS_INTERRUPT_REPLACE ) != 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/handler */
 
