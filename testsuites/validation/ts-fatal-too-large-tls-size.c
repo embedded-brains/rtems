@@ -45,8 +45,9 @@
  *
  * @ingroup RTEMSTestSuitesValidation
  *
- * @brief This validation test suite contains a test case which triggers a
- *   fatal error during system initialization.
+ * @brief This validation test suite contains a test case which triggers the
+ *   fatal error of the INTERNAL_ERROR_CORE fatal source with the
+ *   INTERNAL_ERROR_TOO_LARGE_TLS_SIZE fatal code during system initialization.
  *
  * @{
  */
@@ -59,6 +60,8 @@ const char rtems_test_name[] = "TestsuitesFatalTooLargeTlsSize";
 
 #define CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE \
   RTEMS_TASK_STORAGE_ALIGNMENT
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include "ts-fatal-sysinit.h"
 
