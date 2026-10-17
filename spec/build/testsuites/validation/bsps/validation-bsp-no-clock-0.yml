@@ -8,7 +8,7 @@ cxxflags: []
 enabled-by:
 - aarch64
 - arm
-- bsps/powerpc/qoriq
+- powerpc
 features: c cprogram
 includes: []
 ldflags:
@@ -38,6 +38,8 @@ links:
   uid: objarmv7m
 - role: build-dependency
   uid: objarmv7mfp
+- role: build-dependency
+  uid: objpowerpc
 - role: build-dependency
   uid: objpowerpcqoriq
 source:
