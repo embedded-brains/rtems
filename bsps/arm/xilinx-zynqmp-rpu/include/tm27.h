@@ -40,6 +40,50 @@
 #ifndef __tm27_h
 #define __tm27_h
 
+#define TEST_DATA_ABORT_ADDRESS 0x10000000
+
+#define TEST_PREFETCH_ABORT_ADDRESS 0x10000000
+
+#define TM27_INTERRUPT_VECTOR_FAST ARM_GIC_IRQ_SGI_14
+
 #include <dev/irq/arm-gic-tm27.h>
+
+typedef uint32_t TM27_Trigger_fast_register;
+
+static inline void _TM27_Prepare_fast(
+  TM27_Trigger_fast_register volatile * volatile *trigger_address,
+  TM27_Trigger_fast_register volatile *trigger_value
+)
+{
+  rtems_vector_number vector;
+  volatile gic_dist *dist;
+  volatile gic_cpuif *cpuif;
+
+  vector = TM27_INTERRUPT_VECTOR_FAST;
+  cpuif = (volatile gic_cpuif *) BSP_ARM_GIC_CPUIF_BASE;
+  cpuif->iccicr |= GIC_CPUIF_ICCICR_FIQ_EN;
+  _ARM_Data_synchronization_barrier();
+
+  dist = (volatile gic_dist *) BSP_ARM_GIC_DIST_BASE;
+  *trigger_address = &dist->icdsgir;
+  *trigger_value = GIC_DIST_ICDSGIR_TARGET_LIST_FILTER( 0 )
+    | GIC_DIST_ICDSGIR_CPU_TARGET_LIST( 1U << _SMP_Get_current_processor() )
+    | GIC_DIST_ICDSGIR_SGIINTID( vector );
+}
+
+static inline void _TM27_Clear_fast( void )
+{
+  volatile gic_cpuif *cpuif;
+
+  cpuif = (volatile gic_cpuif *) BSP_ARM_GIC_CPUIF_BASE;
+  cpuif->icceoir = cpuif->icciar;
+  cpuif->iccicr &= ~GIC_CPUIF_ICCICR_FIQ_EN;
+}
+
+#define TM27_IO_LOAD_32_ADDRESS 0xFF110018
+
+#define TM27_IO_STORE_32_ADDRESS TM27_IO_LOAD_32_ADDRESS
+
+#define TM27_IO_STORE_32_VALUE 0
 
 #endif /* __tm27_h */

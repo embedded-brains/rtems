@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2010, 2017 embedded brains GmbH & Co. KG
+ * Copyright (C) 2010, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 
 #include <libcpu/powerpc-utility.h>
 
+#include <bsp/cache.h>
 #include <bsp/vectors.h>
 
 #if (QORIQ_INITIAL_MSR & MSR_FP) != 0
@@ -53,6 +54,75 @@
 #define FDT_REGISTER r17
 #define CPU_SELF r18
 
+#ifdef __powerpc64__
+#define START_NOP_FOR_LINKER_TOC_POINTER_RESTORE nop; nop; nop; nop
+#else
+#define START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+#endif
+
+#define VECTOR_TABLE_ENTRY_SIZE 64
+
+.macro EXCEPTION_PROLOGUE_INTERRUPT exception_number
+	.balign VECTOR_TABLE_ENTRY_SIZE
+	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
+	li	r3, \exception_number
+	b	ppc_exc_interrupt
+	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+.endm
+
+.macro EXCEPTION_PROLOGUE_NORMAL exception_number
+	.balign VECTOR_TABLE_ENTRY_SIZE
+	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
+	addi	r3, r1, EXC_GENERIC_SIZE
+	PPC_REG_STORE	r3, PPC_EXC_GPR1_PROLOGUE_OFFSET(r1)
+	li	r3, \exception_number
+	b	ppc_exc_fatal_normal
+	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+.endm
+
+.macro EXCEPTION_PROLOGUE_CRITICAL exception_number
+	.balign VECTOR_TABLE_ENTRY_SIZE
+
+	/* Use SPRG3 to save the stack pointer */
+	mtsprg	3, r1
+
+	/* Get the critical exception stack pointer for this processor */
+	mfspr	r1, BOOKE_PIR
+	addi	r1, r1, 1
+	slwi	r1, r1, QORIQ_CRITICAL_EXCEPTION_STACK_POWER
+	addis	r1, r1, qoriq_critical_exception_stack@ha
+	addi	r1, r1, qoriq_critical_exception_stack@l
+
+	/* Start saving the context */
+	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
+	mfsprg	r3, 3
+	PPC_REG_STORE	r3, PPC_EXC_GPR1_PROLOGUE_OFFSET(r1)
+	li	r3, \exception_number
+
+	b	ppc_exc_fatal_critical
+	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+.endm
+
+/*
+ * Each core/thread has its own 4KiB machine check area.  The usage is as
+ * follows:
+ *
+ * 000..003: machine check stack pointer
+ * 004..007: L1 instruction recoveries
+ * 008..00b: L1 data recoveries
+ * 00c..00f: L1 configuration (only present in area of core/thread 0)
+ * 010..fff: machine check stack area
+ */
+.macro MACHINE_CHECK_DATA
+	.long	. + 0x1000 - EXC_GENERIC_SIZE - PPC_DEFAULT_CACHE_LINE_SIZE
+	.zero 0x0ffc
+.endm
+
+#define QORIQ_L1_CACHE_CONFIG_ADDRESS (qoriq_machine_check_data + 12)
+
 	.globl _start
 #ifdef RTEMS_SMP
 #if QORIQ_THREAD_COUNT > 1
@@ -60,13 +130,43 @@
 #endif
 	.globl _start_secondary_processor
 #endif
+#ifndef QORIQ_SECONDARY_CORES_INITIALIZED_BY_BOOTLOADER
+	.globl qoriq_boot_page
+#endif
+	.globl qoriq_machine_check_data
 	.globl bsp_exc_vector_base
+	.globl bsp_exc_vector_cacheable_base
 
 	.section ".bsp_start_text", "ax"
 
 _start:
 	mr	FDT_REGISTER, r3
+
+#ifdef QORIQ_START_MAKE_TLB1_0_CACHE_INHIBITED
+	/* Make TLB1[0] cache inhibited */
+	li	r3, 0
+	li	r4, 0
+	li	r5, FSL_EIS_MAS2_I
+	li	r6, FSL_EIS_MAS3_SR | FSL_EIS_MAS3_SW | FSL_EIS_MAS3_SX
+	li	r7, 0
+	li	r8, 0
+	li	r9, FSL_EIS_MAS1_SIZE_1G
+	bl	qoriq_tlb1_write
+	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+#endif
+
 	bl	.Linitearly
+
+#ifdef QORIQ_INITIALIZE_CACHES
+	INITIALIZE_L2_CACHE	r3, r4, r5
+#endif
+
+#ifdef QORIQ_INITIALIZE_CACHES
+	mr	r3, FDT_REGISTER
+	LA32	r4, QORIQ_L1_CACHE_CONFIG_ADDRESS
+	bl	qoriq_initialize_l1_cache_config
+	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+#endif
 
 	/* Get start stack */
 	LA	START_STACK, _ISR_Stack_area_begin
@@ -114,11 +214,8 @@ _start:
 	LA	r5, bsp_section_data_size
 	bl	.Lcopy
 
-	/* NULL pointer access protection (only core 0 has to do this) */
-	mfspr	r3, BOOKE_PIR
-	cmpwi	r3, 0
-	bne	.Lnull_area_setup_done
-	LA	r3, bsp_section_start_begin
+	/* Initialize NULL pointer access protection area with "sc" instructions */
+	LA32	r3, bsp_section_start_begin
 	SHIFT_RIGHT_IMMEDIATE	r3, r3, 2
 	mtctr	r3
 	li	r3, -4
@@ -126,9 +223,7 @@ _start:
 .Lnull_area_setup_loop:
 	stwu	r4, 4(r3)
 	bdnz	.Lnull_area_setup_loop
-.Lnull_area_setup_done:
 
-	li	r3, 1
 	bl	.Linitmmu
 
 	/* Clear SBSS */
@@ -174,6 +269,21 @@ _start:
 	isync
 #endif
 
+#ifdef QORIQ_ERRATUM_A005125
+	msync
+	isync
+	mfspr	r3, 976
+	oris	r3, r3, 0x0080
+	mtspr	976, r3
+#endif
+
+#ifdef QORIQ_INITIAL_BUCSR
+	/* BUCSR initialization */
+	LWI	r0, QORIQ_INITIAL_BUCSR
+	mtspr	FSL_EIS_BUCSR, r0
+	isync
+#endif
+
 	/* Disable decrementer */
 	mfspr	r0, BOOKE_TCR
 	LWI	r4, BOOKE_TCR_DIE
@@ -184,13 +294,6 @@ _start:
 	/* SPEFSCR initialization */
 	LWI	r0, QORIQ_INITIAL_SPEFSCR
 	mtspr	FSL_EIS_SPEFSCR, r0
-#endif
-
-#ifdef QORIQ_INITIAL_BUCSR
-	/* BUCSR initialization */
-	LWI	r0, QORIQ_INITIAL_BUCSR
-	mtspr	FSL_EIS_BUCSR, r0
-	isync
 #endif
 
 #if defined(QORIQ_INITIAL_HID0) && !defined(QORIQ_IS_HYPERVISOR_GUEST)
@@ -216,6 +319,14 @@ _start:
 .Linitmore:
 	mflr	SAVED_LINK_REGISTER
 
+#ifdef QORIQ_INITIALIZE_CACHES
+	LW	r3, QORIQ_L1_CACHE_CONFIG_ADDRESS
+	andi.	r3, r3, 0x2
+	beq	1f
+	INITIALIZE_L1_INSTRUCTION_CACHE	r3
+1:
+#endif
+
 	/* Invalidate all TS1 MMU entries */
 	li	r3, 1
 	bl	qoriq_tlb1_invalidate_all_by_ts
@@ -228,7 +339,7 @@ _start:
 	li	r6, FSL_EIS_MAS3_SR | FSL_EIS_MAS3_SW | FSL_EIS_MAS3_SX
 	li	r7, 0
 	li	r8, 0
-	li	r9, 11
+	li	r9, FSL_EIS_MAS1_SIZE_4G
 	bl	qoriq_tlb1_write
 	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
 
@@ -242,12 +353,85 @@ _start:
 	isync
 
 	/*
-	 * Initialize start stack.  The stacks are statically allocated and
-	 * properly aligned.
+	 * Initialize start and interrupt stack.  The stacks are statically
+	 * allocated and properly aligned.
 	 */
 	subi	r1, START_STACK, PPC_DEFAULT_CACHE_LINE_SIZE
 	li	r0, 0
 	PPC_REG_STORE	r0, 0(r1)
+	mtsprg	1, r1
+
+	/*
+	 * Initialize the exception vector prefix and the cache inhibited
+	 * machine check vector offset.
+	 */
+	LA32	r3, bsp_exc_vector_base
+	mtivpr	r3
+	mtspr	BOOKE_IVOR1, r3
+
+	/* Initialize the cacheable exception vector offsets */
+	LA32	r3, bsp_exc_vector_cacheable_base
+	mtspr	BOOKE_IVOR0, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR2, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR3, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR4, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR5, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR6, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#ifdef __PPC_CPU_E6500__
+	mtspr	BOOKE_IVOR7, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#endif
+	mtspr	BOOKE_IVOR8, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#ifdef __PPC_CPU_E6500__
+	mtspr	BOOKE_IVOR9, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#endif
+	mtspr	BOOKE_IVOR10, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR11, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR12, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR13, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR14, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR15, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR32, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR33, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#ifndef __PPC_CPU_E6500__
+	mtspr	BOOKE_IVOR34, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#endif
+	mtspr	BOOKE_IVOR35, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#ifdef __PPC_CPU_E6500__
+	mtspr	BOOKE_IVOR36, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR37, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+#ifndef QORIQ_IS_HYPERVISOR_GUEST
+	mtspr	BOOKE_IVOR38, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR39, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR40, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR41, r3
+	addi	r3, r3, VECTOR_TABLE_ENTRY_SIZE
+	mtspr	BOOKE_IVOR42, r3
+#endif
+#endif
 
 #ifdef INITIALIZE_FPU
 	bl	.Linitfpu
@@ -260,6 +444,10 @@ _start:
 	mflr	SAVED_LINK_REGISTER
 
 	/* Configure MMU */
+#ifdef QORIQ_USE_FIXED_MMU_CONFIG
+	bl	qoriq_mmu_fixed_config
+	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+#else
 	li	r4, FIRST_TLB
 	li	r5, SCRATCH_TLB
 	bl	qoriq_mmu_config
@@ -269,6 +457,15 @@ _start:
 	li	r3, SCRATCH_TLB
 	bl	qoriq_tlb1_invalidate
 	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+#endif
+
+#ifdef QORIQ_INITIALIZE_CACHES
+	LW	r3, QORIQ_L1_CACHE_CONFIG_ADDRESS
+	andi.	r3, r3, 0x1
+	beq	1f
+	INITIALIZE_L1_DATA_CACHE	r3
+1:
+#endif
 
 	mtlr	SAVED_LINK_REGISTER
 	blr
@@ -348,210 +545,426 @@ _start_secondary_processor:
 	bl	.Linitearly
 
 	/* Get start stack */
+#ifdef QORIQ_SECONDARY_CORES_INITIALIZED_BY_BOOTLOADER
 	mr	START_STACK, r3
+#else
+	LA	START_STACK, _ISR_Stack_area_begin
+	LA	r3, _ISR_Stack_size
+	add	START_STACK, START_STACK, r3
+	add	START_STACK, START_STACK, r3
+	mr	r1, START_STACK
+#endif
 
 	bl	.Linitmore
-	li	r3, 0
 	bl	.Linitmmu
 	mr	r3, CPU_SELF
 	b	bsp_start_on_secondary_processor
 	PPC64_NOP_FOR_LINKER_TOC_POINTER_RESTORE
 #endif /* RTEMS_SMP */
 
-#ifdef __powerpc64__
-#define START_NOP_FOR_LINKER_TOC_POINTER_RESTORE nop; nop; nop; nop
-#else
-#define START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-#endif
+	/* Memory area for the critical exception stacks */
 
-	/* Exception vector prologues area */
-	.section ".bsp_start_text", "ax"
-	.align 4
+	.section ".noinit.qoriq_critical_exception_stack", "aw", @nobits
+
+	.balign CPU_STACK_ALIGNMENT
+
+qoriq_critical_exception_stack:
+
+	.space QORIQ_CPU_COUNT * (1 << QORIQ_CRITICAL_EXCEPTION_STACK_POWER)
+
+	/* Exception handling and boot area */
+
+	.section ".bsp_exceptions.vector", "ax"
+
+	.balign 0x10000
+
 bsp_exc_vector_base:
-	/* Critical input */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
+
+	/* Machine check (IVOR1) */
+
+	/* Use SPRG2 to save the stack pointer */
+	mtsprg	2, r1
+
+	/*
+	 * Get the machine check stack pointer for this processor.  Each
+	 * processor has a 4KiB read-write, cache inhibited data area for the
+	 * machine check handling.
+	 */
+	mfspr	r1, BOOKE_PIR
+	slwi	r1, r1, 12
+	addis	r1, r1, qoriq_machine_check_data@h
+	PPC_REG_LOAD	r1, 0(r1)
 	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 0
-	b	ppc_exc_fatal_critical
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Machine check */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
+	mfspr	r3, BOOKE_PIR
+	PPC_REG_STORE	r4, GPR4_OFFSET(r1)
+	mfspr	r4, BOOKE_MCSR
+	PPC_REG_STORE	r5, GPR5_OFFSET(r1)
+	mfcr	r5
+	PPC_REG_STORE	r6, GPR6_OFFSET(r1)
+	PPC_REG_STORE	r5, EXC_CR_OFFSET(r1)
+	slwi	r3, r3, 12
+	addis	r3, r3, qoriq_machine_check_data@h
+
+	/* Is ICPERR? */
+	andis.	r5, r4, 0x4000
+	beq	.Lmachine_check_no_icperr
+
+	/*
+	 * Perform an L1 instruction cache parity error recovery.  Get the
+	 * machine check data area of this processor.  Invalidate the cache
+	 * line indicated by MCSRR0.  Increment the L1 instruction recovery
+	 * counter.  Return from the machine check interrupt.
+	 */
+	mfmcsrr0	r4
+	lwz	r5, 4(r3)
+	icbi	r0, r4
+	msync
+	addi	r5, r5, 1
+	stw	r5, 4(r3)
+	b	.Lmachine_check_return
+
+.Lmachine_check_no_icperr:
+
+	/* Is DCP_PERR? */
+	andis.	r5, r4, 0x2000
+	beq	.Lmachine_check_no_dcp_perr
+
+	/*
+	 * A Data Cache Push Parity Error (DCP_PERR) is not recoverable.  If it
+	 * happens, proceed to the fatal machine check handling.
+	 */
+	b	.Lmachine_check_fatal_error
+
+.Lmachine_check_no_dcp_perr:
+
+	/* Is DCPERR? */
+	andis.	r5, r4, 0x1000
+	beq	.Lmachine_check_fatal_error
+
+	/* This is a nested DCPERR, just return */
+	addi	r4, r3, 0x1000 - EXC_GENERIC_SIZE - PPC_DEFAULT_CACHE_LINE_SIZE
+	cmpw	r1, r4
+	bne	.Lmachine_check_return
+
+	/*
+	 * A Data Cache Parity Error (DCPERR) is recoverable if the error is on
+	 * a non-modified line.  To check this, the machine check handling has
+	 * to be re-entrant to a 2-deep level.
+	 */
+
+	/* Save machine check context */
+	mfsprg	r4, 2
+	mfmcsrr0	r5
+	mfmcsrr1	r6
+	PPC_REG_STORE	r4, GPR1_OFFSET(r1)
+	mfctr	r4
+	PPC_REG_STORE	r5, SRR0_FRAME_OFFSET(r1)
+	PPC_REG_STORE	r6, SRR1_FRAME_OFFSET(r1)
+	PPC_REG_STORE	r4, EXC_CTR_OFFSET(r1)
+	subi	r1, r1, EXC_GENERIC_SIZE
+	PPC_REG_STORE	r1, 0(r3)
+
+	/* Enable data cache flush assist HID0[DCFA] */
+	mfspr	r4, HID0
+	ori	r4, r4, 0x40
+	mtspr	HID0, r4
+
+	/* Enable MSR[ME] */
+	mfmsr	r4
+	ori	r5, r4, MSR_ME
+	mtmsr	r5
+	isync
+
+	/* Load the L1 data cache */
+	li	r5, 8 * 128
+	mtctr	r5
+	LA	r5, bsp_exc_vector_cacheable_base
+
+.Lmachine_check_l1_load:
+
+	lwz	r6, 0(r5)
+	addi	r5, r5, 32
+
+	bdnz	.Lmachine_check_l1_load
+
+	/* Flash invalidate the L1 data cache */
+
+	mfspr	r5, FSL_EIS_L1CSR0
+	ori	r5, r5, FSL_EIS_L1CSR0_CFI
+	msync
+	isync
+	mtspr	FSL_EIS_L1CSR0, r5
+	isync
+
+.Lmachine_check_wait_for_cfi_cleared:
+
+	mfspr	r5, FSL_EIS_L1CSR0
+	andi.	r5, r5, FSL_EIS_L1CSR0_CFI
+	bne	.Lmachine_check_wait_for_cfi_cleared
+
+	/* Disable MSR[ME] */
+	mtmsr	r4
+	isync
+
+	/* Disable data cache flush assist HID0[DCFA] */
+	mfspr	r4, HID0
+	rlwinm  r4, r4, 0, 26, 24
+	mtspr	HID0, r4
+
+	/* Restore machine check context */
+	addi	r1, r1, EXC_GENERIC_SIZE
+	PPC_REG_STORE	r1, 0(r3)
+	PPC_REG_LOAD	r4, GPR1_OFFSET(r1)
+	PPC_REG_LOAD	r5, SRR0_FRAME_OFFSET(r1)
+	PPC_REG_LOAD	r6, SRR1_FRAME_OFFSET(r1)
+	mtsprg	2, r4
+	PPC_REG_LOAD	r4, EXC_CTR_OFFSET(r1)
+	mtmcsrr0	r5
+	lwz	r5, 8(r3)
+	mtmcsrr1	r6
+	mtctr	r4
+
+	/* Increment the L1 data recovery counter */
+	addi	r5, r5, 1
+	stw	r5, 8(r3)
+	b	.Lmachine_check_return
+
+.Lmachine_check_fatal_error:
+
 	li	r3, 1
+	PPC_REG_LOAD	r6, EXC_CR_OFFSET(r1)
+	PPC_REG_LOAD	r4, GPR4_OFFSET(r1)
+	PPC_REG_LOAD	r5, GPR5_OFFSET(r1)
+	mtcr	r6
+	PPC_REG_LOAD	r6, GPR6_OFFSET(r1)
 	b	ppc_exc_fatal_machine_check
 	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Data storage */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 2
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Instruction storage */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 3
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* External input */
-	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
-	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
-	li	r3, 4
-	b	ppc_exc_interrupt
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Alignment */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 5
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Program */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 6
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+
+.Lmachine_check_return:
+
+	PPC_REG_LOAD	r6, EXC_CR_OFFSET(r1)
+	PPC_REG_LOAD	r3, GPR3_OFFSET(r1)
+	PPC_REG_LOAD	r4, GPR4_OFFSET(r1)
+	PPC_REG_LOAD	r5, GPR5_OFFSET(r1)
+	mtcr	r6
+	PPC_REG_LOAD	r6, GPR6_OFFSET(r1)
+	mfsprg	r1, 2
+	rfmci
+
+	.balign 0x8000
+
+bsp_exc_vector_cacheable_base:
+
+	/* Critical input (IVOR0) */
+	EXCEPTION_PROLOGUE_CRITICAL	0
+	/* Data storage (IVOR2) */
+	EXCEPTION_PROLOGUE_NORMAL	2
+	/* Instruction storage (IVOR3) */
+	EXCEPTION_PROLOGUE_NORMAL	3
+	/* External input (IVOR4) */
+	EXCEPTION_PROLOGUE_INTERRUPT	4
+	/* Alignment (IVOR5) */
+	EXCEPTION_PROLOGUE_NORMAL	5
+	/* Program (IVOR6) */
+	EXCEPTION_PROLOGUE_NORMAL	6
 #ifdef __PPC_CPU_E6500__
-	/* Floating-point unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 7
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* Floating-point unavailable (IVOR7) */
+	EXCEPTION_PROLOGUE_NORMAL	7
 #endif
-	/* System call */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 8
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* System call (IVOR8) */
+	EXCEPTION_PROLOGUE_NORMAL	8
 #ifdef __PPC_CPU_E6500__
-	/* APU unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 9
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* APU unavailable (IVOR9) */
+	EXCEPTION_PROLOGUE_NORMAL	9
 #endif
-	/* Decrementer */
+	/* Decrementer (IVOR10) */
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
-	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
-	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
-	li	r3, 10
-	b	ppc_exc_interrupt
+	EXCEPTION_PROLOGUE_INTERRUPT	10
 #else
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 10
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_NORMAL	10
 #endif
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Fixed-interval timer interrupt */
+	/* Fixed-interval timer interrupt (IVOR11) */
+	EXCEPTION_PROLOGUE_NORMAL	11
+	/* Watchdog timer interrupt (IVOR12) */
+	EXCEPTION_PROLOGUE_CRITICAL	12
+	/* Data TLB error (IVOR13) */
+	EXCEPTION_PROLOGUE_NORMAL	13
+	/* Instruction TLB error (IVOR14) */
+	EXCEPTION_PROLOGUE_NORMAL	14
+	/* Debug (IVOR15) */
+	.balign VECTOR_TABLE_ENTRY_SIZE
 	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 11
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Watchdog timer interrupt */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 12
-	b	ppc_exc_fatal_critical
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Data TLB error */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 13
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Instruction TLB error */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 14
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Debug */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
+	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
 	li	r3, 15
 	b	ppc_exc_fatal_debug
 	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* SPE APU unavailable or AltiVec unavailable */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 32
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* SPE floating-point data exception or AltiVec assist */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 33
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* SPE APU unavailable or AltiVec unavailable (IVOR32) */
+	EXCEPTION_PROLOGUE_NORMAL	32
+	/* SPE floating-point data exception or AltiVec assist (IVOR33) */
+	EXCEPTION_PROLOGUE_NORMAL	33
 #ifndef __PPC_CPU_E6500__
-	/* SPE floating-point round exception */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 34
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* SPE floating-point round exception (IVOR34) */
+	EXCEPTION_PROLOGUE_NORMAL	34
 #endif
-	/* Performance monitor */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 35
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* Performance monitor (IVOR35) */
+	EXCEPTION_PROLOGUE_NORMAL	35
 #ifdef __PPC_CPU_E6500__
-	/* Processor doorbell interrupt */
+	/* Processor doorbell interrupt (IVOR36) */
 #if defined(QORIQ_IS_HYPERVISOR_GUEST) && defined(RTEMS_SMP)
-	PPC_REG_STORE_UPDATE	r1, -PPC_EXC_INTERRUPT_FRAME_SIZE(r1)
-	PPC_REG_STORE	r3, PPC_EXC_GPR3_PROLOGUE_OFFSET(r1)
-	li	r3, 36
-	b	ppc_exc_interrupt
+	EXCEPTION_PROLOGUE_INTERRUPT	36
 #else
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 36
-	b	ppc_exc_fatal_normal
+	EXCEPTION_PROLOGUE_NORMAL	36
 #endif
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Processor doorbell critical interrupt */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 37
-	b	ppc_exc_fatal_critical
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Guest processor doorbell */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 38
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Guest processor doorbell critical and machine check */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 39
-	b	ppc_exc_fatal_critical
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Hypervisor system call */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 40
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* Hypervisor privilege */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 41
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
-	/* LRAT error */
-	PPC_REG_STORE_UPDATE	r1, -EXC_GENERIC_SIZE(r1)
-	PPC_REG_STORE	r3, GPR3_OFFSET(r1)
-	li	r3, 42
-	b	ppc_exc_fatal_normal
-	START_NOP_FOR_LINKER_TOC_POINTER_RESTORE
+	/* Processor doorbell critical interrupt (IVOR37) */
+	EXCEPTION_PROLOGUE_CRITICAL	37
+	/* Guest processor doorbell (IVOR38) */
+	EXCEPTION_PROLOGUE_NORMAL	38
+	/* Guest processor doorbell critical and machine check (IVOR39) */
+	EXCEPTION_PROLOGUE_CRITICAL	39
+	/* Hypervisor system call (IVOR40) */
+	EXCEPTION_PROLOGUE_NORMAL	40
+	/* Hypervisor privilege (IVOR41) */
+	EXCEPTION_PROLOGUE_NORMAL	41
+	/* LRAT error (IVOR42) */
+	EXCEPTION_PROLOGUE_NORMAL	42
 #endif
 
 /* Symbol provided for debugging and tracing */
 bsp_exc_vector_end:
+
+	.section ".bsp_exceptions.machine_check", "aw"
+
+	.balign 0x10000
+
+qoriq_machine_check_data:
+
+	MACHINE_CHECK_DATA
+#if QORIQ_CPU_COUNT > 1
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 2
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 3
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 4
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 5
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 6
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 7
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 8
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 9
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 10
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 11
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 12
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 13
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 14
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 15
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 16
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 17
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 18
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 19
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 20
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 21
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 22
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 23
+	MACHINE_CHECK_DATA
+#endif
+#if QORIQ_CPU_COUNT > 24
+#error "unexpected QORIQ_CPU_COUNT"
+#endif
+
+#if defined(RTEMS_SMP) && \
+  !defined(QORIQ_SECONDARY_CORES_INITIALIZED_BY_BOOTLOADER)
+
+	.section ".bsp_exceptions.boot_page", "ax"
+
+qoriq_boot_page:
+
+	/* Make first 1GiB available through TLB1[1] */
+	LWI	r3, FSL_EIS_MAS0_TLBSEL | FSL_EIS_MAS0_ESEL(1)
+	mtspr	FSL_EIS_MAS0, r3
+	LWI	r3, FSL_EIS_MAS1_V | FSL_EIS_MAS1_TSIZE(FSL_EIS_MAS1_SIZE_1G)
+	mtspr	FSL_EIS_MAS1, r3
+	LWI	r3, FSL_EIS_MAS2_EPN(0) | FSL_EIS_MAS2_I
+	mtspr	FSL_EIS_MAS2, r3
+	LWI	r3, FSL_EIS_MAS3_SR | FSL_EIS_MAS3_SW | FSL_EIS_MAS3_SX
+	mtspr	FSL_EIS_MAS3, r3
+	li	r3, 0
+	mtspr	FSL_EIS_MAS7, r3
+	isync
+	msync
+	tlbwe
+	isync
+
+	/* Enable time base */
+	mfspr	r3, HID0
+	ori	r3, r3, 0x4000
+	mtspr	HID0, r3
+
+	/* Set boot status and control pointer */
+	LA	r4, .Lboot_control_and_status
+
+	/* Initialize time base */
+	lwz	r3, 4(r4)
+	mtspr	TBWL, r3
+	lwz	r3, 8(r4)
+	mtspr	TBWU, r3
+
+	/* Mark core 1 as ready */
+	LWI	r3, 0x12345678
+	stw	r4, 12(r4)
+
+	/* Continue with the secondary start */
+	lwz	r5, 0(r4)
+	mtctr	r5
+	bctr
+
+	.zero 0x0f00 - (. - qoriq_boot_page)
+
+.Lboot_control_and_status:
+
+	.long	_start_secondary_processor
+
+	.zero 0x0ffc - (. - qoriq_boot_page)
+
+	b	qoriq_boot_page
+#endif

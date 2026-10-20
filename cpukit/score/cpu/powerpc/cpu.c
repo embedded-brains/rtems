@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2009, 2017 embedded brains GmbH & Co. KG
+ * Copyright (C) 2009, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,6 +76,10 @@ PPC_ASSERT_OFFSET(gpr30, GPR30);
 PPC_ASSERT_OFFSET(gpr31, GPR31);
 PPC_ASSERT_OFFSET(tp, TP);
 PPC_ASSERT_OFFSET(isr_dispatch_disable, ISR_DISPATCH_DISABLE);
+
+#ifdef __SPE__
+  PPC_ASSERT_OFFSET(spefscr, SPEFSCR);
+#endif
 
 #ifdef RTEMS_SMP
   PPC_ASSERT_OFFSET(is_executing, IS_EXECUTING);
@@ -149,6 +153,7 @@ RTEMS_STATIC_ASSERT(
 PPC_EXC_ASSERT_OFFSET(EXC_SRR0, SRR0_FRAME_OFFSET);
 PPC_EXC_ASSERT_OFFSET(EXC_SRR1, SRR1_FRAME_OFFSET);
 PPC_EXC_ASSERT_OFFSET(_EXC_number, EXCEPTION_NUMBER_OFFSET);
+PPC_EXC_ASSERT_CANONIC_OFFSET(EXC_TYPE);
 PPC_EXC_ASSERT_CANONIC_OFFSET(EXC_CR);
 PPC_EXC_ASSERT_CANONIC_OFFSET(EXC_CTR);
 PPC_EXC_ASSERT_CANONIC_OFFSET(EXC_XER);

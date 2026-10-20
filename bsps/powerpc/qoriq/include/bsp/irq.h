@@ -277,7 +277,7 @@ extern "C" {
 #define QORIQ_IRQ_EXT_11 (QORIQ_IRQ_EXT_BASE + 11)
 
 #define QORIQ_IRQ_IS_EXT(vector) \
-  ((vector) >= QORIQ_IRQ_EXT_0 && (vector) <= QORIQ_IRQ_EXT_11)
+  (((rtems_vector_number) (vector)) - QORIQ_IRQ_EXT_0 < 12)
 /** @} */
 
 /**
@@ -419,29 +419,103 @@ rtems_status_code qoriq_pic_msi_map(
   uint32_t *data
 );
 
+/**
+ * @brief This enumeration defines the polarity and sense configuration of an
+ * external interrupt.
+ */
 typedef enum {
+  /**
+   * @brief Indicates that the external interrupt is triggered by a falling edge.
+   */
   QORIQ_EIRQ_TRIGGER_EDGE_FALLING,
-  QORIQ_EIRQ_TRIGGER_EDGE_RISING,
+
+  /**
+   * @brief Indicates that the external interrupt is triggered by a raising edge.
+   */
+  QORIQ_EIRQ_TRIGGER_EDGE_RAISING,
+
+  /**
+   * @brief Indicates that the external interrupt is triggered by a low signal
+   * level.
+   */
   QORIQ_EIRQ_TRIGGER_LEVEL_LOW,
+
+  /**
+   * @brief Indicates that the external interrupt is triggered by a high signal
+   * level.
+   */
   QORIQ_EIRQ_TRIGGER_LEVEL_HIGH,
 } qoriq_eirq_sense_and_polarity;
 
 /**
- * @brief Change polarity and sense settings of external interrupts.
+ * @brief Sets the polarity and sense configuration of the external interrupt.
  *
- * NOTE: There are only very rare edge cases where you need this function.
+ * The ``new_sense_and_polarity`` parameter defines the new polarity and sense
+ * configuration of the external interrupt associated with the ``vector``
+ * parameter. If the ``old_sense_and_polarity`` parameter is not NULL, then the
+ * old polarity and sense configuration is stored in the referenced object.
  *
- * @a vector must be the vector number of an external interrupt.
+ * @par Notes
+ * There are only very rare edge cases where you need this function.
  *
- * Use @a new_sense_and_polarity to select the new setting. If @a
- * old_sense_and_polarity is not NULL, the old value is returned.
+ * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
  *
- * @returns RTEMS_SUCCSSSFUL on sucess or other values for invalid settings.
+ * @retval ::RTEMS_UNSATISFIED The vector is not associated with an external
+ *   interrupt.
  */
 rtems_status_code qoriq_pic_set_sense_and_polarity(
   rtems_vector_number vector,
   qoriq_eirq_sense_and_polarity new_sense_and_polarity,
   qoriq_eirq_sense_and_polarity *old_sense_and_polarity
+);
+
+/**
+ * @brief This enumeration defines the signal type of an interrupt.
+ */
+typedef enum {
+  /**
+   * @brief Indicates that the interrupt is signalled by an interrupt signal.
+   */
+  QORIQ_PIC_SIGNAL_INT,
+
+  /**
+   * @brief Indicates that the interrupt is signalled by a critical interrupt
+   *   signal.
+   */
+  QORIQ_PIC_SIGNAL_CINT,
+
+  /**
+   * @brief Indicates that the interrupt is signalled by a machine check
+   *   signal.
+   */
+  QORIQ_PIC_SIGNAL_MCP
+} qoriq_pic_signal_type;
+
+/**
+ * @brief Sets the destination and signal type of the interrupt vector.
+ *
+ * @param vector is the number of the interrupt vector.
+ *
+ * @param destination is the processor index of the new destination for the
+ *   interrupt vector.
+ *
+ * @param signal_type is the new signal type for the interrupt vector.
+ *
+ * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
+ *
+ * @retval ::RTEMS_INVALID_ID There was no interrupt vector associated with the
+ *   number specified by ``vector``.
+ *
+ * @retval ::RTEMS_INVALID_NUMBER The destination was invalid for the interrupt
+ *   vector.
+ *
+ * @retval ::RTEMS_UNSATISFIED The signal type was invalid for the interrupt
+ *   vector.
+ */
+rtems_status_code qoriq_pic_set_destination(
+  rtems_vector_number   vector,
+  uint32_t              destination,
+  qoriq_pic_signal_type signal_type
 );
 
 /** @} */

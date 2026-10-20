@@ -399,9 +399,103 @@ typedef struct {
 #define LAWAR_SIZE_SET(reg, val) BSP_BFLD32SET(reg, val, 26, 31)
 
 typedef struct {
+  uint32_t eebacr;
+  QORIQ_RESERVE(0x004, 0x010);
+  uint32_t eebpcr;
+  QORIQ_RESERVE(0x014, 0xbf8);
+  uint32_t eipbrr1;
+  uint32_t eipbrr2;
+  QORIQ_RESERVE(0xc00, 0xe00);
+  uint32_t eedr;
+  QORIQ_RESERVE(0x004, 0x008);
+  uint32_t eeer;
+  uint32_t eeatr;
+  uint32_t eeladr;
+  uint32_t eehadr;
 } qoriq_ecm;
 
+#define EEBPCR_CPU1_EN BSP_BBIT32(6)
+#define EEBPCR_CPU2_EN BSP_BBIT32(7)
+#define EEBPCR_CPU1_PRI(val) BSP_BFLD32(val, 26, 27)
+#define EEBPCR_CPU1_PRI_GET(reg) BSP_BFLD32GET(reg, 26, 27)
+#define EEBPCR_CPU1_PRI_SET(reg, val) BSP_BFLD32SET(reg, val, 26, 27)
+#define EEBPCR_CPU_RD_HI_DIS BSP_BBIT32(29)
+#define EEBPCR_CPU0_PRI(val) BSP_BFLD32(val, 30, 31)
+#define EEBPCR_CPU0_PRI_GET(reg) BSP_BFLD32GET(reg, 30, 31)
+#define EEBPCR_CPU0_PRI_SET(reg, val) BSP_BFLD32SET(reg, val, 30, 31)
+
 typedef struct {
+  uint32_t ddr_cs0_bnds;
+  QORIQ_RESERVE(0x004, 0x008);
+  uint32_t ddr_cs1_bnds;
+  QORIQ_RESERVE(0x00c, 0x010);
+  uint32_t ddr_cs2_bnds;
+  QORIQ_RESERVE(0x014, 0x018);
+  uint32_t ddr_cs3_bnds;
+  QORIQ_RESERVE(0x01c, 0x080);
+  uint32_t ddr_cs0_config;
+  uint32_t ddr_cs1_config;
+  uint32_t ddr_cs2_config;
+  uint32_t ddr_cs3_config;
+  QORIQ_RESERVE(0x090, 0x0c0);
+  uint32_t ddr_cs0_config_2;
+  uint32_t ddr_cs1_config_2;
+  uint32_t ddr_cs2_config_2;
+  uint32_t ddr_cs3_config_2;
+  QORIQ_RESERVE(0x0d0, 0x100);
+  uint32_t ddr_timing_cfg_3;
+  uint32_t ddr_timing_cfg_0;
+  uint32_t ddr_timing_cfg_1;
+  uint32_t ddr_timing_cfg_2;
+  uint32_t ddr_ddr_sdram_cfg;
+  uint32_t ddr_ddr_sdram_cfg_2;
+  uint32_t ddr_ddr_sdram_mode;
+  uint32_t ddr_ddr_sdram_mode_2;
+  uint32_t ddr_ddr_sdram_md_cntl;
+  uint32_t ddr_ddr_sdram_interval;
+  uint32_t ddr_ddr_data_init;
+  QORIQ_RESERVE(0x12c, 0x130);
+  uint32_t ddr_ddr_sdram_clk_cntl;
+  QORIQ_RESERVE(0x134, 0x148);
+  uint32_t ddr_ddr_init_addr;
+  uint32_t ddr_ddr_init_ext_addr;
+  QORIQ_RESERVE(0x150, 0x160);
+  uint32_t ddr_timing_cfg_4;
+  uint32_t ddr_timing_cfg_5;
+  QORIQ_RESERVE(0x168, 0x170);
+  uint32_t ddr_ddr_zq_cntl;
+  uint32_t ddr_ddr_wrlvl_cntl;
+  QORIQ_RESERVE(0x178, 0x17c);
+  uint32_t ddr_ddr_sr_cntr;
+  uint32_t ddr_ddr_sdram_rcw_1;
+  uint32_t ddr_ddr_sdram_rcw_2;
+  QORIQ_RESERVE(0x188, 0x190);
+  uint32_t ddr_ddr_wrlvl_cntl_2;
+  uint32_t ddr_ddr_wrlvl_cntl_3;
+  QORIQ_RESERVE(0x198, 0xb20);
+  uint32_t ddr_ddrdsr_1;
+  uint32_t ddr_ddrdsr_2;
+  uint32_t ddr_ddrcdr_1;
+  uint32_t ddr_ddrcdr_2;
+  QORIQ_RESERVE(0xb30, 0xbf8);
+  uint32_t ddr_ddr_ip_rev1;
+  uint32_t ddr_ddr_ip_rev2;
+  QORIQ_RESERVE(0xc00, 0xe00);
+  uint32_t ddr_data_err_inject_hi;
+  uint32_t ddr_data_err_inject_lo;
+  uint32_t ddr_err_inject;
+  QORIQ_RESERVE(0xe0c, 0xe20);
+  uint32_t ddr_capture_data_hi;
+  uint32_t ddr_capture_data_lo;
+  uint32_t ddr_capture_ecc;
+  QORIQ_RESERVE(0xe2c, 0xe40);
+  uint32_t ddr_err_detect;
+  uint32_t ddr_err_disable;
+  uint32_t ddr_err_int_en;
+  uint32_t ddr_capture_attributes;
+  uint32_t ddr_capture_address;
+  uint32_t ddr_capture_ext_address;
+  uint32_t ddr_err_sbe;
 } qoriq_ddr_controller;
 
 typedef struct {
@@ -420,6 +514,45 @@ typedef struct {
 } qoriq_tdm;
 
 typedef struct {
+  uint32_t l2ctl;
+  uint32_t l2cwap;
+  QORIQ_RESERVE(0x008, 0x010);
+  uint32_t l2cewar0;
+  uint32_t l2cewarea0;
+  uint32_t l2cewcr0;
+  QORIQ_RESERVE(0x01c, 0x020);
+  uint32_t l2cewar1;
+  uint32_t l2cewarea1;
+  uint32_t l2cewcr1;
+  QORIQ_RESERVE(0x02c, 0x030);
+  uint32_t l2cewar2;
+  uint32_t l2cewarea2;
+  uint32_t l2cewcr2;
+  QORIQ_RESERVE(0x03c, 0x040);
+  uint32_t l2cewar3;
+  uint32_t l2cewarea3;
+  uint32_t l2cewcr3;
+  QORIQ_RESERVE(0x04c, 0x100);
+  uint32_t l2srbar0;
+  uint32_t l2srbarea0;
+  uint32_t l2srbar1;
+  uint32_t l2srbarea1;
+  QORIQ_RESERVE(0x110, 0xe00);
+  uint32_t l2errinjhi;
+  uint32_t l2errinjlo;
+  uint32_t l2errinjctl;
+  QORIQ_RESERVE(0xe0c, 0xe20);
+  uint32_t l2captdatahi;
+  uint32_t l2captdatalo;
+  uint32_t l2captecc;
+  QORIQ_RESERVE(0xe2c, 0xe40);
+  uint32_t l2errdet;
+  uint32_t l2errdis;
+  uint32_t l2errinten;
+  uint32_t l2errattr;
+  uint32_t l2erraddrl;
+  uint32_t l2erraddrh;
+  uint32_t l2errctl;
 } qoriq_l2_cache;
 
 typedef struct {
@@ -435,7 +568,64 @@ typedef struct {
 } qoriq_serial_rapid_io;
 
 typedef struct {
+  /* Note: Only checked on P2020 */
+  uint32_t porpllsr;
+  uint32_t porbmsr;
+  QORIQ_RESERVE(0x008, 0x00c);
+  uint32_t pordevsr;
+  uint32_t pordbgmsr;
+  uint32_t pordevsr2;
+  QORIQ_RESERVE(0x018, 0x020);
+  uint32_t gpporcr;
+  QORIQ_RESERVE(0x024, 0x060);
+  uint32_t pmuxcr;
+  QORIQ_RESERVE(0x064, 0x070);
+  uint32_t devdisr;
+  QORIQ_RESERVE(0x074, 0x080);
+  uint32_t powmgtcsr;
+  QORIQ_RESERVE(0x084, 0x08c);
+  uint32_t pmcdr;
+  uint32_t mcpsumr;
+  uint32_t rstrscr;
+  uint32_t ectrstcr;
+  uint32_t autorstsr;
+  uint32_t pvr;
+  uint32_t svr;
+  QORIQ_RESERVE(0x0A8, 0x0b0);
+  uint32_t rstcr;
+  QORIQ_RESERVE(0x0b4, 0x0c0);
+  uint32_t iovselsr;
+  QORIQ_RESERVE(0x0c4, 0xb28);
+  uint32_t ddrclkdr;
+  QORIQ_RESERVE(0xb2c, 0xe00);
+  uint32_t clkocr;
+  QORIQ_RESERVE(0xe04, 0xe20);
+  uint32_t ecmcr;
+  QORIQ_RESERVE(0xe24, 0xf64);
+  uint32_t sdhcdcr;
 } qoriq_global_utilities;
+
+#define DEVDISR_PCIE1 BSP_BBIT32(2)
+#define DEVDISR_eLBC BSP_BBIT32(4)
+#define DEVDISR_PCIE2 BSP_BBIT32(5)
+#define DEVDISR_PCIE3 BSP_BBIT32(6)
+#define DEVDISR_SEC BSP_BBIT32(7)
+#define DEVDISR_USB1 BSP_BBIT32(8)
+#define DEVDISR_eSDHC BSP_BBIT32(10)
+#define DEVDISR_SRIO12 BSP_BBIT32(12)
+#define DEVDISR_DDR BSP_BBIT32(15)
+#define DEVDISR_E500_CORE0 BSP_BBIT32(16)
+#define DEVDISR_TB0 BSP_BBIT32(17)
+#define DEVDISR_E500_CORE1 BSP_BBIT32(18)
+#define DEVDISR_TB1 BSP_BBIT32(19)
+#define DEVDISR_DMA1 BSP_BBIT32(21)
+#define DEVDISR_DMA2 BSP_BBIT32(22)
+#define DEVDISR_TSEC1 BSP_BBIT32(24)
+#define DEVDISR_TSEC2 BSP_BBIT32(25)
+#define DEVDISR_TSEC3 BSP_BBIT32(26)
+#define DEVDISR_SPI BSP_BBIT32(28)
+#define DEVDISR_I2C BSP_BBIT32(29)
+#define DEVDISR_DUART BSP_BBIT32(30)
 
 typedef struct {
 } qoriq_performance_monitor;

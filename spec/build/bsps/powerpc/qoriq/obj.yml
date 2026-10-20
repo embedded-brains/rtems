@@ -18,12 +18,14 @@ install:
 - destination: ${BSP_INCLUDEDIR}/bsp
   source:
   - bsps/powerpc/qoriq/include/bsp/VMEConfig.h
+  - bsps/powerpc/qoriq/include/bsp/cache.h
   - bsps/powerpc/qoriq/include/bsp/intercom.h
   - bsps/powerpc/qoriq/include/bsp/irq.h
   - bsps/powerpc/qoriq/include/bsp/mmu.h
   - bsps/powerpc/qoriq/include/bsp/qoriq.h
   - bsps/powerpc/qoriq/include/bsp/tsec-config.h
   - bsps/powerpc/qoriq/include/bsp/uart-bridge.h
+  - bsps/powerpc/qoriq/include/bsp/qoriq-gpio.h
 - destination: ${BSP_INCLUDEDIR}/uapi/asm
   source:
   - bsps/powerpc/qoriq/include/uapi/asm/epapr_hcalls.h
@@ -42,18 +44,24 @@ source:
 - bsps/powerpc/qoriq/console/console-config.c
 - bsps/powerpc/qoriq/console/uart-bridge-master.c
 - bsps/powerpc/qoriq/console/uart-bridge-slave.c
+- bsps/powerpc/qoriq/gpio/qoriq-gpio.c
+- bsps/powerpc/qoriq/irq/irq-msi.c
 - bsps/powerpc/qoriq/irq/irq.c
 - bsps/powerpc/qoriq/mpci/intercom-mpci.c
 - bsps/powerpc/qoriq/mpci/intercom.c
 - bsps/powerpc/qoriq/mpci/lock.S
 - bsps/powerpc/qoriq/rtc/rtc-config.c
+- bsps/powerpc/qoriq/start/bspfdtmapintr.c
 - bsps/powerpc/qoriq/start/bspreset.c
 - bsps/powerpc/qoriq/start/bsprestart.c
 - bsps/powerpc/qoriq/start/bspstart.c
 - bsps/powerpc/qoriq/start/epapr_hcalls.S
+- bsps/powerpc/qoriq/start/gettargethash.c
 - bsps/powerpc/qoriq/start/l1cache.S
 - bsps/powerpc/qoriq/start/l2cache.S
+- bsps/powerpc/qoriq/start/memory-errors.c
 - bsps/powerpc/qoriq/start/mmu-config.c
+- bsps/powerpc/qoriq/start/mmu-fixed-config.c
 - bsps/powerpc/qoriq/start/mmu-tlb1.S
 - bsps/powerpc/qoriq/start/mmu.c
 - bsps/powerpc/qoriq/start/portal.c
@@ -70,7 +78,6 @@ source:
 - bsps/shared/dev/serial/console-termios.c
 - bsps/shared/irq/irq-default-handler.c
 - bsps/shared/start/bsp-fdt.c
-- bsps/shared/start/gettargethash-default.c
 - bsps/shared/start/mallocinitone.c
 - bsps/shared/start/sbrk.c
 - bsps/shared/start/wkspaceinitone.c

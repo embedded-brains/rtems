@@ -29,7 +29,7 @@
  *
  *  Copyright (c) 2001 Surrey Satellite Technology Limited (SSTL).
  *
- *  Copyright (C) 2010, 2020 embedded brains GmbH & Co. KG
+ *  Copyright (C) 2010, 2025 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -244,7 +244,11 @@ typedef struct {
   PPC_GPR_TYPE gpr30;
   PPC_GPR_TYPE gpr31;
   uint32_t isr_dispatch_disable;
-  uint32_t reserved_for_alignment;
+  #if defined(__SPE__)
+    uint32_t spefscr;
+  #else
+    uint32_t reserved_for_alignment;
+  #endif
   #if defined(PPC_MULTILIB_ALTIVEC)
     #if !defined(__powerpc64__)
       uint32_t reserved_for_alignment_2[4];
@@ -377,6 +381,11 @@ static inline ppc_context *ppc_get_context( const Context_Control *context )
 #define PPC_CONTEXT_OFFSET_GPR30 PPC_CONTEXT_GPR_OFFSET( 30 )
 #define PPC_CONTEXT_OFFSET_GPR31 PPC_CONTEXT_GPR_OFFSET( 31 )
 #define PPC_CONTEXT_OFFSET_ISR_DISPATCH_DISABLE PPC_CONTEXT_GPR_OFFSET( 32 )
+
+#ifdef __SPE__
+#define PPC_CONTEXT_OFFSET_SPEFSCR \
+  ( PPC_CONTEXT_OFFSET_ISR_DISPATCH_DISABLE + 4 )
+#endif
 
 #ifdef PPC_MULTILIB_ALTIVEC
   #ifdef __powerpc64__
@@ -988,11 +997,18 @@ void _CPU_Context_restore_fp(
   void _CPU_SMP_Send_interrupt( uint32_t target_processor_index );
 #endif
 
+typedef enum {
+  PPC_EXC_TYPE_EXTERNAL_INPUT,
+  PPC_EXC_TYPE_CRITICAL_INPUT,
+  PPC_EXC_TYPE_MACHINE_CHECK,
+  PPC_EXC_TYPE_DEBUG
+} PPC_Exception_type;
+
 typedef struct {
   uintptr_t EXC_SRR0;
   uintptr_t EXC_SRR1;
   uint32_t _EXC_number;
-  uint32_t RESERVED_FOR_ALIGNMENT_0;
+  uint32_t EXC_TYPE;
   uint32_t EXC_CR;
   uint32_t EXC_XER;
   uintptr_t EXC_CTR;
@@ -1002,38 +1018,45 @@ typedef struct {
     uint32_t EXC_SPEFSCR;
     uint64_t EXC_ACC;
   #endif
-  PPC_GPR_TYPE GPR0;
-  PPC_GPR_TYPE GPR1;
-  PPC_GPR_TYPE GPR2;
-  PPC_GPR_TYPE GPR3;
-  PPC_GPR_TYPE GPR4;
-  PPC_GPR_TYPE GPR5;
-  PPC_GPR_TYPE GPR6;
-  PPC_GPR_TYPE GPR7;
-  PPC_GPR_TYPE GPR8;
-  PPC_GPR_TYPE GPR9;
-  PPC_GPR_TYPE GPR10;
-  PPC_GPR_TYPE GPR11;
-  PPC_GPR_TYPE GPR12;
-  PPC_GPR_TYPE GPR13;
-  PPC_GPR_TYPE GPR14;
-  PPC_GPR_TYPE GPR15;
-  PPC_GPR_TYPE GPR16;
-  PPC_GPR_TYPE GPR17;
-  PPC_GPR_TYPE GPR18;
-  PPC_GPR_TYPE GPR19;
-  PPC_GPR_TYPE GPR20;
-  PPC_GPR_TYPE GPR21;
-  PPC_GPR_TYPE GPR22;
-  PPC_GPR_TYPE GPR23;
-  PPC_GPR_TYPE GPR24;
-  PPC_GPR_TYPE GPR25;
-  PPC_GPR_TYPE GPR26;
-  PPC_GPR_TYPE GPR27;
-  PPC_GPR_TYPE GPR28;
-  PPC_GPR_TYPE GPR29;
-  PPC_GPR_TYPE GPR30;
-  PPC_GPR_TYPE GPR31;
+  union {
+    struct {
+      PPC_GPR_TYPE GPR0;
+      PPC_GPR_TYPE GPR1;
+      PPC_GPR_TYPE GPR2;
+      PPC_GPR_TYPE GPR3;
+      PPC_GPR_TYPE GPR4;
+      PPC_GPR_TYPE GPR5;
+      PPC_GPR_TYPE GPR6;
+      PPC_GPR_TYPE GPR7;
+      PPC_GPR_TYPE GPR8;
+      PPC_GPR_TYPE GPR9;
+      PPC_GPR_TYPE GPR10;
+      PPC_GPR_TYPE GPR11;
+      PPC_GPR_TYPE GPR12;
+      PPC_GPR_TYPE GPR13;
+      PPC_GPR_TYPE GPR14;
+      PPC_GPR_TYPE GPR15;
+      PPC_GPR_TYPE GPR16;
+      PPC_GPR_TYPE GPR17;
+      PPC_GPR_TYPE GPR18;
+      PPC_GPR_TYPE GPR19;
+      PPC_GPR_TYPE GPR20;
+      PPC_GPR_TYPE GPR21;
+      PPC_GPR_TYPE GPR22;
+      PPC_GPR_TYPE GPR23;
+      PPC_GPR_TYPE GPR24;
+      PPC_GPR_TYPE GPR25;
+      PPC_GPR_TYPE GPR26;
+      PPC_GPR_TYPE GPR27;
+      PPC_GPR_TYPE GPR28;
+      PPC_GPR_TYPE GPR29;
+      PPC_GPR_TYPE GPR30;
+      PPC_GPR_TYPE GPR31;
+    };
+
+    PPC_GPR_TYPE registers[ 32 ];
+  };
+
   uintptr_t RESERVED_FOR_ALIGNMENT_2;
   #ifdef PPC_MULTILIB_ALTIVEC
     uint32_t VRSAVE;

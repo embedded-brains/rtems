@@ -42,7 +42,7 @@
 
 #ifdef ARM_MULTILIB_ARCH_V7M
 
-void __attribute__((naked)) _ARMV7M_Exception_default( void )
+void __attribute__((naked, no_profile_instrument_function)) _ARMV7M_Exception_default( void )
 {
     /* On exception entry, ARMv7M saves context state onto a stack pointed to
      * by either MSP or PSP. The value stored in LR indicates whether we were
@@ -78,6 +78,9 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
     "stm r1, {r3-r6}\n"     /* Store to CPU_Exception_frame */
     "mrs r1, ipsr\n"
     "str r1, [sp, %[cpuvecoff]]\n"
+    "mrs r1, basepri\n"
+    "str r1, [sp, %[cpubasepriof]]\n"
+    "str lr, [sp, %[cpuexcretoff]]\n"
 
     /* Argument for high level handler */
     "mov r0, sp\n"
@@ -90,8 +93,9 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
 #ifdef ARM_MULTILIB_VFP
     /* Ensure that the FPU is enabled */
     "ldr r4, =%[cpacr]\n"
+    "ldr r4, [r4]\n"
     "tst r4, #(0xf << 20)\n"
-    "bne 1f\n"
+    "beq 1f\n"
 
     /* Save VFP context */
     "sub sp, %[vfpsz]\n"
@@ -117,6 +121,8 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
       [cpuspoff] "i" (offsetof(CPU_Exception_frame, register_sp)),
       [v7mlroff] "i" (offsetof(ARMV7M_Exception_frame, register_lr)),
       [cpuvecoff] "J" (offsetof(CPU_Exception_frame, vector)),
+      [cpubasepriof] "i" (offsetof(CPU_Exception_frame, register_basepri)),
+      [cpuexcretoff] "i" (offsetof(CPU_Exception_frame, exc_return)),
       [cpuvfpoff] "i" (ARM_EXCEPTION_FRAME_VFP_CONTEXT_OFFSET),
       [cpacr] "i" (ARMV7M_CPACR),
       [vfpsz] "i" (ARM_VFP_CONTEXT_SIZE)
