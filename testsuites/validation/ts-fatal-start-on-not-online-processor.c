@@ -46,8 +46,10 @@
  *
  * @ingroup RTEMSTestSuitesValidation
  *
- * @brief This validation test suite contains a test case which triggers a
- *   fatal error during system initialization.
+ * @brief This validation test suite contains a test case which triggers the
+ *   fatal error of the RTEMS_FATAL_SOURCE_SMP fatal source with the
+ *   SMP_FATAL_MULTITASKING_START_ON_NOT_ONLINE_PROCESSOR fatal code during
+ *   system initialization.
  *
  * @{
  */
@@ -61,6 +63,8 @@ const char rtems_test_name[] = "TestsuitesFatalStartOnNotOnlineProcessor";
 #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
 
 #define CONFIGURE_MAXIMUM_PROCESSORS 2
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include "ts-fatal-sysinit.h"
 

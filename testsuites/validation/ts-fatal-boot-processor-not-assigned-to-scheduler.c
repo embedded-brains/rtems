@@ -47,7 +47,9 @@
  * @ingroup RTEMSTestSuitesValidation
  *
  * @brief This validation test suite uses an application configuration which
- *   triggers a fatal error during system initialization.
+ *   triggers the fatal error of the RTEMS_FATAL_SOURCE_SMP fatal source with
+ *   the SMP_FATAL_BOOT_PROCESSOR_NOT_ASSIGNED_TO_SCHEDULER fatal code during
+ *   system initialization.
  *
  * @{
  */
@@ -76,6 +78,8 @@ RTEMS_SCHEDULER_EDF_SMP( a );
 #define CONFIGURE_SCHEDULER_ASSIGNMENTS \
   RTEMS_SCHEDULER_ASSIGN_NO_SCHEDULER,  \
     RTEMS_SCHEDULER_ASSIGN( 0, RTEMS_SCHEDULER_ASSIGN_PROCESSOR_OPTIONAL )
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include "ts-fatal-sysinit.h"
 

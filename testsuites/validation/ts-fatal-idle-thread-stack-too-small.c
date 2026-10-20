@@ -45,8 +45,10 @@
  *
  * @ingroup RTEMSTestSuitesValidation
  *
- * @brief This validation test suite contains a test case which triggers a
- *   fatal error during system initialization.
+ * @brief This validation test suite contains a test case which triggers the
+ *   fatal error of the INTERNAL_ERROR_CORE fatal source with the
+ *   INTERNAL_ERROR_IDLE_THREAD_STACK_TOO_SMALL fatal code during system
+ *   initialization.
  *
  * @{
  */
@@ -74,6 +76,8 @@ static void Init( rtems_task_argument arg )
 #define CONFIGURE_INIT_TASK_CONSTRUCT_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include "ts-fatal-sysinit.h"
 

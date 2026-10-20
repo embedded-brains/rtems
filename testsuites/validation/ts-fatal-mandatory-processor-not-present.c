@@ -46,8 +46,10 @@
  *
  * @ingroup RTEMSTestSuitesValidation
  *
- * @brief This validation test suite contains a test case which triggers a
- *   fatal error during system initialization.
+ * @brief This validation test suite contains a test case which triggers the
+ *   fatal error of the RTEMS_FATAL_SOURCE_SMP fatal source with the
+ *   SMP_FATAL_MANDATORY_PROCESSOR_NOT_PRESENT fatal code during system
+ *   initialization.
  *
  * @{
  */
@@ -104,6 +106,8 @@ RTEMS_SCHEDULER_EDF_SMP( a );
     RTEMS_SCHEDULER_ASSIGN( 0, RTEMS_SCHEDULER_ASSIGN_PROCESSOR_OPTIONAL ), \
     RTEMS_SCHEDULER_ASSIGN( 0, RTEMS_SCHEDULER_ASSIGN_PROCESSOR_OPTIONAL ), \
     RTEMS_SCHEDULER_ASSIGN( 0, RTEMS_SCHEDULER_ASSIGN_PROCESSOR_MANDATORY )
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #include "ts-fatal-sysinit.h"
 

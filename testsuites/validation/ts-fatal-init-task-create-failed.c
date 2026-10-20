@@ -54,8 +54,10 @@
  *
  * @ingroup RTEMSTestSuitesValidation
  *
- * @brief This validation test suite contains a test case which triggers a
- *   fatal error during system initialization.
+ * @brief This validation test suite contains a test case which triggers the
+ *   fatal error of the INTERNAL_ERROR_CORE fatal source with the
+ *   INTERNAL_ERROR_RTEMS_INIT_TASK_CREATE_FAILED fatal code during system
+ *   initialization.
  *
  * The application configuration defines the priority of the Classic API
  * initialization task as zero. Zero is no valid task priority, so the task
@@ -107,6 +109,8 @@ static void StackDeallocate( void *unused )
 #define CONFIGURE_INIT_TASK_PRIORITY 0
 
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+#define CONFIGURE_STACK_CHECKER_ENABLED
 
 #define CONFIGURE_IDLE_TASK_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
 
