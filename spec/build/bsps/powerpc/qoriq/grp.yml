@@ -63,6 +63,8 @@ links:
 - role: build-dependency
   uid: optcpucnt
 - role: build-dependency
+  uid: optcritexcstack
+- role: build-dependency
   uid: optetsec1phy
 - role: build-dependency
   uid: optetsec2phy
@@ -77,6 +79,8 @@ links:
 - role: build-dependency
   uid: ../../optfdtro
 - role: build-dependency
+  uid: opta005125
+- role: build-dependency
   uid: opthid0
 - role: build-dependency
   uid: opthyp
@@ -87,9 +91,15 @@ links:
 - role: build-dependency
   uid: opticomsz
 - role: build-dependency
+  uid: optinitcaches
+- role: build-dependency
   uid: optmas7
 - role: build-dependency
   uid: optmsr
+- role: build-dependency
+  uid: optmmufixed
+- role: build-dependency
+  uid: optsecondarycoresinitializedbybootloader
 - role: build-dependency
   uid: optspefscr
 - role: build-dependency
@@ -118,6 +128,8 @@ links:
   uid: optubootenvbase
 - role: build-dependency
   uid: optubootenvsize
+- role: build-dependency
+  uid: optstarttlb1ci
 - role: build-dependency
   uid: start
 - role: build-dependency

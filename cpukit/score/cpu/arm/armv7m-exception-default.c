@@ -42,7 +42,7 @@
 
 #ifdef ARM_MULTILIB_ARCH_V7M
 
-void __attribute__((naked)) _ARMV7M_Exception_default( void )
+void __attribute__((naked, no_profile_instrument_function)) _ARMV7M_Exception_default( void )
 {
     /* On exception entry, ARMv7M saves context state onto a stack pointed to
      * by either MSP or PSP. The value stored in LR indicates whether we were
@@ -78,6 +78,9 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
     "stm r1, {r3-r6}\n"     /* Store to CPU_Exception_frame */
     "mrs r1, ipsr\n"
     "str r1, [sp, %[cpuvecoff]]\n"
+    "mrs r1, basepri\n"
+    "str r1, [sp, %[cpubasepriof]]\n"
+    "str lr, [sp, %[cpuexcretoff]]\n"
 
     /* Argument for high level handler */
     "mov r0, sp\n"
@@ -90,14 +93,17 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
 #ifdef ARM_MULTILIB_VFP
     /* Ensure that the FPU is enabled */
     "ldr r4, =%[cpacr]\n"
+    "ldr r4, [r4]\n"
     "tst r4, #(0xf << 20)\n"
-    "bne 1f\n"
+    "beq 1f\n"
 
     /* Save VFP context */
+    "sub r5, r2, %[v7mlroff]\n" /* Get the hardware frame */
     "sub sp, %[vfpsz]\n"
     "add r4, sp, #4\n"
     "bic r4, r4, #7\n"
     "str r4, [r3]\n"
+    "mov r6, r4\n"
     "vmrs r2, FPSCR\n"
     "stmia r4!, {r1-r2}\n"
     "vstmia r4!, {d0-d15}\n"
@@ -108,6 +114,25 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
     "stmia r4!, {r1-r2}\n"
     "cmp r4, r3\n"
     "bne 2b\n"
+
+    /*
+     * The extended frame holds s0 to s15 and FPSCR of the interrupted
+     * context.  The first floating-point instruction of the handler leaves
+     * these registers UNKNOWN and sets the FPSCR fields AHP, DN, FZ, and
+     * RMode to the values of FPDSCR.
+     */
+    "tst lr, #16\n"
+    "bne 1f\n"
+    "ldr r1, [r5, #0x60]\n"
+    "str r1, [r6, #4]\n"
+    "add r1, r5, #0x20\n"
+    "add r2, r6, #8\n"
+    "add r3, r5, #0x60\n"
+    "3:\n"
+    "ldr r4, [r1], #4\n"
+    "str r4, [r2], #4\n"
+    "cmp r1, r3\n"
+    "bne 3b\n"
     "1:\n"
 #endif
 
@@ -117,6 +142,8 @@ void __attribute__((naked)) _ARMV7M_Exception_default( void )
       [cpuspoff] "i" (offsetof(CPU_Exception_frame, register_sp)),
       [v7mlroff] "i" (offsetof(ARMV7M_Exception_frame, register_lr)),
       [cpuvecoff] "J" (offsetof(CPU_Exception_frame, vector)),
+      [cpubasepriof] "i" (offsetof(CPU_Exception_frame, register_basepri)),
+      [cpuexcretoff] "i" (offsetof(CPU_Exception_frame, exc_return)),
       [cpuvfpoff] "i" (ARM_EXCEPTION_FRAME_VFP_CONTEXT_OFFSET),
       [cpacr] "i" (ARMV7M_CPACR),
       [vfpsz] "i" (ARM_VFP_CONTEXT_SIZE)
