@@ -1,0 +1,36 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+cppflags:
+- -D_GNU_SOURCE
+cxxflags: []
+enabled-by:
+- RTEMS_POSIX_API
+features: c cprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/validation/tc-pthread-attr-destroy.c
+- testsuites/validation/tc-pthread-attr-getdetachstate.c
+- testsuites/validation/tc-pthread-attr-getguardsize.c
+- testsuites/validation/tc-pthread-attr-getscope.c
+- testsuites/validation/tc-pthread-attr-getstack.c
+- testsuites/validation/tc-pthread-attr-getstackaddr.c
+- testsuites/validation/tc-pthread-attr-getstacksize.c
+- testsuites/validation/tc-pthread-attr-init.c
+- testsuites/validation/tc-pthread-attr-setdetachstate.c
+- testsuites/validation/tc-pthread-attr-setguardsize.c
+- testsuites/validation/tc-pthread-attr-setscope.c
+- testsuites/validation/tc-pthread-attr-setstack.c
+- testsuites/validation/tc-pthread-attr-setstackaddr.c
+- testsuites/validation/tc-pthread-attr-setstacksize.c
+- testsuites/validation/tc-pthread-getattr-np.c
+- testsuites/validation/ts-validation-pthread-attrs.c
+stlib: []
+target: testsuites/validation/ts-validation-pthread-attrs.exe
+type: build
+use-after: []
+use-before: []

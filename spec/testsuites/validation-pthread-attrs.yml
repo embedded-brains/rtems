@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 Critical Software S.A.
+enabled-by:
+- RTEMS_POSIX_API
+links:
+- role: requirement-refinement
+  uid: /c/req/group-posix-api
+test-brief: |
+  This validation test suite exercises the POSIX thread attribute interfaces.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define CONFIGURE_MAXIMUM_PROCESSORS    5
+  #define CONFIGURE_MAXIMUM_POSIX_THREADS 2
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  #include "ts-default.h"
+test-description: |
+  The test suite creates two POSIX threads to validate the thread attributes
+  reported for joinable and detached threads.
+test-includes: []
+test-local-includes: []
+test-target: testsuites/validation/ts-validation-pthread-attrs.c
+type: test-suite
