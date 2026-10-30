@@ -847,13 +847,35 @@ static void test_mrsp_nested_obtain_error( test_context *ctx )
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
 }
 
+static bool is_waiting( rtems_id id )
+{
+  Thread_Control  *the_thread;
+  ISR_lock_Context lock_context;
+  bool             waiting;
+
+  the_thread = _Thread_Get( id, &lock_context );
+  rtems_test_assert( the_thread != NULL );
+  waiting = the_thread->Wait.queue != NULL;
+  _ISR_lock_ISR_enable( &lock_context );
+
+  return waiting;
+}
+
 static void deadlock_timer( rtems_id timer_id, void *arg )
 {
   (void) timer_id;
 
   test_context *ctx = arg;
 
-  change_prio( ctx->main_task_id, 1 );
+  /*
+   * The main task detects the deadlock only after the worker waits for the
+   * first semaphore.
+   */
+  if ( is_waiting( ctx->worker_ids[ 0 ] ) ) {
+    change_prio( ctx->main_task_id, 1 );
+  } else {
+    fire_timer( ctx, 1, deadlock_timer );
+  }
 }
 
 static void deadlock_worker( rtems_task_argument arg )
