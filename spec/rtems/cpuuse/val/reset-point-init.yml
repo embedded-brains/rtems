@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Read the uptime and the processor time of the executing thread. Restore the
+    counter of the software timecounter after each read.
+  action-code: |
+    Thread_Control   *self;
+    Timestamp_Control uptime;
+    Timestamp_Control used;
+    struct timespec   expected;
+    struct timespec   ts;
+    uint32_t          counter;
+
+    self = GetThread( RTEMS_SELF );
+    counter = GetTimecountCounter();
+    _TOD_Get_uptime( &uptime );
+    SetTimecountCounter( counter );
+    used = _Thread_Get_CPU_time_used( self );
+    SetTimecountCounter( counter );
+  checks:
+  - brief: |
+      Check that the time of the ${/c/time/if/clock-process-cputime-id:/name} clock
+      is equal to the uptime.
+    code: |
+      T_eq_int( clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &ts ), 0 );
+      SetTimecountCounter( counter );
+      _Timestamp_To_timespec( &uptime, &expected );
+      T_eq_i64( ts.tv_sec, expected.tv_sec );
+      T_eq_long( ts.tv_nsec, expected.tv_nsec );
+    links:
+    - role: validation
+      uid: ../req/reset-point-init
+  - brief: |
+      Check that the time of the ${/c/time/if/clock-thread-cputime-id:/name} clock is
+      equal to the processor time which the executing thread used since its creation.
+    code: |
+      T_eq_int( clock_gettime( CLOCK_THREAD_CPUTIME_ID, &ts ), 0 );
+      SetTimecountCounter( counter );
+      _Timestamp_To_timespec( &used, &expected );
+      T_eq_i64( ts.tv_sec, expected.tv_sec );
+      T_eq_long( ts.tv_nsec, expected.tv_nsec );
+    links:
+    - role: validation
+      uid: ../req/reset-point-init
+  links: []
+test-brief: |
+  Tests the CPU usage reset point which the system initialization establishes.
+test-context: []
+test-context-support: null
+test-description: |
+  No test case of the test suite may call ${../if/reset:/name}.
+test-header: null
+test-includes:
+- rtems.h
+- rtems/score/threadimpl.h
+- rtems/score/todimpl.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-cpuuse-reset-point-init.c
+test-teardown: null
+type: test-case
