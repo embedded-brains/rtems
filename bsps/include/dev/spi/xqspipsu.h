@@ -1,3 +1,11 @@
+/**
+ * @defgroup xqspipsu Xilinx Generic Quad-SPI Controller Driver (XQSPIPSU)
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief This group contains the Xilinx generic Quad-SPI controller driver.
+ */
+
 /******************************************************************************
 * Copyright (C) 2014 - 2022 Xilinx, Inc.  All rights reserved.
 * SPDX-License-Identifier: MIT
@@ -8,7 +16,7 @@
 /**
  *
  * @file xqspipsu.h
- * @addtogroup Overview
+ * @addtogroup xqspipsu
  * @{
  * @details
  *

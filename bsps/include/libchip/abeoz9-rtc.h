@@ -43,7 +43,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * @defgroup shared_tod_abeoz9_rtc
+ * @defgroup shared_tod_abeoz9_rtc Abracon EOZ9 RTC Driver
  *
  * @ingroup shared_tod_i2c_rtc
  *

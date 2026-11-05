@@ -7,7 +7,7 @@
 /**
 *
 * @file xnandpsu.c
-* @addtogroup Overview
+* @addtogroup xnandpsu
 * @{
 *
 * This file contains the implementation of the interface functions for

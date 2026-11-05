@@ -7,7 +7,7 @@
 /**
 *
 * @file xqspipsu_options.c
-* @addtogroup Overview
+* @addtogroup xqspipsu
 * @{
 *
 * This file implements functions to configure the QSPIPSU component,

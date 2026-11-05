@@ -43,7 +43,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * @defgroup shared_tod_i2c_rtc
+ * @defgroup shared_tod_i2c_rtc I2C RTC Driver
  *
  * @ingroup shared_tod
  *

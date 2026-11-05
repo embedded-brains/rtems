@@ -8,7 +8,7 @@
 /**
  *
  * @file xqspipsu_control.h
- * @addtogroup Overview
+ * @addtogroup xqspipsu
  * @{
  *
  * This is the header file for the implementation of QSPIPSU driver.

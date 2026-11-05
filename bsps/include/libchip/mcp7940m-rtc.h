@@ -43,7 +43,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 /**
- * @defgroup shared_tod_mcp7940m_rtc
+ * @defgroup shared_tod_mcp7940m_rtc MCP7940M RTC Driver
  *
  * @ingroup shared_tod_i2c_rtc
  *

@@ -1,3 +1,11 @@
+/**
+ * @defgroup xnandpsu Xilinx NAND Flash Controller Driver (XNANDPSU)
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief This group contains the Xilinx NAND flash controller driver.
+ */
+
 /******************************************************************************
 * Copyright (C) 2015 - 2022 Xilinx, Inc.  All rights reserved.
 * SPDX-License-Identifier: MIT
@@ -7,7 +15,7 @@
 /**
 *
 * @file xnandpsu.h
-* @addtogroup Overview
+* @addtogroup xnandpsu
 * @{
 * @details
 *
