@@ -38,11 +38,11 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <time.h>
 #include <errno.h>
 
-#include <rtems/score/todimpl.h>
-#include <rtems/config.h>
+#include <rtems/score/timecounter.h>
 #include <rtems/seterr.h>
 
 /*
@@ -51,27 +51,29 @@
 
 int clock_getres( clockid_t clock_id, struct timespec *res )
 {
-  if ( !res ) {
-    rtems_set_errno_and_return_minus_one( EINVAL );
-  }
+  uint64_t ns;
 
   switch ( clock_id ) {
-      /*
-       *  All time in rtems is based on the same clock tick.
-       */
-
+    /* All clocks read the timecounter */
+    case CLOCK_MONOTONIC:
     case CLOCK_REALTIME:
     case CLOCK_PROCESS_CPUTIME_ID:
     case CLOCK_THREAD_CPUTIME_ID:
-      if ( res ) {
-        res->tv_sec = rtems_configuration_get_microseconds_per_tick() /
-                      TOD_MICROSECONDS_PER_SECOND;
-        res->tv_nsec = rtems_configuration_get_nanoseconds_per_tick();
-      }
       break;
-
     default:
       rtems_set_errno_and_return_minus_one( EINVAL );
   }
+
+  if ( res != NULL ) {
+    ns = UINT64_C( 1000000000 ) / _Timecounter_Get_frequency();
+
+    if ( ns == 0 ) {
+      ns = 1;
+    }
+
+    res->tv_sec = (time_t) ( ns / 1000000000 );
+    res->tv_nsec = (long) ( ns % 1000000000 );
+  }
+
   return 0;
 }

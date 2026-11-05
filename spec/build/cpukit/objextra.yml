@@ -716,8 +716,6 @@ source:
 - cpukit/posix/src/barrierattrsetpshared.c
 - cpukit/posix/src/cleanuppush.c
 - cpukit/posix/src/clockgetcpuclockid.c
-- cpukit/posix/src/clockgetres.c
-- cpukit/posix/src/clockgettime.c
 - cpukit/posix/src/clocksettime.c
 - cpukit/posix/src/condattrdestroy.c
 - cpukit/posix/src/condattrgetclock.c
@@ -874,6 +872,7 @@ source:
 - cpukit/posix/src/sigprocmask.c
 - cpukit/posix/src/sysconf.c
 - cpukit/posix/src/timespecget.c
+- cpukit/posix/src/timespecgetres.c
 - cpukit/posix/src/vfork.c
 - cpukit/posix/src/wait.c
 - cpukit/posix/src/waitpid.c
