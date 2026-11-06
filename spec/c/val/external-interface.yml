@@ -39,6 +39,8 @@ links:
 - role: validation
   uid: /c/errno/if/edeadlk
 - role: validation
+  uid: /c/errno/if/efault
+- role: validation
   uid: /c/errno/if/einval
 - role: validation
   uid: /c/errno/if/enomem
@@ -60,6 +62,12 @@ links:
   uid: /c/if/false
 - role: validation
   uid: /c/sched/if/fifo
+- role: validation
+  uid: /c/sched/if/other
+- role: validation
+  uid: /c/sched/if/rr
+- role: validation
+  uid: /c/sched/if/sporadic
 - role: validation
   uid: /c/pthread/if/inherit-sched
 - role: validation
@@ -86,6 +94,8 @@ links:
   uid: /c/pthread/if/scope-process
 - role: validation
   uid: /c/pthread/if/scope-system
+- role: validation
+  uid: /c/if/sched_param
 - role: validation
   uid: /c/if/size_max
 - role: validation
