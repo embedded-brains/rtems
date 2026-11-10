@@ -542,18 +542,35 @@ class Item(object):
 
         def run(task):
             import tarfile
+            import tempfile
 
+            cwd = task.get_cwd()
             tar = tarfile.TarFile(task.outputs[0].abspath(),
                                   "w",
                                   format=tarfile.USTAR_FORMAT)
             srcpath = bld.path.abspath() + "/"
             bldpath = bld.bldnode.abspath() + "/"
-            for src in task.inputs:
-                src = src.abspath()
-                dst = src
-                for r in remove:
-                    dst = src.replace(srcpath + r, "").replace(bldpath + r, "")
-                tar.add(src, dst, filter=make_tar_info_reproducible)
+            with tempfile.TemporaryDirectory(
+                    dir=task.outputs[0].parent.abspath()) as tmp:
+                for node in task.inputs:
+                    src = node.abspath()
+                    dst = src
+                    for r in remove:
+                        dst = src.replace(srcpath + r,
+                                          "").replace(bldpath + r, "")
+                    if src.endswith(".o") or src.endswith(".a"):
+                        # The dynamic loader uses no debug information.
+                        stripped = os.path.join(tmp, os.path.basename(src))
+                        status = task.exec_command([
+                            bld.env.OBJCOPY[0], "--strip-debug",
+                            "--enable-deterministic-archives",
+                            node.path_from(cwd),
+                            os.path.relpath(stripped, cwd.abspath())
+                        ])
+                        if status != 0:
+                            return status
+                        src = stripped
+                    tar.add(src, dst, filter=make_tar_info_reproducible)
             tar.close()
             return 0
 
