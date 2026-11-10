@@ -425,8 +425,9 @@ class Item(object):
             def run(self):
                 cmd = [self.cmd]
                 cmd.extend(self.env.LINKFLAGS)
-                cmd.extend([i.abspath() for i in self.inputs])
-                cmd.append("-o" + self.outputs[0].abspath())
+                cwd = self.get_cwd()
+                cmd.extend([i.path_from(cwd) for i in self.inputs])
+                cmd.append("-o" + self.outputs[0].path_from(cwd))
                 cmd.append("-L.")
                 cmd.extend(["-l" + l for l in self.stlib])
                 cmd.extend(["-l" + l for l in self.use])
@@ -502,9 +503,9 @@ class Item(object):
                 cmd.extend(["-l" + l for l in self.use])
                 cmd.extend(self.env.LDFLAGS)
                 cmd.extend(["-margs", "-a"])
-                cmd.append(self.main.abspath())
+                cmd.append(self.main.path_from(cwd))
                 cmd.append("-o")
-                cmd.append(self.outputs[0].abspath())
+                cmd.append(self.outputs[0].path_from(cwd))
                 return self.exec_command(cmd)
 
             def scan(self):
@@ -573,8 +574,9 @@ class Item(object):
             cmd = [bld.env.BIN2C[0]]
             if name is not None:
                 cmd.extend(["-N", name])
-            cmd.append(task.inputs[0].abspath())
-            cmd.append(task.outputs[0].abspath())
+            cwd = task.get_cwd()
+            cmd.append(task.inputs[0].path_from(cwd))
+            cmd.append(task.outputs[0].path_from(cwd))
             return task.exec_command(cmd)
 
         path, base = os.path.split(source)
@@ -597,6 +599,7 @@ class Item(object):
     def rtems_rap(self, bld, base, objects, libs, target):
 
         def run(task):
+            cwd = task.get_cwd()
             cmd = [
                 bld.env.RTEMS_LD[0],
                 "-C",
@@ -606,14 +609,14 @@ class Item(object):
                 "-O",
                 "rap",
                 "-b",
-                task.inputs[0].abspath(),
+                task.inputs[0].path_from(cwd),
                 "-e",
                 "rtems_main",
                 "-s",
                 "-o",
             ]
-            cmd.append(task.outputs[0].abspath())
-            cmd.extend([i.abspath() for i in task.inputs[1:]])
+            cmd.append(task.outputs[0].path_from(cwd))
+            cmd.extend([i.path_from(cwd) for i in task.inputs[1:]])
             cmd.extend(["-l" + l for l in libs])
             return task.exec_command(cmd)
 
