@@ -3,7 +3,7 @@ copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links: []
-time-of-last-update: '2026-10-12T10:44:11.304616+00:00'
+time-of-last-update: '2026-11-11T06:49:10.311086+00:00'
 timeouts:
   coverage:
     ts-fatal-extension.exe:
@@ -217,7 +217,7 @@ timeouts:
     ts-validation-cache.exe:
     - 70.32888546597678
     ts-validation-intr.exe:
-    - 83.7502204310149
+    - 136.52785533000133
     ts-validation-io-kernel.exe:
     - 14.624738810001872
     ts-validation-no-clock-0.exe:
@@ -3060,8 +3060,7 @@ timeouts:
     - 0.6864120130194351
     - 0.036143959034234285
     ts-validation-intr.exe:
-    - 0.6546633030520752
-    - 0.45554194098804146
+    - 9.599819155002479
     ts-validation-io-kernel.exe:
     - 0.6767875599907711
     - 0.32213112304452807
