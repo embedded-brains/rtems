@@ -691,7 +691,8 @@
  *   - Check the content of the stream header.
  *
  *   - Check that the thread names follow the stream header. The name of the
- *     runner spans more than one item.
+ *     runner has more than 31 characters, so the output holds its first 31
+ *     characters in more than one item.
  *
  *   - Check that the fetched items of all processors follow the thread names.
  *
@@ -950,7 +951,9 @@ typedef RtemsRecordValRecord_Context Context;
 
 #define DATA( i ) ( (rtems_record_data) ( 0x1000 + ( i ) ) )
 
-#define LONG_THREAD_NAME "RecordLongName"
+#define LONG_THREAD_NAME "RecordLongNameWhichTheDumpTruncates"
+
+#define TRUNCATED_THREAD_NAME "RecordLongNameWhichTheDumpTrunc"
 
 #define DATA_RA ( (rtems_record_data) 1 )
 
@@ -2105,11 +2108,16 @@ static bool ThreadNameVisitor( rtems_tcb *tcb, void *arg )
   stream = arg;
   CheckNext( stream, RTEMS_RECORD_THREAD_ID, tcb->Object.id );
   n = _Thread_Get_name( tcb, name, sizeof( name ) );
+
+  if ( n >= sizeof( name ) ) {
+    n = sizeof( name ) - 1;
+  }
+
   name[ n ] = '\0';
   count = CheckString( stream, RTEMS_RECORD_THREAD_NAME, name );
 
   if ( tcb == _Thread_Get_executing() ) {
-    T_eq_str( name, LONG_THREAD_NAME );
+    T_eq_str( name, TRUNCATED_THREAD_NAME );
     T_gt_sz( count, 1 );
   }
 
@@ -5499,7 +5507,8 @@ static void RtemsRecordValRecord_Action_57( RtemsRecordValRecord_Context *ctx )
 
   /*
    * Check that the thread names follow the stream header. The name of the
-   * runner spans more than one item.
+   * runner has more than 31 characters, so the output holds its first 31
+   * characters in more than one item.
    */
   CheckThreadNames( &ctx->stream );
 
