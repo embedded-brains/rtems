@@ -76,7 +76,7 @@ static inline void Install_tm27_vector( rtems_interrupt_handler handler )
   );
   sc = rtems_interrupt_entry_install(
     ARM_GIC_TM27_IRQ_LOW,
-    RTEMS_INTERRUPT_UNIQUE,
+    RTEMS_INTERRUPT_SHARED,
     &entry_low
   );
   _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
@@ -95,7 +95,7 @@ static inline void Install_tm27_vector( rtems_interrupt_handler handler )
   );
   sc = rtems_interrupt_entry_install(
     ARM_GIC_TM27_IRQ_HIGH,
-    RTEMS_INTERRUPT_UNIQUE,
+    RTEMS_INTERRUPT_SHARED,
     &entry_high
   );
   _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
@@ -107,15 +107,32 @@ static inline void Install_tm27_vector( rtems_interrupt_handler handler )
   _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
 }
 
+static inline void arm_gic_tm27_raise( rtems_vector_number vector )
+{
+  rtems_interrupt_level level;
+  rtems_status_code sc;
+  bool pending;
+
+  rtems_interrupt_local_disable( level );
+  sc = rtems_interrupt_raise_on( vector, _SMP_Get_current_processor() );
+  _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
+
+  /*
+   * The write to the SGI register is posted.  Wait until the distributor
+   * shows the SGI as pending.  The processor then takes the interrupt as
+   * soon as it enables interrupts.
+   */
+  do {
+    sc = rtems_interrupt_is_pending( vector, &pending );
+    _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
+  } while ( !pending );
+
+  rtems_interrupt_local_enable( level );
+}
+
 static inline void Cause_tm27_intr(void)
 {
-  rtems_status_code sc;
-
-  sc = rtems_interrupt_raise_on(
-    ARM_GIC_TM27_IRQ_LOW,
-    _SMP_Get_current_processor()
-  );
-  _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
+  arm_gic_tm27_raise( ARM_GIC_TM27_IRQ_LOW );
 }
 
 static inline void Clear_tm27_intr(void)
@@ -125,13 +142,46 @@ static inline void Clear_tm27_intr(void)
 
 static inline void Lower_tm27_intr(void)
 {
-  rtems_status_code sc;
-
-  sc = rtems_interrupt_raise_on(
-    ARM_GIC_TM27_IRQ_HIGH,
-    _SMP_Get_current_processor()
-  );
-  _Assert_Unused_variable_equals( sc, RTEMS_SUCCESSFUL );
+  arm_gic_tm27_raise( ARM_GIC_TM27_IRQ_HIGH );
 }
+
+#if !defined(TM27_INTERRUPT_VECTOR_FAST) && \
+  defined(BSP_ARM_GIC_ENABLE_FIQ_FOR_GROUP_0)
+
+#define TM27_INTERRUPT_VECTOR_FAST ARM_GIC_IRQ_SGI_14
+
+typedef uint32_t TM27_Trigger_fast_register;
+
+static inline void _TM27_Prepare_fast(
+  TM27_Trigger_fast_register volatile * volatile *trigger_address,
+  TM27_Trigger_fast_register volatile *trigger_value
+)
+{
+  rtems_vector_number vector;
+  volatile gic_dist *dist;
+
+  vector = TM27_INTERRUPT_VECTOR_FAST;
+  (void) arm_gic_irq_set_group( vector, GIC_GROUP_0 );
+  _ARM_Data_synchronization_barrier();
+
+  dist = (volatile gic_dist *) BSP_ARM_GIC_DIST_BASE;
+  *trigger_address = &dist->icdsgir;
+  *trigger_value = GIC_DIST_ICDSGIR_TARGET_LIST_FILTER( 0 )
+    | GIC_DIST_ICDSGIR_CPU_TARGET_LIST( 1U << _SMP_Get_current_processor() )
+    | GIC_DIST_ICDSGIR_SGIINTID( vector );
+}
+
+static inline void _TM27_Clear_fast( void )
+{
+  rtems_vector_number vector;
+  volatile gic_cpuif *cpuif;
+
+  vector = TM27_INTERRUPT_VECTOR_FAST;
+  cpuif = (volatile gic_cpuif *) BSP_ARM_GIC_CPUIF_BASE;
+  cpuif->icceoir = cpuif->icciar;
+  (void) arm_gic_irq_set_group( vector, GIC_GROUP_1 );
+}
+
+#endif
 
 #endif /* LIBBSP_ARM_SHARED_ARM_GIC_TM27_H */
