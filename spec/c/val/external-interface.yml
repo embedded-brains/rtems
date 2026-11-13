@@ -55,6 +55,8 @@ links:
 - role: validation
   uid: /c/errno/if/eoverflow
 - role: validation
+  uid: /c/errno/if/eperm
+- role: validation
   uid: /c/errno/if/eproto
 - role: validation
   uid: /c/errno/if/erange
@@ -93,7 +95,17 @@ links:
 - role: validation
   uid: /c/if/offsetof
 - role: validation
+  uid: /c/pthread/if/process-private
+- role: validation
+  uid: /c/pthread/if/process-shared
+- role: validation
   uid: /c/if/pthread_attr_t
+- role: validation
+  uid: /c/if/pthread_cond_t
+- role: validation
+  uid: /c/if/pthread_condattr_t
+- role: validation
+  uid: /c/if/pthread_mutex_t
 - role: validation
   uid: /c/if/pthread_t
 - role: validation
