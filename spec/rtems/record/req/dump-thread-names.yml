@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/dump
+- role: function-implementation
+  uid: string-to-items
+rationale: null
+requirement-type: functional
+text: |
+  After the stream header, the ${../if/dump:/name} directive shall output through
+  the handler specified by the ${../if/dump:/params[0]/name} parameter for each
+  thread an ${../if/event:/enumerators[11]/name} ${../glossary/recorditem:/term}
+  with the thread identifier as event data followed by
+  ${../if/event:/enumerators[12]/name} ${../glossary/recorditem:/plural} which
+  contain at most the first 31 characters of the name of the thread as specified
+  by ${string-to-items:/spec} where the item array has as many items as the
+  string needs or more items than the string needs.
+type: requirement
