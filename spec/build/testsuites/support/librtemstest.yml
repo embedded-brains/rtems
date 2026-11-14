@@ -67,6 +67,7 @@ source:
 - testsuites/support/src/tx-timecounter.c
 - testsuites/support/src/tx-timer-server.c
 - testsuites/support/src/tx-wrap-allocator.c
+- testsuites/support/src/tx-wrap-interrupt-default.c
 - testsuites/support/src/tx-wrap-thread-queue.c
 target: rtemstest
 type: build
