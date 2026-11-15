@@ -60,6 +60,14 @@ extern "C" {
 #endif
 
 /**
+ * @defgroup libmisc_mouse Serial Mouse
+ *
+ * @ingroup RTEMSDeviceDrivers
+ *
+ * @brief Serial Mouse
+ */
+
+/**
  * @brief Standard device file path for a PS2 mouse device.
  */
 #define SERIAL_MOUSE_DEVICE_PS2 "/dev/psaux"
