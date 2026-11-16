@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/item-32
+rationale: null
+requirement-type: functional
+text: |
+  The ${../if/item-32:/name} type shall be a structure with the member `event` of
+  the type `uint32_t` followed by the member `data` of the type `uint32_t`.
+type: requirement

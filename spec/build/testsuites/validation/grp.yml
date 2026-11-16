@@ -14,6 +14,7 @@ extra-files:
 - testsuites/validation/ts-default.h
 - testsuites/validation/ts-fatal-sysinit.h
 - testsuites/validation/ts-idle.h
+- testsuites/validation/ts-record.h
 - testsuites/validation/tx-register-check.h
 - testsuites/validation/tx-support.h
 - testsuites/validation/tx-thread-queue.h
@@ -36,6 +37,8 @@ links:
   uid: fatal-init-task-create-failed
 - role: build-dependency
   uid: fatal-mandatory-processor-not-present
+- role: build-dependency
+  uid: fatal-record-dump
 - role: build-dependency
   uid: fatal-scheduler-requires-exactly-one-processor
 - role: build-dependency
@@ -78,6 +81,14 @@ links:
   uid: validation-one-cpu-0
 - role: build-dependency
   uid: validation-one-cpu-1
+- role: build-dependency
+  uid: validation-record-0
+- role: build-dependency
+  uid: validation-record-1
+- role: build-dependency
+  uid: validation-record-2
+- role: build-dependency
+  uid: validation-record-3
 - role: build-dependency
   uid: validation-smp-one-cpu-0
 - role: build-dependency
