@@ -40,6 +40,16 @@ except:
     import ConfigParser as configparser
 
 from waflib.TaskGen import after, before_method, feature
+from waflib.Tools import c as waf_c, cxx as waf_cxx
+
+# GCC applies -fprofile-prefix-path and -fprofile-dir to the name of the
+# .gcda file only for a relative object path.
+for _task in [waf_c.c, waf_cxx.cxx]:
+    type(
+        _task.__name__, (_task, ), {
+            "run_str":
+            _task.orig_run_str.replace("${TGT[0].abspath()}", "${TGT}")
+        })
 
 version = {
     "__RTEMS_MAJOR__": "7",  # version
@@ -1651,6 +1661,8 @@ def configure_variant(conf, cp, bsp_map, path_list, top_group, variant):
 
     conf.env["TOP"] = conf.path.abspath()
     conf.env["TOPGROUP"] = top_group
+    conf.env["TOP_FROM_BUILD"] = os.path.relpath(
+        conf.path.abspath(), os.path.join(conf.bldnode.abspath(), variant))
     conf.env["VARIANT"] = variant
 
     cic = ConfigItemContext(cp, path_list)

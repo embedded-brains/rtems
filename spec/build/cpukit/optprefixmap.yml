@@ -1,0 +1,44 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+actions:
+- get-string: null
+- split: null
+- substitute: null
+- env-assign: null
+- script: |
+    flags = []
+    profile_flags = []
+    for pair in value:
+        old, sep, new = pair.partition("=")
+        if not sep or not old:
+            conf.fatal("Invalid map in {}: '{}'".format(self.data["name"], pair))
+        flags.append("-ffile-prefix-map=" + pair)
+        if not profile_flags and os.path.isabs(old):
+            profile_flags = [
+                "-fprofile-prefix-path=" + (old.rstrip("/") or "/"),
+                "-fprofile-dir=" + (new.rstrip("/") or "."),
+            ]
+    if "RTEMS_GCOV_COVERAGE" in conf.env.ENABLE:
+        flags.extend(profile_flags)
+    for name in ["ASFLAGS", "CFLAGS", "CXXFLAGS"]:
+        conf.env.append_value(name, flags)
+build-type: option
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default:
+- enabled-by: true
+  value: []
+description: |
+  Space-separated list of path prefix maps in the form OLD=NEW.  Each map
+  yields the option -ffile-prefix-map=OLD=NEW for the assembler, the C compiler
+  and the C++ compiler.  With RTEMS_GCOV_COVERAGE, the first map with an
+  absolute OLD path yields the options -fprofile-prefix-path=OLD and
+  -fprofile-dir=NEW.  An empty NEW yields -fprofile-dir=.  A map which
+  matches no path has no effect.  The default is empty, so the objects keep
+  the paths of the build.  For example, the maps ${PREFIX}/= and ../../../../=
+  make the paths relative to the installation prefix, if the source tree is in
+  the installation prefix and the build directory of a BSP is four levels
+  below it.
+enabled-by: true
+links: []
+name: PREFIX_MAP
+type: build
