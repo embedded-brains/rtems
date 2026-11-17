@@ -3,7 +3,7 @@
 /**
  * @file
  *
- * @ingroup RTEMS
+ * @ingroup RTEMSAPIIntTypes
  *
  * @brief This header file provides the printf() format constants which
  *   RTEMS adds to the standards.
@@ -50,9 +50,12 @@ extern "C" {
 #endif
 
 /**
- * @defgroup RTEMS inttypes.h Extensions
+ * @defgroup RTEMSAPIIntTypes inttypes.h Extensions
  *
  * @ingroup RTEMSAPIPrintSupport
+ *
+ * @brief This group contains the format specifier macros for the integer
+ *   types of RTEMS.
  *
  * This module defines portable PRIxxx constants beyond those
  * in the C and POSIX standard.
