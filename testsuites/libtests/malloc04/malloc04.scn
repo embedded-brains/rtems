@@ -3,12 +3,12 @@ Heap extend before multitasking
 Heap extend with thread dispatching disabled
 No sbrk() amount
 Misaligned extend
-sbrk(512)
+sbrk(2 * UNIT)
 Not enough sbrk() space
-sbrk(1024)
+sbrk(5 * UNIT)
 Valid heap extend
-sbrk(256)
+sbrk(1 * UNIT)
 Invalid heap extend
-sbrk(256)
-sbrk(-256)
+sbrk(1 * UNIT)
+sbrk(-1 * UNIT)
 *** END OF TEST MALLOC 04 ***

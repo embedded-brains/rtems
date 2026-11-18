@@ -3,6 +3,7 @@
 /*
  *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
@@ -64,7 +65,14 @@ void *rtems_heap_null_extend( Heap_Control *heap, size_t alloc_size )
 }
 #endif
 
-char Malloc_Heap[ 1024 ] CPU_STRUCTURE_ALIGNMENT;
+/*
+ * A slab of the red-black tree heap has at most 4 KiB and begins at a multiple
+ * of its size.  A unit holds two slabs of this size.  The heap of a test case
+ * begins with an area of one unit.
+ */
+#define UNIT 8192
+
+static char Malloc_Heap[ 5 * UNIT ] RTEMS_ALIGNED( 4096 );
 
 /*
  * Use volatile to prevent compiler optimizations due to the malloc() builtin.
@@ -79,7 +87,8 @@ void *sbrk( ptrdiff_t incr )
 {
   void *p = (void *) -1;
 
-  printf( "sbrk(%td)\n", incr );
+  rtems_test_assert( incr % (ptrdiff_t) UNIT == 0 );
+  printf( "sbrk(%td * UNIT)\n", incr / (ptrdiff_t) UNIT );
   if ( sbrk_count == -1 ) {
     p = (void *) -2;
     sbrk_count = 0;
@@ -169,7 +178,7 @@ rtems_task Init( rtems_task_argument argument )
   puts( "No sbrk() amount" );
 
   sbrk_count = 0;
-  offset = 256;
+  offset = UNIT;
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
 
   /* Some BSPs provide multiple memory areas.  Make them empty. */
@@ -180,17 +189,17 @@ rtems_task Init( rtems_task_argument argument )
   _Malloc_Initialize();
 
   errno = 0;
-  p = malloc( 256 );
+  p = malloc( UNIT );
   rtems_test_assert( p == NULL );
   rtems_test_assert( errno == ENOMEM );
   rtems_test_assert( sbrk_count == 0 );
 
-  rtems_heap_set_sbrk_amount( 256 );
+  rtems_heap_set_sbrk_amount( UNIT );
 
   puts( "Misaligned extend" );
 
   sbrk_count = 0;
-  offset = 256;
+  offset = UNIT;
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
   _Malloc_Initialize();
 
@@ -198,14 +207,14 @@ rtems_task Init( rtems_task_argument argument )
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 0 );
 
-  p = malloc( 257 );
+  p = malloc( UNIT + 1 );
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 1 );
 
   puts( "Not enough sbrk() space" );
 
   sbrk_count = 0;
-  offset = 256;
+  offset = UNIT;
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
   _Malloc_Initialize();
 
@@ -218,27 +227,27 @@ rtems_task Init( rtems_task_argument argument )
   puts( "Valid heap extend" );
 
   sbrk_count = 0;
-  offset = 256;
+  offset = UNIT;
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
   _Malloc_Initialize();
 
-  p = malloc( 128 );
+  p = malloc( UNIT / 2 );
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 0 );
 
-  p = malloc( 128 );
+  p = malloc( UNIT / 2 );
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 1 );
 
   puts( "Invalid heap extend" );
 
   sbrk_count = -1;
-  offset = 256;
+  offset = UNIT;
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
   _Malloc_Initialize();
 
   errno = 0;
-  p = malloc( 256 );
+  p = malloc( UNIT );
   rtems_test_assert( p == NULL );
   rtems_test_assert( errno == ENOMEM );
   rtems_test_assert( sbrk_count == 2 );
