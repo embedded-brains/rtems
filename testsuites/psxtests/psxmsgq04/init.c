@@ -53,8 +53,8 @@ void *POSIX_Init( void *argument )
   struct mq_attr         attr;
   mqd_t                  Queue, second_Queue;
   int                    sc;
-  Heap_Information_block start;
-  size_t                 to_alloc;
+  void                  *greedy;
+  uintptr_t              to_alloc;
   void                  *alloced;
   bool                   sb;
   const char            *name;
@@ -93,20 +93,8 @@ void *POSIX_Init( void *argument )
   }
   rtems_test_assert( sc == 0 );
 
-  sb = rtems_workspace_get_information( &start );
-  rtems_test_assert( start.Free.number == 1 );
-  to_alloc = start.Free.largest;
-
-  /* find the largest we can actually allocate */
-  while ( 1 ) {
-    sb = rtems_workspace_allocate( to_alloc, &alloced );
-    if ( sb ) {
-      break;
-    }
-    to_alloc -= 4;
-  }
-
-  rtems_workspace_free( alloced );
+  /* Leave only the largest free block of the workspace */
+  greedy = rtems_workspace_greedy_allocate_all_except_largest( &to_alloc );
 
   /*
    * Now do the test
@@ -141,6 +129,8 @@ void *POSIX_Init( void *argument )
     perror( "mq_close failed" );
   }
   rtems_test_assert( sc == 0 );
+
+  rtems_workspace_greedy_free( greedy );
 
   TEST_END();
   rtems_test_exit( 0 );
