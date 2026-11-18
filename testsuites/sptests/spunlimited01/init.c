@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2022 embedded brains GmbH & Co. KG
+ * Copyright (C) 2022, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,8 +30,8 @@
 #endif
 
 #include <rtems.h>
-#include <rtems/score/heapfirstfitimpl.h>
 
+#include <malloc.h>
 #include <string.h>
 
 #include <rtems/test.h>
@@ -44,20 +44,11 @@ void __wrap__Workspace_Free( void * );
 
 void __wrap__Workspace_Free( void *ptr )
 {
-  uintptr_t   alloc_begin;
-  uintptr_t   block_size;
-  uintptr_t   block_end;
-  Heap_Block *block;
-
   if ( ptr == NULL ) {
     return;
   }
 
-  alloc_begin = (uintptr_t) ptr;
-  block = _Heap_Block_of_alloc_area( alloc_begin, CPU_HEAP_ALIGNMENT );
-  block_size = _Heap_Block_size( block );
-  block_end = (uintptr_t) block + block_size;
-  memset( ptr, 0, block_end - alloc_begin );
+  memset( ptr, 0, malloc_usable_size( ptr ) );
 
   __real__Workspace_Free( ptr );
 }
