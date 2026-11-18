@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2022 embedded brains GmbH & Co. KG
+ * Copyright (C) 2022, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,6 @@
 #include "../spfatal_support/spfatal.h"
 
 #include <rtems/sysinit.h>
-#include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
 
 #define FATAL_ERROR_TEST_NAME "36"
@@ -49,9 +48,19 @@ static void force_error( void )
   rtems_test_assert( 0 );
 }
 
+/*
+ * No thread executes during this initialization step, so the allocation takes
+ * no lock.  Each size fills the space which the larger sizes left.
+ */
 static void empty_workspace( void )
 {
-  (void) _Heap_Greedy_allocate( &_Workspace_Area, NULL, 0 );
+  uintptr_t size;
+
+  for ( size = ~( UINTPTR_MAX >> 1 ); size > 0; size /= 2 ) {
+    while ( _Workspace_Allocate( size ) != NULL ) {
+      /* Allocate until the workspace has no block of this size */
+    }
+  }
 }
 
 RTEMS_SYSINIT_ITEM(
