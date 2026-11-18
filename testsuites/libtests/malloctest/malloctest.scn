@@ -1,67 +1,12 @@
 *** MALLOC TEST ***
-run tests for _Heap_Initialize()
-run tests for _Heap_Block_allocate()
-        allocate block at the beginning
-        allocate block full space
-        allocate block in the middle
-        allocate block at the end
-        allocate block at the beginning
-        allocate block full space
-        allocate block in the middle
-        allocate block at the end
-        allocate block at the beginning
-        allocate block full space
-        allocate block in the middle
-        allocate block at the end
-        allocate block at the beginning
-        allocate block full space
-        allocate block in the middle
-        allocate block at the end
-run tests for _Heap_Allocate_aligned_with_boundary()
-        check if NULL will be returned if size causes integer overflow
-        try to allocate more space than the one which fits in the boundary
-        check if alignment will be set to page size if only a boundary is given
-        create a block which is bigger then the first free space
-        set boundary before allocation begin
-        set boundary between allocation begin and end
-        set boundary after allocation end
-        set boundary on allocation end
-        align the allocation to different positions in the block header
-        allocate last block with different boundarys
-        break the boundaries and aligns more than one time
-        different combinations, so that there is no valid block at the end
-        try to create a block, which is not possible because of the alignment and boundary
-run tests for _Heap_Resize_Block()
-        give a block outside the heap to the function
-        increase size
-                let the next block be used alredy and try to get a size bigger than the actual block
-                next block not used and try to set the new allocation size between the page-alignments
-                let the block after the next be used and try to allocate more then one pagesize more
-        try to resize to the same size
-        decrease size
-                decrease a block with two pages to one page
-                resize the block to the size 0
 malloc_walk - normal path
 malloc_walk - in critical section path
-Heap Initialized
-heap extend - link below
-heap extend - merge below overlap
-heap extend - merge below
-heap extend - merge above overlap
-heap extend - merge above
-heap extend - link above
-heap extend - area too small
-heap extend - invalid area
-heap extend - merge below with align up
 malloc_free_space - check malloc space drops after malloc
 malloc_free_space - verify free space returns to previous value
 malloc_info - called with NULL
 
 malloc_info - check free space drops after malloc
 malloc_info - verify free space returns to previous value
-_Heap_Size_with_overhead
-_Protected_heap_Get_information - NULL heap
-_Protected_heap_Get_information - NULL info
 posix_memalign - NULL return pointer -- EINVAL
 posix_memalign - alignment of 0 -- EINVAL
 posix_memalign - alignment  of 2-- EINVAL
