@@ -72,11 +72,15 @@ links:
 - role: placement-order
   uid: lock-reference
 - role: placement-order
-  uid: shared
+  uid: option-shared
 - role: placement-order
-  uid: unique
+  uid: option-unique
 - role: placement-order
-  uid: replace
+  uid: option-enable
+- role: placement-order
+  uid: option-no-enable
+- role: placement-order
+  uid: option-replace
 - role: placement-order
   uid: is-shared
 - role: placement-order

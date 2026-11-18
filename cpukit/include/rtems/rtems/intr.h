@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -957,7 +957,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
   #define RTEMS_INTERRUPT_LOCK_REFERENCE( _designator, _target )
 #endif
 
-/* Find related documentation with spec:/rtems/intr/if/shared */
+/* Find related documentation with spec:/rtems/intr/if/option-shared */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -967,7 +967,7 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define RTEMS_INTERRUPT_SHARED ( (rtems_option) 0x00000000 )
 
-/* Find related documentation with spec:/rtems/intr/if/unique */
+/* Find related documentation with spec:/rtems/intr/if/option-unique */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -979,7 +979,33 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  */
 #define RTEMS_INTERRUPT_UNIQUE ( (rtems_option) 0x00000001 )
 
-/* Find related documentation with spec:/rtems/intr/if/replace */
+/* Find related documentation with spec:/rtems/intr/if/option-enable */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief This interrupt entry and handler install option requests that an
+ *   interrupt vector is enabled when the first entry or handler is installed.
+ *
+ * This install option results in the default behaviour.
+ */
+#define RTEMS_INTERRUPT_ENABLE ( (rtems_option) 0x00000000 )
+
+/* Find related documentation with spec:/rtems/intr/if/option-no-enable */
+
+/**
+ * @ingroup RTEMSAPIClassicIntr
+ *
+ * @brief This interrupt entry and handler install option requests that an
+ *   interrupt vector is not enabled when the first entry or handler is
+ *   installed.
+ *
+ * The default behaviour is to enable an interrupt vector when the first entry
+ * or handler is installed. This install option alters the default behaviour.
+ */
+#define RTEMS_INTERRUPT_NO_ENABLE ( (rtems_option) 0x00000004 )
+
+/* Find related documentation with spec:/rtems/intr/if/option-replace */
 
 /**
  * @ingroup RTEMSAPIClassicIntr
@@ -996,20 +1022,16 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @param _options is the interrupt handler option set to check.
  *
+ * The interrupt handler shared option #RTEMS_INTERRUPT_SHARED has the value
+ * zero. It excludes the interrupt handler unique option
+ * #RTEMS_INTERRUPT_UNIQUE. The macro therefore checks that the unique option
+ * is cleared.
+ *
  * @return Returns true, if the interrupt handler shared option
  *   #RTEMS_INTERRUPT_SHARED is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_SHARED( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_SHARED )
+  ( ( ( _options ) & RTEMS_INTERRUPT_UNIQUE ) == 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/is-unique */
 
@@ -1020,18 +1042,9 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler unique option
  *   #RTEMS_INTERRUPT_UNIQUE is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_UNIQUE( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_UNIQUE )
+  ( ( ( _options ) & RTEMS_INTERRUPT_UNIQUE ) != 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/is-replace */
 
@@ -1042,18 +1055,9 @@ typedef ISR_lock_Context rtems_interrupt_lock_context;
  *
  * @return Returns true, if the interrupt handler replace option
  *   #RTEMS_INTERRUPT_REPLACE is set, otherwise false.
- *
- * @par Constraints
- * @parblock
- * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
- * @endparblock
  */
 #define RTEMS_INTERRUPT_IS_REPLACE( _options ) \
-  ( ( _options ) & RTEMS_INTERRUPT_REPLACE )
+  ( ( ( _options ) & RTEMS_INTERRUPT_REPLACE ) != 0 )
 
 /* Find related documentation with spec:/rtems/intr/if/handler */
 
@@ -1217,6 +1221,21 @@ static inline void rtems_interrupt_entry_initialize(
  * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handlers may be
  * installed for the interrupt vector.
  *
+ * One of the following mutually exclusive options
+ *
+ * - #RTEMS_INTERRUPT_ENABLE and
+ *
+ * - #RTEMS_INTERRUPT_NO_ENABLE
+ *
+ * may be set in the `options` parameter.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is cleared and the first entry or
+ * handler is installed, then the interrupt vector is enabled. The option
+ * #RTEMS_INTERRUPT_ENABLE has the value zero and names this default behaviour.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is set, then the interrupt vector
+ * is not enabled by the directive call.
+ *
  * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
  *
  * @retval ::RTEMS_INVALID_ADDRESS The `entry` parameter was NULL.
@@ -1235,10 +1254,10 @@ static inline void rtems_interrupt_entry_initialize(
  *   applicable.
  *
  * @retval ::RTEMS_RESOURCE_IN_USE The #RTEMS_INTERRUPT_UNIQUE option was set
- *   in `entry` and the interrupt vector was already occupied by a handler.
+ *   in `options` and the interrupt vector was already occupied by a handler.
  *
  * @retval ::RTEMS_RESOURCE_IN_USE The #RTEMS_INTERRUPT_SHARED option was set
- *   in `entry` and the interrupt vector was already occupied by a unique
+ *   in `options` and the interrupt vector was already occupied by a unique
  *   handler.
  *
  * @retval ::RTEMS_TOO_MANY The handler routine of the entry specified by
@@ -1361,7 +1380,7 @@ rtems_status_code rtems_interrupt_entry_remove(
  * If the option #RTEMS_INTERRUPT_UNIQUE is set, then it will be ensured that
  * the handler will be the only one for the interrupt vector.
  *
- * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handler may be
+ * If the option #RTEMS_INTERRUPT_SHARED is set, then multiple handlers may be
  * installed for the interrupt vector.
  *
  * If the option #RTEMS_INTERRUPT_REPLACE is set, then the handler specified by
@@ -1370,6 +1389,21 @@ rtems_status_code rtems_interrupt_entry_remove(
  * second handler with the same argument for the interrupt vector will remain
  * unchanged. The new handler will inherit the unique or shared options from
  * the replaced handler.
+ *
+ * One of the following mutually exclusive options
+ *
+ * - #RTEMS_INTERRUPT_ENABLE and
+ *
+ * - #RTEMS_INTERRUPT_NO_ENABLE
+ *
+ * may be set in the `options` parameter.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is cleared and the first entry or
+ * handler is installed, then the interrupt vector is enabled. The option
+ * #RTEMS_INTERRUPT_ENABLE has the value zero and names this default behaviour.
+ *
+ * If the option #RTEMS_INTERRUPT_NO_ENABLE is set, then the interrupt vector
+ * is not enabled by the directive call.
  *
  * An informative description may be provided in `info`. It may be used for
  * system debugging and diagnostic tools. The referenced string has to be

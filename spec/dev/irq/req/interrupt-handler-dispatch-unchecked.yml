@@ -1,6 +1,6 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021, 2023 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
@@ -14,7 +14,7 @@ post-conditions:
       T_eq_u32( ctx->entry_counter, 0 );
       T_eq_u32( ctx->fatal_counter, 1 );
     text: |
-      A fatal error shall occur.
+      The system shall terminate with a fatal error.
   - name: Dispatch
     test-code: |
       T_eq_u32( ctx->entry_counter, 1 );
@@ -80,7 +80,12 @@ pre-conditions:
       of type ${/rtems/intr/if/entry:/name}.
   test-epilogue: null
   test-prologue: null
-rationale: null
+rationale: |
+  Dimension LoadFirst covers the first load of the pointer to the first interrupt
+  entry of the interrupt vector, 2 states.
+
+  Dimension LoadFirstAgain covers the second load of this pointer, 2 states. Only
+  SMP configurations load the pointer a second time.
 requirement-type: functional
 skip-reasons: {}
 test-action: |
@@ -160,7 +165,11 @@ test-context:
   member: |
     rtems_interrupt_entry *first_again
 test-context-support: null
-test-description: null
+test-description: |
+  The test sets the pointer to the first interrupt entry in the dispatch table
+  slot of the interrupt vector before it raises the interrupt. In SMP
+  configurations, the wrapper of the spurious interrupt handler sets the slot to
+  the value of the second load before the handler loads it again.
 test-header: null
 test-includes:
 - bsp/irq-generic.h
@@ -181,6 +190,7 @@ test-setup:
 
     rtems_interrupt_entry_initialize( &ctx->entry, EntryRoutine, ctx, "Info" );
     test_case_active = true;
+    SetDefaultInterruptHandler( DefaultHandler, ctx );
     SetFatalHandler( Fatal, ctx );
   description: null
 test-stop: null
@@ -227,31 +237,25 @@ test-support: |
 
   void __real_bsp_interrupt_handler_default( rtems_vector_number vector );
 
-  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector );
-
-  void __wrap_bsp_interrupt_handler_default( rtems_vector_number vector )
+  static void DefaultHandler( void *arg, rtems_vector_number vector )
   {
-    if ( test_case_active ) {
-      Context              *ctx;
-      rtems_interrupt_level level;
+    Context              *ctx;
+    rtems_interrupt_level level;
 
-      ctx = T_fixture_context();
-      ProcessInterrupt( ctx );
-      rtems_interrupt_local_disable( level );
-      rtems_interrupt_local_enable( level );
+    ctx = arg;
+    ProcessInterrupt( ctx );
+    rtems_interrupt_local_disable( level );
+    rtems_interrupt_local_enable( level );
 
-      if ( setjmp( ctx->before_call ) == 0 ) {
-        __real_bsp_interrupt_handler_default( vector );
-      } else {
-        /*
-         * _Terminate() disabled interrupts before it called the fatal
-         * handler.  On ARMv7-M, the exception return does not restore
-         * BASEPRI.
-         */
-        rtems_interrupt_local_enable( level );
-      }
-    } else {
+    if ( setjmp( ctx->before_call ) == 0 ) {
       __real_bsp_interrupt_handler_default( vector );
+    } else {
+      /*
+       * _Terminate() disabled interrupts before it called the fatal
+       * handler.  On ARMv7-M, the exception return does not restore
+       * BASEPRI.
+       */
+      rtems_interrupt_local_enable( level );
     }
   }
 
@@ -277,6 +281,7 @@ test-teardown:
   brief: null
   code: |
     SetFatalHandler( NULL, NULL );
+    SetDefaultInterruptHandler( NULL, NULL );
     test_case_active = false;
 
     if ( ctx->first != NULL ) {
