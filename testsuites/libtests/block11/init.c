@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (c) 2012 embedded brains GmbH & Co. KG
+ * Copyright (C) 2012, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -258,9 +258,13 @@ static void test_blkdev_imfs_parameters( void )
 
 static void test_blkdev_imfs_errors( void )
 {
-  static uintptr_t disk_size[] = {
-    sizeof( rtems_disk_device ) + sizeof( int )
-  };
+  /* The layout is the one of the context of rtems_blkdev_create() */
+  typedef struct {
+    rtems_disk_device dd;
+    int               fd;
+  } blkdev_context;
+
+  static uintptr_t disk_size[] = { sizeof( blkdev_context ) };
 
   rtems_status_code sc;
   int               rv;
