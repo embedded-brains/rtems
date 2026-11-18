@@ -3,7 +3,7 @@ copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links: []
-time-of-last-update: '2026-10-11T19:40:42.100946+00:00'
+time-of-last-update: '2026-11-18T12:29:19.915015+00:00'
 timeouts:
   coverage:
     ts-fatal-extension.exe:
@@ -14,50 +14,58 @@ timeouts:
     - 1.5030633780406788
     ts-fatal-init-task-construct-failed.exe:
     - 1.40509492601268
+    ts-fatal-init-task-create-failed.exe:
+    - 1.1673809209896717
     ts-fatal-riscv-clock-irq-install.exe:
     - 1.897100017988123
     ts-fatal-riscv-unexpected-interrupt.exe:
     - 1.3488124260329641
     ts-fatal-too-large-tls-size.exe:
     - 1.1186994290328585
+    ts-riscv-memory-ram-end.exe:
+    - 1.467613368993625
     ts-terminate.exe:
     - 1.499267488019541
     ts-unit-no-clock-0.exe:
-    - 8.812400676019024
+    - 12.397605562000535
     ts-userext.exe:
     - 2.3511449780198745
     ts-validation-0.exe:
-    - 3.8035139650455676
+    - 5.129177306982456
     ts-validation-1.exe:
-    - 72.91121338802623
+    - 144.8556816909986
     ts-validation-acfg-0.exe:
     - 1.3194220559671521
     ts-validation-acfg-1.exe:
-    - 1.1155188989941962
+    - 1.468517058994621
+    ts-validation-bsp-0.exe:
+    - 1.4683215800032485
     ts-validation-cache.exe:
     - 2.1431803420418873
+    ts-validation-cxx-0.exe:
+    - 1.468832996004494
     ts-validation-intr.exe:
     - 2.3438153190072626
     ts-validation-io-kernel.exe:
     - 0.7238568760221824
     ts-validation-no-clock-0.exe:
-    - 18.46684659202583
+    - 32.01036885101348
     ts-validation-no-clock-1.exe:
-    - 8.613269451947417
+    - 17.309277419990394
     ts-validation-non-smp.exe:
     - 2.2596025289967656
     ts-validation-one-cpu-0.exe:
-    - 4.770673112012446
+    - 8.640952713001752
     ts-validation-one-cpu-1.exe:
-    - 73.30225155199878
+    - 140.50168579499586
     ts-validation-timecounter-0.exe:
-    - 1.3770474729826674
+    - 1.5188954950135667
     ts-validation-timecounter-1.exe:
-    - 15.064889879955444
+    - 29.85656796800322
     ts-validation-tls-0.exe:
-    - 1.6509022179525346
+    - 1.719754664984066
     ts-validation-tls-1.exe:
-    - 1.315169804962352
+    - 1.318984432000434
   coverage-smp:
     ts-fatal-boot-processor-not-assigned-to-scheduler.exe:
     - 2.286961150006391
@@ -69,6 +77,8 @@ timeouts:
     - 2.2861650620470755
     ts-fatal-init-task-construct-failed.exe:
     - 2.1520771990180947
+    ts-fatal-init-task-create-failed.exe:
+    - 1.7690339410037268
     ts-fatal-mandatory-processor-not-present.exe:
     - 2.393168808950577
     ts-fatal-riscv-clock-irq-install.exe:
@@ -87,38 +97,44 @@ timeouts:
     - 2.3893951940117404
     ts-model-0.exe:
     - 5.099756796960719
+    ts-riscv-memory-ram-end.exe:
+    - 2.0719628520018887
     ts-terminate.exe:
     - 2.48234002297977
     ts-unit-no-clock-0.exe:
-    - 12.47017472999869
+    - 12.65188724998734
     ts-userext.exe:
     - 3.384789453004487
     ts-validation-0.exe:
     - 7.097788409970235
     ts-validation-1.exe:
-    - 140.78380828897934
+    - 263.049300980987
     ts-validation-acfg-0.exe:
     - 1.9168135559884831
     ts-validation-acfg-1.exe:
     - 2.624116930994205
+    ts-validation-bsp-0.exe:
+    - 2.020445780013688
     ts-validation-cache.exe:
     - 3.959087804018054
+    ts-validation-cxx-0.exe:
+    - 2.0214733550092205
     ts-validation-intr.exe:
     - 4.011681535979733
     ts-validation-io-kernel.exe:
     - 1.325770825962536
     ts-validation-no-clock-0.exe:
-    - 34.489809671998955
+    - 62.35216573197977
     ts-validation-no-clock-1.exe:
-    - 47.83842302398989
+    - 144.45434917800594
     ts-validation-one-cpu-0.exe:
-    - 10.640712110034656
+    - 12.15309142699698
     ts-validation-one-cpu-1.exe:
-    - 119.6081582850311
+    - 216.43378246799693
     ts-validation-smp-one-cpu-0.exe:
     - 3.616408144996967
     ts-validation-smp-only-0.exe:
-    - 35.37908380199224
+    - 48.17471604401362
     ts-validation-smp-only-1.exe:
     - 3.2668351780157536
     ts-validation-smp-only-2.exe:
@@ -126,7 +142,7 @@ timeouts:
     ts-validation-timecounter-0.exe:
     - 2.5663250309880823
     ts-validation-timecounter-1.exe:
-    - 18.646644885011483
+    - 20.526214557990897
     ts-validation-timecounter-smp-0.exe:
     - 3.3664480439620093
     ts-validation-tls-0.exe:
