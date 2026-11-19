@@ -371,6 +371,10 @@ source:
 - cpukit/posix/src/mutextimedlock.c
 - cpukit/posix/src/mutextrylock.c
 - cpukit/posix/src/mutexunlock.c
+- cpukit/posix/src/pspindestroy.c
+- cpukit/posix/src/pspininit.c
+- cpukit/posix/src/pspinlock.c
+- cpukit/posix/src/pspinunlock.c
 - cpukit/posix/src/psxpriorityisvalid.c
 - cpukit/posix/src/pthreadattrdefault.c
 - cpukit/posix/src/pthreadattrdestroy.c

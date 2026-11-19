@@ -1,0 +1,80 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/spin-destroy
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-spin-destroy
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/spin-destroy:/name} shall be
+      zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Lock
+  states:
+  - name: Initialized
+    test-code: |
+      T_eq_int( pthread_spin_init( &ctx->lock_obj, 0 ), 0 );
+    text: |
+      While the object referenced by the ${../if/spin-destroy:/params[0]/name}
+      parameter is an initialized spin lock which is unlocked.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-spin-destroy:/name} lists no error for
+  ${../if/spin-destroy:/name}. ${../if/spin-destroy:/name} performs no validation
+  of its parameters and has no error path, so no error state is specified.
+
+  The standard leaves the results undefined where a thread holds the spin lock,
+  so the item covers a spin lock which is not locked. The call changes nothing
+  which can be observed, so only the return value is specified.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_spin_destroy( &ctx->lock_obj );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the object referenced by the
+    ${../if/spin-destroy:/params[0]/name} parameter.
+  description: null
+  member: pthread_spinlock_t lock_obj
+- brief: |
+    This member contains the return value of the ${../if/spin-destroy:/name} call.
+  description: null
+  member: int status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-pthread-spin-destroy.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+  pre-conditions:
+    Lock: all
+type: requirement

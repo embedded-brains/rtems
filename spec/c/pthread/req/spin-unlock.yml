@@ -1,0 +1,174 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/spin-unlock
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-spin-unlock
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/spin-unlock:/name} shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Interrupts
+  states:
+  - name: Enabled
+    test-code: |
+      T_true( AreInterruptsEnabled() );
+    text: |
+      Maskable interrupts shall be enabled.
+  - name: Disabled
+    test-code: |
+      T_false( AreInterruptsEnabled() );
+    text: |
+      Maskable interrupts shall be disabled.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Unlocked
+    test-code: |
+      #if defined( RTEMS_SMP )
+        T_true( TicketLockIsAvailable( TicketLock( ctx ) ) );
+      #else
+        (void) ctx;
+      #endif
+    text: |
+      The spin lock referenced by the ${../if/spin-unlock:/params[0]/name} parameter
+      shall be unlocked.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Interrupts
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->level_disabled = false;
+    text: |
+      While maskable interrupts are enabled.
+  - name: Disabled
+    test-code: |
+      rtems_interrupt_local_disable( ctx->level );
+      ctx->level_disabled = true;
+    text: |
+      While maskable interrupts are disabled.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Locked
+    test-code: |
+      memset( &ctx->lock_obj, 0xff, sizeof( ctx->lock_obj ) );
+      T_eq_int( pthread_spin_init( &ctx->lock_obj, 0 ), 0 );
+      T_eq_int( pthread_spin_lock( &ctx->lock_obj ), 0 );
+    text: |
+      While the object referenced by the ${../if/spin-unlock:/params[0]/name}
+      parameter is an initialized spin lock which is locked by the calling
+      ${../glossary/thread:/term}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-spin-unlock:/name} lists no error for
+  ${../if/spin-unlock:/name}. ${../if/spin-unlock:/name} performs no validation
+  of its parameters and has no error path, so no error state is specified.
+
+  The standard leaves the results undefined where the calling thread does not
+  hold the spin lock, so the item covers a spin lock which the calling thread
+  holds. Post-condition Interrupts specifies that the call restores the status of
+  maskable interrupts which the locking call saved. Post-condition Lock specifies
+  that the call releases the spin lock.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = pthread_spin_unlock( &ctx->lock_obj );
+test-brief: null
+test-cleanup: |
+  (void) pthread_spin_destroy( &ctx->lock_obj );
+
+  if ( ctx->level_disabled ) {
+    rtems_interrupt_local_enable( ctx->level );
+  }
+test-context:
+- brief: |
+    This member provides the object referenced by the
+    ${../if/spin-unlock:/params[0]/name} parameter.
+  description: null
+  member: pthread_spinlock_t lock_obj
+- brief: |
+    This member contains the return value of the ${../if/spin-unlock:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the interrupt level of the test.
+  description: null
+  member: rtems_interrupt_level level
+- brief: |
+    This member is true, if the test disabled interrupts.
+  description: null
+  member: bool level_disabled
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- rtems.h
+- rtems/posix/spinlockimpl.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->status = -1;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #if defined( RTEMS_SMP )
+  static const SMP_ticket_lock_Control *TicketLock( Context *ctx )
+  {
+    return &_POSIX_Spinlock_Get( &ctx->lock_obj )->Lock;
+  }
+  #endif
+test-target: testsuites/validation/tc-pthread-spin-unlock.c
+test-teardown:
+  brief: null
+  code: |
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+    Interrupts:
+    - specified-by: Interrupts
+    Lock: N/A
+  pre-conditions:
+    Interrupts: all
+    Lock: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Ok
+    Interrupts:
+    - specified-by: Interrupts
+    Lock: Unlocked
+  pre-conditions:
+    Interrupts: all
+    Lock: all
+type: requirement

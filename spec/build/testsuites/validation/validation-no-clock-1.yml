@@ -35,6 +35,8 @@ source:
 - testsuites/validation/tc-pthread-mutexattr-init.c
 - testsuites/validation/tc-pthread-mutexattr-setpshared.c
 - testsuites/validation/tc-pthread-setname-np.c
+- testsuites/validation/tc-pthread-spin-destroy.c
+- testsuites/validation/tc-pthread-spin-unlock.c
 - testsuites/validation/tc-sched-yield.c
 - testsuites/validation/tc-scheduler-add-processor.c
 - testsuites/validation/tc-scheduler-get-maximum-priority.c

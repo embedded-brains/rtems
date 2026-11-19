@@ -1,0 +1,156 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/spin-init
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-spin-destroy
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/spin-init:/name} shall be zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Unlocked
+    test-code: |
+      pthread_spinlock_t expected;
+
+      memcpy( &expected, &ctx->lock_before, sizeof( expected ) );
+      expected._Lock._next_ticket = 0;
+      expected._Lock._now_serving = 0;
+      T_eq_mem( &ctx->lock_obj, &expected, sizeof( ctx->lock_obj ) );
+    text: |
+      The spin lock referenced by the ${../if/spin-init:/params[0]/name} parameter
+      shall be unlocked.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Pshared
+  states:
+  - name: Private
+    test-code: |
+      ctx->pshared = PTHREAD_PROCESS_PRIVATE;
+    text: |
+      While the ${../if/spin-init:/params[1]/name} parameter is
+      ${../if/process-private:/name}.
+  - name: Shared
+    test-code: |
+      ctx->pshared = PTHREAD_PROCESS_SHARED;
+    text: |
+      While the ${../if/spin-init:/params[1]/name} parameter is
+      ${../if/process-shared:/name}.
+  - name: Invalid
+    test-code: |
+      ctx->pshared = PSHARED_INVALID;
+    text: |
+      While the ${../if/spin-init:/params[1]/name} parameter is not a valid
+      ${../glossary/process-shared:/term} value.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Uninit
+    test-code: |
+      memset( &ctx->lock_obj, 0xa5, sizeof( ctx->lock_obj ) );
+    text: |
+      While the ${../if/spin-init:/params[0]/name} parameter references an object of
+      type ${/c/if/pthread_spinlock_t:/name} which is not initialized.
+  - name: Destroyed
+    test-code: |
+      T_eq_int( pthread_spin_init( &ctx->lock_obj, PTHREAD_PROCESS_PRIVATE ), 0 );
+      T_eq_int( pthread_spin_destroy( &ctx->lock_obj ), 0 );
+    text: |
+      While the ${../if/spin-init:/params[0]/name} parameter references a destroyed
+      spin lock.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  RTEMS ignores the ${../if/spin-init:/params[1]/name} parameter, so state
+  Invalid of pre-condition Pshared also returns zero. The standard defines no
+  error for such a value. The function allocates no resources and returns zero in
+  every case, so post-condition Status has a single state.
+
+  In SMP configurations, a spin lock is a ticket lock with two counters and the
+  saved interrupt state. ${../if/spin-init:/name} sets both counters to zero and
+  leaves the interrupt state as it is, which post-condition Lock checks against a
+  copy of the object. State Uninit fills the object with a pattern, so the check
+  fails if the function does not write the counters. In uniprocessor
+  configurations, a spin lock only disables the maskable interrupts, and has no
+  state.
+
+  A ${/c/if/null:/name} ${../if/spin-init:/params[0]/name} parameter is not a
+  state, since RTEMS writes through it without a check in SMP configurations.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->lock_before, &ctx->lock_obj, sizeof( ctx->lock_before ) );
+  ctx->status = pthread_spin_init( &ctx->lock_obj, ctx->pshared );
+test-brief: null
+test-cleanup: |
+  T_eq_int( pthread_spin_destroy( &ctx->lock_obj ), 0 );
+test-context:
+- brief: |
+    This member specifies the ${../if/spin-init:/params[1]/name} parameter value.
+  description: null
+  member: |
+    int pshared
+- brief: |
+    This member contains the return value of the ${../if/spin-init:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the spin lock object.
+  description: null
+  member: |
+    pthread_spinlock_t lock_obj
+- brief: |
+    This member contains a copy of the spin lock object before the
+    ${../if/spin-init:/name} call.
+  description: null
+  member: |
+    pthread_spinlock_t lock_before
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- string.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  #define PSHARED_INVALID 123
+test-target: testsuites/validation/tc-pthread-spin-init.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+    Lock: N/A
+  pre-conditions:
+    Pshared: all
+    Lock: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Ok
+    Lock: Unlocked
+  pre-conditions:
+    Pshared: all
+    Lock: all
+type: requirement

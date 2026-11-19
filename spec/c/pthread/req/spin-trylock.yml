@@ -1,0 +1,331 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/spin-trylock
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-spin-lock
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/spin-trylock:/name} shall be
+      zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Interrupts
+  states:
+  - name: Disabled
+    test-code: |
+      T_false( ctx->enabled_locked );
+    text: |
+      The maskable interrupts shall be disabled.
+  test-epilogue: null
+  test-prologue: null
+- name: Owner
+  states:
+  - name: Caller
+    test-code: |
+      T_eq_uint( ctx->next_ticket, ctx->now_serving + 1 );
+    text: |
+      The spin lock referenced by the ${../if/spin-trylock:/params[0]/name} parameter
+      shall be owned by the calling thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Wait
+  states:
+  - name: UntilReleased
+    test-code: |
+      T_false( ctx->acquired_before_release );
+      T_true( ctx->acquired );
+    text: |
+      The calling thread shall wait until the owner releases the spin lock.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Interrupts
+  states:
+  - name: Enabled
+    test-code: |
+      ctx->disable_interrupts = false;
+    text: |
+      While maskable interrupts are enabled.
+  - name: Disabled
+    test-code: |
+      ctx->disable_interrupts = true;
+    text: |
+      While maskable interrupts are disabled.
+  test-epilogue: null
+  test-prologue: null
+- name: Lock
+  states:
+  - name: Available
+    test-code: |
+      ctx->owned = false;
+    text: |
+      While the spin lock referenced by the ${../if/spin-trylock:/params[0]/name}
+      parameter is not owned by a thread.
+  - name: Owned
+    test-code: |
+      ctx->owned = true;
+    text: |
+      While the spin lock referenced by the ${../if/spin-trylock:/params[0]/name}
+      parameter is owned by a thread executing on another processor.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  In RTEMS, ${../if/spin-trylock:/name} is an alias of ${../if/spin-lock:/name}.
+  The spin lock is a ticket lock, which has no try variant, so the function does
+  not return ${/c/errno/if/ebusy:/name} for a spin lock which is owned by another
+  thread. It waits until the owner releases the spin lock and returns zero, which
+  state UntilReleased of post-condition Wait specifies. The requirement has the
+  post-conditions of ${spin-lock:/spec}, and the test calls
+  ${../if/spin-trylock:/name}.
+
+  ${../if/spin-trylock:/name} disables the maskable interrupts. The release of
+  the spin lock restores their status from before the call, see
+  ${spin-unlock:/spec}. RTEMS returns zero in every case, so post-condition
+  Status has a single state.
+
+  In SMP configurations, a spin lock is a ticket lock. Post-condition Owner reads
+  its two counters from the members of ${/c/if/pthread_spinlock_t:/name}, since
+  no function reports the owner. The action records these values before the spin
+  lock is released, since the maskable interrupts stay disabled while the spin
+  lock is owned and the checks shall not run in this state. In uniprocessor
+  configurations, a spin lock only disables the maskable interrupts and has no
+  owner.
+
+  A call which waits for the owner cannot be observed by its caller. For the
+  owned spin lock, the runner is therefore the owner and a worker on a second
+  processor is the calling thread. The runner releases the spin lock only after
+  the worker took its ticket, so the worker cannot acquire it in between.
+
+  A call by the owner of the spin lock is not a state, since the behaviour is
+  undefined. In uniprocessor configurations, the call overwrites the stored state
+  of the maskable interrupts. In SMP configurations, the owner waits for itself
+  forever.
+requirement-type: functional
+skip-reasons:
+  NeedsSMP: |
+    Where the system was built with SMP support disabled, the owner of a spin lock
+    executes with maskable interrupts disabled, so no other thread can call the
+    function while the spin lock is owned.
+test-action: |
+  if ( ctx->owned ) {
+  #if defined( RTEMS_SMP )
+    LockOnOtherProcessor( ctx );
+  #endif
+  } else {
+    Lock( ctx );
+  }
+test-brief: null
+test-cleanup: |
+  T_eq_int( pthread_spin_destroy( &ctx->lock_obj ), 0 );
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/spin-trylock:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the spin lock object.
+  description: null
+  member: |
+    pthread_spinlock_t lock_obj
+- brief: |
+    This member is true, if the maskable interrupts shall be disabled before the
+    call.
+  description: null
+  member: |
+    bool disable_interrupts
+- brief: |
+    This member is true, if the spin lock shall be owned by a thread executing on
+    another processor.
+  description: null
+  member: |
+    bool owned
+- brief: |
+    This member is true, if the maskable interrupts were enabled after the call.
+  description: null
+  member: |
+    bool enabled_locked
+- brief: |
+    This member contains the next ticket of the spin lock after the call.
+  description: null
+  member: |
+    unsigned int next_ticket
+- brief: |
+    This member contains the ticket now serving of the spin lock after the call.
+  description: null
+  member: |
+    unsigned int now_serving
+- brief: |
+    This member contains the identifier of the worker task.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member is true, if the worker shall call the function.
+  description: null
+  member: |
+    volatile bool go
+- brief: |
+    This member is true, if the function call returned.
+  description: null
+  member: |
+    volatile bool acquired
+- brief: |
+    This member is true, if the function call of the worker returned before the
+    owner released the spin lock.
+  description: null
+  member: |
+    bool acquired_before_release
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- pthread.h
+- rtems.h
+- rtems/score/isrlevel.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  T_eq_int( pthread_spin_init( &ctx->lock_obj, PTHREAD_PROCESS_PRIVATE ), 0 );
+  ctx->acquired = false;
+test-setup:
+  brief: null
+  code: |
+    #if defined( RTEMS_SMP )
+      ctx->worker_id = CreateTask( "WORK", PRIO_NORMAL );
+      SetScheduler( ctx->worker_id, SCHEDULER_B_ID, PRIO_NORMAL );
+      StartTask( ctx->worker_id, Worker, ctx );
+    #else
+      (void) ctx;
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Lock( Context *ctx )
+  {
+    rtems_interrupt_level level;
+    int                   unlock_status;
+
+    level = 0;
+
+    if ( ctx->disable_interrupts ) {
+      rtems_interrupt_local_disable( level );
+    }
+
+    ctx->status = pthread_spin_trylock( &ctx->lock_obj );
+    ctx->acquired = true;
+    ctx->enabled_locked = AreInterruptsEnabled();
+    ctx->next_ticket = ctx->lock_obj._Lock._next_ticket;
+    ctx->now_serving = ctx->lock_obj._Lock._now_serving;
+    unlock_status = pthread_spin_unlock( &ctx->lock_obj );
+
+    if ( ctx->disable_interrupts ) {
+      rtems_interrupt_local_enable( level );
+    }
+
+    T_quiet_eq_int( unlock_status, 0 );
+  }
+
+  #if defined( RTEMS_SMP )
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      (void) ReceiveAnyEvents();
+
+      while ( !ctx->go ) {
+        /* Wait */
+      }
+
+      Lock( ctx );
+    }
+  }
+
+  static void LockOnOtherProcessor( Context *ctx )
+  {
+    int owner_lock_status;
+    int owner_unlock_status;
+
+    ctx->go = false;
+    SendEvents( ctx->worker_id, RTEMS_EVENT_0 );
+
+    /*
+     * Between the lock and unlock calls, the runner executes with maskable
+     * interrupts disabled, so it accesses only the context variables.
+     */
+    owner_lock_status = pthread_spin_lock( &ctx->lock_obj );
+    ctx->go = true;
+    TicketLockWaitForOthers(
+      (const SMP_ticket_lock_Control *) &ctx->lock_obj._Lock,
+      1
+    );
+    ctx->acquired_before_release = ctx->acquired;
+    owner_unlock_status = pthread_spin_unlock( &ctx->lock_obj );
+
+    WaitForExecutionStop( ctx->worker_id );
+    T_quiet_eq_int( owner_lock_status, 0 );
+    T_quiet_eq_int( owner_unlock_status, 0 );
+  }
+  #endif
+test-target: testsuites/validation/tc-pthread-spin-trylock.c
+test-teardown:
+  brief: null
+  code: |
+    #if defined( RTEMS_SMP )
+      DeleteTask( ctx->worker_id );
+    #else
+      (void) ctx;
+    #endif
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+    Interrupts: Disabled
+    Owner: N/A
+    Wait: N/A
+  pre-conditions:
+    Interrupts: all
+    Lock:
+    - Available
+- enabled-by: true
+  post-conditions: NeedsSMP
+  pre-conditions:
+    Interrupts: all
+    Lock:
+    - Owned
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Status: Ok
+    Interrupts: Disabled
+    Owner: Caller
+    Wait:
+    - if:
+        pre-conditions:
+          Lock: Owned
+      then: UntilReleased
+    - else: N/A
+  pre-conditions:
+    Interrupts: all
+    Lock: all
+type: requirement
