@@ -21,6 +21,13 @@ source:
 - testsuites/validation/tc-futex-wait.c
 - testsuites/validation/tc-futex-wake.c
 - testsuites/validation/tc-message-receive.c
+- testsuites/validation/tc-posix-sem-destroy.c
+- testsuites/validation/tc-posix-sem-getvalue.c
+- testsuites/validation/tc-posix-sem-init.c
+- testsuites/validation/tc-posix-sem-post.c
+- testsuites/validation/tc-posix-sem-timedwait.c
+- testsuites/validation/tc-posix-sem-trywait.c
+- testsuites/validation/tc-posix-sem-wait.c
 - testsuites/validation/tc-pthread-getname-np.c
 - testsuites/validation/tc-pthread-mutex-destroy.c
 - testsuites/validation/tc-pthread-mutex-getprioceiling.c

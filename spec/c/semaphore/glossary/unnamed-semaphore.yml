@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: unnamed semaphore
+text: |
+  A ${/glossary/countingsemaphore:/term} which the application initializes in
+  memory it provides and which it destroys when it no longer needs the semaphore.
+type: glossary

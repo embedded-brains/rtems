@@ -1,0 +1,63 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Initialize the ${../glossary/unnamed-semaphore:/term} referenced by
+  ${.:/params[0]/name} with the process-shared flag specified by
+  ${.:/params[1]/name} and the initial value specified by ${.:/params[2]/name}.
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/sem_t:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    - unsigned int ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: /c/if/semaphore
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[2]/name} parameter exceeds ${/c/if/sem_value_max:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/sem-init
+name: sem_init
+notes: |
+  See ${/ref/std/posix-2024/sem-init:/name}.
+params:
+- description: |
+    is the pointer to the ${/glossary/countingsemaphore:/term}.
+  dir: out
+  name: sem
+- description: |
+    is the process-shared flag.
+  dir: null
+  name: pshared
+- description: |
+    is the initial value of the ${/glossary/countingsemaphore:/term}.
+  dir: null
+  name: value
+return:
+  return: null
+  return-values:
+  - description: |
+      Returns zero on success.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface

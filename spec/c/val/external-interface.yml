@@ -138,6 +138,10 @@ links:
 - role: validation
   uid: /c/if/sched_param
 - role: validation
+  uid: /c/if/sem_t
+- role: validation
+  uid: /c/if/sem_value_max
+- role: validation
   uid: /c/if/size_max
 - role: validation
   uid: /c/if/size_t

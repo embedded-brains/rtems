@@ -231,7 +231,7 @@ static void ScoreSemReqSurrender_Pre_Count_Prepare(
       if ( ctx->tq_ctx->variant == TQ_SEM_BINARY ) {
         ctx->count_before = 0;
       } else {
-        ctx->count_before = UINT32_MAX - 1;
+        ctx->count_before = ctx->tq_ctx->max_count - 1;
       }
       break;
     }
@@ -245,7 +245,7 @@ static void ScoreSemReqSurrender_Pre_Count_Prepare(
       if ( ctx->tq_ctx->variant == TQ_SEM_BINARY ) {
         ctx->count_before = 1;
       } else {
-        ctx->count_before = UINT32_MAX;
+        ctx->count_before = ctx->tq_ctx->max_count;
       }
       break;
     }

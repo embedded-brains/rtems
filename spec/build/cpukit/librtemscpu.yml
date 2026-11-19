@@ -104,6 +104,8 @@ install:
   - cpukit/include/rtems/posix/pthread.h
   - cpukit/include/rtems/posix/pthreadattrimpl.h
   - cpukit/include/rtems/posix/pthreadimpl.h
+  - cpukit/include/rtems/posix/semaphore.h
+  - cpukit/include/rtems/posix/semaphoreimpl.h
   - cpukit/include/rtems/posix/spinlockimpl.h
   - cpukit/include/rtems/posix/threadsup.h
 - destination: ${BSP_INCLUDEDIR}/rtems/rtems
@@ -414,6 +416,13 @@ source:
 - cpukit/posix/src/pthreadjoin.c
 - cpukit/posix/src/pthreadsetaffinitynp.c
 - cpukit/posix/src/pthreadsetnamenp.c
+- cpukit/posix/src/semdestroy.c
+- cpukit/posix/src/semgetvalue.c
+- cpukit/posix/src/seminit.c
+- cpukit/posix/src/sempost.c
+- cpukit/posix/src/semtimedwait.c
+- cpukit/posix/src/semtrywait.c
+- cpukit/posix/src/semwait.c
 - cpukit/posix/src/setcancelstate.c
 - cpukit/posix/src/setcanceltype.c
 - cpukit/posix/src/testcancel.c

@@ -318,6 +318,7 @@ static void RtemsSemReqRelease_Post_Action_Check(
       ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
       break;
     }
@@ -334,6 +335,7 @@ static void RtemsSemReqRelease_Post_Action_Check(
       ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
       break;
     }
@@ -350,6 +352,7 @@ static void RtemsSemReqRelease_Post_Action_Check(
       ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
       break;
     }
@@ -366,6 +369,7 @@ static void RtemsSemReqRelease_Post_Action_Check(
       ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ScoreSemReqSurrender_Run( &ctx->tq_sem_ctx );
       break;
     }

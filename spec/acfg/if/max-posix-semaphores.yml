@@ -34,6 +34,7 @@ notes: |
   ${/ref/rtems/c-user/config-unlimited-objects:/name}.
 
   Named semaphores are created with ${/c/if/sem_open:/name}. Semaphores
-  initialized with ${/c/if/sem_init:/name} are not affected by this configuration
-  option since the storage space for these semaphores is user-provided.
+  initialized with ${/c/semaphore/if/init:/name} are not affected by this
+  configuration option since the storage space for these semaphores is
+  user-provided.
 type: interface
