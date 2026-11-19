@@ -45,6 +45,22 @@
 
 const char rtems_test_name[] = "MALLOCTEST";
 
+static bool is_filled( const void *area, int value, size_t size )
+{
+  const unsigned char *bytes;
+  size_t               i;
+
+  bytes = area;
+
+  for ( i = 0; i < size; ++i ) {
+    if ( bytes[ i ] != (unsigned char) value ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /*
  *  A simple test of realloc
  */
@@ -55,48 +71,27 @@ static void test_realloc( void )
   int    sc;
   bool   malloc_walk_ok;
 
-  /* Test growing reallocation "in place" */
+  /* Test growing reallocation */
   p1 = malloc( 1 );
+  rtems_test_assert( p1 != NULL );
+  memset( p1, 0xa5, 1 );
   for ( i = 2; i < 2048; i++ ) {
     p2 = realloc( p1, i );
-    if ( p2 != p1 )
-/*
- * This was added to address the following warning.
- * warning: pointer 'p1' may be used after 'realloc'
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuse-after-free"
-      printf(
-        "realloc - failed grow in place: "
-        "%p != realloc(%p,%zu)\n",
-        p1,
-        p2,
-        i
-      );
-#pragma GCC diagnostic pop
+    rtems_test_assert( p2 != NULL );
+    rtems_test_assert( is_filled( p2, 0xa5, i - 1 ) );
+    memset( p2, 0xa5, i );
     p1 = p2;
   }
   free( p1 );
 
-  /* Test shrinking reallocation "in place" */
+  /* Test shrinking reallocation */
   p1 = malloc( 2048 );
+  rtems_test_assert( p1 != NULL );
+  memset( p1, 0x5a, 2048 );
   for ( i = 2047; i >= 1; i-- ) {
     p2 = realloc( p1, i );
-    if ( p2 != p1 )
-/*
- * This was added to address the following warning.
- * warning: pointer 'p1' may be used after 'realloc'
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wuse-after-free"
-      printf(
-        "realloc - failed shrink in place: "
-        "%p != realloc(%p,%zu)\n",
-        p1,
-        p2,
-        i
-      );
-#pragma GCC diagnostic pop
+    rtems_test_assert( p2 != NULL );
+    rtems_test_assert( is_filled( p2, 0x5a, i ) );
     p1 = p2;
   }
   free( p1 );
@@ -576,13 +571,13 @@ static void test_early_malloc( void )
 
   q = calloc( 1, 1 );
   rtems_test_assert( q != NULL );
-  rtems_test_assert( p != q );
   rtems_test_assert( q[ 0 ] == 0 );
 
   free( q );
 
   r = realloc( NULL, 128 );
-  rtems_test_assert( r != q );
+  rtems_test_assert( r != NULL );
+  memset( r, 0xa5, 128 );
 
   s = malloc( 1 );
   rtems_test_assert( s != NULL );
@@ -591,10 +586,11 @@ static void test_early_malloc( void )
 
   t = realloc( r, 256 );
   rtems_test_assert( t != NULL );
-  rtems_test_assert( t != r );
+  rtems_test_assert( is_filled( t, 0xa5, 128 ) );
 
   u = realloc( t, 384 );
-  rtems_test_assert( t == u );
+  rtems_test_assert( u != NULL );
+  rtems_test_assert( is_filled( u, 0xa5, 128 ) );
 
   free( u );
 }
