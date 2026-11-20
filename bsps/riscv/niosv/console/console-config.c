@@ -174,6 +174,13 @@ static int jtag_uart_console_putchar(int c)
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( ajur->control & ALTERA_AVALON_JTAG_UART_CONTROL_WSPACE_MSK ) == 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   /*

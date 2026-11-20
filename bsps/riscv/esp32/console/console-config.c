@@ -103,6 +103,16 @@ static int esp_uart_output_char( int c )
     return -1;
   }
 
+#ifdef ESPRESSIF_USE_USB_CONSOLE
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( USB_READ( USB_SERIAL_JTAG_EP1_CONF_REG ) &
+      USB_SERIAL_JTAG_SERIAL_IN_EP_DATA_FREE ) == 0
+  ) {
+    return -1;
+  }
+#endif
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
 #ifdef ESPRESSIF_USE_USB_CONSOLE
