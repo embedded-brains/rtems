@@ -77,22 +77,31 @@ static int
 psc_output_char( int c )
 {
   rtems_interrupt_level level;
+  bool try_only;
 
   if ( rtems_output_char_is_drain( c ) ) {
     return -1;
   }
 
+  try_only = rtems_output_char_is_try( c );
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   rtems_interrupt_disable(level);
+  if ( try_only && !((MCF548X_PSC_SR(CONSOLE_PORT) & MCF548X_PSC_SR_TXRDY)) ) {
+    rtems_interrupt_enable(level);
+    return -1;
+  }
+
   while (!((MCF548X_PSC_SR(CONSOLE_PORT) & MCF548X_PSC_SR_TXRDY))) {
     continue;
   }
 
   *((uint8_t *) &MCF548X_PSC_TB(CONSOLE_PORT)) = c;
 
-  while (!((MCF548X_PSC_SR(CONSOLE_PORT) & MCF548X_PSC_SR_TXRDY))) {
-    continue;
+  if ( !try_only ) {
+    while (!((MCF548X_PSC_SR(CONSOLE_PORT) & MCF548X_PSC_SR_TXRDY))) {
+      continue;
+    }
   }
 
   rtems_interrupt_enable(level);
