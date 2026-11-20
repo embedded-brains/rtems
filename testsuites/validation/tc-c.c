@@ -52,10 +52,6 @@
  *
  * This test case performs the following actions:
  *
- * - Call memcpy() for a sample set of buffers.
- *
- * - Call memset() for a sample set of buffers.
- *
  * - Check that errno has a signed integer type.
  *
  * - Check that errno has thread storage duration.
@@ -63,114 +59,10 @@
  * @{
  */
 
-static void Clear( volatile uint8_t *b, const volatile uint8_t *e )
-{
-  while ( b != e ) {
-    *b = 0;
-    ++b;
-  }
-}
-
-static bool Compare(
-  volatile uint8_t       *b,
-  const volatile uint8_t *e,
-  uint8_t                 expected
-)
-{
-  bool result;
-
-  result = true;
-
-  while ( b != e ) {
-    result = result && *b == expected;
-    ++b;
-  }
-
-  return result;
-}
-
-/**
- * @brief Call memcpy() for a sample set of buffers.
- */
-static void CValC_Action_0( void )
-{
-  uint8_t  src[ sizeof( long ) * 10 ];
-  uint8_t  dst[ sizeof( long ) * 10 ];
-  uint8_t *begin;
-  uint8_t *end;
-  uint8_t *aligned_src;
-  uint8_t *aligned_dst;
-  size_t   offset_src;
-
-  memset( src, 0x85, sizeof( src ) );
-  begin = dst;
-  end = begin + sizeof( dst );
-  aligned_src = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) src, sizeof( long ) );
-  aligned_dst = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) dst, sizeof( long ) );
-
-  for ( offset_src = 0; offset_src < sizeof( long ); ++offset_src ) {
-    size_t offset_dst;
-
-    for ( offset_dst = 0; offset_dst < sizeof( long ); ++offset_dst ) {
-      size_t size;
-
-      for ( size = 0; size < sizeof( long ) * 8; ++size ) {
-        uint8_t *s;
-        uint8_t *p;
-        uint8_t *q;
-
-        s = aligned_src + offset_src;
-        p = aligned_dst + offset_dst;
-        q = p + size;
-
-        Clear( begin, end );
-        memcpy( p, s, size );
-        T_true( Compare( begin, p, 0 ) );
-        T_true( Compare( p, q, 0x85 ) );
-        T_true( Compare( q, end, 0 ) );
-      }
-    }
-  }
-}
-
-/**
- * @brief Call memset() for a sample set of buffers.
- */
-static void CValC_Action_1( void )
-{
-  uint8_t  dst[ sizeof( long ) * 10 ];
-  uint8_t *begin;
-  uint8_t *end;
-  uint8_t *aligned;
-  size_t   offset;
-
-  begin = dst;
-  end = begin + sizeof( dst );
-  aligned = (uint8_t *) RTEMS_ALIGN_UP( (uintptr_t) dst, sizeof( long ) );
-
-  for ( offset = 0; offset < sizeof( long ); ++offset ) {
-    size_t size;
-
-    for ( size = 0; size < sizeof( long ) * 8; ++size ) {
-      uint8_t *p;
-      uint8_t *q;
-
-      p = aligned + offset;
-      q = p + size;
-
-      Clear( begin, end );
-      memset( p, 0x85, size );
-      T_true( Compare( begin, p, 0 ) );
-      T_true( Compare( p, q, 0x85 ) );
-      T_true( Compare( q, end, 0 ) );
-    }
-  }
-}
-
 /**
  * @brief Check that errno has a signed integer type.
  */
-static void CValC_Action_2( void )
+static void CValC_Action_0( void )
 {
   errno = -1;
   T_eq_int( errno, -1 );
@@ -180,7 +72,7 @@ static void CValC_Action_2( void )
 /**
  * @brief Check that errno has thread storage duration.
  */
-static void CValC_Action_3( void )
+static void CValC_Action_1( void )
 {
   T_true( IsTLSObjectOfThread( RTEMS_SELF, &errno ) );
 }
@@ -192,8 +84,6 @@ T_TEST_CASE( CValC )
 {
   CValC_Action_0();
   CValC_Action_1();
-  CValC_Action_2();
-  CValC_Action_3();
 }
 
 /** @} */

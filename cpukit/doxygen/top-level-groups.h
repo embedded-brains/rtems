@@ -257,6 +257,15 @@
  */
 
 /**
+ * @file cpukit/libc/misc/ffs.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffs()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/search/qsort.c
  *
  * @ingroup libcsupport
@@ -270,6 +279,24 @@
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/ffsl.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffsl()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/ffsll.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the ffsll()
+ *   function.
  */
 
 /**
@@ -290,6 +317,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/memchr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memchr()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/memcmp.c
  *
  * @ingroup libcsupport
@@ -306,11 +342,29 @@
  */
 
 /**
+ * @file cpukit/libc/string/memmove.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the memmove()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/memset.c
  *
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/strcasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcasecmp()
+ *   function.
  */
 
 /**
@@ -338,11 +392,47 @@
  */
 
 /**
+ * @file cpukit/libc/string/strncasecmp.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strncasecmp()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strnlen.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strnlen()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/strrchr.c
  *
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/strspn.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strspn()
+ *   function.
+ */
+
+/**
+ * @file cpukit/libc/string/strstr.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strstr()
+ *   function.
  */
 
 /**
