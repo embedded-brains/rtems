@@ -32,9 +32,20 @@
 #include <bsp/semihosting.h>
 #include <rtems/bspIo.h>
 
-void arm_fvp_console_output( char c )
+int arm_fvp_console_output( int c )
 {
-  (void) arm_fvp_semihosting_call( SYS_WRITEC, (uintptr_t) &c );
+  char ch;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+  ch = (char) c;
+
+  (void) arm_fvp_semihosting_call( SYS_WRITEC, (uintptr_t) &ch );
+
+  return 0;
 }
 
 int arm_fvp_console_input( void )

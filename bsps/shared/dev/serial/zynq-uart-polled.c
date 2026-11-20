@@ -38,6 +38,7 @@
 
 #include <bspopts.h>
 
+#include <rtems/bspIo.h>
 #include <rtems/dev/io.h>
 #include <rtems/score/assert.h>
 
@@ -155,6 +156,41 @@ void zynq_uart_write_char_polled(volatile zynq_uart *regs, char c)
   }
 
   regs->tx_rx_fifo = ZYNQ_UART_TX_RX_FIFO_FIFO(c);
+}
+
+static bool zynq_uart_is_drained(volatile zynq_uart *regs)
+{
+  uint32_t channel_sts;
+
+  channel_sts = regs->channel_sts &
+    (ZYNQ_UART_CHANNEL_STS_TEMPTY | ZYNQ_UART_CHANNEL_STS_TACTIVE);
+
+  return channel_sts == ZYNQ_UART_CHANNEL_STS_TEMPTY;
+}
+
+int zynq_uart_output_char_polled(volatile zynq_uart *regs, int c)
+{
+  if (
+    rtems_output_char_is_try(c) &&
+    (regs->channel_sts & ZYNQ_UART_CHANNEL_STS_TNFUL) != 0
+  ) {
+    return -1;
+  }
+
+  if (!rtems_output_char_is_drain(c)) {
+    zynq_uart_write_char_polled(regs, (char) c);
+    return 0;
+  }
+
+  if (rtems_output_char_is_try(c)) {
+    return zynq_uart_is_drained(regs) ? 0 : -1;
+  }
+
+  while (!zynq_uart_is_drained(regs)) {
+    _IO_Relax();
+  }
+
+  return 0;
 }
 
 void zynq_uart_reset_tx_flush(volatile zynq_uart *regs)

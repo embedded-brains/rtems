@@ -73,10 +73,16 @@ static ssize_t IntUartPollWrite(int minor, const char *buf, size_t len);
 static int IntUartPollRead (int minor);
 static int IntUartSetAttributes(int minor, const struct termios *t);
 
-static void
-psc_output_char( char c )
+static int
+psc_output_char( int c )
 {
   rtems_interrupt_level level;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
 
   rtems_interrupt_disable(level);
   while (!((MCF548X_PSC_SR(CONSOLE_PORT) & MCF548X_PSC_SR_TXRDY))) {
@@ -90,14 +96,16 @@ psc_output_char( char c )
   }
 
   rtems_interrupt_enable(level);
+
+  return 0;
 }
 
-static void
-psc_output_char_init(char c)
+static int
+psc_output_char_init(int c)
 {
   IntUartSetAttributes(CONSOLE_PORT, NULL);
   BSP_output_char = psc_output_char;
-  psc_output_char(c);
+  return psc_output_char(c);
 }
 
 BSP_output_char_function_type     BSP_output_char = psc_output_char_init;

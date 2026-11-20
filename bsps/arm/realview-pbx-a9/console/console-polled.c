@@ -39,9 +39,17 @@ arm_pl011_context rvpbx_pl011_context = {
   .clock = 24000000
 };
 
-static void output_char(char c)
+static int output_char(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   arm_pl011_write_polled(&rvpbx_pl011_context.base, c);
+
+  return 0;
 }
 
 bool rvpbx_pl011_probe(rtems_termios_device_context *base)
@@ -51,10 +59,10 @@ bool rvpbx_pl011_probe(rtems_termios_device_context *base)
   return arm_pl011_probe(base);
 }
 
-static void output_char_init(char c)
+static int output_char_init(int c)
 {
   rvpbx_pl011_probe(&rvpbx_pl011_context.base);
-  output_char(c);
+  return output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = output_char_init;

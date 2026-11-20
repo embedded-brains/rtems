@@ -62,7 +62,7 @@ typedef struct {
 static imxrt_lpuart_context imxrt_lpuart_console_instance;
 static imxrt_lpuart_context *imxrt_lpuart_console;
 
-static void imxrt_output_char(char c);
+static int imxrt_output_char(int c);
 static int imxrt_poll_char(void);
 
 static imxrt_lpuart_context *imxrt_lpuart_get_context(
@@ -506,11 +506,19 @@ rtems_status_code console_initialize(
   return RTEMS_SUCCESSFUL;
 }
 
-static void imxrt_output_char(char c)
+static int imxrt_output_char(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   if (imxrt_lpuart_console != NULL) {
     imxrt_lpuart_write_polled(&imxrt_lpuart_console->base, c);
   }
+
+  return 0;
 }
 
 static int imxrt_poll_char(void)
@@ -518,10 +526,10 @@ static int imxrt_poll_char(void)
   return imxrt_lpuart_read_polled(&imxrt_lpuart_console->base);
 }
 
-static void imxrt_output_char_init(char c)
+static int imxrt_output_char_init(int c)
 {
   imxrt_lpuart_console_probe_early();
-  imxrt_output_char(c);
+  return imxrt_output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = imxrt_output_char_init;

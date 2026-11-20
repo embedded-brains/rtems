@@ -771,13 +771,21 @@ rtems_status_code console_initialize(
 }
 
 
-static void output_char(char c)
+static int output_char(int c)
 {
   USART_TypeDef *regs = usart_instances[0].regs;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
 
   while ((regs->STATUS & USART_STATUS_TXBL) == 0)
     ;
   regs->TXDATA = (uint32_t) c & 0xff;
+
+  return 0;
 }
 
 static void debug_console_init(void)
@@ -789,10 +797,10 @@ static void debug_console_init(void)
   }
 }
 
-static void output_char_early(char c)
+static int output_char_early(int c)
 {
   debug_console_init();
-  output_char(c);
+  return output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = output_char_early;

@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 2015 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@
 #define _RTEMS_BSPIO_H
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <rtems/score/basedefs.h>
 
 #ifdef __cplusplus
@@ -78,7 +79,78 @@ extern "C" {
  *
  * @brief Polled character output functions shall have this type.
  */
-typedef void ( *BSP_output_char_function_type )( char );
+typedef int ( *BSP_output_char_function_type )( int );
+
+/* Find related documentation with spec:/rtems/io/if/output-char-mask */
+
+/**
+ * @ingroup RTEMSAPIKernelCharIO
+ *
+ * @brief This mask selects the bits of the parameter of #BSP_output_char which
+ *   specify the character to output.
+ */
+#define RTEMS_OUTPUT_CHAR_MASK 0x000000ff
+
+/* Find related documentation with spec:/rtems/io/if/output-char-drain */
+
+/**
+ * @ingroup RTEMSAPIKernelCharIO
+ *
+ * @brief This flag requests #BSP_output_char to drain the kernel character
+ *   output device.
+ *
+ * The kernel character output device is drained when it transmitted each
+ * character which it accepted.
+ */
+#define RTEMS_OUTPUT_CHAR_DRAIN 0x00000100
+
+/* Find related documentation with spec:/rtems/io/if/output-char-try */
+
+/**
+ * @ingroup RTEMSAPIKernelCharIO
+ *
+ * @brief This flag requests #BSP_output_char to perform the request only if it
+ *   does not need to wait for the kernel character output device.
+ *
+ * The referenced function may wait if another output to the device runs
+ * concurrently with the request.
+ */
+#define RTEMS_OUTPUT_CHAR_TRY 0x00000200
+
+/**
+ * @ingroup RTEMSAPIKernelCharIO
+ *
+ * @brief Checks if the parameter of #BSP_output_char sets
+ *   #RTEMS_OUTPUT_CHAR_DRAIN.
+ *
+ * @param c is the parameter of #BSP_output_char.
+ *
+ * @retval true The parameter is non-negative and sets
+ *   #RTEMS_OUTPUT_CHAR_DRAIN.
+ *
+ * @retval false Otherwise.
+ */
+static inline bool rtems_output_char_is_drain( int c )
+{
+  return c >= 0 && ( c & RTEMS_OUTPUT_CHAR_DRAIN ) != 0;
+}
+
+/**
+ * @ingroup RTEMSAPIKernelCharIO
+ *
+ * @brief Checks if the parameter of #BSP_output_char sets
+ *   #RTEMS_OUTPUT_CHAR_TRY.
+ *
+ * @param c is the parameter of #BSP_output_char.
+ *
+ * @retval true The parameter is non-negative and sets #RTEMS_OUTPUT_CHAR_TRY.
+ *
+ * @retval false Otherwise.
+ */
+static inline bool rtems_output_char_is_try( int c )
+{
+  return c >= 0 && ( c & RTEMS_OUTPUT_CHAR_TRY ) != 0;
+}
 
 /* Find related documentation with spec:/rtems/io/if/bsp-output-char */
 
@@ -89,10 +161,29 @@ typedef void ( *BSP_output_char_function_type )( char );
  *   implementation.
  *
  * This function pointer shall never be NULL. It shall be provided by the BSP
- * and statically initialized. The referenced function shall output exactly the
- * character specified by the parameter. In particular, it shall not perform
- * character translations, for example `NL` to `CR` followed by `NR`. The
- * function shall not block.
+ * and statically initialized.
+ *
+ * The parameter specifies the character to output in the bits of
+ * #RTEMS_OUTPUT_CHAR_MASK. The other bits of the parameter specify the flags
+ * #RTEMS_OUTPUT_CHAR_DRAIN and #RTEMS_OUTPUT_CHAR_TRY. All other bits of a
+ * non-negative parameter shall be zero. A negative parameter is a
+ * sign-extended character. It specifies the character to output in the bits of
+ * #RTEMS_OUTPUT_CHAR_MASK and sets no flag.
+ *
+ * For a request without #RTEMS_OUTPUT_CHAR_DRAIN, the referenced function shall
+ * output exactly the character specified by the parameter. In particular, it
+ * shall not perform character translations, for example `NL` to `CR` followed
+ * by `NR`. For a request with #RTEMS_OUTPUT_CHAR_DRAIN, the referenced function
+ * shall ignore the bits of #RTEMS_OUTPUT_CHAR_MASK. The referenced function
+ * shall not block the calling thread.
+ *
+ * The referenced function returns zero if it performed the request. It returns
+ * minus one if it performed nothing. A BSP without a kernel character output
+ * device returns zero for each request.
+ *
+ * A BSP which does not support #RTEMS_OUTPUT_CHAR_TRY outputs the character as
+ * if the flag was cleared. A BSP which does not support
+ * #RTEMS_OUTPUT_CHAR_DRAIN returns minus one for each call with this flag set.
  */
 extern BSP_output_char_function_type BSP_output_char;
 

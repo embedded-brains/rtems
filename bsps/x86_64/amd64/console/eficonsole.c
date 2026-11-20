@@ -54,7 +54,7 @@ extern EFI_SYSTEM_TABLE         *ST;
 extern EFI_BOOT_SERVICES        *BS;
 extern EFI_RUNTIME_SERVICES     *RS;
 
-extern void uart0_output_char(char c);
+extern int uart0_output_char(int c);
 
 static bool is_efi_console_initialized = false;
 
@@ -70,8 +70,8 @@ print_gop_info(EFI_GRAPHICS_OUTPUT *gop);
 EFI_STATUS
 check_gop(BOOLEAN verbose);
 
-static void
-both_output_char(char c);
+static int
+both_output_char(int c);
 
 static void
 sync_output(void);
@@ -217,23 +217,39 @@ efi_console_initialize( void )
     is_efi_console_initialized = true;
 }
 
-void
-buffered_output( char c );
+int
+buffered_output( int c );
 
-void
-buffered_output( char c )
+int
+buffered_output( int c )
 {
+    if ( rtems_output_char_is_drain( c ) ) {
+      return -1;
+    }
+
+    c &= RTEMS_OUTPUT_CHAR_MASK;
+
     if (output_buffer_index < (4096 - 1)) {
         output_buffer[output_buffer_index] = c;
         output_buffer_index++;
     }
+
+    return 0;
 }
 
-static void
-both_output_char( char c )
+static int
+both_output_char( int c )
 {
+    if ( rtems_output_char_is_drain( c ) ) {
+      return -1;
+    }
+
+    c &= RTEMS_OUTPUT_CHAR_MASK;
+
     efi_text_output_char(c);
     efi_graphic_output_char(c);
+
+    return 0;
 }
 
 void

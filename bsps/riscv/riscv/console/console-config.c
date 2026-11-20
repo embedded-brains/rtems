@@ -74,9 +74,17 @@ static struct {
   int (*getchar)(rtems_termios_device_context *base);
 } riscv_console;
 
-static void riscv_output_char(char c)
+static int riscv_output_char(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   (*riscv_console.putchar)(riscv_console.context, c);
+
+  return 0;
 }
 
 static int riscv_get_console_node(const void *fdt)
@@ -265,10 +273,10 @@ static void riscv_console_probe(void)
   BSP_output_char = riscv_output_char;
 }
 
-static void riscv_output_char_init(char c)
+static int riscv_output_char_init(int c)
 {
   riscv_console_probe();
-  riscv_output_char(c);
+  return riscv_output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = riscv_output_char_init;

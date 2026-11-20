@@ -118,7 +118,7 @@
 #include <rtems/libio.h>
 #include <bsp.h>
 
-static void _BSP_output_char( char c );
+static int _BSP_output_char( int c );
 static rtems_status_code do_poll_read( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
 static rtems_status_code do_poll_write( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
 
@@ -218,15 +218,26 @@ static rtems_status_code do_poll_write(
  *  Print functions prototyped in bspIo.h
  */
 
-static void _BSP_output_char( char c )
+static int _BSP_output_char( int c )
 {
+  char ch;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+  ch = (char) c;
+
   /*
    *  Can't rely on console_initialize having been called before this function
    *  is used, so it may fail unless output is done through EPPC-Bug.
    */
 #define PRINTK_WRITE m8xx_uart_pollWrite
 
-  PRINTK_WRITE( PRINTK_MINOR, &c, 1 );
+  PRINTK_WRITE( PRINTK_MINOR, &ch, 1 );
+
+  return 0;
 }
 
 /*

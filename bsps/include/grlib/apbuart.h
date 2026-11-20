@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -90,6 +90,27 @@ void apbuart_outbyte_polled( apbuart *regs, char ch );
  * @param regs is the pointer to the APBUART register block.
  */
 void apbuart_outbyte_wait( const apbuart *regs );
+
+/* Generated from spec:/dev/grlib/if/apbuart-output-char-polled */
+
+/**
+ * @ingroup RTEMSDeviceGRLIBAPBUART
+ *
+ * @brief Outputs the character or drains the transmitter as requested by the
+ *   flags of the parameter.
+ *
+ * @param regs is the pointer to the APBUART register block.
+ *
+ * @param c is the character to output and the flags of the request.
+ *
+ * The parameter `c` and the return value have the form which
+ * ::BSP_output_char_function_type defines.
+ *
+ * @retval 0 The function performed the request.
+ *
+ * @retval -1 The function performed nothing.
+ */
+int apbuart_output_char_polled( apbuart *regs, int c );
 
 #ifdef __cplusplus
 }

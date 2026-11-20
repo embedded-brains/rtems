@@ -175,9 +175,20 @@ static void uart_init(int minor)
 /*
  * Debug IO support
  */
-static void _BSP_null_char(char c)
+static int _BSP_null_char(int c)
 {
-  uart_do_write(EP7312_UARTDR1, &c, 1, EP7312_SYSFLG1);
+  char ch;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+  ch = (char) c;
+
+  uart_do_write(EP7312_UARTDR1, &ch, 1, EP7312_SYSFLG1);
+
+  return 0;
 }
 
 static int _BSP_get_char(void)

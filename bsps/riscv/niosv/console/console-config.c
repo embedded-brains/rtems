@@ -74,7 +74,7 @@ static void jtag_uart_clear_and_set_control(
   jtag_uart_context *ctx,
   uint32_t clear, uint32_t set
 );
-static void jtag_uart_console_putchar(char c);
+static int jtag_uart_console_putchar(int c);
 
 static jtag_uart_context jtag_uart_console_instance;
 
@@ -166,9 +166,15 @@ static void jtag_uart_isr(void *arg)
     ALTERA_AVALON_JTAG_UART_CONTROL_WI_MSK)) != 0);
 }
 
-static void jtag_uart_console_putchar(char c)
+static int jtag_uart_console_putchar(int c)
 {
   volatile altera_avalon_jtag_uart_regs *ajur = JTAG_UART_REGS;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
 
   /*
    *  Wait for the transmitter to be ready.
@@ -178,6 +184,8 @@ static void jtag_uart_console_putchar(char c)
   while ((ajur->control & ALTERA_AVALON_JTAG_UART_CONTROL_WSPACE_MSK) == 0);
 
   ajur->data = c;
+
+  return 0;
 }
 
 static void jtag_uart_console_probe(void)
@@ -342,10 +350,10 @@ static void jtag_uart_console_write_int(
   }
 }
 
-static void jtag_uart_output_char_init(char c)
+static int jtag_uart_output_char_init(int c)
 {
   BSP_output_char = jtag_uart_console_putchar;
-  jtag_uart_console_putchar(c);
+  return jtag_uart_console_putchar(c);
 }
 
 BSP_output_char_function_type BSP_output_char = jtag_uart_output_char_init;

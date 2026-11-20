@@ -44,13 +44,21 @@ static const struct termios console_generic_termios = {
   .c_cflag = CS8 | CREAD | CLOCAL | __CONCAT(B, BSP_DEFAULT_BAUD_RATE)
 };
 
-static void console_generic_char_out(char c)
+static int console_generic_char_out(int c)
 {
   int minor = (int) console_generic_minor;
   const console_generic_callbacks *cb =
     console_generic_info_table [minor].callbacks;
 
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   (*cb->poll_write)(minor, c);
+
+  return 0;
 }
 
 static int console_generic_char_in(void)
@@ -73,10 +81,10 @@ static void console_generic_char_out_do_init(void)
   (*cb->termios_callbacks.setAttributes)(minor, term);
 }
 
-static void console_generic_char_out_init(char c)
+static int console_generic_char_out_init(int c)
 {
   console_generic_char_out_do_init();
-  console_generic_char_out(c);
+  return console_generic_char_out(c);
 }
 
 rtems_device_driver console_initialize(

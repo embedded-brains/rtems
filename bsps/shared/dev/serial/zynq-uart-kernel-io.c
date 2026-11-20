@@ -40,12 +40,12 @@
 #include <dev/serial/zynq-uart-regs.h>
 #include <rtems/sysinit.h>
 
-static void zynq_uart_kernel_output_char(char c)
+static int zynq_uart_kernel_output_char(int c)
 {
   volatile zynq_uart *regs =
     (volatile zynq_uart *) ZYNQ_UART_KERNEL_IO_BASE_ADDR;
 
-  zynq_uart_write_char_polled(regs, c);
+  return zynq_uart_output_char_polled(regs, c);
 }
 
 static int zynq_uart_kernel_poll_char(void)
@@ -56,7 +56,7 @@ static int zynq_uart_kernel_poll_char(void)
   return zynq_uart_read_char_polled(regs);
 }
 
-static void zynq_uart_kernel_early_init(char c);
+static int zynq_uart_kernel_early_init(int c);
 
 static void zynq_uart_kernel_init(void)
 {
@@ -71,10 +71,10 @@ static void zynq_uart_kernel_init(void)
   BSP_output_char = zynq_uart_kernel_output_char;
 }
 
-static void zynq_uart_kernel_early_init(char c)
+static int zynq_uart_kernel_early_init(int c)
 {
   zynq_uart_kernel_init();
-  zynq_uart_kernel_output_char(c);
+  return zynq_uart_kernel_output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = zynq_uart_kernel_early_init;

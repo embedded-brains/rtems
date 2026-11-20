@@ -173,6 +173,15 @@ int zynq_uart_read_char_polled(volatile zynq_uart *regs);
 void zynq_uart_write_char_polled(volatile zynq_uart *regs, char c);
 
 /**
+ * @brief Outputs the character or drains the transmitter as requested by the
+ *   flags of the parameter.
+ *
+ * The parameter and the return value have the form which
+ * #BSP_output_char_function_type defines.
+ */
+int zynq_uart_output_char_polled(volatile zynq_uart *regs, int c);
+
+/**
   * Flush TX FIFO and wait until it is empty. Used in bsp_reset.
   */
 void zynq_uart_reset_tx_flush(volatile zynq_uart *regs);

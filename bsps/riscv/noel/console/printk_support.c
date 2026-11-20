@@ -65,10 +65,17 @@ static void apbuart_enable_receive_and_transmit( apbuart *regs )
   grlib_store_32( &regs->status, 0 );
 }
 
-static void bsp_debug_uart_output_char( char c )
+static int bsp_debug_uart_output_char( int c )
 {
-  apbuart_outbyte_polled( grlib_debug_uart, c );
-  apbuart_outbyte_wait( grlib_debug_uart );
+  int rv;
+
+  rv = apbuart_output_char_polled( grlib_debug_uart, c );
+
+  if ( !rtems_output_char_is_drain( c ) && !rtems_output_char_is_try( c ) ) {
+    apbuart_outbyte_wait( grlib_debug_uart );
+  }
+
+  return rv;
 }
 
 static int bsp_debug_uart_poll_char( void )
@@ -76,10 +83,10 @@ static int bsp_debug_uart_poll_char( void )
   return apbuart_inbyte_nonblocking( grlib_debug_uart );
 }
 
-static void bsp_debug_uart_pre_init_out( char c )
+static int bsp_debug_uart_pre_init_out( int c )
 {
   bsp_debug_uart_init();
-  ( *BSP_output_char )( c );
+  return ( *BSP_output_char )( c );
 }
 
 #if defined( GRLIB_APBUART_BASE )
@@ -93,9 +100,10 @@ static void bsp_debug_uart_init( void )
 
 #else /* !GRLIB_APBUART_BASE */
 
-static void bsp_debug_uart_discard( char c )
+static int bsp_debug_uart_discard( int c )
 {
   (void) c;
+  return 0;
 }
 
 /* Initialize the BSP system debug console layer. It will scan AMBA Plu&Play

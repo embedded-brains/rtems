@@ -88,7 +88,7 @@ uint32_t mpc5200_uart_avail_mask = BSP_UART_AVAIL_MASK;
   }
 #endif
 
-static void A_BSP_output_char(char c);
+static int A_BSP_output_char(int c);
 static int A_BSP_get_char(void);
 BSP_output_char_function_type BSP_output_char = A_BSP_output_char;
 
@@ -563,22 +563,33 @@ static ssize_t mpc5200_uart_write(
 /*
  *  Print functions prototyped in bspIo.h
  */
-static void A_BSP_output_char(
-  char c
+static int A_BSP_output_char(
+  int c
 )
 {
+  char ch;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+  ch = (char) c;
+
   /*
    *  If we are using U-Boot, then the console is already initialized
    *  and we can just poll bytes out at any time.
    */
   #if !defined(HAS_UBOOT)
     if (console_initialized == false)
-     return;
+     return 0;
   #endif
 
 #define PRINTK_WRITE mpc5200_uart_pollWrite
 
-    PRINTK_WRITE(PRINTK_MINOR, &c, 1 );
+    PRINTK_WRITE(PRINTK_MINOR, &ch, 1 );
+
+  return 0;
 }
 
 static int A_BSP_get_char(void)

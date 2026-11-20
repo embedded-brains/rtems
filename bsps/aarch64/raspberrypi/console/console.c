@@ -123,9 +123,18 @@ static rtems_status_code console_device_init_gpio(
   return status;
 }
 
-static void output_char(const char ch) {
+static int output_char(int ch) {
   const raspberrypi_console_device* device = &devices[BSP_CONSOLE_PORT];
+
+  if ( rtems_output_char_is_drain( ch ) ) {
+    return -1;
+  }
+
+  ch &= RTEMS_OUTPUT_CHAR_MASK;
+
   device->write_char_polled(device->context, ch);
+
+  return 0;
 }
 
 static int poll_char(void) {

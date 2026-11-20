@@ -262,9 +262,17 @@ static int uart_set_attributes(int minor, const struct termios *t)
  * maybe other low level functions. It should not use interrupts or any
  * RTEMS system calls. It needs to be very simple
  */
-static void _BSP_put_char( char c )
+static int _BSP_put_char( int c )
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   uart_write_polled(0, c);
+
+  return 0;
 }
 
 BSP_output_char_function_type BSP_output_char = _BSP_put_char;

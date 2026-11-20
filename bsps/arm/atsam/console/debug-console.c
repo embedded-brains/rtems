@@ -32,9 +32,17 @@
 #include <chip.h>
 #include <include/dbg_console.h>
 
-static void atsam_debug_console_out(char c)
+static int atsam_debug_console_out(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   DBG_PutChar((uint8_t) c);
+
+  return 0;
 }
 
 static void atsam_debug_console_init(void)
@@ -43,10 +51,10 @@ static void atsam_debug_console_init(void)
   BSP_output_char = atsam_debug_console_out;
 }
 
-static void atsam_debug_console_early_init(char c)
+static int atsam_debug_console_early_init(int c)
 {
   atsam_debug_console_init();
-  atsam_debug_console_out(c);
+  return atsam_debug_console_out(c);
 }
 
 static int atsam_debug_console_in(void)

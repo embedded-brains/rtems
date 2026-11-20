@@ -35,9 +35,17 @@
 
 #include <stm32h7/hal.h>
 
-static void stm32h7_output_char(char c)
+static int stm32h7_output_char(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   stm32h7_uart_polled_write(&STM32H7_PRINTK_INSTANCE.device, c);
+
+  return 0;
 }
 
 static void stm32h7_output_char_init(void)
@@ -53,10 +61,10 @@ static void stm32h7_output_char_init(void)
   BSP_output_char = stm32h7_output_char;
 }
 
-static void stm32h7_output_char_init_early(char c)
+static int stm32h7_output_char_init_early(int c)
 {
   stm32h7_output_char_init();
-  stm32h7_output_char(c);
+  return stm32h7_output_char(c);
 }
 
 static int stm32h7_poll_char(void)

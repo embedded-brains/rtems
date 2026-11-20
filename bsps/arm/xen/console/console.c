@@ -54,9 +54,17 @@ const console_device console_device_table[] = {
 
 const size_t console_device_count = RTEMS_ARRAY_SIZE(console_device_table);
 
-static void output_char( char c )
+static int output_char( int c )
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   arm_pl011_write_polled(&xen_vpl011_context.base, c);
+
+  return 0;
 }
 
 BSP_output_char_function_type BSP_output_char = output_char;

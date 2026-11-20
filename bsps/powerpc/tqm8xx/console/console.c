@@ -795,16 +795,26 @@ sccPollWrite (rtems_termios_device_context *base, const char *buf, size_t len)
  */
 int BSP_output_chan = CONS_CHN_NONE; /* channel used for printk operation */
 
-static void console_debug_putc_onlcr(const char c)
+static int console_debug_putc_onlcr(int c)
 {
+  char ch;
   rtems_interrupt_level irq_level;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+  ch = (char) c;
 
   if (BSP_output_chan != CONS_CHN_NONE) {
     rtems_interrupt_disable(irq_level);
 
-    sccPollWrite (&m8xx_console_chan_desc[BSP_output_chan].base,&c,1);
+    sccPollWrite (&m8xx_console_chan_desc[BSP_output_chan].base,&ch,1);
     rtems_interrupt_enable(irq_level);
   }
+
+  return 0;
 }
 
 BSP_output_char_function_type     BSP_output_char = console_debug_putc_onlcr;

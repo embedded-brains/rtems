@@ -229,8 +229,16 @@ static int ffuart_poll_read(int minor)
  * maybe other low level functions. It should not use interrupts or any
  * RTEMS system calls. It needs to be very simple
  */
-static void _BSP_put_char( char c ) {
+static int _BSP_put_char( int c ) {
+    if ( rtems_output_char_is_drain( c ) ) {
+      return -1;
+    }
+
+    c &= RTEMS_OUTPUT_CHAR_MASK;
+
     ffuart_write_polled(0, c);
+
+    return 0;
 }
 
 static int _BSP_poll_char(void) {

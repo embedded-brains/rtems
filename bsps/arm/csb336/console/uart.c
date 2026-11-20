@@ -40,7 +40,7 @@ static void imx_uart_set_baud(int, int);
 static ssize_t imx_uart_poll_write(int, const char *, size_t);
 static int imx_uart_poll_read_char(int minor);
 static void imx_uart_poll_write_char(int minor, char c);
-static void _BSP_output_char(char c);
+static int _BSP_output_char(int c);
 static int _BSP_poll_char(void);
 
 #if USE_INTERRUPTS
@@ -485,9 +485,17 @@ static void  imx_uart_poll_write_char(int minor, char c)
 /*
  * Functions for printk() and friends.
  */
-static void _BSP_output_char(char c)
+static int _BSP_output_char(int c)
 {
+    if ( rtems_output_char_is_drain( c ) ) {
+      return -1;
+    }
+
+    c &= RTEMS_OUTPUT_CHAR_MASK;
+
     poll_write(c);
+
+    return 0;
 }
 
 BSP_output_char_function_type BSP_output_char = _BSP_output_char;

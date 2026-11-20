@@ -61,12 +61,20 @@ console_tbl Console_Configuration_Ports [] = {
 
 unsigned long Console_Configuration_Count = PORT_COUNT;
 
-static void output_char(char c)
+static int output_char(int c)
 {
   const console_fns *con =
     Console_Configuration_Ports [Console_Port_Minor].pDeviceFns;
 
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   con->deviceWritePolled((int) Console_Port_Minor, c);
+
+  return 0;
 }
 
 BSP_output_char_function_type BSP_output_char = output_char;

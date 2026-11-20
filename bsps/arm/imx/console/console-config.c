@@ -103,9 +103,17 @@ void imx_uart_console_drain(void)
   }
 }
 
-static void imx_output_char(char c)
+static int imx_output_char(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   imx_uart_write_polled(&imx_uart_console->base, c);
+
+  return 0;
 }
 
 static int imx_poll_char(void)
@@ -181,10 +189,10 @@ static void imx_uart_probe(void)
   BSP_poll_char = imx_poll_char;
 }
 
-static void imx_output_char_init(char c)
+static int imx_output_char_init(int c)
 {
   imx_uart_probe();
-  imx_output_char(c);
+  return imx_output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = imx_output_char_init;

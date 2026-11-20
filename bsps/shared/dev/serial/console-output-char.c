@@ -29,17 +29,25 @@
 
 #include <rtems/bspIo.h>
 
-static void output_char(char c)
+static int output_char(int c)
 {
   int minor = (int) Console_Port_Minor;
   const console_tbl *ct = Console_Port_Tbl != NULL ?
     Console_Port_Tbl[minor] : &Console_Configuration_Ports[minor];
   const console_fns *cf = ct->pDeviceFns;
 
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   (*cf->deviceWritePolled)(minor, c);
+
+  return 0;
 }
 
-static void output_char_init(char c)
+static int output_char_init(int c)
 {
   if (Console_Port_Tbl == NULL) {
     int minor = (int) Console_Port_Minor;
@@ -49,7 +57,7 @@ static void output_char_init(char c)
   }
 
   BSP_output_char = output_char;
-  output_char(c);
+  return output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = output_char_init;

@@ -13,5 +13,6 @@ install: []
 links: []
 source:
 - testsuites/validation/tc-dev-grlib-apbuart-inbyte-nonblocking.c
+- testsuites/validation/tc-dev-grlib-apbuart-output-char-polled.c
 - testsuites/validation/tc-dev-grlib-io.c
 type: build

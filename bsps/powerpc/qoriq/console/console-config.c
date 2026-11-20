@@ -51,7 +51,7 @@
 #include <bsp/uart-bridge.h>
 #include <bsp/console-termios.h>
 
-static void output_char(char c);
+static int output_char(int c);
 
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
 typedef struct {
@@ -315,24 +315,36 @@ const console_device console_device_table[] = {
 
 const size_t console_device_count = RTEMS_ARRAY_SIZE(console_device_table);
 
-static void output_char(char c)
+static int output_char(int c)
 {
   rtems_termios_device_context *base = console_device_table[0].context;
+#ifdef QORIQ_IS_HYPERVISOR_GUEST
+  char ch;
+#endif
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
 
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
-  qoriq_bc_write_polled(base, &c, 1);
+  ch = (char) c;
+  qoriq_bc_write_polled(base, &ch, 1);
 #else
-  ns16550_polled_putchar(base, c);
+  ns16550_polled_putchar(base, (char) c);
 #endif
+
+  return 0;
 }
 
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
-static void qoriq_bc_output_char_init(char c)
+static int qoriq_bc_output_char_init(int c)
 {
   rtems_termios_device_context *base = console_device_table[0].context;
 
   qoriq_bc_probe(base);
-  output_char(c);
+  return output_char(c);
 }
 
 BSP_output_char_function_type BSP_output_char = qoriq_bc_output_char_init;

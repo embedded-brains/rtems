@@ -111,12 +111,21 @@ __attribute__(( weak, alias("_noopfun") ));
 
 static char* bspMsgBuffer = (char*)MsgAreaBase;
 
-static void __bsp_outchar_to_memory(char c)
+static int __bsp_outchar_to_memory(int c)
 {
   static char* msgBuffer = (char*)MsgAreaBase;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   *msgBuffer++ = c;
   if (msgBuffer >= &bspMsgBuffer[(int)MsgAreaSize])  msgBuffer = bspMsgBuffer;
   *msgBuffer   = 0x00;                /* Overwrite next location to show EOM */
+
+  return 0;
 }
 
 uint32_t _CPU_Counter_frequency(void)

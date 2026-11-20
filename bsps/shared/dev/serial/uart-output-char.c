@@ -46,9 +46,17 @@ static void uart_output_raw(char c)
   CONSOLE_THR = c;
 }
 
-static void uart_output(char c)
+static int uart_output(int c)
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   uart_output_raw(c);
+
+  return 0;
 }
 
 static int uart_input(void)

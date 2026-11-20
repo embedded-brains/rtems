@@ -97,8 +97,14 @@ static int esp_uart_poll_char( void )
 #endif
 }
 
-static void esp_uart_output_char( char c )
+static int esp_uart_output_char( int c )
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
 #ifdef ESPRESSIF_USE_USB_CONSOLE
   /* wait for tx space to be available */
   while (
@@ -114,6 +120,8 @@ static void esp_uart_output_char( char c )
   uart_tx_one_char( c );
   uart_tx_flush( 0 );
 #endif
+
+  return 0;
 }
 
 void console_outbyte_polled( int port, char ch )

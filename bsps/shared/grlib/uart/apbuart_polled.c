@@ -38,6 +38,7 @@
 #include <grlib/apbuart.h>
 #include <grlib/io.h>
 
+#include <rtems/bspIo.h>
 #include <rtems/dev/io.h>
 
 void apbuart_outbyte_wait( const apbuart *regs )
@@ -51,6 +52,33 @@ void apbuart_outbyte_polled( apbuart *regs, char ch )
 {
   apbuart_outbyte_wait( regs );
   grlib_store_32( &regs->data, (uint8_t) ch );
+}
+
+int apbuart_output_char_polled( apbuart *regs, int c )
+{
+  uint32_t ready;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    ready = APBUART_STATUS_TE | APBUART_STATUS_TS;
+  } else {
+    ready = APBUART_STATUS_TE;
+  }
+
+  if ( rtems_output_char_is_try( c ) ) {
+    if ( ( grlib_load_32( &regs->status ) & ready ) != ready ) {
+      return -1;
+    }
+  } else {
+    while ( ( grlib_load_32( &regs->status ) & ready ) != ready ) {
+      _IO_Relax();
+    }
+  }
+
+  if ( ready == APBUART_STATUS_TE ) {
+    grlib_store_32( &regs->data, (uint8_t) c );
+  }
+
+  return 0;
 }
 
 int apbuart_inbyte_nonblocking( apbuart *regs )

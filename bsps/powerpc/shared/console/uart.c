@@ -421,10 +421,18 @@ BSP_uart_polled_write(int uart, int val)
   return;
 }
 
-void
-BSP_output_char_via_serial(const char val)
+int
+BSP_output_char_via_serial(int val)
 {
+  if (rtems_output_char_is_drain(val)) {
+    return -1;
+  }
+
+  val &= RTEMS_OUTPUT_CHAR_MASK;
+
   BSP_uart_polled_write(BSPConsolePort, val);
+
+  return 0;
 }
 
 /*

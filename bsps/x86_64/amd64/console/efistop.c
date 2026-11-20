@@ -74,11 +74,18 @@ efi_init_text_output(int hint)
     ST->ConOut->ClearScreen(ST->ConOut);
 }
 
-void
-efi_text_output_char(char c)
+int
+efi_text_output_char(int c)
 {
     EFI_STATUS status;
     char tocpy[2];
+
+    if ( rtems_output_char_is_drain( c ) ) {
+      return -1;
+    }
+
+    c &= RTEMS_OUTPUT_CHAR_MASK;
+
     tocpy[0] = c;
     tocpy[1] = 0;
     CHAR16 str[2];
@@ -87,6 +94,8 @@ efi_text_output_char(char c)
     if (EFI_ERROR(status))
         str[0] = '?';
     ST->ConOut->OutputString(ST->ConOut, str);
+
+    return 0;
 }
 
 static void

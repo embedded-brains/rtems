@@ -138,16 +138,20 @@ static void Output( int value )
   ++ctx->output_count;
 }
 
-static void WrongOutput( char c )
+static int WrongOutput( int c )
 {
   (void) c;
   Output( -1 );
+
+  return 0;
 }
 
-static void OutputChar( char c )
+static int OutputChar( int c )
 {
   BSP_output_char = WrongOutput;
   Output( (unsigned char) c );
+
+  return 0;
 }
 
 static void RtemsIoReqPutc_Pre_Char_Prepare(

@@ -51,7 +51,7 @@ extern board_memory_map *ptr_mem_map;
 
 extern int select_console(ioType t);
 /* extern int printk(const char *, ...) __attribute__((format(printf, 1, 2))); */
-extern void debug_putc(const char c);
+extern int debug_putc(int c);
 extern void debug_putc_onlcr(const char c);
 extern int debug_getc(void);
 extern int debug_tstc(void);

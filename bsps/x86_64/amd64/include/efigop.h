@@ -39,8 +39,8 @@
 int
 efi_init_graphic_output(int);
 
-void
-efi_graphic_output_char(char);
+int
+efi_graphic_output_char(int);
 
 /* to support RPi based character output to framebuffer.
  The functions are declared here in open in order to show if they

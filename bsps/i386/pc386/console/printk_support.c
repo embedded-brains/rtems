@@ -100,11 +100,17 @@ static bool serialValid(console_tbl *port)
   return serialOK;
 }
 
-void BSP_outch(char ch);
+int BSP_outch(int ch);
 int BSP_inch(void);
 
-void BSP_outch(char ch)
+int BSP_outch(int ch)
 {
+  if ( rtems_output_char_is_drain( ch ) ) {
+    return -1;
+  }
+
+  ch &= RTEMS_OUTPUT_CHAR_MASK;
+
   #if BSP_ENABLE_VGA
     bool isVga =  BSPPrintkPort == BSP_CONSOLE_VGA;
   #else
@@ -116,19 +122,21 @@ void BSP_outch(char ch)
 
     if (Console_Port_Tbl == NULL) {
       if (early_write_polled(port, ch)) {
-        return;
+        return 0;
       }
     } else if (serialValid(port)) {
       if (port->pDeviceFns->deviceWritePolled) {
         port->pDeviceFns->deviceWritePolled( BSPPrintkPort, ch );
       }
-      return;
+      return 0;
     }
   }
 
   #if BSP_ENABLE_VGA
     _IBMPC_outch( ch );
   #endif
+
+  return 0;
 }
 
 int BSP_inch(void)
