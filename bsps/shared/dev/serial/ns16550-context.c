@@ -523,16 +523,18 @@ static void ns16550_close(
   }
 }
 
-/**
- * @brief Polled write for NS16550.
- */
-void ns16550_polled_putchar(rtems_termios_device_context *base, char out)
+static bool ns16550_polled_transmit(
+  rtems_termios_device_context *base,
+  char                          out,
+  bool                          try_only
+)
 {
   ns16550_context *ctx = (ns16550_context *) base;
   uintptr_t port = ctx->port;
   ns16550_get_reg get = ctx->get_reg;
   ns16550_set_reg set = ctx->set_reg;
   uint32_t status = 0;
+  bool transmitted = false;
   rtems_interrupt_lock_context lock_context;
 
   /* Save port interrupt mask */
@@ -550,12 +552,17 @@ void ns16550_polled_putchar(rtems_termios_device_context *base, char out)
     if ((status & SP_LSR_THOLD) != 0) {
       /* Transmit character */
       set( port, NS16550_TRANSMIT_BUFFER, out);
+      transmitted = true;
 
       /* Finished */
       rtems_termios_device_lock_release(&ctx->base, &lock_context);
       break;
     } else {
       rtems_termios_device_lock_release(&ctx->base, &lock_context);
+    }
+
+    if (try_only) {
+      break;
     }
 
     /* Wait for transmitter holding register to be empty */
@@ -566,6 +573,43 @@ void ns16550_polled_putchar(rtems_termios_device_context *base, char out)
 
   /* Restore port interrupt mask */
   set( port, NS16550_INTERRUPT_ENABLE, interrupt_mask);
+
+  return transmitted;
+}
+
+/**
+ * @brief Polled write for NS16550.
+ */
+void ns16550_polled_putchar(rtems_termios_device_context *base, char out)
+{
+  (void) ns16550_polled_transmit(base, out, false);
+}
+
+int ns16550_polled_output_char(rtems_termios_device_context *base, int c)
+{
+  ns16550_context *ctx = (ns16550_context *) base;
+  uint32_t status;
+
+  if (!rtems_output_char_is_drain(c)) {
+    bool try_only = rtems_output_char_is_try(c);
+
+    if (ns16550_polled_transmit(base, (char) c, try_only)) {
+      return 0;
+    }
+
+    return -1;
+  }
+
+  /* Wait for the transmitter shift register and the holding register */
+  do {
+    status = (*ctx->get_reg)(ctx->port, NS16550_LINE_STATUS);
+
+    if ((status & SP_LSR_TX) != 0) {
+      return 0;
+    }
+  } while ((c & RTEMS_OUTPUT_CHAR_TRY) == 0);
+
+  return -1;
 }
 
 /*

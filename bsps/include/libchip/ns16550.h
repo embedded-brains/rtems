@@ -93,6 +93,15 @@ extern const rtems_termios_device_flow ns16550_flow_dtrcts;
 
 void ns16550_polled_putchar(rtems_termios_device_context *base, char out);
 
+/**
+ * @brief Outputs the character or drains the transmitter as requested by the
+ *   flags of the parameter.
+ *
+ * The parameter and the return value have the form which
+ * #BSP_output_char_function_type defines.
+ */
+int ns16550_polled_output_char(rtems_termios_device_context *base, int c);
+
 int ns16550_polled_getchar(rtems_termios_device_context *base);
 
 bool ns16550_probe(rtems_termios_device_context *base);
