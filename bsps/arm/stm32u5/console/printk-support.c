@@ -52,6 +52,13 @@ static int stm32u5_output_char( int c )
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( STM32U5_PRINTK_INSTANCE.uart.Instance->ISR & USART_ISR_TXE_TXFNF ) == 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   stm32u5_uart_polled_write( &STM32U5_PRINTK_INSTANCE.device, c );

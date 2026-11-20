@@ -41,6 +41,13 @@ static int stm32h7_output_char(int c)
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( STM32H7_PRINTK_INSTANCE.uart.Instance->ISR & USART_ISR_TXE_TXFNF ) == 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   stm32h7_uart_polled_write(&STM32H7_PRINTK_INSTANCE.device, c);

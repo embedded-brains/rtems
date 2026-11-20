@@ -183,6 +183,13 @@ static int _BSP_null_char(int c)
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( *EP7312_SYSFLG1 & EP7312_UART_UTXFF1 ) != 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
   ch = (char) c;
 

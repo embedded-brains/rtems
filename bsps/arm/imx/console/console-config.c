@@ -109,6 +109,14 @@ static int imx_output_char(int c)
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( imx_uart_get_regs( &imx_uart_console->base )->usr1 &
+      IMX_UART_USR1_TRDY ) == 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   imx_uart_write_polled(&imx_uart_console->base, c);

@@ -512,11 +512,20 @@ static int imxrt_output_char(int c)
     return -1;
   }
 
+  if (imxrt_lpuart_console == NULL) {
+    return 0;
+  }
+
+  if (
+    rtems_output_char_is_try( c ) &&
+    ( imxrt_lpuart_console->regs->STAT & LPUART_STAT_TDRE_MASK ) == 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
-  if (imxrt_lpuart_console != NULL) {
-    imxrt_lpuart_write_polled(&imxrt_lpuart_console->base, c);
-  }
+  imxrt_lpuart_write_polled(&imxrt_lpuart_console->base, c);
 
   return 0;
 }

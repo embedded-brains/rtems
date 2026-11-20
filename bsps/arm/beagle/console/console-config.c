@@ -158,6 +158,13 @@ static int _BSP_put_char( int c ) {
      return -1;
    }
 
+   if (
+     rtems_output_char_is_try( c ) &&
+     !init_needed && ( CONSOLE_LSR & TX_FIFO_E ) == 0
+   ) {
+     return -1;
+   }
+
    c &= RTEMS_OUTPUT_CHAR_MASK;
 
    uart_write_polled( c );

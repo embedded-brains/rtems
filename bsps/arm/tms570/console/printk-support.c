@@ -61,15 +61,21 @@ static int tms570_debug_console_out(int ch)
 {
   tms570_sci_context *ctx = TMS570_CONSOLE;
   volatile tms570_sci_t *regs = ctx->regs;
+  bool try_only;
 
   if ( rtems_output_char_is_drain( ch ) ) {
     return -1;
   }
 
+  try_only = rtems_output_char_is_try( ch );
   ch &= RTEMS_OUTPUT_CHAR_MASK;
 
   while ( true ) {
     rtems_interrupt_level level;
+
+    if ( try_only && ( regs->FLR & TMS570_SCI_FLR_TXRDY ) == 0 ) {
+      return -1;
+    }
 
     while ( ( regs->FLR & TMS570_SCI_FLR_TXRDY ) == 0 ) {
       /* Wait */
