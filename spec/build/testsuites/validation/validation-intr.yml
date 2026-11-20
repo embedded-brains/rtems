@@ -30,6 +30,7 @@ source:
 - testsuites/validation/tc-intr-get-attributes.c
 - testsuites/validation/tc-intr-handler-iterate.c
 - testsuites/validation/tc-intr-is-pending.c
+- testsuites/validation/tc-intr-lock.c
 - testsuites/validation/tc-intr-raise-on.c
 - testsuites/validation/tc-intr-raise.c
 - testsuites/validation/tc-intr-set-affinity.c
@@ -40,6 +41,9 @@ source:
 - testsuites/validation/tc-score-isr.c
 - testsuites/validation/tr-intr-get-priority.c
 - testsuites/validation/tr-intr-set-priority.c
+- testsuites/validation/tr-isr-lock-acquire.c
+- testsuites/validation/tr-isr-lock-initialize.c
+- testsuites/validation/tr-isr-lock-release.c
 - testsuites/validation/ts-validation-intr.c
 stlib: []
 target: testsuites/validation/ts-validation-intr.exe
