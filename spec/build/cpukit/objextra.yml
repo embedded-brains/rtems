@@ -420,6 +420,7 @@ source:
 - cpukit/libcsupport/src/mallocextenddefault.c
 - cpukit/libcsupport/src/mallocfreespace.c
 - cpukit/libcsupport/src/mallocgetheapptr.c
+- cpukit/libcsupport/src/mallocgetstatistics.c
 - cpukit/libcsupport/src/mallocheap.c
 - cpukit/libcsupport/src/mallocinfo.c
 - cpukit/libcsupport/src/mallocsetheapptr.c
