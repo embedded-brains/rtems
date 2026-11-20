@@ -70,11 +70,17 @@ static ns16550_context ns16550_instances[RISCV_CONSOLE_MAX_NS16550_DEVICES];
 
 static struct {
   rtems_termios_device_context *context;
-  void (*putchar)(rtems_termios_device_context *base, char c);
+  int (*output_char)(rtems_termios_device_context *base, int c);
   int (*getchar)(rtems_termios_device_context *base);
 } riscv_console;
 
 static int riscv_output_char(int c)
+{
+  return (*riscv_console.output_char)(riscv_console.context, c);
+}
+
+#ifdef RISCV_ENABLE_HTIF_SUPPORT
+static int riscv_htif_output_char(rtems_termios_device_context *base, int c)
 {
   if ( rtems_output_char_is_drain( c ) ) {
     return -1;
@@ -82,10 +88,26 @@ static int riscv_output_char(int c)
 
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
-  (*riscv_console.putchar)(riscv_console.context, c);
+  htif_console_putchar(base, (char) c);
 
   return 0;
 }
+#endif
+
+#if RISCV_ENABLE_SIFIVE_UART_SUPPORT != 0
+static int riscv_fe310_output_char(rtems_termios_device_context *base, int c)
+{
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
+  fe310_console_putchar(base, (char) c);
+
+  return 0;
+}
+#endif
 
 static int riscv_get_console_node(const void *fdt)
 {
@@ -179,7 +201,7 @@ static void riscv_console_probe(void)
       htif_console_context_init(&htif_console_instance.base, node);
 
       riscv_console.context = &htif_console_instance.base;
-      riscv_console.putchar = htif_console_putchar;
+      riscv_console.output_char = riscv_htif_output_char;
       riscv_console.getchar = htif_console_getchar;
     };
 #endif
@@ -236,7 +258,7 @@ static void riscv_console_probe(void)
 
       if (node == console_node) {
         riscv_console.context = &ctx->base;
-        riscv_console.putchar = ns16550_polled_putchar;
+        riscv_console.output_char = ns16550_polled_output_char;
         riscv_console.getchar = ns16550_polled_getchar;
       }
 
@@ -259,7 +281,7 @@ static void riscv_console_probe(void)
 
       if (node == console_node) {
         riscv_console.context = &ctx->base;
-        riscv_console.putchar = fe310_console_putchar;
+        riscv_console.output_char = riscv_fe310_output_char;
         riscv_console.getchar = fe310_uart_read;
       }
 

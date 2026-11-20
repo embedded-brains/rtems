@@ -71,15 +71,7 @@ static int output_char_pl011(int c)
 
 static int output_char_mini_uart(int c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
-  ns16550_polled_putchar(&mini_uart_context.base, c);
-
-  return 0;
+  return ns16550_polled_output_char(&mini_uart_context.base, c);
 }
 
 int output_char_fb(int c)

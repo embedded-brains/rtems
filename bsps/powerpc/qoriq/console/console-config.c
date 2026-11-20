@@ -320,22 +320,18 @@ static int output_char(int c)
   rtems_termios_device_context *base = console_device_table[0].context;
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
   char ch;
-#endif
 
   if ( rtems_output_char_is_drain( c ) ) {
     return -1;
   }
 
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
-#ifdef QORIQ_IS_HYPERVISOR_GUEST
   ch = (char) c;
   qoriq_bc_write_polled(base, &ch, 1);
-#else
-  ns16550_polled_putchar(base, (char) c);
-#endif
 
   return 0;
+#else
+  return ns16550_polled_output_char(base, c);
+#endif
 }
 
 #ifdef QORIQ_IS_HYPERVISOR_GUEST
