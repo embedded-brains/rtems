@@ -1,0 +1,22 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+  not: RTEMS_QUAL
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite contains the test cases of functions which only a
+  build without the pre-qualified configuration provides.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define CONFIGURE_MAXIMUM_PROCESSORS 5
+
+  #include "ts-default.h"
+test-description: null
+test-includes: []
+test-local-includes: []
+test-target: testsuites/validation/ts-validation-non-qual-0.c
+type: test-suite

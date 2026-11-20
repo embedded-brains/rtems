@@ -1,0 +1,175 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by:
+  not: RTEMS_QUAL
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/get-statistics
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      equal to zero.
+  - name: NegativeOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Stats
+  states:
+  - name: Heap
+    test-code: |
+      T_eq_u32( ctx->stats.allocs, ctx->before.allocs + 3 );
+      T_eq_u32( ctx->stats.frees, ctx->before.frees + 1 );
+      T_eq_u32( ctx->stats.failed_allocs, ctx->before.failed_allocs + 1 );
+      T_eq_u32( ctx->stats.resizes, ctx->before.resizes + 1 );
+      T_eq_u32( ctx->stats.used_blocks, ctx->before.used_blocks + 2 );
+      T_eq_sz( ctx->stats.size, ctx->before.size );
+      allocated = ctx->stats.lifetime_allocated - ctx->before.lifetime_allocated;
+      freed = ctx->stats.lifetime_freed - ctx->before.lifetime_freed;
+      T_ge_u64( allocated, 3 * ALLOC_SIZE );
+      T_ge_u64( freed, ALLOC_SIZE );
+      T_eq_u64( ctx->before.free_size - ctx->stats.free_size, allocated - freed );
+      T_le_u64( ctx->stats.min_free_size, ctx->before.free_size - allocated );
+      T_le_u32( ctx->stats.free_blocks, ctx->stats.max_free_blocks );
+      T_ge_u32( ctx->stats.max_free_blocks, ctx->before.max_free_blocks );
+    text: |
+      The object referenced by the ${../if/get-statistics:/params[0]/name} parameter
+      shall be equal to the statistics of the ${/glossary/heap:/term} which serves
+      ${/c/if/malloc:/name}.
+  test-epilogue: null
+  test-prologue: |
+    uint64_t allocated;
+    uint64_t freed;
+pre-conditions:
+- name: Stats
+  states:
+  - name: Valid
+    test-code: |
+      ctx->stats_ptr = &ctx->stats;
+    text: |
+      While the ${../if/get-statistics:/params[0]/name} parameter references an
+      object of type ${../if/statistics:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->stats_ptr = NULL;
+    text: |
+      While the ${../if/get-statistics:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Stats covers the pointer values which the return values of
+  ${../if/get-statistics:/name} distinguish, 2 states.
+
+  The test takes the statistics of the heap before the operations of the
+  test-prepare as the baseline. Three allocations, one free, one resize and one
+  failed allocation follow. The expected statistics derive from the baseline and
+  these operations. The object referenced by the
+  ${../if/get-statistics:/params[0]/name} parameter holds a fill pattern of all
+  bits set before the call.
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = malloc_get_statistics( ctx->stats_ptr );
+test-brief: null
+test-cleanup: |
+  free( ctx->second );
+  free( ctx->first );
+test-context:
+- brief: |
+    This member provides the object referenced by the
+    ${../if/get-statistics:/params[0]/name} parameter.
+  description: null
+  member: |
+    rtems_malloc_statistics stats
+- brief: |
+    This member contains the statistics of the heap before the operations of the
+    test-prepare.
+  description: null
+  member: |
+    rtems_malloc_statistics before
+- brief: |
+    This member references the first block which the test-prepare allocates.
+  description: null
+  member: |
+    void *first
+- brief: |
+    This member references the second block which the test-prepare allocates.
+  description: null
+  member: |
+    void *second
+- brief: |
+    This member provides the ${../if/get-statistics:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    rtems_malloc_statistics *stats_ptr
+- brief: |
+    This member contains the return value of the directive call.
+  description: null
+  member: |
+    int status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/malloc.h
+- stdlib.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  void *ptr;
+  int   rv;
+
+  rv = malloc_get_statistics( &ctx->before );
+  T_assert_eq_int( rv, 0 );
+  ctx->first = malloc( ALLOC_SIZE );
+  T_assert_not_null( ctx->first );
+  ctx->second = malloc( ALLOC_SIZE );
+  T_assert_not_null( ctx->second );
+  ptr = malloc( ALLOC_SIZE );
+  T_assert_not_null( ptr );
+  free( ptr );
+  ptr = realloc( ctx->first, ALLOC_SIZE );
+  T_assert_eq_ptr( ptr, ctx->first );
+  ptr = malloc( ctx->before.size );
+  T_assert_null( ptr );
+  memset( &ctx->stats, 0xff, sizeof( ctx->stats ) );
+test-setup: null
+test-stop: null
+test-support: |
+  #define ALLOC_SIZE 64
+test-target: testsuites/validation/tc-mem-malloc-get-statistics.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Stats: Valid
+      then: Zero
+    - else: NegativeOne
+    Stats:
+    - if:
+        pre-conditions:
+          Stats: Valid
+      then: Heap
+    - else: N/A
+  pre-conditions:
+    Stats: all
+type: requirement
