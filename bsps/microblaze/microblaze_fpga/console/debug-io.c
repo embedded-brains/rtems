@@ -48,8 +48,6 @@ static int output_char( int c )
     return -1;
   }
 
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   if (mblaze_uart_base == 0 ) {
     mblaze_uart_base = try_get_prop_from_device_tree(
       "xlnx,xps-uartlite-1.00.a",
@@ -57,6 +55,15 @@ static int output_char( int c )
       BSP_MICROBLAZE_FPGA_UART_BASE
     );
   }
+
+  if (
+    rtems_output_char_is_try( c ) &&
+    XUartLite_IsTransmitFull( mblaze_uart_base )
+  ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
 
   /*
    * Send exactly the character.  rtems_putc() already emits the carriage
