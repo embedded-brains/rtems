@@ -61,6 +61,11 @@ RTEMS_LINKER_ROSET_DECLARE( gcov_info, const struct gcov_info * );
  * @brief Dumps the gcov information as a binary gcfn and gcda data
  *   stream using the put character handler.
  *
+ * The function serializes the information of each object file into a buffer
+ * before it outputs the data.  The data of an object file which exceeds the
+ * buffer goes to the put character handler directly.  The function is not
+ * reentrant.
+ *
  * @param put_char is the put character handler used to output the data stream.
  *
  * @param arg is the argument passed to the put character handler.

@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021, 2022 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,10 +39,29 @@
 
 #include <rtems/test-gcov.h>
 
+#include <stdbool.h>
+#include <string.h>
+
 typedef struct {
   IO_Put_char put_char;
   void       *arg;
 } Gcov_Context;
+
+/*
+ * The output path of the dump updates coverage counters.  The dump serializes
+ * the information of one object file into this buffer before it outputs the
+ * data, so the counters of an object file are consistent.
+ */
+#define GCOV_INFO_BUFFER_SIZE 32768
+
+typedef struct {
+  char   *begin;
+  size_t  size;
+  size_t  used;
+  bool    overflow;
+} Gcov_Buffer;
+
+static char _Gcov_Info_buffer[ GCOV_INFO_BUFFER_SIZE ];
 
 static void _Gcov_Dump( const void *data, unsigned length, void *arg )
 {
@@ -69,6 +88,26 @@ static void _Gcov_Filename( const char *filename, void *arg )
   __gcov_filename_to_gcfn( filename, _Gcov_Dump, arg );
 }
 
+static void _Gcov_Buffer_dump( const void *data, unsigned length, void *arg )
+{
+  Gcov_Buffer *buffer;
+
+  buffer = arg;
+
+  if ( length > buffer->size - buffer->used ) {
+    buffer->overflow = true;
+    return;
+  }
+
+  memcpy( buffer->begin + buffer->used, data, length );
+  buffer->used += length;
+}
+
+static void _Gcov_Buffer_filename( const char *filename, void *arg )
+{
+  __gcov_filename_to_gcfn( filename, _Gcov_Buffer_dump, arg );
+}
+
 static void *_Gcov_Allocate( unsigned length, void *arg )
 {
   (void) length;
@@ -85,12 +124,30 @@ void _Gcov_Dump_info( IO_Put_char put_char, void *arg )
   ctx.arg = arg;
 
   RTEMS_LINKER_SET_FOREACH ( gcov_info, item ) {
+    Gcov_Buffer buffer;
+
+    buffer.begin = _Gcov_Info_buffer;
+    buffer.size = sizeof( _Gcov_Info_buffer );
+    buffer.used = 0;
+    buffer.overflow = false;
     __gcov_info_to_gcda(
       *item,
-      _Gcov_Filename,
-      _Gcov_Dump,
+      _Gcov_Buffer_filename,
+      _Gcov_Buffer_dump,
       _Gcov_Allocate,
-      &ctx
+      &buffer
     );
+
+    if ( buffer.overflow ) {
+      __gcov_info_to_gcda(
+        *item,
+        _Gcov_Filename,
+        _Gcov_Dump,
+        _Gcov_Allocate,
+        &ctx
+      );
+    } else {
+      _Gcov_Dump( buffer.begin, (unsigned) buffer.used, &ctx );
+    }
   }
 }
