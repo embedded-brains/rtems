@@ -96,6 +96,13 @@ static int t32_console_write_char_polled(int c)
     return -1;
   }
 
+  if (
+    rtems_output_char_is_try( c ) &&
+    messagebufferout[0] != 0
+  ) {
+    return -1;
+  }
+
   c &= RTEMS_OUTPUT_CHAR_MASK;
 
   while (messagebufferout[0] != 0) {
