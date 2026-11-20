@@ -1,0 +1,51 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Gets the statistics of the ${/glossary/heap:/term} which serves
+  ${/c/if/malloc:/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${statistics:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: |
+  The directive visits no block of the heap, so its execution time does not
+  depend on the number of blocks.
+enabled-by:
+  not: RTEMS_QUAL
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-devinit
+- role: constraint
+  uid: /constraint/directive-ctx-task
+name: malloc_get_statistics
+notes: |
+  The ${/c/if/malloc:/name} heap and the workspace share one heap where the
+  ${/acfg/if/unified-work-areas:/name} application configuration option is
+  defined.
+params:
+- description: |
+    is the pointer to an object. When the directive call is successful, the
+    statistics of the heap will be stored in this object.
+  dir: out
+  name: stats
+return:
+  return: null
+  return-values:
+  - description: |
+      The directive call is successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: -1
+type: interface

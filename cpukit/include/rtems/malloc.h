@@ -13,6 +13,7 @@
 /*
  * COPYRIGHT (c) 1989-2011.
  * On-Line Applications Research Corporation (OAR).
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -215,6 +216,95 @@ void *rtems_malloc(size_t size)
  */
 void *rtems_calloc(size_t nelem, size_t elsize)
   RTEMS_MALLOCLIKE RTEMS_ALLOC_SIZE_2(1, 2) RTEMS_WARN_UNUSED_RESULT;
+
+/**
+ * @brief This structure contains the statistics of the heap which serves
+ *   malloc().
+ */
+typedef struct {
+  /**
+   * @brief This member contains the number of bytes which the heap allocated
+   *   since its initialization.
+   */
+  uint64_t lifetime_allocated;
+
+  /**
+   * @brief This member contains the number of bytes which the heap freed since
+   *   its initialization.
+   */
+  uint64_t lifetime_freed;
+
+  /**
+   * @brief This member contains the size in bytes of the memory areas which
+   *   the heap manages.
+   */
+  size_t size;
+
+  /**
+   * @brief This member contains the number of free bytes of the heap.
+   */
+  size_t free_size;
+
+  /**
+   * @brief This member contains the least number of free bytes of the heap
+   *   since its initialization.
+   */
+  size_t min_free_size;
+
+  /**
+   * @brief This member contains the number of free blocks of the heap.
+   */
+  uint32_t free_blocks;
+
+  /**
+   * @brief This member contains the largest number of free blocks of the heap
+   *   since its initialization.
+   */
+  uint32_t max_free_blocks;
+
+  /**
+   * @brief This member contains the number of used blocks of the heap.
+   */
+  uint32_t used_blocks;
+
+  /**
+   * @brief This member contains the number of successful allocations since the
+   *   initialization of the heap.
+   */
+  uint32_t allocs;
+
+  /**
+   * @brief This member contains the number of failed allocations since the
+   *   initialization of the heap.
+   */
+  uint32_t failed_allocs;
+
+  /**
+   * @brief This member contains the number of successful frees since the
+   *   initialization of the heap.
+   */
+  uint32_t frees;
+
+  /**
+   * @brief This member contains the number of successful resizes since the
+   *   initialization of the heap.
+   */
+  uint32_t resizes;
+} rtems_malloc_statistics;
+
+/**
+ * @brief Gets the statistics of the heap which serves malloc().
+ *
+ * The function visits no block of the heap, so its execution time does not
+ * depend on the number of blocks.
+ *
+ * @param[out] stats is the pointer to an object.  When the function call is
+ *   successful, the statistics of the heap will be stored in this object.
+ *
+ * @retval 0 The function call is successful.
+ * @retval -1 The @a stats parameter was NULL.
+ */
+int malloc_get_statistics( rtems_malloc_statistics *stats );
 
 /**
  * @brief Extends the memory available for the heap using the memory area

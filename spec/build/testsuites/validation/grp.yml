@@ -78,6 +78,8 @@ links:
 - role: build-dependency
   uid: validation-non-smp
 - role: build-dependency
+  uid: validation-non-qual-0
+- role: build-dependency
   uid: validation-one-cpu-0
 - role: build-dependency
   uid: validation-one-cpu-1

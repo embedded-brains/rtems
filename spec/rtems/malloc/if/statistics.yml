@@ -1,0 +1,126 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure contains the statistics of the ${/glossary/heap:/term} which
+  serves ${/c/if/malloc:/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    brief: |
+      This member contains the number of bytes which the heap allocated since its
+      initialization.
+    definition: ${/c/if/uint64_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: lifetime_allocated
+  variants: []
+- default:
+    brief: |
+      This member contains the number of bytes which the heap freed since its
+      initialization.
+    definition: ${/c/if/uint64_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: lifetime_freed
+  variants: []
+- default:
+    brief: |
+      This member contains the size in bytes of the memory areas which the heap
+      manages.
+    definition: ${/c/if/size_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: size
+  variants: []
+- default:
+    brief: |
+      This member contains the number of free bytes of the heap.
+    definition: ${/c/if/size_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: free_size
+  variants: []
+- default:
+    brief: |
+      This member contains the least number of free bytes of the heap since its
+      initialization.
+    definition: ${/c/if/size_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: min_free_size
+  variants: []
+- default:
+    brief: |
+      This member contains the number of free blocks of the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: free_blocks
+  variants: []
+- default:
+    brief: |
+      This member contains the largest number of free blocks of the heap since its
+      initialization.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: max_free_blocks
+  variants: []
+- default:
+    brief: |
+      This member contains the number of used blocks of the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: used_blocks
+  variants: []
+- default:
+    brief: |
+      This member contains the number of successful allocations since the
+      initialization of the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: allocs
+  variants: []
+- default:
+    brief: |
+      This member contains the number of failed allocations since the initialization
+      of the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: failed_allocs
+  variants: []
+- default:
+    brief: |
+      This member contains the number of successful frees since the initialization of
+      the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: frees
+  variants: []
+- default:
+    brief: |
+      This member contains the number of successful resizes since the initialization
+      of the heap.
+    definition: ${/c/if/uint32_t:/name} ${.:name}
+    description: null
+    kind: member
+    name: resizes
+  variants: []
+definition-kind: typedef-only
+description: null
+enabled-by:
+  not: RTEMS_QUAL
+index-entries: []
+interface-type: struct
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+name: rtems_malloc_statistics
+notes: null
+type: interface
