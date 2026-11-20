@@ -53,15 +53,7 @@ static arm_pl011_context rpi5_uart_debug_context = {
 };
 
 static int output_char (int c) {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
-  arm_pl011_write_polled(&rpi5_uart_debug_context.base, c);
-
-  return 0;
+  return arm_pl011_output_char_polled(&rpi5_uart_debug_context.base, c);
 }
 
 static int poll_char (void) {

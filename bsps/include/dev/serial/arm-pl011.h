@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2013, 2014 embedded brains GmbH & Co. KG
+ * Copyright (C) 2013, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,6 +118,18 @@ bool arm_pl011_probe(rtems_termios_device_context *base);
  * @param c Character to be written.
  */
 void arm_pl011_write_polled(rtems_termios_device_context *base, char c);
+
+/**
+ * @brief Outputs the character or drains the transmitter as requested by the
+ *   flags of the parameter.
+ *
+ * @param base Termios device context.
+ * @param c Character to output and the flags of the request.
+ *
+ * The parameter and the return value have the form which
+ * #BSP_output_char_function_type defines.
+ */
+int arm_pl011_output_char_polled(rtems_termios_device_context *base, int c);
 
 /**
  * @brief Read a char using polling mode.

@@ -58,15 +58,7 @@ rpi_fb_context fb_context;
 
 static int output_char_pl011(int c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
-  arm_pl011_write_polled(&pl011_context.base, c);
-
-  return 0;
+  return arm_pl011_output_char_polled(&pl011_context.base, c);
 }
 
 static int output_char_mini_uart(int c)

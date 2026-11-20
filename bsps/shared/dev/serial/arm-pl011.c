@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2013, 2014 embedded brains GmbH & Co. KG
+ * Copyright (C) 2013, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,6 +27,7 @@
 
 #include <dev/serial/arm-pl011.h>
 #include <bspopts.h>
+#include <rtems/bspIo.h>
 
 static inline int arm_pl011_read_char(volatile pl011_base *regs_base)
 {
@@ -448,6 +449,31 @@ void arm_pl011_write_polled(rtems_termios_device_context *base, char c)
   }
 
   arm_pl011_write_char(&regs->base, c);
+}
+
+int arm_pl011_output_char_polled(rtems_termios_device_context *base, int c)
+{
+  volatile arm_pl011_uart *regs = arm_pl011_get_regs(base);
+
+  if (rtems_output_char_is_try(c) && arm_pl011_is_txfifo_full(&regs->base)) {
+    return -1;
+  }
+
+  if (!rtems_output_char_is_drain(c)) {
+    arm_pl011_write_polled(base, (char) c);
+    return 0;
+  }
+
+  /* The UART is busy until it sent the stop bits of the last character */
+  if (rtems_output_char_is_try(c)) {
+    return (regs->base.uartfr & PL011_UARTFR_BUSY) == 0 ? 0 : -1;
+  }
+
+  while ((regs->base.uartfr & PL011_UARTFR_BUSY) != 0) {
+    /* Wait */
+  }
+
+  return 0;
 }
 
 #ifdef BSP_CONSOLE_USE_INTERRUPTS
