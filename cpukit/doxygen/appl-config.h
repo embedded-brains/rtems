@@ -3411,7 +3411,8 @@
  *   href="https://en.cppreference.com/w/c/types/limits">SIZE_MAX</a>.
  *
  * - The value of the configuration option shall be an integral multiple of
- *   #RTEMS_TASK_STORAGE_ALIGNMENT.
+ *   #RTEMS_TASK_STORAGE_ALIGNMENT. Otherwise a compile time error in the
+ *   configuration file will occur.
  * @endparblock
  *
  * @par Notes
@@ -3644,7 +3645,9 @@
  * - The value of the configuration option shall be less than or equal to a
  *   value defined by the Clock Driver.
  *
- * - The resulting clock ticks per second should be an integer.
+ * - The value of the configuration option shall divide 1000000 without a
+ *   remainder. Otherwise a compile time error in the configuration file will
+ *   occur.
  * @endparblock
  *
  * @par Notes
@@ -5179,7 +5182,8 @@
  *   - `RTEMS_SCHEDULER_ASSIGN_PROCESSOR_OPTIONAL`
  *
  * - The value of the configuration option shall be a list of exactly @ref
- *   CONFIGURE_MAXIMUM_PROCESSORS elements.
+ *   CONFIGURE_MAXIMUM_PROCESSORS elements. Otherwise a compile time error in
+ *   the configuration file will occur.
  * @endparblock
  *
  * @par Notes
