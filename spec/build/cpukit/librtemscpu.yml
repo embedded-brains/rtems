@@ -639,6 +639,7 @@ source:
 - cpukit/libcsupport/src/assocthreadstatestostring.c
 - cpukit/libcsupport/src/base_fs.c
 - cpukit/libcsupport/src/cachealignedalloc.c
+- cpukit/libcsupport/src/cachecoherentaddarea.c
 - cpukit/libcsupport/src/cachecoherentalloc.c
 - cpukit/libcsupport/src/calloc.c
 - cpukit/libcsupport/src/cfgetispeed.c
