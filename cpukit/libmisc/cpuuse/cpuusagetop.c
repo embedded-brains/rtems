@@ -307,6 +307,7 @@ static void rtems_cpuusage_top_thread( rtems_task_argument arg )
   char                   pname[ _Thread_Maximum_name_size + 1 ];
   size_t                 i;
   rtems_heap_statistics  wksp;
+  rtems_heap_statistics  libc_heap;
   uint32_t               ival, fval;
   uint32_t               task_count;
   rtems_event_set        out;
@@ -440,19 +441,12 @@ static void rtems_cpuusage_top_thread( rtems_task_argument arg )
     /*
      * Memory usage.
      */
-    if ( rtems_configuration_get_unified_work_area() ) {
-      rtems_printf( data->printer, "\nMem: " );
-      print_memsize( data, wksp.free_size, "free" );
-      print_memsize( data, wksp.size - wksp.free_size, "used" );
-    } else {
-      rtems_heap_statistics libc_heap;
-      (void) malloc_get_statistics( &libc_heap );
-      rtems_printf( data->printer, "\nMem: Wksp: " );
-      print_memsize( data, wksp.free_size, "free" );
-      print_memsize( data, wksp.size - wksp.free_size, "used  Heap: " );
-      print_memsize( data, libc_heap.free_size, "free" );
-      print_memsize( data, libc_heap.size - libc_heap.free_size, "used" );
-    }
+    (void) malloc_get_statistics( &libc_heap );
+    rtems_printf( data->printer, "\nMem: Wksp: " );
+    print_memsize( data, wksp.free_size, "free" );
+    print_memsize( data, wksp.size - wksp.free_size, "used  Heap: " );
+    print_memsize( data, libc_heap.free_size, "free" );
+    print_memsize( data, libc_heap.size - libc_heap.free_size, "used" );
 
     print_memsize( data, data->stack_size, "stack\n" );
 
