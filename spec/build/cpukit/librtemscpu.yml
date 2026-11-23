@@ -392,6 +392,7 @@ install:
   - cpukit/include/rtems/score/processormaskimpl.h
   - cpukit/include/rtems/score/profiling.h
   - cpukit/include/rtems/score/protectedheap.h
+  - cpukit/include/rtems/score/rbheap.h
   - cpukit/include/rtems/score/rbtree.h
   - cpukit/include/rtems/score/rbtreeimpl.h
   - cpukit/include/rtems/score/scheduler.h
@@ -1507,6 +1508,7 @@ source:
 - cpukit/score/src/pheapwalk.c
 - cpukit/score/src/processormaskcopy.c
 - cpukit/score/src/profilingisrentryexit.c
+- cpukit/score/src/rbheap.c
 - cpukit/score/src/rbtreeappend.c
 - cpukit/score/src/rbtreeextract.c
 - cpukit/score/src/rbtreeinsert.c

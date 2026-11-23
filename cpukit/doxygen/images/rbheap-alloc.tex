@@ -1,0 +1,86 @@
+% SPDX-License-Identifier: BSD-2-Clause
+%
+% Copyright (C) 2026 embedded brains GmbH & Co. KG
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions
+% are met:
+% 1. Redistributions of source code must retain the above copyright
+%    notice, this list of conditions and the following disclaimer.
+% 2. Redistributions in binary form must reproduce the above copyright
+%    notice, this list of conditions and the following disclaimer in the
+%    documentation and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+% POSSIBILITY OF SUCH DAMAGE.
+
+\documentclass[tikz,border=4pt]{standalone}
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds,shapes.geometric}
+\definecolor{ebblue}{HTML}{1F4E79}
+\definecolor{boxfill}{HTML}{EAF1F8}
+\definecolor{codefill}{HTML}{FFF4E0}
+\definecolor{codeline}{HTML}{9C6500}
+\definecolor{groupfill}{HTML}{F5F5F5}
+\definecolor{flow}{HTML}{404040}
+\newcommand{\code}[1]{{\ttfamily\scriptsize #1}}
+\begin{document}
+\begin{tikzpicture}[
+    font=\small,
+    blk/.style={draw=ebblue, minimum height=8mm, align=center,
+      font=\scriptsize, inner sep=1pt, anchor=west},
+    usedb/.style={blk, fill=boxfill},
+    freeb/.style={blk, fill=white},
+    hit/.style={blk, fill=codefill, draw=codeline, very thick},
+    miss/.style={blk, fill=white, dashed, very thick},
+    num/.style={circle, draw=ebblue, fill=ebblue, text=white,
+      font=\footnotesize\bfseries, inner sep=1.5pt},
+    note/.style={font=\scriptsize, align=left, anchor=west, text width=80mm},
+    lockframe/.style={fill=groupfill, draw=gray, rounded corners=3pt}]
+  % 1: reserve
+  \node[num] at (-0.6,0) {1};
+  \node[usedb, minimum width=12mm] (a1) at (0,0) {U1};
+  \node[freeb, minimum width=18mm] (a2) at (a1.east) {F1\\96};
+  \node[usedb, minimum width=12mm] (a3) at (a2.east) {U2};
+  \node[freeb, minimum width=30mm] (a4) at (a3.east) {F2\\160};
+  \node[usedb, minimum width=12mm] (a5) at (a4.east) {U3};
+  \node[note] at (9.4,0) {Allocate a block of 64 bytes at a multiple of 64.
+    The capacity of the slabs must hold one more entry of the used tree, else the heap
+    carves a slab.  \code{\_RBHeap\_Reserve\_entry()}};
+  % 2: search
+  \node[num] at (-0.6,-1.6) {2};
+  \node[usedb, minimum width=12mm] (b1) at (0,-1.6) {U1};
+  \node[miss, minimum width=18mm] (b2) at (b1.east) {F1\\96};
+  \node[usedb, minimum width=12mm] (b3) at (b2.east) {U2};
+  \node[hit, minimum width=30mm] (b4) at (b3.east) {F2\\160};
+  \node[usedb, minimum width=12mm] (b5) at (b4.east) {U3};
+  \node[note] at (9.4,-1.6) {F1 is the best fit in the free tree, but no
+    multiple of 64 in F1 leaves 64 bytes.
+    The search then takes the best fit for the size padded by the
+    alignment, F2.
+    \code{\_RBHeap\_Find()}};
+  % 3: carve
+  \node[num] at (-0.6,-3.2) {3};
+  \node[usedb, minimum width=12mm] (c1) at (0,-3.2) {U1};
+  \node[freeb, minimum width=18mm] (c2) at (c1.east) {F1\\96};
+  \node[usedb, minimum width=12mm] (c3) at (c2.east) {U2};
+  \node[freeb, minimum width=6mm] (c4) at (c3.east) {F2\\16};
+  \node[hit, minimum width=12mm] (c5) at (c4.east) {U4\\64};
+  \node[freeb, minimum width=12mm] (c6) at (c5.east) {F3\\80};
+  \node[usedb, minimum width=12mm] (c7) at (c6.east) {U3};
+  \node[note] at (9.4,-3.2) {F2 keeps its descriptor with the size of the
+    part before U4.  U4 and F3 take a spare descriptor each.  U4 enters the
+    used tree and F3 the free tree.  \code{\_RBHeap\_Carve()}};
+\end{tikzpicture}
+\end{document}
