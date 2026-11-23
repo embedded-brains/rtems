@@ -81,10 +81,21 @@ extern "C" {
  *
  * @retval ::RTEMS_UNSATISFIED The requested operation was not successful.
  *
+ * @retval ::RTEMS_TOO_MANY The cache coherent allocator was not started and
+ *   four areas wait for it.
+ *
+ * @par Notes
+ * The system initialization starts the cache coherent allocator only if the
+ * application uses rtems_cache_coherent_allocate() or
+ * rtems_cache_coherent_free().  It starts the allocator after bsp_start() and
+ * adds the areas which wait for it.  The directive adds an area to the started
+ * allocator at once.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
  *
+ * - The directive may be called from within system initialization context.
  * - The directive is not included in the pre-qualified feature set of RTEMS.
  *   Applications which are restricted to only use interfaces of the
  *   pre-qualified feature set of RTEMS shall not use the directive.
