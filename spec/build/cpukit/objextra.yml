@@ -215,6 +215,7 @@ install:
   - cpukit/include/rtems/score/objectmp.h
   - cpukit/include/rtems/score/onceimpl.h
   - cpukit/include/rtems/score/percpudata.h
+  - cpukit/include/rtems/score/rbheap.h
   - cpukit/include/rtems/score/schedulercbs.h
   - cpukit/include/rtems/score/schedulercbsimpl.h
   - cpukit/include/rtems/score/schedulerpriorityaffinitysmp.h
@@ -948,6 +949,7 @@ source:
 - cpukit/score/src/pheapgetsize.c
 - cpukit/score/src/pheapwalk.c
 - cpukit/score/src/profilingisrentryexit.c
+- cpukit/score/src/rbheap.c
 - cpukit/score/src/rbtreeappend.c
 - cpukit/score/src/rbtreeiterate.c
 - cpukit/score/src/rbtreenext.c
