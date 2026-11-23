@@ -253,7 +253,10 @@ SECTIONS
   PROVIDE(__bsp_ram_start = .);
 
   .noinit (NOLOAD) : {
-    *(SORT_BY_NAME (SORT_BY_ALIGNMENT (.noinit*)))
+    *(.noinit.rtems.begin)
+    *(SORT_BY_ALIGNMENT (.noinit.rtems.content*))
+    *(.noinit.rtems.end)
+    *(SORT_BY_ALIGNMENT (.noinit*))
   } >RAM
 
   .rtemsstack (NOLOAD) : {

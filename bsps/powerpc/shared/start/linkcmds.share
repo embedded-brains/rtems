@@ -254,7 +254,10 @@ SECTIONS
    PROVIDE (__bss_end = .);
   } > CODE
   .noinit (NOLOAD) : {
-    *(SORT_BY_NAME (SORT_BY_ALIGNMENT (.noinit*)))
+    *(.noinit.rtems.begin)
+    *(SORT_BY_ALIGNMENT (.noinit.rtems.content*))
+    *(.noinit.rtems.end)
+    *(SORT_BY_ALIGNMENT (.noinit*))
   } > CODE
   .rtemsstack (NOLOAD) : {
     *(SORT(.rtemsstack.*))
