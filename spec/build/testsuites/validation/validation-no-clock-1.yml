@@ -106,6 +106,7 @@ source:
 - testsuites/validation/tr-tq-flush-priority-inherit.c
 - testsuites/validation/tr-tq-flush-priority.c
 - testsuites/validation/tr-tq-surrender-priority-inherit.c
+- testsuites/validation/tr-tq-surrender-priority.c
 - testsuites/validation/tr-tq-surrender.c
 - testsuites/validation/tr-tq-timeout-priority-inherit.c
 - testsuites/validation/tr-tq-timeout.c
