@@ -32,7 +32,7 @@ attributes:
   pkg-type: directory-state
   symbolic-links: []
   type: pkg
-  working-directory: ${.:/component/build-directory}
+  working-directory: ${.:/component/deployment-directory}
 copyrights:
 - Copyright (C) 2022, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
