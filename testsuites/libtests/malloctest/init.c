@@ -43,6 +43,9 @@
 #include <rtems/sysinit.h>
 #include <malloc.h>
 
+/* The test checks the deprecated malloc_info() */
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 const char rtems_test_name[] = "MALLOCTEST";
 
 static bool is_filled( const void *area, int value, size_t size )

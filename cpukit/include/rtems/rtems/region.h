@@ -631,6 +631,9 @@ rtems_status_code rtems_region_resize_segment(
  * rtems_region_get_free_information().
  * @endparblock
  *
+ * @deprecated Use rtems_region_get_statistics() instead.  The directive will
+ *   be removed after the RTEMS 7 release.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
@@ -644,7 +647,7 @@ rtems_status_code rtems_region_resize_segment(
  *   cause the calling task to be preempted.
  * @endparblock
  */
-rtems_status_code rtems_region_get_information(
+RTEMS_DEPRECATED rtems_status_code rtems_region_get_information(
   rtems_id                id,
   Heap_Information_block *the_info
 );
@@ -688,6 +691,9 @@ rtems_status_code rtems_region_get_information(
  * rtems_region_get_information().
  * @endparblock
  *
+ * @deprecated Use rtems_region_get_statistics() instead.  The directive will
+ *   be removed after the RTEMS 7 release.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
@@ -701,7 +707,7 @@ rtems_status_code rtems_region_get_information(
  *   cause the calling task to be preempted.
  * @endparblock
  */
-rtems_status_code rtems_region_get_free_information(
+RTEMS_DEPRECATED rtems_status_code rtems_region_get_free_information(
   rtems_id                id,
   Heap_Information_block *the_info
 );

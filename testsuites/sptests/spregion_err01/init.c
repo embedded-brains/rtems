@@ -43,6 +43,9 @@ static uint8_t Region_good_area[ 4096 ] CPU_STRUCTURE_ALIGNMENT;
 #define REGION_START_OFFSET 1024
 #define REGION_LENGTH       512
 
+/* The test checks the deprecated region information directives */
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 static void region_error_tests( void )
 {
   void                  *segment_address_1;

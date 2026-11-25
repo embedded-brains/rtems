@@ -95,10 +95,13 @@ extern size_t malloc_free_space(void);
 
 /**
  * @brief Get malloc status information.
- * 
+ *
  * Find amount of free heap remaining.
+ *
+ * @deprecated Use malloc_get_statistics() instead.  The function will be
+ *   removed after the RTEMS 7 release.
  */
-extern int malloc_info(Heap_Information_block *the_info);
+RTEMS_DEPRECATED extern int malloc_info(Heap_Information_block *the_info);
 
 /*
  *  Prototypes required to install newlib reentrancy user extension

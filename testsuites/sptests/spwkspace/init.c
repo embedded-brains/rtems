@@ -41,6 +41,9 @@
 
 const char rtems_test_name[] = "SPWKSPACE";
 
+/* The test checks the deprecated rtems_workspace_get_information() */
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 /* forward declarations to avoid warnings */
 rtems_task Init( rtems_task_argument argument );
 

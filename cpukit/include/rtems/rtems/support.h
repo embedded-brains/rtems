@@ -370,6 +370,9 @@ bool rtems_workspace_free( void *pointer );
  * @return Returns true, if getting the information was successful, otherwise
  *   false.
  *
+ * @deprecated Use rtems_workspace_get_statistics() instead.  The directive
+ *   will be removed after the RTEMS 7 release.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
@@ -383,7 +386,9 @@ bool rtems_workspace_free( void *pointer );
  *   cause the calling task to be preempted.
  * @endparblock
  */
-bool rtems_workspace_get_information( Heap_Information_block *the_info );
+RTEMS_DEPRECATED bool rtems_workspace_get_information(
+  Heap_Information_block *the_info
+);
 
 /* Find related documentation with spec:/rtems/support/if/workspace-get-statistics */
 
