@@ -68,6 +68,12 @@ typedef struct {
    *   replaced.
    */
   RBHeap_control *heap_before;
+
+  /**
+   * @brief This member contains the heap of the RTEMS Workspace which
+   *   WorkspaceInstall() replaced.
+   */
+  RBHeap_control workspace_before;
 } HeapContext;
 
 /**
@@ -94,6 +100,8 @@ typedef struct {
  * @brief Initializes the heap of the test on the memory area of the heap
  *   tests and makes it the C Program Heap.
  *
+ * The C Program Heap then serves no allocation from processor blocks.
+ *
  * @param[out] ctx is the context of the heap.
  */
 void HeapInstall( HeapContext *ctx );
@@ -113,6 +121,32 @@ void HeapReset( HeapContext *ctx );
  * @param ctx is the context of the heap.
  */
 void HeapRestore( const HeapContext *ctx );
+
+/**
+ * @brief Initializes the heap of the RTEMS Workspace on the memory area of the
+ *   heap tests.
+ *
+ * The heap of the RTEMS Workspace shall be a red-black tree heap.
+ *
+ * @param[out] ctx is the context of the heap.
+ */
+void WorkspaceInstall( HeapContext *ctx );
+
+/**
+ * @brief Initializes the heap of the RTEMS Workspace on the memory area of the
+ *   heap tests again.
+ *
+ * @param[out] ctx is the context of the heap.
+ */
+void WorkspaceReset( HeapContext *ctx );
+
+/**
+ * @brief Restores the heap of the RTEMS Workspace which WorkspaceInstall()
+ *   replaced.
+ *
+ * @param ctx is the context of the heap.
+ */
+void WorkspaceRestore( const HeapContext *ctx );
 
 /**
  * @brief Gets the begin of the memory area of the heap tests.

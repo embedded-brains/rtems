@@ -42,6 +42,9 @@
 
 #include <rtems/malloc.h>
 #include <rtems/score/heapinfo.h>
+#include <rtems/score/wkspace.h>
+
+#include <string.h>
 
 #include <rtems/test.h>
 
@@ -65,6 +68,34 @@ void HeapReset( HeapContext *ctx )
 void HeapRestore( const HeapContext *ctx )
 {
   RTEMS_Malloc_Heap = ctx->heap_before;
+}
+
+void WorkspaceInstall( HeapContext *ctx )
+{
+  memcpy(
+    &ctx->workspace_before,
+    &_Workspace_RBHeap,
+    sizeof( ctx->workspace_before )
+  );
+  WorkspaceReset( ctx );
+}
+
+void WorkspaceReset( HeapContext *ctx )
+{
+  bool ok;
+
+  (void) ctx;
+  ok = _RBHeap_Initialize( &_Workspace_RBHeap, heap_area, sizeof( heap_area ) );
+  T_quiet_true( ok );
+}
+
+void WorkspaceRestore( const HeapContext *ctx )
+{
+  memcpy(
+    &_Workspace_RBHeap,
+    &ctx->workspace_before,
+    sizeof( _Workspace_RBHeap )
+  );
 }
 
 void *HeapGetArea( void )
