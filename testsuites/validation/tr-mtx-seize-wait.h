@@ -100,8 +100,6 @@ typedef enum {
   ScoreMtxReqSeizeWait_Post_Enqueued_FIFO,
   ScoreMtxReqSeizeWait_Post_Enqueued_Priority,
   ScoreMtxReqSeizeWait_Post_Enqueued_PriorityInherit,
-  ScoreMtxReqSeizeWait_Post_Enqueued_PriorityCeiling,
-  ScoreMtxReqSeizeWait_Post_Enqueued_PriorityMrsP,
   ScoreMtxReqSeizeWait_Post_Enqueued_NA
 } ScoreMtxReqSeizeWait_Post_Enqueued;
 

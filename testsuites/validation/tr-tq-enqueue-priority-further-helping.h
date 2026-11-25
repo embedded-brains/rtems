@@ -3,11 +3,11 @@
 /**
  * @file
  *
- * @ingroup ScoreTqReqEnqueueCeiling
+ * @ingroup ScoreTqReqEnqueuePriorityFurtherHelping
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,8 +31,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TR_TQ_ENQUEUE_CEILING_H
-#define _TR_TQ_ENQUEUE_CEILING_H
+#ifndef _TR_TQ_ENQUEUE_PRIORITY_FURTHER_HELPING_H
+#define _TR_TQ_ENQUEUE_PRIORITY_FURTHER_HELPING_H
 
 #include "tx-thread-queue.h"
 
@@ -41,47 +41,50 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup ScoreTqReqEnqueueCeiling
+ * @addtogroup ScoreTqReqEnqueuePriorityFurtherHelping
  *
  * @{
  */
 
 typedef enum {
-  ScoreTqReqEnqueueCeiling_Pre_EligibleScheduler_Home,
-  ScoreTqReqEnqueueCeiling_Pre_EligibleScheduler_Helping,
-  ScoreTqReqEnqueueCeiling_Pre_EligibleScheduler_NA
-} ScoreTqReqEnqueueCeiling_Pre_EligibleScheduler;
+  ScoreTqReqEnqueuePriorityFurtherHelping_Pre_EligibleScheduler_More,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Pre_EligibleScheduler_NA
+} ScoreTqReqEnqueuePriorityFurtherHelping_Pre_EligibleScheduler;
 
 typedef enum {
-  ScoreTqReqEnqueueCeiling_Pre_QueueEligible_None,
-  ScoreTqReqEnqueueCeiling_Pre_QueueEligible_Equal,
-  ScoreTqReqEnqueueCeiling_Pre_QueueEligible_Low,
-  ScoreTqReqEnqueueCeiling_Pre_QueueEligible_NA
-} ScoreTqReqEnqueueCeiling_Pre_QueueEligible;
+  ScoreTqReqEnqueuePriorityFurtherHelping_Pre_ThreadQueue_Empty,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Pre_ThreadQueue_NotEmpty,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Pre_ThreadQueue_NA
+} ScoreTqReqEnqueuePriorityFurtherHelping_Pre_ThreadQueue;
 
 typedef enum {
-  ScoreTqReqEnqueueCeiling_Pre_QueueIneligible_None,
-  ScoreTqReqEnqueueCeiling_Pre_QueueIneligible_Before,
-  ScoreTqReqEnqueueCeiling_Pre_QueueIneligible_After,
-  ScoreTqReqEnqueueCeiling_Pre_QueueIneligible_NA
-} ScoreTqReqEnqueueCeiling_Pre_QueueIneligible;
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionEligible_AsTwo,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionEligible_NA
+} ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionEligible;
 
 typedef enum {
-  ScoreTqReqEnqueueCeiling_Post_Position_InitialFirst,
-  ScoreTqReqEnqueueCeiling_Post_Position_First,
-  ScoreTqReqEnqueueCeiling_Post_Position_Second,
-  ScoreTqReqEnqueueCeiling_Post_Position_FirstFirst,
-  ScoreTqReqEnqueueCeiling_Post_Position_SecondFirst,
-  ScoreTqReqEnqueueCeiling_Post_Position_SecondQueue,
-  ScoreTqReqEnqueueCeiling_Post_Position_NA
-} ScoreTqReqEnqueueCeiling_Post_Position;
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionFurtherHelping_Initial,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionFurtherHelping_NA
+} ScoreTqReqEnqueuePriorityFurtherHelping_Post_PositionFurtherHelping;
+
+typedef enum {
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_QueueOrder_Kept,
+  ScoreTqReqEnqueuePriorityFurtherHelping_Post_QueueOrder_NA
+} ScoreTqReqEnqueuePriorityFurtherHelping_Post_QueueOrder;
 
 /**
  * @brief Runs the parameterized test case.
  *
  * @param[in,out] tq_ctx is the thread queue context.
+ *
+ * @param home_only is true, if the thread queue admits only threads with the
+ *   home scheduler of the enqueueing thread as their home scheduler, otherwise
+ *   false.
  */
-void ScoreTqReqEnqueueCeiling_Run( TQContext *tq_ctx );
+void ScoreTqReqEnqueuePriorityFurtherHelping_Run(
+  TQContext *tq_ctx,
+  bool       home_only
+);
 
 /** @} */
 
@@ -89,4 +92,4 @@ void ScoreTqReqEnqueueCeiling_Run( TQContext *tq_ctx );
 }
 #endif
 
-#endif /* _TR_TQ_ENQUEUE_CEILING_H */
+#endif /* _TR_TQ_ENQUEUE_PRIORITY_FURTHER_HELPING_H */

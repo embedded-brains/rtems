@@ -40,7 +40,12 @@
 
 #include "tr-sem-seize-wait.h"
 #include "tr-tq-enqueue-fifo.h"
+#include "tr-tq-enqueue-priority-further-helping.h"
+#include "tr-tq-enqueue-priority-ineligible.h"
 #include "tr-tq-enqueue-priority.h"
+#include "tr-tq-helping-add-priority.h"
+#include "tr-tq-helping-remove-priority.h"
+#include "tr-tq-priority-change-priority.h"
 #include "tx-support.h"
 
 #include <rtems/test.h>
@@ -72,6 +77,12 @@ typedef struct {
  * @brief Test context for spec:/score/sem/req/seize-wait test case.
  */
 typedef struct {
+  /**
+   * @brief This member is true, if the test ran the test cases of the enqueue
+   *   in priority order.
+   */
+  bool position_done;
+
   /**
    * @brief This member contains a copy of the corresponding
    *   ScoreSemReqSeizeWait_Run() parameter.
@@ -301,9 +312,26 @@ static void ScoreSemReqSeizeWait_Post_Enqueued_Check(
 
     case ScoreSemReqSeizeWait_Post_Enqueued_Priority: {
       /*
-       * The calling thread shall be enqueued in priority order.
+       * The calling thread shall wait on the thread queue of the semaphore as
+       * specified by spec:/score/tq/req/enqueue-priority,
+       * spec:/score/tq/req/enqueue-priority-further-helping,
+       * spec:/score/tq/req/enqueue-priority-ineligible,
+       * spec:/score/tq/req/priority-change-priority,
+       * spec:/score/tq/req/helping-add-priority, and
+       * spec:/score/tq/req/helping-remove-priority.
        */
-      ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx->base );
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqEnqueuePriorityFurtherHelping_Run(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ScoreTqReqEnqueuePriorityIneligible_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqPriorityChangePriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqHelpingAddPriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqHelpingRemovePriority_Run( &ctx->tq_ctx->base, false );
+      }
       break;
     }
 
@@ -369,6 +397,20 @@ static void ScoreSemReqSeizeWait_Post_Timer_Check(
   }
 }
 
+static void ScoreSemReqSeizeWait_Setup( ScoreSemReqSeizeWait_Context *ctx )
+{
+  ctx->position_done = false;
+}
+
+static void ScoreSemReqSeizeWait_Setup_Wrap( void *arg )
+{
+  ScoreSemReqSeizeWait_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  ScoreSemReqSeizeWait_Setup( ctx );
+}
+
 static void ScoreSemReqSeizeWait_Prepare( ScoreSemReqSeizeWait_Context *ctx )
 {
   ctx->tq_ctx->base.enqueue_prepare = TQEnqueuePrepareDefault;
@@ -429,7 +471,7 @@ static size_t ScoreSemReqSeizeWait_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture ScoreSemReqSeizeWait_Fixture = {
-  .setup = NULL,
+  .setup = ScoreSemReqSeizeWait_Setup_Wrap,
   .stop = NULL,
   .teardown = NULL,
   .scope = ScoreSemReqSeizeWait_Scope,

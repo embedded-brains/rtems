@@ -10,7 +10,6 @@ includes: []
 install: []
 links: []
 source:
-- testsuites/validation/tr-tq-enqueue-mrsp.c
 - testsuites/validation/tr-tq-surrender-mrsp.c
 - testsuites/validation/tr-tq-timeout-mrsp.c
 type: build

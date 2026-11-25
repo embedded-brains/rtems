@@ -48,44 +48,115 @@ extern "C" {
 
 typedef enum {
   ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_Home,
-  ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_Helping,
+  ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_One,
+  ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_Two,
+  ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_More,
   ScoreTqReqEnqueuePriority_Pre_EligibleScheduler_NA
 } ScoreTqReqEnqueuePriority_Pre_EligibleScheduler;
 
 typedef enum {
-  ScoreTqReqEnqueuePriority_Pre_QueueEligible_None,
-  ScoreTqReqEnqueuePriority_Pre_QueueEligible_High,
-  ScoreTqReqEnqueuePriority_Pre_QueueEligible_Equal,
-  ScoreTqReqEnqueuePriority_Pre_QueueEligible_Low,
-  ScoreTqReqEnqueuePriority_Pre_QueueEligible_NA
-} ScoreTqReqEnqueuePriority_Pre_QueueEligible;
+  ScoreTqReqEnqueuePriority_Pre_QueueHome_Empty,
+  ScoreTqReqEnqueuePriority_Pre_QueueHome_High,
+  ScoreTqReqEnqueuePriority_Pre_QueueHome_Equal,
+  ScoreTqReqEnqueuePriority_Pre_QueueHome_Low,
+  ScoreTqReqEnqueuePriority_Pre_QueueHome_NA
+} ScoreTqReqEnqueuePriority_Pre_QueueHome;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping_Empty,
+  ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping_High,
+  ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping_Equal,
+  ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping_Low,
+  ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping_NA
+} ScoreTqReqEnqueuePriority_Pre_QueueFirstHelping;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping_Empty,
+  ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping_High,
+  ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping_Equal,
+  ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping_Low,
+  ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping_NA
+} ScoreTqReqEnqueuePriority_Pre_QueueSecondHelping;
 
 typedef enum {
   ScoreTqReqEnqueuePriority_Pre_QueueIneligible_None,
-  ScoreTqReqEnqueuePriority_Pre_QueueIneligible_Only,
-  ScoreTqReqEnqueuePriority_Pre_QueueIneligible_Before,
-  ScoreTqReqEnqueuePriority_Pre_QueueIneligible_After,
+  ScoreTqReqEnqueuePriority_Pre_QueueIneligible_One,
+  ScoreTqReqEnqueuePriority_Pre_QueueIneligible_More,
   ScoreTqReqEnqueuePriority_Pre_QueueIneligible_NA
 } ScoreTqReqEnqueuePriority_Pre_QueueIneligible;
 
 typedef enum {
-  ScoreTqReqEnqueuePriority_Post_Position_InitialFirst,
-  ScoreTqReqEnqueuePriority_Post_Position_InitialLast,
-  ScoreTqReqEnqueuePriority_Post_Position_First,
-  ScoreTqReqEnqueuePriority_Post_Position_Second,
-  ScoreTqReqEnqueuePriority_Post_Position_FirstFirst,
-  ScoreTqReqEnqueuePriority_Post_Position_SecondFirst,
-  ScoreTqReqEnqueuePriority_Post_Position_FirstLast,
-  ScoreTqReqEnqueuePriority_Post_Position_SecondLast,
-  ScoreTqReqEnqueuePriority_Post_Position_NA
-} ScoreTqReqEnqueuePriority_Post_Position;
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeFirstSecondIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeFirstIneligibleSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeSecondFirstIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeSecondIneligibleFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeIneligibleFirstSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_HomeIneligibleSecondFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstHomeSecondIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstHomeIneligibleSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstSecondHomeIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstSecondIneligibleHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstIneligibleHomeSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_FirstIneligibleSecondHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondHomeFirstIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondHomeIneligibleFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondFirstHomeIneligible,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondFirstIneligibleHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondIneligibleHomeFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_SecondIneligibleFirstHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleHomeFirstSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleHomeSecondFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleFirstHomeSecond,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleFirstSecondHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleSecondHomeFirst,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_IneligibleSecondFirstHome,
+  ScoreTqReqEnqueuePriority_Pre_QueueOrder_NA
+} ScoreTqReqEnqueuePriority_Pre_QueueOrder;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Post_PositionHome_Initial,
+  ScoreTqReqEnqueuePriority_Post_PositionHome_First,
+  ScoreTqReqEnqueuePriority_Post_PositionHome_Second,
+  ScoreTqReqEnqueuePriority_Post_PositionHome_NA
+} ScoreTqReqEnqueuePriority_Post_PositionHome;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Post_PositionFirstHelping_Absent,
+  ScoreTqReqEnqueuePriority_Post_PositionFirstHelping_Initial,
+  ScoreTqReqEnqueuePriority_Post_PositionFirstHelping_First,
+  ScoreTqReqEnqueuePriority_Post_PositionFirstHelping_Second,
+  ScoreTqReqEnqueuePriority_Post_PositionFirstHelping_NA
+} ScoreTqReqEnqueuePriority_Post_PositionFirstHelping;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Post_PositionSecondHelping_Absent,
+  ScoreTqReqEnqueuePriority_Post_PositionSecondHelping_Initial,
+  ScoreTqReqEnqueuePriority_Post_PositionSecondHelping_First,
+  ScoreTqReqEnqueuePriority_Post_PositionSecondHelping_Second,
+  ScoreTqReqEnqueuePriority_Post_PositionSecondHelping_NA
+} ScoreTqReqEnqueuePriority_Post_PositionSecondHelping;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Post_PositionOtherHelping_Absent,
+  ScoreTqReqEnqueuePriority_Post_PositionOtherHelping_Initial,
+  ScoreTqReqEnqueuePriority_Post_PositionOtherHelping_NA
+} ScoreTqReqEnqueuePriority_Post_PositionOtherHelping;
+
+typedef enum {
+  ScoreTqReqEnqueuePriority_Post_QueueOrder_Kept,
+  ScoreTqReqEnqueuePriority_Post_QueueOrder_NA
+} ScoreTqReqEnqueuePriority_Post_QueueOrder;
 
 /**
  * @brief Runs the parameterized test case.
  *
  * @param[in,out] tq_ctx is the thread queue context.
+ *
+ * @param home_only is true, if the thread queue admits only threads with the
+ *   home scheduler of the enqueueing thread as their home scheduler, otherwise
+ *   false.
  */
-void ScoreTqReqEnqueuePriority_Run( TQContext *tq_ctx );
+void ScoreTqReqEnqueuePriority_Run( TQContext *tq_ctx, bool home_only );
 
 /** @} */
 

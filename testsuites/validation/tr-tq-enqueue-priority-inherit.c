@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,19 +49,18 @@
  */
 
 typedef struct {
-  uint32_t Skip : 1;
-  uint32_t Pre_Scheduler_NA : 1;
-  uint32_t Pre_QueueEligible_NA : 1;
-  uint32_t Pre_QueueIneligible_NA : 1;
-  uint32_t Pre_PriorityForOwner_NA : 1;
-  uint32_t Pre_SchedulerForOwner_NA : 1;
-  uint32_t Pre_OwnerState_NA : 1;
-  uint32_t Post_Position : 4;
-  uint32_t Post_OwnerPriority : 2;
-  uint32_t Post_OwnerScheduler : 2;
-  uint32_t Post_OwnerOwnerPriority : 2;
-  uint32_t Post_OwnerOwnerScheduler : 2;
+  uint16_t Skip : 1;
+  uint16_t Pre_EligibleScheduler_NA : 1;
+  uint16_t Pre_PriorityForOwner_NA : 1;
+  uint16_t Pre_SchedulerForOwner_NA : 1;
+  uint16_t Pre_OwnerState_NA : 1;
+  uint16_t Post_OwnerPriority : 2;
+  uint16_t Post_OwnerScheduler : 2;
+  uint16_t Post_OwnerOwnerPriority : 2;
+  uint16_t Post_OwnerOwnerScheduler : 2;
 } ScoreTqReqEnqueuePriorityInherit_Entry;
+
+#define SCHEDULER_COUNT 2
 
 /**
  * @brief Test context for spec:/score/tq/req/enqueue-priority-inherit test
@@ -69,62 +68,80 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member specifies the priority of a thread on the thread queue
-   *   with an eligible scheduler equal to an eligible scheduler of the
-   *   enqueueing thread.
+   * @brief This member is true, if the enqueueing thread has a helping
+   *   scheduler.
    */
-  rtems_task_priority queue_priority;
+  bool helping;
 
   /**
-   * @brief If this member is true, then a thread those eligible schedulers are
-   *   ineligible scheduler to the enqueueing task should be enqueued before a
-   *   thread with an eligible scheduler equal to an eligible scheduler of the
-   *   enqueueing thread.
-   */
-  size_t other_before;
-
-  /**
-   * @brief If this member is true, then a thread those eligible schedulers are
-   *   ineligible scheduler to the enqueueing task should be enqueued after a
-   *   thread with an eligible scheduler equal to an eligible scheduler of the
-   *   enqueueing thread.
-   */
-  size_t other_after;
-
-  /**
-   * @brief This this member is true, then the priorities of the enqueueing
-   *   thread shall be dispensable for the owner of the thread queue.
+   * @brief This member is true, if a priority of the enqueueing thread is
+   *   higher than the priority of the owner with respect to the same
+   *   scheduler.
    */
   bool vital_priority;
 
   /**
-   * @brief This this member is true, then the eligible scheduler of the
-   *   enqueueing thread shall be dispensable for the owner of the thread
-   *   queue.
+   * @brief This member is true, if an eligible scheduler of the enqueueing
+   *   thread is not an eligible scheduler of the owner.
    */
   bool vital_scheduler;
 
   /**
-   * @brief This member contains the priorities of the thread queue owner after
+   * @brief This member specifies the home scheduler of the owner.
+   */
+  rtems_id owner_scheduler;
+
+  /**
+   * @brief This member specifies the priority of the owner with respect to its
+   *   home scheduler.
+   */
+  rtems_task_priority owner_priority;
+
+  /**
+   * @brief This member specifies the priority of the owner with respect to
+   *   scheduler B as a helping scheduler. PRIO_INVALID means that the owner
+   *   has no such helping scheduler.
+   */
+  rtems_task_priority owner_helper_priority;
+
+  /**
+   * @brief This member contains the priorities of the enqueueing thread before
    *   the enqueue.
    */
-  rtems_task_priority owner_priority[ 4 ];
+  rtems_task_priority enqueue_priority[ SCHEDULER_COUNT ];
 
   /**
-   * @brief This member contains the priorities of the owner of the thread
-   *   queue on which the thread queue owner is blocked after the enqueue.
+   * @brief This member contains the priorities of the owner before the
+   *   enqueue.
    */
-  rtems_task_priority owner_owner_priority[ 4 ];
+  rtems_task_priority owner_before[ SCHEDULER_COUNT ];
 
   /**
-   * @brief This member specifies which mutex obtain event shall be used to
-   *   block the thread queue owner.
+   * @brief This member contains the priorities of the owner after the enqueue.
+   */
+  rtems_task_priority owner_after[ SCHEDULER_COUNT ];
+
+  /**
+   * @brief This member contains the priorities of the owner of the owner
+   *   before the enqueue.
+   */
+  rtems_task_priority owner_owner_before[ SCHEDULER_COUNT ];
+
+  /**
+   * @brief This member contains the priorities of the owner of the owner after
+   *   the enqueue.
+   */
+  rtems_task_priority owner_owner_after[ SCHEDULER_COUNT ];
+
+  /**
+   * @brief This member specifies the events which let the owner of the owner
+   *   obtain the mutex on which the owner waits.
    */
   rtems_event_set owner_obtain;
 
   /**
-   * @brief This member specifies which mutex release event shall be used to
-   *   unblock the thread queue owner.
+   * @brief This member specifies the events which let the owner of the owner
+   *   release the mutex on which the owner waits.
    */
   rtems_event_set owner_release;
 
@@ -138,7 +155,7 @@ typedef struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 6 ];
+    size_t pcs[ 4 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -166,16 +183,9 @@ typedef struct {
 static ScoreTqReqEnqueuePriorityInherit_Context
   ScoreTqReqEnqueuePriorityInherit_Instance;
 
-static const char *const ScoreTqReqEnqueuePriorityInherit_PreDesc_Scheduler[] =
-  { "One", "Two", "Three", "More", "NA" };
-
 static const char *const
-  ScoreTqReqEnqueuePriorityInherit_PreDesc_QueueEligible[] =
-    { "None", "High", "Equal", "Low", "NA" };
-
-static const char *const
-  ScoreTqReqEnqueuePriorityInherit_PreDesc_QueueIneligible[] =
-    { "None", "Only", "Before", "After", "NA" };
+  ScoreTqReqEnqueuePriorityInherit_PreDesc_EligibleScheduler[] =
+    { "Home", "Helping", "NA" };
 
 static const char *const
   ScoreTqReqEnqueuePriorityInherit_PreDesc_PriorityForOwner[] =
@@ -190,9 +200,7 @@ static const char *const
     { "NotEnqueued", "FIFO", "Priority", "PriorityInherit", "NA" };
 
 static const char *const *const ScoreTqReqEnqueuePriorityInherit_PreDesc[] = {
-  ScoreTqReqEnqueuePriorityInherit_PreDesc_Scheduler,
-  ScoreTqReqEnqueuePriorityInherit_PreDesc_QueueEligible,
-  ScoreTqReqEnqueuePriorityInherit_PreDesc_QueueIneligible,
+  ScoreTqReqEnqueuePriorityInherit_PreDesc_EligibleScheduler,
   ScoreTqReqEnqueuePriorityInherit_PreDesc_PriorityForOwner,
   ScoreTqReqEnqueuePriorityInherit_PreDesc_SchedulerForOwner,
   ScoreTqReqEnqueuePriorityInherit_PreDesc_OwnerState,
@@ -201,111 +209,10 @@ static const char *const *const ScoreTqReqEnqueuePriorityInherit_PreDesc[] = {
 
 typedef ScoreTqReqEnqueuePriorityInherit_Context Context;
 
-static const rtems_tcb *GetUnblock( Context *ctx, size_t *index )
-{
-  const rtems_tcb *thread;
-
-  do {
-    thread = TQGetNextUnblock( ctx->tq_ctx, index )->thread;
-  } while ( thread == ctx->tq_ctx->runner_tcb );
-
-  return thread;
-}
-
-static const rtems_tcb *GetTCB( Context *ctx, TQWorkerKind worker )
-{
-  return ctx->tq_ctx->worker_tcb[ worker ];
-}
-
-static void CheckPriorityRaise(
-  const Context             *ctx,
-  const rtems_task_priority *priority
-)
-{
-  if ( ctx->queue_priority == PRIO_ULTRA_HIGH ) {
-    T_eq_u32( priority[ 0 ], PRIO_ULTRA_HIGH );
-  } else {
-    T_eq_u32( priority[ 0 ], PRIO_VERY_HIGH );
-  }
-
-  if (
-    ctx->queue_priority == PRIO_VERY_HIGH ||
-    ctx->queue_priority == PRIO_ULTRA_HIGH
-  ) {
-    if ( ctx->other_before || ctx->other_after ) {
-      T_eq_u32( priority[ 1 ], PRIO_ULTRA_LOW );
-      T_eq_u32( priority[ 2 ], PRIO_NORMAL );
-    } else {
-      T_eq_u32( priority[ 1 ], PRIO_NORMAL );
-    }
-  }
-}
-
-static void CheckPriorityNop(
-  const Context             *ctx,
-  const rtems_task_priority *priority
-)
-{
-  if ( ctx->queue_priority == PRIO_ULTRA_HIGH ) {
-    T_eq_u32( priority[ 0 ], PRIO_ULTRA_HIGH );
-  } else {
-    T_eq_u32( priority[ 0 ], PRIO_VERY_HIGH );
-  }
-}
-
-static void CheckSchedulerNewHelper(
-  const Context             *ctx,
-  const rtems_task_priority *priority
-)
-{
-  if (
-    ctx->vital_priority && ( ctx->queue_priority == PRIO_VERY_HIGH ||
-                             ctx->queue_priority == PRIO_ULTRA_HIGH )
-  ) {
-    if ( ctx->other_before || ctx->other_after ) {
-      T_eq_u32( priority[ 3 ], PRIO_VERY_LOW );
-    } else {
-      T_eq_u32( priority[ 2 ], PRIO_VERY_LOW );
-      T_eq_u32( priority[ 3 ], PRIO_INVALID );
-    }
-  } else {
-    if ( ctx->other_before || ctx->other_after ) {
-      T_eq_u32( priority[ 1 ], PRIO_ULTRA_LOW );
-      T_eq_u32( priority[ 2 ], PRIO_VERY_LOW );
-    } else {
-      T_eq_u32( priority[ 1 ], PRIO_VERY_LOW );
-      T_eq_u32( priority[ 2 ], PRIO_INVALID );
-    }
-
-    T_eq_u32( priority[ 3 ], PRIO_INVALID );
-  }
-}
-
-static void CheckSchedulerNop(
-  const Context             *ctx,
-  const rtems_task_priority *priority
-)
-{
-  if (
-    ctx->vital_priority && ( ctx->queue_priority == PRIO_VERY_HIGH ||
-                             ctx->queue_priority == PRIO_ULTRA_HIGH )
-  ) {
-    if ( !ctx->other_before && !ctx->other_after ) {
-      T_eq_u32( priority[ 2 ], PRIO_INVALID );
-    }
-
-    T_eq_u32( priority[ 3 ], PRIO_INVALID );
-  } else {
-    if ( ctx->other_before || ctx->other_after ) {
-      T_eq_u32( priority[ 1 ], PRIO_ULTRA_LOW );
-    } else {
-      T_eq_u32( priority[ 1 ], PRIO_INVALID );
-    }
-
-    T_eq_u32( priority[ 2 ], PRIO_INVALID );
-    T_eq_u32( priority[ 3 ], PRIO_INVALID );
-  }
-}
+static const rtems_id scheduler_ids[ SCHEDULER_COUNT ] = {
+  SCHEDULER_A_ID,
+  SCHEDULER_B_ID
+};
 
 static void GetPriorities(
   const Context       *ctx,
@@ -313,215 +220,161 @@ static void GetPriorities(
   rtems_task_priority *priority
 )
 {
-  priority[ 0 ] = GetPriorityByScheduler(
-    ctx->tq_ctx->worker_id[ worker ],
-    SCHEDULER_A_ID
-  );
-  priority[ 1 ] = GetPriorityByScheduler(
-    ctx->tq_ctx->worker_id[ worker ],
-    SCHEDULER_B_ID
-  );
-  priority[ 2 ] = GetPriorityByScheduler(
-    ctx->tq_ctx->worker_id[ worker ],
-    SCHEDULER_C_ID
-  );
-  priority[ 3 ] = GetPriorityByScheduler(
-    ctx->tq_ctx->worker_id[ worker ],
-    SCHEDULER_D_ID
-  );
-}
+  size_t i;
 
-static void AddVitalPriority( Context *ctx, rtems_id scheduler_id )
-{
-  TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, scheduler_id, PRIO_NORMAL );
-  TQSendAndWaitForExecutionStop(
-    ctx->tq_ctx,
-    TQ_BLOCKER_D,
-    TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
-  );
-}
-
-static void AddVitalPriorityHelper( Context *ctx, rtems_id scheduler_id )
-{
-  TQSetScheduler( ctx->tq_ctx, TQ_HELPER_B, scheduler_id, PRIO_LOW );
-  TQSendAndWaitForExecutionStop(
-    ctx->tq_ctx,
-    TQ_HELPER_B,
-    TQ_EVENT_MUTEX_B_OBTAIN | TQ_EVENT_MUTEX_B_RELEASE
-  );
-}
-
-static void AddVitalScheduler( Context *ctx, rtems_id scheduler_id )
-{
-  TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, scheduler_id, PRIO_VERY_LOW );
-  TQSendAndWaitForExecutionStop(
-    ctx->tq_ctx,
-    TQ_BLOCKER_E,
-    TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
-  );
-}
-
-static void ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Prepare(
-  ScoreTqReqEnqueuePriorityInherit_Context      *ctx,
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler state
-)
-{
-  switch ( state ) {
-    case ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_One: {
-      /*
-       * Where the system has exactly one schedulers.
-       */
-      if ( rtems_scheduler_get_processor_maximum() != 1 ) {
-        ctx->Map.skip = true;
-      }
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Two: {
-      /*
-       * Where the system has exactly two schedulers.
-       */
-      if ( rtems_scheduler_get_processor_maximum() != 2 ) {
-        ctx->Map.skip = true;
-      }
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Three: {
-      /*
-       * Where the system has exactly three schedulers.
-       */
-      if ( rtems_scheduler_get_processor_maximum() != 3 ) {
-        ctx->Map.skip = true;
-      }
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_More: {
-      /*
-       * Where the system has at least four schedulers.
-       */
-      if ( rtems_scheduler_get_processor_maximum() < 4 ) {
-        ctx->Map.skip = true;
-      }
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_NA:
-      break;
+  for ( i = 0; i < SCHEDULER_COUNT; ++i ) {
+    priority[ i ] = GetPriorityByScheduler(
+      ctx->tq_ctx->worker_id[ worker ],
+      scheduler_ids[ i ]
+    );
   }
 }
 
-static void ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Prepare(
-  ScoreTqReqEnqueuePriorityInherit_Context          *ctx,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible state
+/*
+ * A lower value is a higher priority.  PRIO_INVALID is greater than every
+ * valid priority.
+ */
+static bool IsHigher( rtems_task_priority a, rtems_task_priority b )
+{
+  return a < b;
+}
+
+static void CheckPriorityRaise(
+  const Context             *ctx,
+  const rtems_task_priority *before,
+  const rtems_task_priority *after
 )
 {
-  switch ( state ) {
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_None: {
-      /*
-       * While all priority queues of the thread queue associated with eligible
-       * schedulers of the enqueueing thread are empty.
-       */
-      ctx->queue_priority = PRIO_INVALID;
-      break;
+  bool   raised;
+  size_t i;
+
+  raised = false;
+
+  for ( i = 0; i < SCHEDULER_COUNT; ++i ) {
+    if ( before[ i ] == PRIO_INVALID ) {
+      continue;
     }
 
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_High: {
-      /*
-       * While a priority queue of the thread queue associated with an eligible
-       * scheduler of the enqueueing thread is non-empty, while the highest
-       * priority of the priority queue is higher than the priority of the
-       * enqueueing thread with respect to the eligible scheduler.
-       */
-      ++ctx->tq_ctx->how_many;
-      ctx->queue_priority = PRIO_ULTRA_HIGH;
-      break;
+    if ( IsHigher( ctx->enqueue_priority[ i ], before[ i ] ) ) {
+      T_eq_u32( after[ i ], ctx->enqueue_priority[ i ] );
+      raised = true;
+    } else {
+      T_eq_u32( after[ i ], before[ i ] );
     }
+  }
 
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Equal: {
-      /*
-       * While a priority queue of the thread queue associated with an eligible
-       * scheduler of the enqueueing thread is non-empty, while the highest
-       * priority of the priority queue is equal to the priority of the
-       * enqueueing thread with respect to the eligible scheduler.
-       */
-      ++ctx->tq_ctx->how_many;
-      ctx->queue_priority = PRIO_VERY_HIGH;
-      break;
+  T_true( raised );
+}
+
+static void CheckPriorityNop(
+  const rtems_task_priority *before,
+  const rtems_task_priority *after
+)
+{
+  size_t i;
+
+  for ( i = 0; i < SCHEDULER_COUNT; ++i ) {
+    if ( before[ i ] != PRIO_INVALID ) {
+      T_eq_u32( after[ i ], before[ i ] );
     }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Low: {
-      /*
-       * While a priority queue of the thread queue associated with an eligible
-       * scheduler of the enqueueing thread is non-empty, while the highest
-       * priority of the priority queue is lower than the priority of the
-       * enqueueing thread with respect to the eligible scheduler.
-       */
-      ++ctx->tq_ctx->how_many;
-      ctx->queue_priority = PRIO_HIGH;
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_NA:
-      break;
   }
 }
 
-static void ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Prepare(
-  ScoreTqReqEnqueuePriorityInherit_Context            *ctx,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible state
+static void CheckSchedulerNewHelper(
+  const Context             *ctx,
+  const rtems_task_priority *before,
+  const rtems_task_priority *after
+)
+{
+  bool   added;
+  size_t i;
+
+  added = false;
+
+  for ( i = 0; i < SCHEDULER_COUNT; ++i ) {
+    if ( before[ i ] != PRIO_INVALID ) {
+      continue;
+    }
+
+    T_eq_u32( after[ i ], ctx->enqueue_priority[ i ] );
+
+    if ( ctx->enqueue_priority[ i ] != PRIO_INVALID ) {
+      added = true;
+    }
+  }
+
+  T_true( added );
+}
+
+static void CheckSchedulerNop(
+  const rtems_task_priority *before,
+  const rtems_task_priority *after
+)
+{
+  size_t i;
+
+  for ( i = 0; i < SCHEDULER_COUNT; ++i ) {
+    if ( before[ i ] == PRIO_INVALID ) {
+      T_eq_u32( after[ i ], PRIO_INVALID );
+    }
+  }
+}
+
+/*
+ * The enqueueing thread has the priority PRIO_VERY_HIGH with respect to its
+ * home scheduler A and the priority PRIO_NORMAL with respect to its helping
+ * scheduler B.  The owner gets the home scheduler and the priorities which
+ * give the states of the vital priority and the vital scheduler.
+ */
+static void Arrange( Context *ctx )
+{
+  ctx->owner_scheduler = SCHEDULER_A_ID;
+  ctx->owner_priority = PRIO_VERY_HIGH;
+  ctx->owner_helper_priority = PRIO_INVALID;
+
+  if ( ctx->helping ) {
+    if ( ctx->vital_priority && ctx->vital_scheduler ) {
+      ctx->owner_scheduler = SCHEDULER_B_ID;
+      ctx->owner_priority = PRIO_LOW;
+    } else if ( ctx->vital_priority ) {
+      ctx->owner_helper_priority = PRIO_LOW;
+    } else if ( !ctx->vital_scheduler ) {
+      ctx->owner_helper_priority = PRIO_HIGH;
+    }
+  } else if ( ctx->vital_priority ) {
+    ctx->owner_priority = PRIO_HIGH;
+  } else if ( ctx->vital_scheduler ) {
+    ctx->owner_scheduler = SCHEDULER_B_ID;
+  }
+}
+
+static void ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Prepare(
+  ScoreTqReqEnqueuePriorityInherit_Context              *ctx,
+  ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler state
 )
 {
   switch ( state ) {
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_None: {
+    case ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Home: {
       /*
-       * While each priority queue of the thread queue is associated with an
-       * eligible scheduler of the enqueueing thread.
+       * While the enqueueing thread has no helping scheduler.
        */
-      ctx->other_before = false;
-      ctx->other_after = false;
+      ctx->helping = false;
       break;
     }
 
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Only: {
+    case ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Helping: {
       /*
-       * While exactly one priority queue of the thread queue exists which is
-       * not associated with an eligible scheduler of the enqueueing thread.
+       * While the enqueueing thread has at least one helping scheduler.
        */
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = true;
-      ctx->other_after = false;
+      ctx->helping = true;
+
+      if ( rtems_scheduler_get_processor_maximum() < 2 ) {
+        ctx->Map.skip = true;
+      }
       break;
     }
 
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Before: {
-      /*
-       * While a priority queue of the thread queue exists which is not
-       * associated with an eligible scheduler of the enqueueing thread, while
-       * the priority queue is positioned before all priority queues which are
-       * associated with eligible schedulers of the enqueueing thread.
-       */
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = true;
-      ctx->other_after = false;
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_After: {
-      /*
-       * While a priority queue of the thread queue exists which is not
-       * associated with an eligible scheduler of the enqueueing thread, while
-       * the priority queue is positioned after all priority queues which are
-       * associated with eligible schedulers of the enqueueing thread.
-       */
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = false;
-      ctx->other_after = true;
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_NA:
+    case ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_NA:
       break;
   }
 }
@@ -535,7 +388,8 @@ static void ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Prepare(
     case ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Vital: {
       /*
        * While at least one priority of the enqueueing thread is higher than
-       * the highest priority of the owner of the thread queue.
+       * the highest priority of the owner of the thread queue with respect to
+       * the same scheduler.
        */
       ctx->vital_priority = true;
       break;
@@ -543,8 +397,9 @@ static void ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Prepare(
 
     case ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Dispensable: {
       /*
-       * While all priorities of the enqueueing thread are lower than or equal
-       * to the highest priority of the owner of the thread queue.
+       * While each priority of the enqueueing thread is lower than or equal to
+       * the highest priority of the owner of the thread queue with respect to
+       * the same scheduler.
        */
       ctx->vital_priority = false;
       break;
@@ -567,6 +422,10 @@ static void ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_Prepare(
        * an eligible scheduler of the owner of the thread queue.
        */
       ctx->vital_scheduler = true;
+
+      if ( rtems_scheduler_get_processor_maximum() < 2 ) {
+        ctx->Map.skip = true;
+      }
       break;
     }
 
@@ -634,129 +493,6 @@ static void ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_Prepare(
   }
 }
 
-static void ScoreTqReqEnqueuePriorityInherit_Post_Position_Check(
-  ScoreTqReqEnqueuePriorityInherit_Context      *ctx,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position state
-)
-{
-  size_t i;
-
-  i = 0;
-
-  /* Event receive */
-  T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_HELPER_A ) );
-
-  switch ( state ) {
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst: {
-      /*
-       * A priority queue associated with the scheduler which contains exactly
-       * the enqueueing thread shall be created as the first priority queue of
-       * the thread queue.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast: {
-      /*
-       * A priority queue associated with the scheduler which contains exactly
-       * the enqueueing thread shall be created as the last priority queue of
-       * the thread queue.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_First: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_Second: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       *
-       * The position of the priority queue in the thread queue shall not
-       * change.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       *
-       * The position of the priority queue in the thread queue shall not
-       * change.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       *
-       * The position of the priority queue in the thread queue shall not
-       * change.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast: {
-      /*
-       * The enqueueing thread shall be enqueued in the priority queue
-       * associated with the scheduler.
-       *
-       * The position of the priority queue in the thread queue shall not
-       * change.
-       */
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-      break;
-    }
-
-    case ScoreTqReqEnqueuePriorityInherit_Post_Position_NA:
-      break;
-  }
-}
-
 static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Check(
   ScoreTqReqEnqueuePriorityInherit_Context           *ctx,
   ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority state
@@ -769,7 +505,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Check(
        * highest priority of the owner of the thread queue shall be made the
        * highest priority of the owner.
        */
-      CheckPriorityRaise( ctx, ctx->owner_priority );
+      CheckPriorityRaise( ctx, ctx->owner_before, ctx->owner_after );
       break;
     }
 
@@ -777,7 +513,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Check(
       /*
        * The priorities of the owner of the thread queue shall not change.
        */
-      CheckPriorityNop( ctx, ctx->owner_priority );
+      CheckPriorityNop( ctx->owner_before, ctx->owner_after );
       break;
     }
 
@@ -799,7 +535,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Check(
        * helping scheduler of the owner with the priority of the enqueueing
        * thread.
        */
-      CheckSchedulerNewHelper( ctx, ctx->owner_priority );
+      CheckSchedulerNewHelper( ctx, ctx->owner_before, ctx->owner_after );
       break;
     }
 
@@ -808,7 +544,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Check(
        * The set of eligible schedulers of the owner of the thread queue shall
        * not change.
        */
-      CheckSchedulerNop( ctx, ctx->owner_priority );
+      CheckSchedulerNop( ctx->owner_before, ctx->owner_after );
       break;
     }
 
@@ -830,7 +566,11 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Check(
        * of the thread queue is enqueued shall be made the highest priority of
        * the owner.
        */
-      CheckPriorityRaise( ctx, ctx->owner_owner_priority );
+      CheckPriorityRaise(
+        ctx,
+        ctx->owner_owner_before,
+        ctx->owner_owner_after
+      );
       break;
     }
 
@@ -839,15 +579,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Check(
        * The priorities of the owner of the thread queue on which the owner of
        * the thread queue is enqueued shall not change.
        */
-      if ( ctx->owner_obtain == TQ_EVENT_MUTEX_C_OBTAIN ) {
-        CheckPriorityNop( ctx, ctx->owner_owner_priority );
-      } else {
-        if ( ctx->vital_priority ) {
-          T_eq_u32( ctx->owner_owner_priority[ 0 ], PRIO_HIGH );
-        } else {
-          T_eq_u32( ctx->owner_owner_priority[ 0 ], PRIO_VERY_HIGH );
-        }
-      }
+      CheckPriorityNop( ctx->owner_owner_before, ctx->owner_owner_after );
       break;
     }
 
@@ -869,7 +601,11 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Check(
        * of the thread queue is enqueued shall be made a helping scheduler of
        * the owner with the priority of the enqueueing thread.
        */
-      CheckSchedulerNewHelper( ctx, ctx->owner_owner_priority );
+      CheckSchedulerNewHelper(
+        ctx,
+        ctx->owner_owner_before,
+        ctx->owner_owner_after
+      );
       break;
     }
 
@@ -878,13 +614,7 @@ static void ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Check(
        * The set of eligible schedulers of the owner of the thread queue on
        * which the owner of the thread queue is enqueued shall not change.
        */
-      if ( ctx->owner_obtain == TQ_EVENT_MUTEX_C_OBTAIN ) {
-        CheckSchedulerNop( ctx, ctx->owner_owner_priority );
-      } else {
-        T_eq_u32( ctx->owner_owner_priority[ 1 ], PRIO_INVALID );
-        T_eq_u32( ctx->owner_owner_priority[ 2 ], PRIO_INVALID );
-        T_eq_u32( ctx->owner_owner_priority[ 3 ], PRIO_INVALID );
-      }
+      CheckSchedulerNop( ctx->owner_owner_before, ctx->owner_owner_after );
       break;
     }
 
@@ -899,16 +629,6 @@ static void ScoreTqReqEnqueuePriorityInherit_Setup(
 {
   TQReset( ctx->tq_ctx );
   TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
-  TQSetPriority( ctx->tq_ctx, TQ_HELPER_C, PRIO_HIGH );
-
-  #if defined( RTEMS_SMP )
-  TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_C, SCHEDULER_B_ID, PRIO_ULTRA_LOW );
-
-  if ( rtems_scheduler_get_processor_maximum() > 3 ) {
-    RemoveProcessor( SCHEDULER_C_ID, 3 );
-    AddProcessor( SCHEDULER_D_ID, 3 );
-  }
-  #endif
 }
 
 static void ScoreTqReqEnqueuePriorityInherit_Setup_Wrap( void *arg )
@@ -925,13 +645,6 @@ static void ScoreTqReqEnqueuePriorityInherit_Teardown(
 )
 {
   TQReset( ctx->tq_ctx );
-
-  #if defined( RTEMS_SMP )
-  if ( rtems_scheduler_get_processor_maximum() > 3 ) {
-    RemoveProcessor( SCHEDULER_D_ID, 3 );
-    AddProcessor( SCHEDULER_C_ID, 3 );
-  }
-  #endif
 }
 
 static void ScoreTqReqEnqueuePriorityInherit_Teardown_Wrap( void *arg )
@@ -943,95 +656,59 @@ static void ScoreTqReqEnqueuePriorityInherit_Teardown_Wrap( void *arg )
   ScoreTqReqEnqueuePriorityInherit_Teardown( ctx );
 }
 
-static void ScoreTqReqEnqueuePriorityInherit_Prepare(
-  ScoreTqReqEnqueuePriorityInherit_Context *ctx
-)
-{
-  ctx->tq_ctx->how_many = 1;
-}
-
 static void ScoreTqReqEnqueuePriorityInherit_Action(
   ScoreTqReqEnqueuePriorityInherit_Context *ctx
 )
 {
+  Arrange( ctx );
   TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_MUTEX_A_OBTAIN );
-  TQSend(
+  TQSetScheduler(
+    ctx->tq_ctx,
+    TQ_HELPER_A,
+    ctx->owner_scheduler,
+    ctx->owner_priority
+  );
+  TQSendAndWaitForExecutionStop(
     ctx->tq_ctx,
     TQ_HELPER_A,
     TQ_EVENT_MUTEX_B_OBTAIN | TQ_EVENT_ENQUEUE_PREPARE
   );
 
-  if ( ctx->owner_obtain != 0 ) {
-    TQSend( ctx->tq_ctx, TQ_HELPER_C, ctx->owner_obtain );
-  }
-
-  if ( ctx->other_before ) {
+  if ( ctx->owner_helper_priority != PRIO_INVALID ) {
+    TQSetScheduler(
+      ctx->tq_ctx,
+      TQ_HELPER_B,
+      SCHEDULER_B_ID,
+      ctx->owner_helper_priority
+    );
     TQSendAndWaitForExecutionStop(
       ctx->tq_ctx,
-      TQ_BLOCKER_C,
-      TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC_2
+      TQ_HELPER_B,
+      TQ_EVENT_MUTEX_B_OBTAIN | TQ_EVENT_MUTEX_B_RELEASE
     );
   }
 
-  if ( ctx->queue_priority != PRIO_INVALID ) {
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, ctx->queue_priority );
-    TQSend( ctx->tq_ctx, TQ_BLOCKER_B, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
-  }
-
-  if ( ctx->other_after ) {
+  if ( ctx->helping ) {
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_B_ID, PRIO_NORMAL );
     TQSendAndWaitForExecutionStop(
       ctx->tq_ctx,
-      TQ_BLOCKER_C,
-      TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC_2
+      TQ_BLOCKER_D,
+      TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
     );
   }
 
-  if ( ctx->vital_priority ) {
-    TQSetPriority( ctx->tq_ctx, TQ_HELPER_A, PRIO_HIGH );
-    TQSetPriority( ctx->tq_ctx, TQ_HELPER_C, PRIO_HIGH );
-
-    if (
-      ctx->queue_priority == PRIO_VERY_HIGH ||
-      ctx->queue_priority == PRIO_ULTRA_HIGH
-    ) {
-      if ( ctx->other_before || ctx->other_after ) {
-        AddVitalPriority( ctx, SCHEDULER_C_ID );
-        AddVitalPriorityHelper( ctx, SCHEDULER_C_ID );
-
-        if ( ctx->vital_scheduler ) {
-          AddVitalScheduler( ctx, SCHEDULER_D_ID );
-        }
-      } else {
-        AddVitalPriority( ctx, SCHEDULER_B_ID );
-        AddVitalPriorityHelper( ctx, SCHEDULER_B_ID );
-
-        if ( ctx->vital_scheduler ) {
-          AddVitalScheduler( ctx, SCHEDULER_C_ID );
-        }
-      }
-    } else {
-      if ( ctx->vital_scheduler ) {
-        if ( ctx->other_before || ctx->other_after ) {
-          AddVitalScheduler( ctx, SCHEDULER_C_ID );
-        } else {
-          AddVitalScheduler( ctx, SCHEDULER_B_ID );
-        }
-      }
-    }
-  } else {
-    TQSetPriority( ctx->tq_ctx, TQ_HELPER_A, PRIO_VERY_HIGH );
-    TQSetPriority( ctx->tq_ctx, TQ_HELPER_C, PRIO_VERY_HIGH );
-
-    if ( ctx->vital_scheduler ) {
-      if ( ctx->other_before || ctx->other_after ) {
-        AddVitalScheduler( ctx, SCHEDULER_C_ID );
-      } else {
-        AddVitalScheduler( ctx, SCHEDULER_B_ID );
-      }
-    }
-  }
-
   if ( ctx->owner_obtain != 0 ) {
+    TQSetScheduler(
+      ctx->tq_ctx,
+      TQ_HELPER_C,
+      ctx->owner_scheduler,
+      ctx->owner_priority
+    );
+    TQSendAndWaitForExecutionStop(
+      ctx->tq_ctx,
+      TQ_HELPER_C,
+      ctx->owner_obtain
+    );
     TQClearDone( ctx->tq_ctx, TQ_HELPER_A );
     TQSendAndWaitForExecutionStop(
       ctx->tq_ctx,
@@ -1040,14 +717,16 @@ static void ScoreTqReqEnqueuePriorityInherit_Action(
     );
   }
 
-  TQSend(
+  GetPriorities( ctx, TQ_BLOCKER_A, ctx->enqueue_priority );
+  GetPriorities( ctx, TQ_HELPER_A, ctx->owner_before );
+  GetPriorities( ctx, TQ_HELPER_C, ctx->owner_owner_before );
+  TQSendAndWaitForExecutionStop(
     ctx->tq_ctx,
     TQ_BLOCKER_A,
     TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC
   );
-
-  GetPriorities( ctx, TQ_HELPER_A, ctx->owner_priority );
-  GetPriorities( ctx, TQ_HELPER_C, ctx->owner_owner_priority );
+  GetPriorities( ctx, TQ_HELPER_A, ctx->owner_after );
+  GetPriorities( ctx, TQ_HELPER_C, ctx->owner_owner_after );
 
   if ( ctx->owner_obtain != 0 ) {
     TQSend( ctx->tq_ctx, TQ_HELPER_C, ctx->owner_release );
@@ -1055,16 +734,8 @@ static void ScoreTqReqEnqueuePriorityInherit_Action(
     TQWaitForExecutionStop( ctx->tq_ctx, TQ_HELPER_A );
   }
 
-  TQSchedulerRecordStart( ctx->tq_ctx );
   TQSend( ctx->tq_ctx, TQ_HELPER_A, TQ_EVENT_ENQUEUE_DONE );
-
-  if ( ctx->other_before || ctx->other_after ) {
-    TQSynchronizeRunner2();
-  } else {
-    TQSynchronizeRunner();
-  }
-
-  TQSchedulerRecordStop( ctx->tq_ctx );
+  TQSynchronizeRunner();
 
   TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_MUTEX_A_RELEASE );
   TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
@@ -1079,402 +750,105 @@ static void ScoreTqReqEnqueuePriorityInherit_Action(
 
 static const ScoreTqReqEnqueuePriorityInherit_Entry
 ScoreTqReqEnqueuePriorityInherit_Entries[] = {
-  { 1, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_NA,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
-  { 1, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_NA,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+#endif
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
-  { 1, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_NA,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
-  { 1, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_NA,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+#endif
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
+#endif
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 1, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_NA,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
+#endif
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
+#endif
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA },
+#endif
+#if defined(RTEMS_SMP)
+  { 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
     ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Nop,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper },
-  { 0, 0, 0, 0, 0, 0, 0,
-    ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NewHelper,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_Raise,
-    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NewHelper }
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_Nop }
+#else
+  { 1, 0, 0, 0, 0, ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerScheduler_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerPriority_NA,
+    ScoreTqReqEnqueuePriorityInherit_Post_OwnerOwnerScheduler_NA }
+#endif
 };
 
 static const uint8_t
 ScoreTqReqEnqueuePriorityInherit_Map[] = {
-  0, 0, 0, 0, 12, 12, 12, 39, 0, 0, 0, 0, 10, 10, 10, 10, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 5, 5, 5, 0, 0, 0,
-  0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 5, 5, 5, 5, 0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 13, 13, 13, 40, 0, 0, 0,
-  0, 11, 11, 11, 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 22, 22, 22, 46, 12, 12, 12, 39, 23, 23, 23, 47, 10, 10, 10, 10, 3,
-  3, 3, 3, 24, 24, 24, 48, 3, 3, 3, 3, 14, 14, 14, 14, 2, 2, 2, 2, 2, 2, 2, 2,
-  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3,
-  3, 3, 8, 8, 8, 29, 9, 9, 9, 30, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 6, 6, 6, 6, 3, 3, 3, 3, 5,
-  5, 5, 5, 3, 3, 3, 3, 7, 7, 7, 7, 3, 3, 3, 3, 8, 8, 8, 29, 9, 9, 9, 30, 4, 4,
-  4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 5, 5, 5, 5,
-  3, 3, 3, 3, 6, 6, 6, 6, 3, 3, 3, 3, 5, 5, 5, 5, 3, 3, 3, 3, 7, 7, 7, 7, 25,
-  25, 25, 49, 13, 13, 13, 40, 26, 26, 26, 50, 11, 11, 11, 11, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 27, 27, 27, 51, 3, 3, 3, 3, 15, 15,
-  15, 15, 3, 3, 3, 3, 28, 28, 28, 52, 3, 3, 3, 3, 16, 16, 16, 16, 22, 22, 22,
-  46, 12, 12, 12, 39, 23, 23, 23, 47, 10, 10, 10, 10, 31, 31, 31, 53, 24, 24,
-  24, 48, 32, 32, 32, 54, 14, 14, 14, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 17, 17, 17, 41,
-  8, 8, 8, 29, 9, 9, 9, 30, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 3, 3, 3, 3, 18, 18, 18, 42, 19, 19, 19, 43, 6, 6, 6, 6, 3, 3, 3, 3,
-  20, 20, 20, 44, 21, 21, 21, 45, 7, 7, 7, 7, 17, 17, 17, 41, 8, 8, 8, 29, 9,
-  9, 9, 30, 4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3,
-  3, 3, 18, 18, 18, 42, 19, 19, 19, 43, 6, 6, 6, 6, 3, 3, 3, 3, 20, 20, 20, 44,
-  21, 21, 21, 45, 7, 7, 7, 7, 25, 25, 25, 49, 13, 13, 13, 40, 26, 26, 26, 50,
-  11, 11, 11, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 33, 33, 33,
-  55, 27, 27, 27, 51, 34, 34, 34, 56, 15, 15, 15, 15, 35, 35, 35, 57, 28, 28,
-  28, 52, 36, 36, 36, 58, 16, 16, 16, 16, 22, 22, 22, 46, 12, 12, 12, 39, 23,
-  23, 23, 47, 10, 10, 10, 10, 31, 31, 31, 53, 24, 24, 24, 48, 32, 32, 32, 54,
-  14, 14, 14, 14, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-  2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 17, 17, 17, 41, 8, 8, 8, 29, 9, 9, 9, 30,
-  4, 4, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 37, 37, 37, 59,
-  18, 18, 18, 42, 19, 19, 19, 43, 6, 6, 6, 6, 38, 38, 38, 60, 20, 20, 20, 44,
-  21, 21, 21, 45, 7, 7, 7, 7, 17, 17, 17, 41, 8, 8, 8, 29, 9, 9, 9, 30, 4, 4,
-  4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 37, 37, 37, 59, 18, 18,
-  18, 42, 19, 19, 19, 43, 6, 6, 6, 6, 38, 38, 38, 60, 20, 20, 20, 44, 21, 21,
-  21, 45, 7, 7, 7, 7, 25, 25, 25, 49, 13, 13, 13, 40, 26, 26, 26, 50, 11, 11,
-  11, 11, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 33, 33, 33, 55, 27,
-  27, 27, 51, 34, 34, 34, 56, 15, 15, 15, 15, 35, 35, 35, 57, 28, 28, 28, 52,
-  36, 36, 36, 58, 16, 16, 16, 16
+  1, 1, 1, 1, 4, 4, 4, 8, 0, 0, 0, 7, 2, 2, 2, 2, 5, 5, 5, 9, 6, 6, 6, 10, 0,
+  0, 0, 7, 3, 3, 3, 3
 };
 
 /* clang-format on */
@@ -1509,8 +883,8 @@ static T_fixture ScoreTqReqEnqueuePriorityInherit_Fixture = {
   .initial_context = &ScoreTqReqEnqueuePriorityInherit_Instance
 };
 
-static const uint16_t ScoreTqReqEnqueuePriorityInherit_Weights[] =
-  { 256, 64, 16, 8, 4, 1 };
+static const uint8_t ScoreTqReqEnqueuePriorityInherit_Weights[] =
+  { 16, 8, 4, 1 };
 
 static void ScoreTqReqEnqueuePriorityInherit_Skip(
   ScoreTqReqEnqueuePriorityInherit_Context *ctx,
@@ -1520,22 +894,14 @@ static void ScoreTqReqEnqueuePriorityInherit_Skip(
   switch ( index + 1 ) {
     case 1:
       ctx->Map.pcs[ 1 ] =
-        ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_NA - 1;
+        ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_NA - 1;
       /* Fall through */
     case 2:
       ctx->Map.pcs[ 2 ] =
-        ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_NA - 1;
-      /* Fall through */
-    case 3:
-      ctx->Map.pcs[ 3 ] =
-        ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_NA - 1;
-      /* Fall through */
-    case 4:
-      ctx->Map.pcs[ 4 ] =
         ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_NA - 1;
       /* Fall through */
-    case 5:
-      ctx->Map.pcs[ 5 ] = ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NA -
+    case 3:
+      ctx->Map.pcs[ 3 ] = ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NA -
                           1;
       break;
   }
@@ -1554,7 +920,7 @@ ScoreTqReqEnqueuePriorityInherit_PopEntry(
     ctx->Map.skip = false;
     index = 0;
 
-    for ( i = 0; i < 6; ++i ) {
+    for ( i = 0; i < 4; ++i ) {
       index += ScoreTqReqEnqueuePriorityInherit_Weights[ i ] *
                ctx->Map.pcs[ i ];
     }
@@ -1572,7 +938,7 @@ static void ScoreTqReqEnqueuePriorityInherit_TestVariant(
   ScoreTqReqEnqueuePriorityInherit_Context *ctx
 )
 {
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Prepare(
+  ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Prepare(
     ctx,
     ctx->Map.pcs[ 0 ]
   );
@@ -1582,31 +948,25 @@ static void ScoreTqReqEnqueuePriorityInherit_TestVariant(
     return;
   }
 
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Prepare(
+  ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Prepare(
     ctx,
     ctx->Map.pcs[ 1 ]
   );
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Prepare(
+  ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_Prepare(
     ctx,
     ctx->Map.pcs[ 2 ]
   );
-  ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Prepare(
+
+  if ( ctx->Map.skip ) {
+    ScoreTqReqEnqueuePriorityInherit_Skip( ctx, 2 );
+    return;
+  }
+
+  ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_Prepare(
     ctx,
     ctx->Map.pcs[ 3 ]
   );
-  ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_Prepare(
-    ctx,
-    ctx->Map.pcs[ 4 ]
-  );
-  ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_Prepare(
-    ctx,
-    ctx->Map.pcs[ 5 ]
-  );
   ScoreTqReqEnqueuePriorityInherit_Action( ctx );
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_Check(
-    ctx,
-    ctx->Map.entry.Post_Position
-  );
   ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Check(
     ctx,
     ctx->Map.entry.Post_OwnerPriority
@@ -1648,57 +1008,40 @@ void ScoreTqReqEnqueuePriorityInherit_Run( TQContext *tq_ctx )
   ctx->Map.skip = false;
 
   for (
-    ctx->Map.pcs[ 0 ] = ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_One;
-    ctx->Map.pcs[ 0 ] < ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_NA;
+    ctx->Map.pcs[ 0 ] =
+      ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Home;
+    ctx->Map.pcs[ 0 ] <
+    ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     for (
       ctx->Map.pcs[ 1 ] =
-        ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_None;
+        ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Vital;
       ctx->Map.pcs[ 1 ] <
-      ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_NA;
+      ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_NA;
       ++ctx->Map.pcs[ 1 ]
     ) {
       for (
         ctx->Map.pcs[ 2 ] =
-          ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_None;
+          ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_Vital;
         ctx->Map.pcs[ 2 ] <
-        ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_NA;
+        ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_NA;
         ++ctx->Map.pcs[ 2 ]
       ) {
         for (
           ctx->Map.pcs[ 3 ] =
-            ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Vital;
+            ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NotEnqueued;
           ctx->Map.pcs[ 3 ] <
-          ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_NA;
+          ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NA;
           ++ctx->Map.pcs[ 3 ]
         ) {
-          for (
-            ctx->Map.pcs[ 4 ] =
-              ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_Vital;
-            ctx->Map.pcs[ 4 ] <
-            ScoreTqReqEnqueuePriorityInherit_Pre_SchedulerForOwner_NA;
-            ++ctx->Map.pcs[ 4 ]
-          ) {
-            for (
-              ctx->Map.pcs[ 5 ] =
-                ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NotEnqueued;
-              ctx->Map.pcs[ 5 ] <
-              ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NA;
-              ++ctx->Map.pcs[ 5 ]
-            ) {
-              ctx->Map.entry = ScoreTqReqEnqueuePriorityInherit_PopEntry(
-                ctx
-              );
+          ctx->Map.entry = ScoreTqReqEnqueuePriorityInherit_PopEntry( ctx );
 
-              if ( ctx->Map.entry.Skip ) {
-                continue;
-              }
-
-              ScoreTqReqEnqueuePriorityInherit_Prepare( ctx );
-              ScoreTqReqEnqueuePriorityInherit_TestVariant( ctx );
-            }
+          if ( ctx->Map.entry.Skip ) {
+            continue;
           }
+
+          ScoreTqReqEnqueuePriorityInherit_TestVariant( ctx );
         }
       }
     }

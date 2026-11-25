@@ -39,6 +39,8 @@
 #include <rtems/score/statesimpl.h>
 
 #include "tr-tq-enqueue-fifo.h"
+#include "tr-tq-enqueue-priority-further-helping.h"
+#include "tr-tq-enqueue-priority-ineligible.h"
 #include "tr-tq-enqueue-priority.h"
 #include "tx-support.h"
 #include "tx-thread-queue.h"
@@ -1122,9 +1124,14 @@ static void RtemsMessageReqReceive_Post_Tasks_Check(
     case RtemsMessageReqReceive_Post_Tasks_Priority: {
       /*
        * Where the thread queue uses the priority discipline, the calling
-       * thread shall be enqueued in priority order.
+       * thread shall be enqueued as specified by
+       * spec:/score/tq/req/enqueue-priority,
+       * spec:/score/tq/req/enqueue-priority-further-helping, and
+       * spec:/score/tq/req/enqueue-priority-ineligible.
        */
-      ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx );
+      ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx, false );
+      ScoreTqReqEnqueuePriorityFurtherHelping_Run( &ctx->tq_ctx, false );
+      ScoreTqReqEnqueuePriorityIneligible_Run( &ctx->tq_ctx, false );
       break;
     }
 
