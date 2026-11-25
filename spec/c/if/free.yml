@@ -1,15 +1,35 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Free the memory area referenced by ${.:/params[0]/name}.
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    return: void
+  variants: []
+description: null
 enabled-by: true
 index-entries: []
-interface-type: unspecified-function
+interface-type: function
 links:
 - role: interface-placement
   uid: stdlib
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
+- role: reference
+  uid: /ref/std/c23/free
 name: free
+notes: null
+params:
+- description: |
+    is ${../if/null:/name} or the begin address of a memory area which a memory
+    allocation function of the ${/score/heap/glossary/c-program-heap:/term}
+    returned.
+  dir: null
+  name: ptr
+return: null
 type: interface

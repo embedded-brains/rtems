@@ -1,0 +1,58 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: fatal-error
+links:
+- role: requirement-refinement
+  uid: /testsuites/validation
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: interface-function
+  uid: ../if/free
+- role: interface-function
+  uid: /score/interr/if/source-invalid-heap-free
+rationale: null
+requirement-type: functional
+test-brief: |
+  This validation test suite contains a test case which triggers a fatal error
+  during system initialization.
+test-case-code: |
+  T_eq_int( source, RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE );
+  T_eq_ulong( code, (rtems_fatal_code) &RTEMS_Malloc_Heap );
+test-description: |
+  A system initialization handler frees an address which is not the begin address
+  of a used block of the C Program Heap.
+test-includes:
+- stdlib.h
+- rtems/malloc.h
+- rtems/sysinit.h
+test-local-includes: []
+test-support: |
+  static void FreeInvalidBlock( void )
+  {
+    void *ptr;
+
+    ptr = &RTEMS_Malloc_Heap;
+    RTEMS_OBFUSCATE_VARIABLE( ptr );
+    free( ptr );
+  }
+
+  RTEMS_SYSINIT_ITEM(
+    FreeInvalidBlock,
+    RTEMS_SYSINIT_DEVICE_DRIVERS,
+    RTEMS_SYSINIT_ORDER_MIDDLE
+  );
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  #define CONFIGURE_IDLE_TASK_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
+test-target: testsuites/validation/ts-fatal-invalid-heap-free.c
+text: |
+  If the `ptr` parameter of a ${../if/free:/name} call is not equal to
+  ${../if/null:/name} and is not the begin address of a
+  ${/score/heap/glossary/used-block:/term} of the
+  ${/score/heap/glossary/c-program-heap:/term}, then the system shall terminate
+  with the ${/score/interr/if/source-invalid-heap-free:/name} fatal source and
+  the `ptr` parameter as the fatal code.
+type: requirement
