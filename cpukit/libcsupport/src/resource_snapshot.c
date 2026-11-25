@@ -130,11 +130,15 @@ static int open_files( void )
 }
 
 /*
- * A snapshot compares the state of a heap, so it clears the members which
- * describe the history of the heap.
+ * A snapshot compares the used blocks of a heap, so it clears the members which
+ * describe the history of the heap.  The red-black tree heap may keep slabs of
+ * descriptors after a load, so the snapshot clears also the members which
+ * describe the free blocks.
  */
 static void clear_heap_history( rtems_heap_statistics *stats )
 {
+  stats->free_size = 0;
+  stats->free_blocks = 0;
   stats->lifetime_allocated = 0;
   stats->lifetime_freed = 0;
   stats->min_free_size = 0;

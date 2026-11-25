@@ -55,6 +55,32 @@ extern "C" {
  */
 
 /**
+ * @brief Converts the statistics of a heap into the statistics of the API.
+ *
+ * @param heap_stats is the statistics of the heap.
+ *
+ * @param[out] stats is the statistics of the API.
+ */
+static inline void _RTEMS_Convert_heap_statistics(
+  const Heap_Statistics *heap_stats,
+  rtems_heap_statistics *stats
+)
+{
+  stats->lifetime_allocated = heap_stats->lifetime_allocated;
+  stats->lifetime_freed = heap_stats->lifetime_freed;
+  stats->size = heap_stats->size;
+  stats->free_size = heap_stats->free_size;
+  stats->min_free_size = heap_stats->min_free_size;
+  stats->free_blocks = heap_stats->free_blocks;
+  stats->max_free_blocks = heap_stats->max_free_blocks;
+  stats->used_blocks = heap_stats->used_blocks;
+  stats->allocs = heap_stats->allocs;
+  stats->failed_allocs = heap_stats->failed_allocs;
+  stats->frees = heap_stats->frees;
+  stats->resizes = heap_stats->resizes;
+}
+
+/**
  * @brief Gets the statistics of the heap.
  *
  * The function frees the blocks which the heap protection delays, so that the

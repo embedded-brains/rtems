@@ -234,7 +234,7 @@ const bool _Workspace_Is_unified = true;
 #endif
 
 #ifdef _CONFIGURE_WORKSPACE_FALLBACK
-struct Heap_Control *const *const
+struct RBHeap_control *const *const
   _Workspace_Fallback_heap = &RTEMS_Malloc_Heap;
 
 void *_Workspace_Allocate( size_t size )

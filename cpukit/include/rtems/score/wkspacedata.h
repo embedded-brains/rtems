@@ -46,7 +46,7 @@
 extern "C" {
 #endif
 
-struct Heap_Control;
+struct RBHeap_control;
 
 /**
  * @defgroup RTEMSScoreWorkspace Workspace Handler
@@ -118,7 +118,7 @@ extern const size_t _Workspace_TLS_area_count;
  * This constant is defined by the application configuration via
  * <rtems/confdefs.h> or a default configuration.
  */
-extern struct Heap_Control *const *const _Workspace_Fallback_heap;
+extern struct RBHeap_control *const *const _Workspace_Fallback_heap;
 
 /**
  * @brief Allocates a memory block of the specified size from the workspace.
@@ -174,7 +174,7 @@ void _Workspace_Free_with_fallback( void *ptr );
  *
  * @return Returns the heap control used for the C Program Heap.
  */
-struct Heap_Control *_Workspace_Malloc_initialize_separate( void );
+struct RBHeap_control *_Workspace_Malloc_initialize_separate( void );
 
 /** @} */
 

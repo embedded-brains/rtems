@@ -82,14 +82,14 @@ void *rtems_heap_allocate_aligned_with_boundary(
   uintptr_t boundary
 )
 {
-  Heap_Control *heap = RTEMS_Malloc_Heap;
-  void         *p;
+  RBHeap_control *heap = RTEMS_Malloc_Heap;
+  void           *p;
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
       _RTEMS_Lock_allocator();
       _Malloc_Process_deferred_frees();
-      p = _Heap_Allocate_aligned_with_boundary(
+      p = _RBHeap_Allocate_aligned_with_boundary(
         heap,
         size,
         alignment,
@@ -98,7 +98,7 @@ void *rtems_heap_allocate_aligned_with_boundary(
       _RTEMS_Unlock_allocator();
       break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      p = _Heap_Allocate_aligned_with_boundary(
+      p = _RBHeap_Allocate_aligned_with_boundary(
         heap,
         size,
         alignment,

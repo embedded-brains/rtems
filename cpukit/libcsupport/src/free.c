@@ -88,6 +88,8 @@ static void _Malloc_Deferred_free( void *p )
 
 void free( void *ptr )
 {
+  bool ok;
+
   if ( !ptr ) {
     return;
   }
@@ -100,7 +102,11 @@ void free( void *ptr )
     return;
   }
 
-  if ( !_Protected_heap_Free( RTEMS_Malloc_Heap, ptr ) ) {
+  _RTEMS_Lock_allocator();
+  ok = _RBHeap_Free( RTEMS_Malloc_Heap, ptr );
+  _RTEMS_Unlock_allocator();
+
+  if ( !ok ) {
     rtems_fatal(
       RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE,
       (rtems_fatal_code) ptr

@@ -78,11 +78,9 @@ size_t malloc_usable_size( void *area )
     _RTEMS_Lock_allocator();
   }
 
-  _Heap_Size_of_alloc_area(
-    RTEMS_Malloc_Heap,
-    area,
-    &size
-  );
+  if ( !_RBHeap_Size_of_block( RTEMS_Malloc_Heap, area, &size ) ) {
+    size = 0;
+  }
 
   if ( needs_lock ) {
     _RTEMS_Unlock_allocator();

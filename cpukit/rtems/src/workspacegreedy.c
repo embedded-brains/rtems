@@ -61,9 +61,9 @@ static const Greedy_Operations _Workspace_Greedy_operations = {
  */
 static uintptr_t _Workspace_Greedy_prepare( void )
 {
-  Heap_Control *const  *fallback_heap;
-  rtems_heap_statistics stats;
-  uintptr_t             size_bound;
+  RBHeap_control *const *fallback_heap;
+  rtems_heap_statistics  stats;
+  uintptr_t              size_bound;
 
   fallback_heap = _Workspace_Fallback_heap;
 

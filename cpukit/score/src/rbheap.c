@@ -2088,6 +2088,15 @@ static void _RBHeap_Add_information( Heap_Information *info, uintptr_t size )
   }
 }
 
+void _RBHeap_Get_statistics(
+  const RBHeap_control *control,
+  Heap_Statistics      *stats
+)
+{
+  *stats = control->stats;
+  stats->free_size = control->free_size;
+}
+
 void _RBHeap_Get_information(
   const RBHeap_control   *control,
   Heap_Information_block *info

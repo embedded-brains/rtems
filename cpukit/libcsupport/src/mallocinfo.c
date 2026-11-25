@@ -39,7 +39,7 @@
 #endif
 
 #include <rtems/malloc.h>
-#include <rtems/score/protectedheap.h>
+#include <rtems/score/apimutex.h>
 
 int malloc_info( Heap_Information_block *the_info )
 {
@@ -47,6 +47,8 @@ int malloc_info( Heap_Information_block *the_info )
     return -1;
   }
 
-  _Protected_heap_Get_information( RTEMS_Malloc_Heap, the_info );
+  _RTEMS_Lock_allocator();
+  _RBHeap_Get_information( RTEMS_Malloc_Heap, the_info );
+  _RTEMS_Unlock_allocator();
   return 0;
 }

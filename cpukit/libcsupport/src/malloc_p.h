@@ -36,7 +36,8 @@
  */
 
 #include <rtems.h>
-#include <rtems/score/protectedheap.h>
+#include <rtems/score/apimutex.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/malloc.h>
 
 #ifdef __cplusplus

@@ -66,27 +66,19 @@ extern "C" {
  *  This is the pointer to the heap control structure used to manage the C
  *  program heap.
  */
-extern Heap_Control *RTEMS_Malloc_Heap;
+extern RBHeap_control *RTEMS_Malloc_Heap;
 
 void _Malloc_Initialize( void );
 
-typedef void *(*rtems_heap_extend_handler)(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+typedef void
+  *( *rtems_heap_extend_handler )( RBHeap_control *heap, size_t alloc_size );
 
 /**
  *  @brief RTEMS Extend Heap via Sbrk
  */
-void *rtems_heap_extend_via_sbrk(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+void *rtems_heap_extend_via_sbrk( RBHeap_control *heap, size_t alloc_size );
 
-void *rtems_heap_null_extend(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+void *rtems_heap_null_extend( RBHeap_control *heap, size_t alloc_size );
 
 extern const rtems_heap_extend_handler rtems_malloc_extend_handler;
 
@@ -120,8 +112,8 @@ void rtems_heap_set_sbrk_amount( ptrdiff_t sbrk_amount );
  * @see rtems_heap_extend_via_sbrk().
  */
 void rtems_heap_sbrk_greedy_allocate(
-  Heap_Control *heap,
-  size_t alloc_size
+  RBHeap_control *heap,
+  size_t          alloc_size
 );
 
 /**
@@ -220,8 +212,8 @@ void *rtems_calloc(size_t nelem, size_t elsize)
 /**
  * @brief Gets the statistics of the heap which serves malloc().
  *
- * The function visits the free blocks of the heap to get the size of the
- * largest free block, so its execution time depends on the number of free
+ * The function takes the size of the largest free block from the free tree of
+ * the heap.  Its execution time grows with the logarithm of the number of free
  * blocks.  It does not change errno.
  *
  * @param[out] stats is the pointer to an object.  When the function call is

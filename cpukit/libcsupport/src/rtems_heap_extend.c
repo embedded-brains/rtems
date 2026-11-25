@@ -42,36 +42,25 @@
 #include "malloc_p.h"
 
 #include <rtems/score/apimutex.h>
-#include <rtems/score/heap.h>
 
 rtems_status_code rtems_heap_extend( void *area_begin, uintptr_t area_size )
 {
-  uintptr_t extended_size;
+  bool ok;
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
       _RTEMS_Lock_allocator();
-      extended_size = _Heap_Extend(
-        RTEMS_Malloc_Heap,
-        area_begin,
-        area_size,
-        0
-      );
+      ok = _RBHeap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
       _RTEMS_Unlock_allocator();
       break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      extended_size = _Heap_Extend(
-        RTEMS_Malloc_Heap,
-        area_begin,
-        area_size,
-        0
-      );
+      ok = _RBHeap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
       break;
     default:
       return RTEMS_INCORRECT_STATE;
   }
 
-  if ( extended_size != 0 ) {
+  if ( ok ) {
     return RTEMS_SUCCESSFUL;
   } else {
     return RTEMS_INVALID_ADDRESS;

@@ -51,7 +51,7 @@ void rtems_heap_set_sbrk_amount( ptrdiff_t sbrk_amount )
   RTEMS_Malloc_Sbrk_amount = sbrk_amount;
 }
 
-void *rtems_heap_extend_via_sbrk( Heap_Control *heap, size_t alloc_size )
+void *rtems_heap_extend_via_sbrk( RBHeap_control *heap, size_t alloc_size )
 {
   ptrdiff_t sbrk_amount = RTEMS_Malloc_Sbrk_amount;
   ptrdiff_t sbrk_size = (ptrdiff_t) alloc_size;
@@ -66,11 +66,18 @@ void *rtems_heap_extend_via_sbrk( Heap_Control *heap, size_t alloc_size )
     void *area_begin = sbrk( sbrk_size );
 
     if ( area_begin != (void *) -1 ) {
-      bool ok = _Protected_heap_Extend( heap, area_begin, sbrk_size );
+      bool ok;
+
+      _RTEMS_Lock_allocator();
+      ok = _RBHeap_Extend( heap, area_begin, sbrk_size );
 
       if ( ok ) {
-        return_this = _Protected_heap_Allocate( heap, alloc_size );
-      } else {
+        return_this = _RBHeap_Allocate( heap, alloc_size );
+      }
+
+      _RTEMS_Unlock_allocator();
+
+      if ( !ok ) {
         sbrk( -sbrk_size );
       }
     }
