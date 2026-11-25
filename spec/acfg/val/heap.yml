@@ -1,0 +1,86 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Check the effect of the heap configuration options of the test suite.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the RTEMS Workspace is a red-black tree heap.
+    code: |
+      T_true( _RBHeap_Walk( &_Workspace_RBHeap ) );
+      T_eq_uptr(
+        _Workspace_RBHeap.area_begin,
+        (uintptr_t) _Workspace_Storage_area
+      );
+    links:
+    - role: validation
+      uid: ../req/workspace-allocator
+  - brief: |
+      Check the statically allocated descriptors of the RTEMS Workspace.
+    code: |
+      T_eq_uptr(
+        _Workspace_Descriptor_size,
+        ( ( TEST_WORKSPACE_DESCRIPTOR_COUNT + RBHEAP_SLAB_SLOTS - 2 ) /
+          ( RBHEAP_SLAB_SLOTS - 1 ) ) *
+          RBHEAP_SLAB_SIZE
+      );
+    links:
+    - role: validation
+      uid: ../req/workspace-descriptor-count
+  - brief: |
+      Check the statically allocated descriptors of the C Program Heap.
+    code: |
+      T_eq_uptr(
+        _Malloc_Descriptor_size,
+        ( ( TEST_MALLOC_DESCRIPTOR_COUNT + RBHEAP_SLAB_SLOTS - 2 ) /
+          ( RBHEAP_SLAB_SLOTS - 1 ) ) *
+          RBHEAP_SLAB_SIZE
+      );
+      T_eq_uptr(
+        RTEMS_Malloc_Heap->added_begin,
+        (uintptr_t) _Malloc_Descriptor_begin
+      );
+    links:
+    - role: validation
+      uid: ../req/malloc-descriptor-count
+  - brief: |
+      Check the configuration of the processor blocks in SMP configurations.
+    code: |
+      #if defined( RTEMS_SMP )
+        T_true( _RBHeap_Has_processor_blocks( RTEMS_Malloc_Heap ) );
+        T_eq_uptr(
+          RTEMS_Malloc_Heap->processor_pairs,
+          TEST_MALLOC_CPU_DESCRIPTORS / 2
+        );
+        T_eq_uptr( RTEMS_Malloc_Heap->processor_max_size, 4096 );
+      #endif
+    links:
+    - role: validation
+      uid: ../req/malloc-cpu-descriptors
+    - role: validation
+      uid: ../req/malloc-cpu-max-size
+  links: []
+test-brief: |
+  Tests the heap configuration options of the test suite.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/malloc.h
+- rtems/score/rbheap.h
+- rtems/score/wkspace.h
+- rtems/score/wkspacedata.h
+test-local-includes:
+- ts-config.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-acfg-heap.c
+test-teardown: null
+type: test-case
