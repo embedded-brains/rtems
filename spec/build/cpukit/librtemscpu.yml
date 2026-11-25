@@ -1359,6 +1359,7 @@ source:
 - cpukit/rtems/src/timerserverfireafter.c
 - cpukit/rtems/src/timerserverfirewhen.c
 - cpukit/rtems/src/workspace.c
+- cpukit/rtems/src/workspacegetstatistics.c
 - cpukit/rtems/src/workspacegreedy.c
 - cpukit/sapi/src/chainappendnotify.c
 - cpukit/sapi/src/chaingetnotify.c

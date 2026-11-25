@@ -385,6 +385,45 @@ bool rtems_workspace_free( void *pointer );
  */
 bool rtems_workspace_get_information( Heap_Information_block *the_info );
 
+/* Find related documentation with spec:/rtems/support/if/workspace-get-statistics */
+
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief Gets the statistics of the RTEMS Workspace.
+ *
+ * @param[out] stats is the pointer to an rtems_heap_statistics object.  When
+ *   the directive call is successful, the statistics of the RTEMS Workspace
+ *   will be stored in this object.
+ *
+ * @return Returns true, if getting the statistics was successful, otherwise
+ *   false.
+ *
+ * @par Notes
+ * @parblock
+ * The directive visits the free blocks of the RTEMS Workspace to get the size
+ * of the largest free block, so its execution time depends on the number of
+ * free blocks.
+ *
+ * The RTEMS Workspace provides no resize operation, so the directive sets the
+ * rtems_heap_statistics::resizes member to zero.
+ * @endparblock
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this directive:
+ *
+ * - The directive may be called from within device driver initialization
+ *   context.
+ *
+ * - The directive may be called from within task context.
+ *
+ * - The directive may obtain and release the object allocator mutex. This may
+ *   cause the calling task to be preempted.
+ * @endparblock
+ */
+bool rtems_workspace_get_statistics( rtems_heap_statistics *stats );
+
 /* Find related documentation with spec:/rtems/support/if/workspace-greedy-allocate */
 
 /**

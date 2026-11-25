@@ -5,6 +5,7 @@
  *
  *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,6 +76,61 @@ static void test_workspace_string_duplicate( void )
   _Workspace_Free( dup_e );
 }
 
+static void test_workspace_get_statistics( void )
+{
+  rtems_heap_statistics before;
+  rtems_heap_statistics during;
+  rtems_heap_statistics after;
+  bool                  ok;
+  void                 *p;
+
+  puts( "rtems_workspace_get_statistics - null pointer" );
+  ok = rtems_workspace_get_statistics( NULL );
+  rtems_test_assert( !ok );
+
+  puts( "rtems_workspace_get_statistics - OK" );
+  ok = rtems_workspace_get_statistics( &before );
+  rtems_test_assert( ok );
+  rtems_test_assert( before.size > 0 );
+  rtems_test_assert( before.free_size <= before.size );
+  rtems_test_assert( before.largest_free_size > 0 );
+  rtems_test_assert( before.largest_free_size <= before.free_size );
+  rtems_test_assert( before.min_free_size <= before.free_size );
+  rtems_test_assert( before.free_blocks <= before.max_free_blocks );
+  rtems_test_assert( before.resizes == 0 );
+
+  ok = rtems_workspace_allocate( 42, &p );
+  rtems_test_assert( ok );
+
+  ok = rtems_workspace_get_statistics( &during );
+  rtems_test_assert( ok );
+  rtems_test_assert( during.size == before.size );
+  rtems_test_assert( during.free_size + 42 <= before.free_size );
+  rtems_test_assert( during.used_blocks == before.used_blocks + 1 );
+  rtems_test_assert( during.allocs == before.allocs + 1 );
+  rtems_test_assert( during.frees == before.frees );
+  rtems_test_assert(
+    during.lifetime_allocated - before.lifetime_allocated ==
+    before.free_size - during.free_size
+  );
+
+  ok = rtems_workspace_free( p );
+  rtems_test_assert( ok );
+
+  ok = rtems_workspace_get_statistics( &after );
+  rtems_test_assert( ok );
+  rtems_test_assert( after.free_size == before.free_size );
+  rtems_test_assert( after.largest_free_size == before.largest_free_size );
+  rtems_test_assert( after.free_blocks == before.free_blocks );
+  rtems_test_assert( after.used_blocks == before.used_blocks );
+  rtems_test_assert( after.frees == before.frees + 1 );
+  rtems_test_assert(
+    after.lifetime_freed - before.lifetime_freed ==
+    during.lifetime_allocated - before.lifetime_allocated
+  );
+  rtems_test_assert( after.resizes == 0 );
+}
+
 rtems_task Init( rtems_task_argument argument )
 {
   (void) argument;
@@ -92,6 +148,8 @@ rtems_task Init( rtems_task_argument argument )
   puts( "rtems_workspace_get_information - OK" );
   retbool = rtems_workspace_get_information( &info );
   rtems_test_assert( retbool == true );
+
+  test_workspace_get_statistics();
 
   puts( "rtems_workspace_allocate - null pointer" );
   retbool = rtems_workspace_allocate( 42, NULL );
