@@ -1194,12 +1194,27 @@ static void unblock_ready_owner( test_context *ctx )
   rtems_test_assert( !ctx->high_run[ 0 ] );
 }
 
+/*
+ * The main task resumes the rival after it fires one of the timers below.  A
+ * timer helps the main task only after this resume.
+ */
+static bool is_rival_suspended( const test_context *ctx )
+{
+  return rtems_task_is_suspended( ctx->high_task_id[ 1 ] ) ==
+         RTEMS_ALREADY_SUSPENDED;
+}
+
 static void unblock_owner_before_rival_timer( rtems_id timer_id, void *arg )
 {
   (void) timer_id;
 
   test_context     *ctx = arg;
   rtems_status_code sc;
+
+  if ( is_rival_suspended( ctx ) ) {
+    fire_timer( ctx, 1, unblock_owner_before_rival_timer );
+    return;
+  }
 
   sc = rtems_task_suspend( ctx->high_task_id[ 0 ] );
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
@@ -1214,6 +1229,11 @@ static void unblock_owner_after_rival_timer( rtems_id timer_id, void *arg )
 
   test_context     *ctx = arg;
   rtems_status_code sc;
+
+  if ( is_rival_suspended( ctx ) ) {
+    fire_timer( ctx, 1, unblock_owner_after_rival_timer );
+    return;
+  }
 
   sc = rtems_task_suspend( ctx->high_task_id[ 1 ] );
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
