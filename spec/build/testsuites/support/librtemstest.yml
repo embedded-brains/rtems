@@ -61,7 +61,6 @@ source:
 - testsuites/support/src/tx-io-relax.c
 - testsuites/support/src/tx-isr-lock.c
 - testsuites/support/src/tx-memory-alloc.c
-- testsuites/support/src/tx-memory.c
 - testsuites/support/src/tx-preemption-intervention.c
 - testsuites/support/src/tx-register-check.c
 - testsuites/support/src/tx-software-interrupt.c

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,9 +35,11 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
+#include <string.h>
 #include <rtems/malloc.h>
 
-#include "tx-support.h"
+#include "tx-heap.h"
 
 #include <rtems/test.h>
 
@@ -50,48 +52,61 @@
  */
 
 typedef enum {
-  RtemsMallocReqCalloc_Pre_ElementCount_Huge,
   RtemsMallocReqCalloc_Pre_ElementCount_Zero,
-  RtemsMallocReqCalloc_Pre_ElementCount_Valid,
+  RtemsMallocReqCalloc_Pre_ElementCount_NonZero,
   RtemsMallocReqCalloc_Pre_ElementCount_NA
 } RtemsMallocReqCalloc_Pre_ElementCount;
 
 typedef enum {
-  RtemsMallocReqCalloc_Pre_ElementSize_Huge,
   RtemsMallocReqCalloc_Pre_ElementSize_Zero,
-  RtemsMallocReqCalloc_Pre_ElementSize_Valid,
+  RtemsMallocReqCalloc_Pre_ElementSize_NonZero,
   RtemsMallocReqCalloc_Pre_ElementSize_NA
 } RtemsMallocReqCalloc_Pre_ElementSize;
 
 typedef enum {
+  RtemsMallocReqCalloc_Pre_Product_Valid,
+  RtemsMallocReqCalloc_Pre_Product_Overflow,
+  RtemsMallocReqCalloc_Pre_Product_NA
+} RtemsMallocReqCalloc_Pre_Product;
+
+typedef enum {
+  RtemsMallocReqCalloc_Pre_Fit_Yes,
+  RtemsMallocReqCalloc_Pre_Fit_No,
+  RtemsMallocReqCalloc_Pre_Fit_NA
+} RtemsMallocReqCalloc_Pre_Fit;
+
+typedef enum {
+  RtemsMallocReqCalloc_Post_Status_Block,
   RtemsMallocReqCalloc_Post_Status_Null,
-  RtemsMallocReqCalloc_Post_Status_AreaBegin,
   RtemsMallocReqCalloc_Post_Status_NA
 } RtemsMallocReqCalloc_Post_Status;
 
 typedef enum {
-  RtemsMallocReqCalloc_Post_Alignment_Valid,
+  RtemsMallocReqCalloc_Post_Alignment_Heap,
   RtemsMallocReqCalloc_Post_Alignment_NA
 } RtemsMallocReqCalloc_Post_Alignment;
-
-typedef enum {
-  RtemsMallocReqCalloc_Post_Size_Valid,
-  RtemsMallocReqCalloc_Post_Size_NA
-} RtemsMallocReqCalloc_Post_Size;
 
 typedef enum {
   RtemsMallocReqCalloc_Post_Content_Zero,
   RtemsMallocReqCalloc_Post_Content_NA
 } RtemsMallocReqCalloc_Post_Content;
 
+typedef enum {
+  RtemsMallocReqCalloc_Post_Heap_Allocated,
+  RtemsMallocReqCalloc_Post_Heap_Nop,
+  RtemsMallocReqCalloc_Post_Heap_NA
+} RtemsMallocReqCalloc_Post_Heap;
+
 typedef struct {
-  uint8_t Skip : 1;
-  uint8_t Pre_ElementCount_NA : 1;
-  uint8_t Pre_ElementSize_NA : 1;
-  uint8_t Post_Status : 2;
-  uint8_t Post_Alignment : 1;
-  uint8_t Post_Size : 1;
-  uint8_t Post_Content : 1;
+  uint16_t Skip : 1;
+  uint16_t Pre_ElementCount_NA : 1;
+  uint16_t Pre_ElementSize_NA : 1;
+  uint16_t Pre_Product_NA : 1;
+  uint16_t Pre_Fit_NA : 1;
+  uint16_t Post_Status : 2;
+  uint16_t Post_Alignment : 1;
+  uint16_t Post_Content : 1;
+  uint16_t Post_Heap : 2;
 } RtemsMallocReqCalloc_Entry;
 
 /**
@@ -99,9 +114,19 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief This member provides a memory support context.
+   * @brief This member contains the heap of the test.
    */
-  MemoryContext mem_ctx;
+  HeapContext heap;
+
+  /**
+   * @brief This member contains the snapshot of the heap before the call.
+   */
+  HeapSnapshot before;
+
+  /**
+   * @brief This member contains the snapshot of the heap after the call.
+   */
+  HeapSnapshot after;
 
   /**
    * @brief This member contains the return value of the rtems_calloc() call.
@@ -109,12 +134,12 @@ typedef struct {
   void *ptr;
 
   /**
-   * @brief This member specifies if the `nelem` parameter value.
+   * @brief This member specifies the `nelem` parameter value.
    */
   size_t nelem;
 
   /**
-   * @brief This member specifies if the `elsize` parameter value.
+   * @brief This member specifies the `elsize` parameter value.
    */
   size_t elsize;
 
@@ -122,7 +147,7 @@ typedef struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 2 ];
+    size_t pcs[ 4 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -150,16 +175,40 @@ typedef struct {
 static RtemsMallocReqCalloc_Context RtemsMallocReqCalloc_Instance;
 
 static const char *const RtemsMallocReqCalloc_PreDesc_ElementCount[] =
-  { "Huge", "Zero", "Valid", "NA" };
+  { "Zero", "NonZero", "NA" };
 
 static const char *const RtemsMallocReqCalloc_PreDesc_ElementSize[] =
-  { "Huge", "Zero", "Valid", "NA" };
+  { "Zero", "NonZero", "NA" };
+
+static const char *const RtemsMallocReqCalloc_PreDesc_Product[] =
+  { "Valid", "Overflow", "NA" };
+
+static const char *const RtemsMallocReqCalloc_PreDesc_Fit[] =
+  { "Yes", "No", "NA" };
 
 static const char *const *const RtemsMallocReqCalloc_PreDesc[] = {
   RtemsMallocReqCalloc_PreDesc_ElementCount,
   RtemsMallocReqCalloc_PreDesc_ElementSize,
+  RtemsMallocReqCalloc_PreDesc_Product,
+  RtemsMallocReqCalloc_PreDesc_Fit,
   NULL
 };
+
+static bool IsZero( const void *ptr, size_t size )
+{
+  const unsigned char *bytes;
+  size_t               i;
+
+  bytes = ptr;
+
+  for ( i = 0; i < size; ++i ) {
+    if ( bytes[ i ] != 0 ) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 static void RtemsMallocReqCalloc_Pre_ElementCount_Prepare(
   RtemsMallocReqCalloc_Context         *ctx,
@@ -167,16 +216,6 @@ static void RtemsMallocReqCalloc_Pre_ElementCount_Prepare(
 )
 {
   switch ( state ) {
-    case RtemsMallocReqCalloc_Pre_ElementCount_Huge: {
-      /*
-       * While the `nelem` parameter is not equal to zero, while the `nelem`
-       * parameter is too large to allocate a memory area with the specified
-       * size.
-       */
-      ctx->nelem = SIZE_MAX;
-      break;
-    }
-
     case RtemsMallocReqCalloc_Pre_ElementCount_Zero: {
       /*
        * While the `nelem` parameter is equal to zero.
@@ -185,13 +224,11 @@ static void RtemsMallocReqCalloc_Pre_ElementCount_Prepare(
       break;
     }
 
-    case RtemsMallocReqCalloc_Pre_ElementCount_Valid: {
+    case RtemsMallocReqCalloc_Pre_ElementCount_NonZero: {
       /*
-       * While the `nelem` parameter is not equal to zero, while the `nelem`
-       * parameter is small enough to allocate a memory area with the specified
-       * size.
+       * While the `nelem` parameter is not equal to zero.
        */
-      ctx->nelem = 1;
+      ctx->nelem = 2;
       break;
     }
 
@@ -206,16 +243,6 @@ static void RtemsMallocReqCalloc_Pre_ElementSize_Prepare(
 )
 {
   switch ( state ) {
-    case RtemsMallocReqCalloc_Pre_ElementSize_Huge: {
-      /*
-       * While the `elsize` parameter is not equal to zero, while the `elsize`
-       * parameter is too large to allocate a memory area with the specified
-       * size.
-       */
-      ctx->elsize = SIZE_MAX;
-      break;
-    }
-
     case RtemsMallocReqCalloc_Pre_ElementSize_Zero: {
       /*
        * While the `elsize` parameter is equal to zero.
@@ -224,17 +251,72 @@ static void RtemsMallocReqCalloc_Pre_ElementSize_Prepare(
       break;
     }
 
-    case RtemsMallocReqCalloc_Pre_ElementSize_Valid: {
+    case RtemsMallocReqCalloc_Pre_ElementSize_NonZero: {
       /*
-       * While the `elsize` parameter is not equal to zero, while the `elsize`
-       * parameter is small enough to allocate a memory area with the specified
-       * size.
+       * While the `elsize` parameter is not equal to zero.
        */
-      ctx->elsize = sizeof( uint64_t );
+      ctx->elsize = 3;
       break;
     }
 
     case RtemsMallocReqCalloc_Pre_ElementSize_NA:
+      break;
+  }
+}
+
+static void RtemsMallocReqCalloc_Pre_Product_Prepare(
+  RtemsMallocReqCalloc_Context    *ctx,
+  RtemsMallocReqCalloc_Pre_Product state
+)
+{
+  switch ( state ) {
+    case RtemsMallocReqCalloc_Pre_Product_Valid: {
+      /*
+       * While the product of the `nelem` and the `elsize` parameters is less
+       * than or equal to SIZE_MAX.
+       */
+      /* The product of the parameters is small */
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Pre_Product_Overflow: {
+      /*
+       * While the product of the `nelem` and the `elsize` parameters is
+       * greater than SIZE_MAX.
+       */
+      ctx->elsize = SIZE_MAX / ctx->nelem + 1;
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Pre_Product_NA:
+      break;
+  }
+}
+
+static void RtemsMallocReqCalloc_Pre_Fit_Prepare(
+  RtemsMallocReqCalloc_Context *ctx,
+  RtemsMallocReqCalloc_Pre_Fit  state
+)
+{
+  switch ( state ) {
+    case RtemsMallocReqCalloc_Pre_Fit_Yes: {
+      /*
+       * While the C Program Heap has a free block which satisfies the request.
+       */
+      /* The heap is empty */
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Pre_Fit_No: {
+      /*
+       * While the C Program Heap has no free block which satisfies the
+       * request.
+       */
+      HeapExhaust( &ctx->heap.heap );
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Pre_Fit_NA:
       break;
   }
 }
@@ -245,20 +327,20 @@ static void RtemsMallocReqCalloc_Post_Status_Check(
 )
 {
   switch ( state ) {
+    case RtemsMallocReqCalloc_Post_Status_Block: {
+      /*
+       * The return value of rtems_calloc() shall be the begin address of a
+       * used block of the C Program Heap.
+       */
+      T_not_null( ctx->ptr );
+      break;
+    }
+
     case RtemsMallocReqCalloc_Post_Status_Null: {
       /*
        * The return value of rtems_calloc() shall be equal to NULL.
        */
       T_null( ctx->ptr );
-      break;
-    }
-
-    case RtemsMallocReqCalloc_Post_Status_AreaBegin: {
-      /*
-       * The return value of rtems_calloc() shall be equal to the begin address
-       * of the allocated memory area.
-       */
-      T_not_null( ctx->ptr );
       break;
     }
 
@@ -273,10 +355,10 @@ static void RtemsMallocReqCalloc_Post_Alignment_Check(
 )
 {
   switch ( state ) {
-    case RtemsMallocReqCalloc_Post_Alignment_Valid: {
+    case RtemsMallocReqCalloc_Post_Alignment_Heap: {
       /*
-       * The begin address of the allocated memory area shall be an integral
-       * multiple of the heap alignment of the target architecture.
+       * The begin address of the used block shall be an integral multiple of
+       * the heap alignment of the target architecture.
        */
       T_eq_uptr( (uintptr_t) ctx->ptr % CPU_HEAP_ALIGNMENT, 0 );
       break;
@@ -287,49 +369,21 @@ static void RtemsMallocReqCalloc_Post_Alignment_Check(
   }
 }
 
-static void RtemsMallocReqCalloc_Post_Size_Check(
-  RtemsMallocReqCalloc_Context  *ctx,
-  RtemsMallocReqCalloc_Post_Size state
-)
-{
-  void     *ptr;
-  uintptr_t a;
-  uintptr_t b;
-  uintptr_t size;
-
-  switch ( state ) {
-    case RtemsMallocReqCalloc_Post_Size_Valid: {
-      /*
-       * The size of the allocated memory area shall greater than or equal to
-       * the product of the `nelem` and `elsize` parameters.
-       */
-      /* Assume that the next allocation is done from adjacent memory */
-      ptr = ctx->ptr;
-      ctx->ptr = rtems_calloc( ctx->nelem, ctx->elsize );
-      T_not_null( ptr );
-      a = (uintptr_t) ptr;
-      b = (uintptr_t) ctx->ptr;
-      size = a < b ? b - a : a - b;
-      T_ge_uptr( size, ctx->nelem * ctx->elsize );
-      break;
-    }
-
-    case RtemsMallocReqCalloc_Post_Size_NA:
-      break;
-  }
-}
-
 static void RtemsMallocReqCalloc_Post_Content_Check(
   RtemsMallocReqCalloc_Context     *ctx,
   RtemsMallocReqCalloc_Post_Content state
 )
 {
+  uintptr_t size;
+
   switch ( state ) {
     case RtemsMallocReqCalloc_Post_Content_Zero: {
       /*
-       * The content of the allocated memory area shall be cleared to zero.
+       * The used block shall begin with `nelem` times `elsize` bytes of zero.
        */
-      T_eq_u64( *(uint64_t *) ctx->ptr, 0 );
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->nelem * ctx->elsize );
+      T_true( IsZero( ctx->ptr, ctx->nelem * ctx->elsize ) );
       break;
     }
 
@@ -338,9 +392,39 @@ static void RtemsMallocReqCalloc_Post_Content_Check(
   }
 }
 
+static void RtemsMallocReqCalloc_Post_Heap_Check(
+  RtemsMallocReqCalloc_Context  *ctx,
+  RtemsMallocReqCalloc_Post_Heap state
+)
+{
+  switch ( state ) {
+    case RtemsMallocReqCalloc_Post_Heap_Allocated: {
+      /*
+       * The C Program Heap shall have one more used block.
+       */
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks + 1 );
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Post_Heap_Nop: {
+      /*
+       * The used blocks and the free blocks of the C Program Heap shall not be
+       * changed by the rtems_calloc() call.
+       */
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+      break;
+    }
+
+    case RtemsMallocReqCalloc_Post_Heap_NA:
+      break;
+  }
+}
+
 static void RtemsMallocReqCalloc_Setup( RtemsMallocReqCalloc_Context *ctx )
 {
-  MemorySave( &ctx->mem_ctx );
+  HeapInstall( &ctx->heap );
 }
 
 static void RtemsMallocReqCalloc_Setup_Wrap( void *arg )
@@ -354,7 +438,7 @@ static void RtemsMallocReqCalloc_Setup_Wrap( void *arg )
 
 static void RtemsMallocReqCalloc_Teardown( RtemsMallocReqCalloc_Context *ctx )
 {
-  MemoryRestore( &ctx->mem_ctx );
+  HeapRestore( &ctx->heap );
 }
 
 static void RtemsMallocReqCalloc_Teardown_Wrap( void *arg )
@@ -366,27 +450,38 @@ static void RtemsMallocReqCalloc_Teardown_Wrap( void *arg )
   RtemsMallocReqCalloc_Teardown( ctx );
 }
 
+static void RtemsMallocReqCalloc_Prepare( RtemsMallocReqCalloc_Context *ctx )
+{
+  memset( HeapGetArea(), 0xff, HEAP_AREA_SIZE );
+  HeapReset( &ctx->heap );
+}
+
 static void RtemsMallocReqCalloc_Action( RtemsMallocReqCalloc_Context *ctx )
 {
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->before );
   ctx->ptr = rtems_calloc( ctx->nelem, ctx->elsize );
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->after );
 }
 
 /* clang-format off */
 
 static const RtemsMallocReqCalloc_Entry
 RtemsMallocReqCalloc_Entries[] = {
-  { 0, 0, 0, RtemsMallocReqCalloc_Post_Status_Null,
-    RtemsMallocReqCalloc_Post_Alignment_Valid,
-    RtemsMallocReqCalloc_Post_Size_NA, RtemsMallocReqCalloc_Post_Content_NA },
-  { 0, 0, 0, RtemsMallocReqCalloc_Post_Status_AreaBegin,
-    RtemsMallocReqCalloc_Post_Alignment_Valid,
-    RtemsMallocReqCalloc_Post_Size_Valid,
-    RtemsMallocReqCalloc_Post_Content_Zero }
+  { 0, 0, 0, 0, 0, RtemsMallocReqCalloc_Post_Status_Null,
+    RtemsMallocReqCalloc_Post_Alignment_NA,
+    RtemsMallocReqCalloc_Post_Content_NA, RtemsMallocReqCalloc_Post_Heap_Nop },
+  { 1, 0, 0, 0, 0, RtemsMallocReqCalloc_Post_Status_NA,
+    RtemsMallocReqCalloc_Post_Alignment_NA,
+    RtemsMallocReqCalloc_Post_Content_NA, RtemsMallocReqCalloc_Post_Heap_NA },
+  { 0, 0, 0, 0, 0, RtemsMallocReqCalloc_Post_Status_Block,
+    RtemsMallocReqCalloc_Post_Alignment_Heap,
+    RtemsMallocReqCalloc_Post_Content_Zero,
+    RtemsMallocReqCalloc_Post_Heap_Allocated }
 };
 
 static const uint8_t
 RtemsMallocReqCalloc_Map[] = {
-  0, 0, 0, 0, 0, 0, 0, 0, 1
+  0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 0, 0, 0
 };
 
 /* clang-format on */
@@ -429,14 +524,16 @@ static void RtemsMallocReqCalloc_TestVariant(
 {
   RtemsMallocReqCalloc_Pre_ElementCount_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   RtemsMallocReqCalloc_Pre_ElementSize_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  RtemsMallocReqCalloc_Pre_Product_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  RtemsMallocReqCalloc_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 3 ] );
   RtemsMallocReqCalloc_Action( ctx );
   RtemsMallocReqCalloc_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
   RtemsMallocReqCalloc_Post_Alignment_Check(
     ctx,
     ctx->Map.entry.Post_Alignment
   );
-  RtemsMallocReqCalloc_Post_Size_Check( ctx, ctx->Map.entry.Post_Size );
   RtemsMallocReqCalloc_Post_Content_Check( ctx, ctx->Map.entry.Post_Content );
+  RtemsMallocReqCalloc_Post_Heap_Check( ctx, ctx->Map.entry.Post_Heap );
 }
 
 /**
@@ -451,17 +548,35 @@ T_TEST_CASE_FIXTURE( RtemsMallocReqCalloc, &RtemsMallocReqCalloc_Fixture )
   ctx->Map.index = 0;
 
   for (
-    ctx->Map.pcs[ 0 ] = RtemsMallocReqCalloc_Pre_ElementCount_Huge;
+    ctx->Map.pcs[ 0 ] = RtemsMallocReqCalloc_Pre_ElementCount_Zero;
     ctx->Map.pcs[ 0 ] < RtemsMallocReqCalloc_Pre_ElementCount_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     for (
-      ctx->Map.pcs[ 1 ] = RtemsMallocReqCalloc_Pre_ElementSize_Huge;
+      ctx->Map.pcs[ 1 ] = RtemsMallocReqCalloc_Pre_ElementSize_Zero;
       ctx->Map.pcs[ 1 ] < RtemsMallocReqCalloc_Pre_ElementSize_NA;
       ++ctx->Map.pcs[ 1 ]
     ) {
-      ctx->Map.entry = RtemsMallocReqCalloc_PopEntry( ctx );
-      RtemsMallocReqCalloc_TestVariant( ctx );
+      for (
+        ctx->Map.pcs[ 2 ] = RtemsMallocReqCalloc_Pre_Product_Valid;
+        ctx->Map.pcs[ 2 ] < RtemsMallocReqCalloc_Pre_Product_NA;
+        ++ctx->Map.pcs[ 2 ]
+      ) {
+        for (
+          ctx->Map.pcs[ 3 ] = RtemsMallocReqCalloc_Pre_Fit_Yes;
+          ctx->Map.pcs[ 3 ] < RtemsMallocReqCalloc_Pre_Fit_NA;
+          ++ctx->Map.pcs[ 3 ]
+        ) {
+          ctx->Map.entry = RtemsMallocReqCalloc_PopEntry( ctx );
+
+          if ( ctx->Map.entry.Skip ) {
+            continue;
+          }
+
+          RtemsMallocReqCalloc_Prepare( ctx );
+          RtemsMallocReqCalloc_TestVariant( ctx );
+        }
+      }
     }
   }
 }
