@@ -53,6 +53,30 @@
 
 #include <string.h>
 
+static void _RBHeap_Acquire(
+  const RBHeap_control *control,
+  ISR_lock_Context     *lock_context
+)
+{
+  (void) control;
+  _ISR_lock_ISR_disable_and_acquire(
+    &RTEMS_DECONST( RBHeap_control *, control )->Lock,
+    lock_context
+  );
+}
+
+static void _RBHeap_Release(
+  const RBHeap_control *control,
+  ISR_lock_Context     *lock_context
+)
+{
+  (void) control;
+  _ISR_lock_Release_and_ISR_enable(
+    &RTEMS_DECONST( RBHeap_control *, control )->Lock,
+    lock_context
+  );
+}
+
 _Static_assert(
   sizeof( RBHeap_descriptor ) == 5 * sizeof( uintptr_t ),
   "RBHeap_descriptor"
@@ -1381,7 +1405,7 @@ static void _RBHeap_Clear( RBHeap_control *control )
   }
 }
 
-bool _RBHeap_Add_descriptors(
+static bool _RBHeap_Do_add_descriptors(
   RBHeap_control *control,
   void           *area_begin,
   uintptr_t       area_size
@@ -1448,6 +1472,21 @@ bool _RBHeap_Add_descriptors(
   }
 
   return true;
+}
+
+bool _RBHeap_Add_descriptors(
+  RBHeap_control *control,
+  void           *area_begin,
+  uintptr_t       area_size
+)
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_add_descriptors( control, area_begin, area_size );
+  _RBHeap_Release( control, &lock_context );
+  return result;
 }
 
 /* Returns the free block which ends at the end, else NULL. */
@@ -1517,7 +1556,7 @@ static void _RBHeap_Hole_insert(
   hole->size = end - begin;
   _RBHeap_Used_insert( control, hole );
 }
-bool _RBHeap_Extend(
+static bool _RBHeap_Do_extend(
   RBHeap_control *control,
   void           *area_begin,
   uintptr_t       area_size
@@ -1695,6 +1734,21 @@ bool _RBHeap_Extend(
   return true;
 }
 
+bool _RBHeap_Extend(
+  RBHeap_control *control,
+  void           *area_begin,
+  uintptr_t       area_size
+)
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_extend( control, area_begin, area_size );
+  _RBHeap_Release( control, &lock_context );
+  return result;
+}
+
 bool _RBHeap_Initialize(
   RBHeap_control *control,
   void           *area_begin,
@@ -1725,6 +1779,7 @@ bool _RBHeap_Initialize(
   }
 
   memset( control, 0, sizeof( *control ) );
+  _ISR_lock_Initialize( &control->Lock, "RBHeap" );
   control->area_begin = begin;
   control->area_end = end;
   control->free_size = end - begin;
@@ -1775,6 +1830,7 @@ bool _RBHeap_Initialize_with_slab(
   }
 
   memset( control, 0, sizeof( *control ) );
+  _ISR_lock_Initialize( &control->Lock, "RBHeap" );
   control->area_begin = begin;
   control->area_end = end;
   control->free_size = end - begin;
@@ -1794,7 +1850,7 @@ void *_RBHeap_Allocate( RBHeap_control *control, uintptr_t size )
   return _RBHeap_Allocate_aligned( control, size, RBHEAP_ALIGNMENT );
 }
 
-void *_RBHeap_Allocate_aligned(
+static void *_RBHeap_Do_allocate_aligned(
   RBHeap_control *control,
   uintptr_t       size,
   uintptr_t       alignment
@@ -1853,6 +1909,21 @@ void *_RBHeap_Allocate_aligned(
   control->stats.lifetime_allocated += block_size;
   _RBHeap_Update_min_free_size( control );
   return (void *) used_begin;
+}
+
+void *_RBHeap_Allocate_aligned(
+  RBHeap_control *control,
+  uintptr_t       size,
+  uintptr_t       alignment
+)
+{
+  ISR_lock_Context lock_context;
+  void            *result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_allocate_aligned( control, size, alignment );
+  _RBHeap_Release( control, &lock_context );
+  return result;
 }
 
 static RBHeap_resize_status _RBHeap_Do_resize(
@@ -1964,8 +2035,10 @@ RBHeap_resize_status _RBHeap_Resize(
   uintptr_t      *old_size
 )
 {
+  ISR_lock_Context     lock_context;
   RBHeap_resize_status status;
 
+  _RBHeap_Acquire( control, &lock_context );
   status = _RBHeap_Do_resize( control, begin, size, old_size );
 
   if ( status == RBHEAP_RESIZE_SUCCESSFUL ) {
@@ -1973,10 +2046,11 @@ RBHeap_resize_status _RBHeap_Resize(
     _RBHeap_Update_min_free_size( control );
   }
 
+  _RBHeap_Release( control, &lock_context );
   return status;
 }
 
-bool _RBHeap_Free( RBHeap_control *control, void *begin )
+static bool _RBHeap_Do_free( RBHeap_control *control, void *begin )
 {
   RBHeap_descriptor *desc;
   uintptr_t          gap_begin;
@@ -2005,6 +2079,17 @@ bool _RBHeap_Free( RBHeap_control *control, void *begin )
   return true;
 }
 
+bool _RBHeap_Free( RBHeap_control *control, void *begin )
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_free( control, begin );
+  _RBHeap_Release( control, &lock_context );
+  return result;
+}
+
 void *_RBHeap_Allocate_aligned_with_boundary(
   RBHeap_control *control,
   uintptr_t       size,
@@ -2012,27 +2097,31 @@ void *_RBHeap_Allocate_aligned_with_boundary(
   uintptr_t       boundary
 )
 {
+  ISR_lock_Context lock_context;
+  void            *block;
+
+  _RBHeap_Acquire( control, &lock_context );
+
   if (
     ( alignment & ( alignment - 1 ) ) != 0 ||
-    ( boundary & ( boundary - 1 ) ) != 0
+    ( boundary & ( boundary - 1 ) ) != 0 ||
+    ( boundary != 0 && ( boundary < alignment || size > boundary ) )
   ) {
     ++control->stats.failed_allocs;
-    return NULL;
-  }
-
-  if ( boundary != 0 ) {
-    if ( boundary < alignment || size > boundary ) {
-      ++control->stats.failed_allocs;
-      return NULL;
+    block = NULL;
+  } else {
+    if ( boundary != 0 ) {
+      alignment = boundary;
     }
 
-    alignment = boundary;
+    block = _RBHeap_Do_allocate_aligned( control, size, alignment );
   }
 
-  return _RBHeap_Allocate_aligned( control, size, alignment );
+  _RBHeap_Release( control, &lock_context );
+  return block;
 }
 
-bool _RBHeap_Size_of_block(
+static bool _RBHeap_Do_size_of_block(
   const RBHeap_control *control,
   const void           *block,
   uintptr_t            *size
@@ -2050,6 +2139,21 @@ bool _RBHeap_Size_of_block(
 
   *size = desc->size - RBHEAP_GUARD_SIZE;
   return true;
+}
+
+bool _RBHeap_Size_of_block(
+  const RBHeap_control *control,
+  const void           *block,
+  uintptr_t            *size
+)
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_size_of_block( control, block, size );
+  _RBHeap_Release( control, &lock_context );
+  return result;
 }
 
 static RBHeap_descriptor *_RBHeap_First( const RBHeap_descriptor *root )
@@ -2085,11 +2189,15 @@ void _RBHeap_Get_statistics(
   Heap_Statistics      *stats
 )
 {
+  ISR_lock_Context lock_context;
+
+  _RBHeap_Acquire( control, &lock_context );
   *stats = control->stats;
   stats->free_size = control->free_size;
+  _RBHeap_Release( control, &lock_context );
 }
 
-void _RBHeap_Get_information(
+static void _RBHeap_Do_get_information(
   const RBHeap_control   *control,
   Heap_Information_block *info
 )
@@ -2116,6 +2224,18 @@ void _RBHeap_Get_information(
 
     node = _RBHeap_Successor( node );
   }
+}
+
+void _RBHeap_Get_information(
+  const RBHeap_control   *control,
+  Heap_Information_block *info
+)
+{
+  ISR_lock_Context lock_context;
+
+  _RBHeap_Acquire( control, &lock_context );
+  _RBHeap_Do_get_information( control, info );
+  _RBHeap_Release( control, &lock_context );
 }
 
 /* Returns true if the tree of the root is a valid red-black tree. */
@@ -2481,7 +2601,7 @@ static bool _RBHeap_Walk_slabs(
          ( own == 0 || control->slab_source == NULL );
 }
 
-bool _RBHeap_Walk( const RBHeap_control *control )
+static bool _RBHeap_Do_walk( const RBHeap_control *control )
 {
   const RBHeap_descriptor *node;
   const RBHeap_descriptor *previous;
@@ -2592,4 +2712,15 @@ bool _RBHeap_Walk( const RBHeap_control *control )
          free_nodes == free_blocks && entries == control->entries &&
          used_blocks == control->stats.used_blocks &&
          _RBHeap_Walk_slabs( control, &counts, own );
+}
+
+bool _RBHeap_Walk( const RBHeap_control *control )
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Do_walk( control );
+  _RBHeap_Release( control, &lock_context );
+  return result;
 }

@@ -32,6 +32,8 @@
 
 #include <tmacros.h>
 
+#include <malloc.h>
+
 const char rtems_test_name[] = "MALLOC 2";
 
 /* forward declarations to avoid warnings */
@@ -53,7 +55,7 @@ rtems_timer_service_routine test_operation_from_isr(
   (void) timer;
   (void) arg;
 
-  /* free memory from ISR so it is deferred */
+  /* A free from an interrupt releases the block at once. */
   free( Pointer1 );
 
   operation_performed_from_tsr = true;
@@ -99,7 +101,7 @@ rtems_task Init( rtems_task_argument argument )
   }
 
   puts( "Free from ISR successfully processed" );
-  puts( "Now malloc'ing more memory to process the free" );
+  rtems_test_assert( malloc_usable_size( Pointer1 ) == 0 );
   pointer2 = malloc( 20 );
   rtems_test_assert( pointer2 );
 

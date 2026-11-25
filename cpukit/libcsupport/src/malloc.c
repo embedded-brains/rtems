@@ -65,25 +65,14 @@ void *malloc( size_t size )
 
 size_t malloc_usable_size( void *area )
 {
-  uintptr_t   size = 0;
-  bool        needs_lock;
+  uintptr_t size = 0;
 
   if ( area == NULL ) {
     return 0;
   }
 
-  needs_lock = _Malloc_System_state() == MALLOC_SYSTEM_STATE_NORMAL;
-
-  if ( needs_lock ) {
-    _RTEMS_Lock_allocator();
-  }
-
   if ( !_RBHeap_Size_of_block( RTEMS_Malloc_Heap, area, &size ) ) {
     size = 0;
-  }
-
-  if ( needs_lock ) {
-    _RTEMS_Unlock_allocator();
   }
 
   return (size_t) size;

@@ -58,8 +58,6 @@ static uintptr_t _Malloc_Greedy_prepare( void )
   rtems_heap_statistics stats;
 
   rtems_heap_sbrk_greedy_allocate( RTEMS_Malloc_Heap, SBRK_ALLOC_SIZE );
-
-  _RTEMS_Lock_allocator();
   (void) malloc_get_statistics( &stats );
 
   return stats.largest_free_size;
@@ -80,7 +78,6 @@ void *rtems_heap_greedy_allocate(
     block_sizes,
     block_count
   );
-  _RTEMS_Unlock_allocator();
 
   return opaque;
 }
@@ -98,14 +95,11 @@ void *rtems_heap_greedy_allocate_all_except_largest(
     size_bound,
     allocatable_size
   );
-  _RTEMS_Unlock_allocator();
 
   return opaque;
 }
 
 void rtems_heap_greedy_free( void *opaque )
 {
-  _RTEMS_Lock_allocator();
   _Greedy_Free( &_Malloc_Greedy_operations, opaque );
-  _RTEMS_Unlock_allocator();
 }

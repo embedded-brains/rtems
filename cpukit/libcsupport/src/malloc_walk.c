@@ -49,9 +49,7 @@ bool malloc_walk( int source, bool printf_enabled )
 
   (void) source;
   (void) printf_enabled;
-  _RTEMS_Lock_allocator();
   ok = _RBHeap_Walk( RTEMS_Malloc_Heap );
-  _RTEMS_Unlock_allocator();
   return ok;
 }
 

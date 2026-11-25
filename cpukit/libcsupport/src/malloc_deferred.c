@@ -5,8 +5,9 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implementation of the deferred free
- *   support of the allocator.
+ * @brief This source file contains the implementation of
+ *   _Malloc_System_state(), rtems_heap_allocate_aligned_with_boundary() and
+ *   rtems_malloc().
  */
 
 /*
@@ -68,14 +69,6 @@ Malloc_System_state _Malloc_System_state( void )
   }
 }
 
-RTEMS_WEAK void _Malloc_Process_deferred_frees( void )
-{
-  /*
-   * Do nothing by default.  If free() is used by the application, then a
-   * strong implementation of this function will be provided.
-   */
-}
-
 void *rtems_heap_allocate_aligned_with_boundary(
   size_t    size,
   uintptr_t alignment,
@@ -87,16 +80,6 @@ void *rtems_heap_allocate_aligned_with_boundary(
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _Malloc_Process_deferred_frees();
-      p = _RBHeap_Allocate_aligned_with_boundary(
-        heap,
-        size,
-        alignment,
-        boundary
-      );
-      _RTEMS_Unlock_allocator();
-      break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
       p = _RBHeap_Allocate_aligned_with_boundary(
         heap,

@@ -78,7 +78,6 @@ void *rtems_cache_coherent_allocate(
   void         *ptr;
   RBHeap_control *heap;
 
-  _RTEMS_Lock_allocator();
 
   heap = cache_coherent_heap;
   if ( heap == NULL ) {
@@ -92,7 +91,6 @@ void *rtems_cache_coherent_allocate(
     boundary
   );
 
-  _RTEMS_Unlock_allocator();
 
   return ptr;
 }
@@ -101,7 +99,6 @@ void rtems_cache_coherent_free( void *ptr )
 {
   RBHeap_control *heap;
 
-  _RTEMS_Lock_allocator();
 
   heap = cache_coherent_heap;
   if ( heap != NULL ) {
@@ -118,7 +115,6 @@ void rtems_cache_coherent_free( void *ptr )
     (void) _RBHeap_Free( heap, ptr );
   }
 
-  _RTEMS_Unlock_allocator();
 }
 
 static rtems_status_code add_area( void *area_begin, uintptr_t area_size )

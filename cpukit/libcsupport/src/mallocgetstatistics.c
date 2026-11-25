@@ -40,7 +40,6 @@
 
 #include <rtems/malloc.h>
 #include <rtems/rtems/supportimpl.h>
-#include <rtems/score/apimutex.h>
 
 #include <errno.h>
 #include <string.h>
@@ -55,20 +54,12 @@ int malloc_get_statistics( rtems_heap_statistics *stats )
     return EINVAL;
   }
 
-  switch ( _Malloc_System_state() ) {
-    case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &heap_stats );
-      _RTEMS_Unlock_allocator();
-      break;
-    case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &heap_stats );
-      break;
-    default:
-      memset( stats, 0, sizeof( *stats ) );
-      return EPROTO;
+  if ( _Malloc_System_state() == MALLOC_SYSTEM_STATE_NO_ALLOCATION ) {
+    memset( stats, 0, sizeof( *stats ) );
+    return EPROTO;
   }
 
+  _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &heap_stats );
   _RTEMS_Convert_heap_statistics( &heap_stats, stats );
   return 0;
 }

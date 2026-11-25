@@ -44,6 +44,7 @@
 #include <rtems/score/cpu.h>
 #include <rtems/score/cpuopts.h>
 #include <rtems/score/heapinfo.h>
+#include <rtems/score/isrlock.h>
 #include <rtems/score/rbtree.h>
 
 #ifdef __cplusplus
@@ -246,6 +247,14 @@ typedef void *( *RBHeap_slab_source )( void );
  * @brief The control of a red-black tree heap.
  */
 typedef struct RBHeap_control {
+#if ISR_LOCK_NEEDS_OBJECT
+  /**
+   * @brief The lock which protects the trees, the slabs and the counters of
+   *   the heap.
+   */
+  ISR_lock_Control Lock;
+#endif
+
   /**
    * @brief The root of the free tree, which orders the free blocks by the size
    *   and then by the begin.

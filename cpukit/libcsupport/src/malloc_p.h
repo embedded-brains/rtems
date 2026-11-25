@@ -52,8 +52,6 @@ typedef enum {
 
 Malloc_System_state _Malloc_System_state( void );
 
-void _Malloc_Process_deferred_frees( void );
-
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
