@@ -85,6 +85,7 @@ install:
   - cpukit/include/rtems/libcsupport.h
   - cpukit/include/rtems/linkersets.h
   - cpukit/include/rtems/malloc.h
+  - cpukit/include/rtems/mallocinitone.h
   - cpukit/include/rtems/print.h
   - cpukit/include/rtems/printer.h
   - cpukit/include/rtems/record.h
@@ -160,6 +161,7 @@ install:
   - cpukit/include/rtems/rtems/status.h
   - cpukit/include/rtems/rtems/statusimpl.h
   - cpukit/include/rtems/rtems/support.h
+  - cpukit/include/rtems/rtems/supportimpl.h
   - cpukit/include/rtems/rtems/tasks.h
   - cpukit/include/rtems/rtems/tasksdata.h
   - cpukit/include/rtems/rtems/tasksimpl.h
@@ -217,6 +219,7 @@ install:
   - cpukit/include/rtems/score/processormaskimpl.h
   - cpukit/include/rtems/score/profiling.h
   - cpukit/include/rtems/score/protectedheap.h
+  - cpukit/include/rtems/score/rbheap.h
   - cpukit/include/rtems/score/rbtree.h
   - cpukit/include/rtems/score/rbtreeimpl.h
   - cpukit/include/rtems/score/scheduler.h
@@ -269,6 +272,7 @@ install:
   - cpukit/include/rtems/score/watchdog.h
   - cpukit/include/rtems/score/watchdogimpl.h
   - cpukit/include/rtems/score/watchdogticks.h
+  - cpukit/include/rtems/score/wkspace.h
   - cpukit/include/rtems/score/wkspacedata.h
 - destination: ${BSP_INCLUDEDIR}/sys
   source:
@@ -348,10 +352,23 @@ source:
 - cpukit/dev/contrib/iovprintf.c
 - cpukit/dev/iorelax.c
 - cpukit/libcsupport/src/__assert.c
+- cpukit/libcsupport/src/alignedalloc.c
+- cpukit/libcsupport/src/calloc.c
+- cpukit/libcsupport/src/free.c
 - cpukit/libcsupport/src/getchark.c
+- cpukit/libcsupport/src/malloc.c
+- cpukit/libcsupport/src/malloc_deferred.c
+- cpukit/libcsupport/src/mallocdescdefault.c
+- cpukit/libcsupport/src/mallocdirtydefault.c
+- cpukit/libcsupport/src/mallocextenddefault.c
+- cpukit/libcsupport/src/mallocgetstatistics.c
+- cpukit/libcsupport/src/mallocheap.c
+- cpukit/libcsupport/src/posix_memalign.c
 - cpukit/libcsupport/src/print_printf.c
 - cpukit/libcsupport/src/printk.c
 - cpukit/libcsupport/src/printk_plugin.c
+- cpukit/libcsupport/src/realloc.c
+- cpukit/libcsupport/src/rtems_heap_null_extend.c
 - cpukit/libcsupport/src/rtems_put_char.c
 - cpukit/libcsupport/src/rtems_putc.c
 - cpukit/libcsupport/src/rtemscalloc.c
@@ -556,6 +573,8 @@ source:
 - cpukit/rtems/src/timerserver.c
 - cpukit/rtems/src/timerserverfireafter.c
 - cpukit/rtems/src/timerserverfirewhen.c
+- cpukit/rtems/src/workspace.c
+- cpukit/rtems/src/workspacegetstatistics.c
 - cpukit/sapi/src/cpucounterconverter.c
 - cpukit/sapi/src/delaynano.c
 - cpukit/sapi/src/delayticks.c
@@ -612,10 +631,12 @@ source:
 - cpukit/score/src/percpu.c
 - cpukit/score/src/percpuasm.c
 - cpukit/score/src/processormaskcopy.c
+- cpukit/score/src/rbheap.c
 - cpukit/score/src/rbtreeextract.c
 - cpukit/score/src/rbtreeinsert.c
 - cpukit/score/src/rbtreemax.c
 - cpukit/score/src/rbtreemin.c
+- cpukit/score/src/rbtreenext.c
 - cpukit/score/src/rbtreereplace.c
 - cpukit/score/src/scheduler.c
 - cpukit/score/src/schedulerdefaultmappriority.c
@@ -678,5 +699,11 @@ source:
 - cpukit/score/src/watchdogtick.c
 - cpukit/score/src/watchdogtickssinceboot.c
 - cpukit/score/src/watchdogtimeslicedefault.c
+- cpukit/score/src/wkspaceallocate.c
+- cpukit/score/src/wkspacechecktls.c
+- cpukit/score/src/wkspacefallbackdefault.c
+- cpukit/score/src/wkspacefree.c
+- cpukit/score/src/wkspacerbheap.c
+- cpukit/score/src/wkspacestoragedefault.c
 target: rtemscpu
 type: build
