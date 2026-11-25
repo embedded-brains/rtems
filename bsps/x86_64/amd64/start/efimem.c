@@ -41,7 +41,7 @@
 
 #include <stdio.h>
 
-extern Heap_Control *RTEMS_Malloc_Heap;
+#include <rtems/malloc.h>
 
 void bsp_memory_heap_extend(void);
 
@@ -66,7 +66,10 @@ efi_memory_heap_extend( void );
 static UINT64
 heap_size(void)
 {
-    return RTEMS_Malloc_Heap->stats.size;
+    rtems_heap_statistics stats;
+
+    (void) malloc_get_statistics( &stats );
+    return stats.size;
 }
 
 static UINT64
@@ -141,10 +144,13 @@ allocate_biggest_block( void )
     }
     allocated_pages = allocated_pages + to_alloc_pages;
     sz = to_alloc_pages * 4096;
-    uintptr_t es = 0;
-    es = _Heap_Extend( RTEMS_Malloc_Heap, (void *)physBuf, sz, 0 );
     free(map);
-    return es;
+
+    if (rtems_heap_extend((void *)physBuf, sz) != RTEMS_SUCCESSFUL) {
+        return 0;
+    }
+
+    return sz;
 }
 
 void efi_memory_heap_extend( void )

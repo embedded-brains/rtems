@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2014 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,8 @@
 #include <bsp/system-clocks.h>
 #include <bsp/uart-output-char.h>
 
+#include <rtems/malloc.h>
+
 #ifdef LPC24XX_HEAP_EXTEND
   LINKER_SYMBOL(lpc24xx_region_heap_0_begin);
   LINKER_SYMBOL(lpc24xx_region_heap_0_size);
@@ -53,23 +55,18 @@
   LINKER_SYMBOL(lpc24xx_region_heap_1_size);
   LINKER_SYMBOL(lpc24xx_region_heap_1_end);
 
-  extern Heap_Control *RTEMS_Malloc_Heap;
 #endif
 
 static void heap_extend(void)
 {
   #ifdef LPC24XX_HEAP_EXTEND
-    _Heap_Extend(
-      RTEMS_Malloc_Heap,
+    (void) rtems_heap_extend(
       lpc24xx_region_heap_0_begin,
-      (uintptr_t) lpc24xx_region_heap_0_size,
-      0
+      (uintptr_t) lpc24xx_region_heap_0_size
     );
-    _Heap_Extend(
-      RTEMS_Malloc_Heap,
+    (void) rtems_heap_extend(
       lpc24xx_region_heap_1_begin,
-      (uintptr_t) lpc24xx_region_heap_1_size,
-      0
+      (uintptr_t) lpc24xx_region_heap_1_size
     );
   #endif
 }
