@@ -154,6 +154,34 @@ static void assert_executing_worker( test_context *ctx )
   );
 }
 
+static bool is_sticky_waiting( rtems_id id )
+{
+  Thread_Control  *the_thread;
+  ISR_lock_Context lock_context;
+  bool             sticky_waiting;
+
+  the_thread = _Thread_Get( id, &lock_context );
+  rtems_test_assert( the_thread != NULL );
+  _Thread_State_acquire_critical( the_thread, &lock_context );
+  sticky_waiting =
+    the_thread->Wait.queue != NULL &&
+    _Thread_Scheduler_get_home_node( the_thread )->sticky_level > 0;
+  _Thread_State_release( the_thread, &lock_context );
+
+  return sticky_waiting;
+}
+
+/*
+ * A worker which waits for a MrsP semaphore keeps its scheduler node only
+ * after the enqueue made the node sticky.
+ */
+static void wait_for_sticky_worker( test_context *ctx )
+{
+  while ( !is_sticky_waiting( ctx->worker_ids[ 0 ] ) ) {
+    /* Wait */
+  }
+}
+
 static void switch_extension( Thread_Control *executing, Thread_Control *heir )
 {
   test_context    *ctx = &test_instance;
@@ -1202,7 +1230,8 @@ static void various_block_unblock( test_context *ctx )
   SMP_barrier_State barrier_state = SMP_BARRIER_STATE_INITIALIZER;
 
   /* Worker obtain (F) */
-  barrier_and_delay( ctx, &barrier_state );
+  barrier( ctx, &barrier_state );
+  wait_for_sticky_worker( ctx );
 
   sc = rtems_task_suspend( ctx->worker_ids[ 0 ] );
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
