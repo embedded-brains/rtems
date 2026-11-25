@@ -1,15 +1,38 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Allocate a memory area of the size specified by ${.:/params[0]/name} from the
+  ${/score/heap/glossary/c-program-heap:/term}.
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/size_t:/name} ${.:/params[0]/name}
+    return: void *
+  variants: []
+description: null
 enabled-by: true
 index-entries: []
-interface-type: unspecified-function
+interface-type: function
 links:
 - role: interface-placement
   uid: stdlib
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
+- role: reference
+  uid: /ref/std/c23/malloc
 name: malloc
+notes: null
+params:
+- description: |
+    is the size in bytes of the memory area to allocate.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns the begin address of the allocated memory area, otherwise
+    ${/c/if/null:/name}.
+  return-values: []
 type: interface

@@ -1,0 +1,229 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/malloc
+- role: requirement-refinement
+  uid: /score/heap/req/disjoint
+post-conditions:
+- name: Status
+  states:
+  - name: Block
+    test-code: |
+      T_not_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/malloc:/name} shall be the begin
+      address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/malloc:/name} shall be equal to
+      ${../if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_SENTINEL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/malloc:/name} call.
+  - name: ENOMEM
+    test-code: |
+      T_eq_int( ctx->errno_value, ENOMEM );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be equal to
+      ${/c/errno/if/enomem:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Heap
+    test-code: |
+      T_eq_uptr( (uintptr_t) ctx->ptr % CPU_HEAP_ALIGNMENT, 0 );
+    text: |
+      The begin address of the ${/score/heap/glossary/used-block:/term} shall be an
+      integral multiple of the heap alignment of the ${/glossary/target-arch:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Size
+  states:
+  - name: Valid
+    test-code: |
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->size );
+    text: |
+      The size of the ${/score/heap/glossary/used-block:/term} shall be greater than
+      or equal to the ${../if/malloc:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+- name: Heap
+  states:
+  - name: Allocated
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks + 1 );
+    text: |
+      The ${/score/heap/glossary/c-program-heap:/term} shall have one more
+      ${/score/heap/glossary/used-block:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+    text: |
+      The ${/score/heap/glossary/used-block:/plural} and the
+      ${/score/heap/glossary/free-block:/plural} of the
+      ${/score/heap/glossary/c-program-heap:/term} shall not be changed by the
+      ${../if/malloc:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Size
+  states:
+  - name: Zero
+    test-code: |
+      ctx->size = 0;
+    text: |
+      While the ${../if/malloc:/params[0]/name} parameter is equal to zero.
+  - name: NonZero
+    test-code: |
+      ctx->size = 1;
+    text: |
+      While the ${../if/malloc:/params[0]/name} parameter is not equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The heap is empty */
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has a
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  - name: 'No'
+    test-code: |
+      HeapExhaust( &ctx->heap.heap );
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has no
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The ${/score/heap/glossary/c-program-heap:/term} returns ${../if/null:/name}
+  for a request of size zero.
+
+  Dimension Fit covers the free blocks of the
+  ${/score/heap/glossary/c-program-heap:/term}, 2 states.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->before );
+  errno = ERRNO_SENTINEL;
+  ctx->ptr = malloc( ctx->size );
+  ctx->errno_value = errno;
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->after );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the snapshot of the heap before the call.
+  description: null
+  member: |
+    HeapSnapshot before
+- brief: |
+    This member contains the snapshot of the heap after the call.
+  description: null
+  member: |
+    HeapSnapshot after
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/malloc:/name} call.
+  description: null
+  member: |
+    void *ptr
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/malloc:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member specifies the ${../if/malloc:/params[0]/name} parameter value.
+  description: null
+  member: |
+    size_t size
+test-context-support: |
+  #define ERRNO_SENTINEL -1
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdlib.h
+test-local-includes:
+- tx-heap.h
+test-prepare: |
+  HeapReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-mem-malloc.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Block
+    Errno: Nop
+    Alignment: Heap
+    Size: Valid
+    Heap: Allocated
+  pre-conditions:
+    Size:
+    - NonZero
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: ENOMEM
+    Alignment: N/A
+    Size: N/A
+    Heap: Nop
+  pre-conditions:
+    Size:
+    - NonZero
+    Fit:
+    - 'No'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Alignment: N/A
+    Size: N/A
+    Heap: Nop
+  pre-conditions:
+    Size:
+    - Zero
+    Fit: all
+type: requirement
