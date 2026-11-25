@@ -32,6 +32,8 @@ source:
 - testsuites/validation/tr-tq-enqueue-priority-inherit.c
 - testsuites/validation/tr-tq-enqueue-priority.c
 - testsuites/validation/tr-tq-extract-priority.c
+- testsuites/validation/tr-tq-helping-add-priority.c
+- testsuites/validation/tr-tq-helping-remove-priority.c
 - testsuites/validation/tr-tq-priority-change-priority.c
 - testsuites/validation/tr-tq-surrender-priority-inherit.c
 - testsuites/validation/tr-tq-surrender-priority.c
