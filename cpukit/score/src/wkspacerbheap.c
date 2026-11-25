@@ -48,7 +48,11 @@ void _Workspace_RBHeap_initialize( void )
 {
   bool ok;
 
-  if ( _Workspace_Descriptor_size > 0 ) {
+  if ( _Workspace_Storage_size == 0 ) {
+    /* The configuration reserves no block. */
+    _RBHeap_Initialize_empty( &_Workspace_RBHeap );
+    ok = true;
+  } else if ( _Workspace_Descriptor_size > 0 ) {
     /* The first slab of the descriptor area is the first slab of the heap. */
     ok = _RBHeap_Initialize_with_slab(
       &_Workspace_RBHeap,

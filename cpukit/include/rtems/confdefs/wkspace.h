@@ -61,6 +61,31 @@
 #include <rtems/malloc.h>
 #include <rtems/sysinit.h>
 
+/*
+ * The application configuration reserves no block in the workspace under three
+ * conditions.  No thread allocates its stack from the workspace.  No POSIX
+ * object takes memory.  The application defines no option which reserves
+ * memory.  The check precedes the defaults of these options.
+ */
+#if !defined( CONFIGURE_EXECUTIVE_RAM_SIZE ) &&                              \
+  !defined( CONFIGURE_EXTRA_TASK_STACKS ) &&                                 \
+  !defined( CONFIGURE_MESSAGE_BUFFER_MEMORY ) &&                             \
+  !defined( CONFIGURE_MEMORY_OVERHEAD ) &&                                   \
+  CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES == 0 &&                             \
+  CONFIGURE_MAXIMUM_POSIX_QUEUED_SIGNALS == 0 &&                             \
+  CONFIGURE_MAXIMUM_POSIX_SEMAPHORES == 0 &&                                 \
+  CONFIGURE_MAXIMUM_POSIX_SHMS == 0 &&                                       \
+  ( ( defined( CONFIGURE_TASK_STACK_ALLOCATOR ) &&                           \
+      defined( CONFIGURE_TASK_STACK_DEALLOCATOR ) &&                         \
+      defined( CONFIGURE_TASK_STACK_ALLOCATOR_AVOIDS_WORK_SPACE ) ) ||       \
+    ( _CONFIGURE_IDLE_THREAD_COUNT +                                         \
+      ( ( _CONFIGURE_TASKS -                                                 \
+          CONFIGURE_MINIMUM_TASKS_WITH_USER_PROVIDED_STORAGE ) &             \
+        ~RTEMS_UNLIMITED_OBJECTS ) +                                         \
+      ( CONFIGURE_MAXIMUM_POSIX_THREADS & ~RTEMS_UNLIMITED_OBJECTS ) ) == 0 )
+  #define _CONFIGURE_WORKSPACE_WITHOUT_BLOCKS
+#endif
+
 #if CPU_STACK_ALIGNMENT > CPU_HEAP_ALIGNMENT
   #define _CONFIGURE_TASK_STACK_ALLOC_SIZE( _stack_size ) \
   ( RTEMS_ALIGN_UP(                                       \
@@ -200,6 +225,33 @@
     _CONFIGURE_WORKSPACE_TLS_AREA_COUNT * _CONFIGURE_TLS_ALLOCATION_SIZE_LIMIT )
 #endif
 
+#if defined( CONFIGURE_UNIFIED_WORK_AREAS ) ||                             \
+  ( ( CONFIGURE_MAXIMUM_BARRIERS | CONFIGURE_MAXIMUM_MESSAGE_QUEUES |      \
+      CONFIGURE_MAXIMUM_PARTITIONS | CONFIGURE_MAXIMUM_PERIODS |           \
+      CONFIGURE_MAXIMUM_PORTS | CONFIGURE_MAXIMUM_REGIONS |                \
+      CONFIGURE_MAXIMUM_SEMAPHORES | CONFIGURE_MAXIMUM_TASKS |             \
+      CONFIGURE_MAXIMUM_TIMERS | CONFIGURE_MAXIMUM_USER_EXTENSIONS |       \
+      CONFIGURE_MAXIMUM_POSIX_KEYS |                                       \
+      CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS |                            \
+      CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES |                             \
+      CONFIGURE_MAXIMUM_POSIX_SEMAPHORES | CONFIGURE_MAXIMUM_POSIX_SHMS |  \
+      CONFIGURE_MAXIMUM_POSIX_THREADS | CONFIGURE_MAXIMUM_POSIX_TIMERS ) & \
+    RTEMS_UNLIMITED_OBJECTS ) != 0
+  #define _CONFIGURE_WORKSPACE_FALLBACK
+#endif
+
+/*
+ * With the fallback, the workspace provides the blocks of the objects which
+ * extend an object class.  Only the red-black tree heap needs a slab for an
+ * empty storage area.
+ */
+#if CONFIGURE_WORKSPACE_ALLOCATOR ==                \
+    RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE &&     \
+  defined( _CONFIGURE_WORKSPACE_WITHOUT_BLOCKS ) && \
+  !defined( _CONFIGURE_WORKSPACE_FALLBACK )
+  #define _CONFIGURE_WORKSPACE_EMPTY
+#endif
+
 #if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
 
 /*
@@ -274,6 +326,8 @@
   #if CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT > 0
     #define _CONFIGURE_WORKSPACE_DESCRIPTORS
   #endif
+#elif defined( _CONFIGURE_WORKSPACE_EMPTY )
+  #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT 0
 #else
   #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT \
   ( 2 * _CONFIGURE_WORKSPACE_BLOCK_COUNT + 3 )
@@ -317,33 +371,20 @@
 
 #endif /* CONFIGURE_WORKSPACE_ALLOCATOR */
 
-#if defined( CONFIGURE_UNIFIED_WORK_AREAS ) ||                             \
-  ( ( CONFIGURE_MAXIMUM_BARRIERS | CONFIGURE_MAXIMUM_MESSAGE_QUEUES |      \
-      CONFIGURE_MAXIMUM_PARTITIONS | CONFIGURE_MAXIMUM_PERIODS |           \
-      CONFIGURE_MAXIMUM_PORTS | CONFIGURE_MAXIMUM_REGIONS |                \
-      CONFIGURE_MAXIMUM_SEMAPHORES | CONFIGURE_MAXIMUM_TASKS |             \
-      CONFIGURE_MAXIMUM_TIMERS | CONFIGURE_MAXIMUM_USER_EXTENSIONS |       \
-      CONFIGURE_MAXIMUM_POSIX_KEYS |                                       \
-      CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS |                            \
-      CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES |                             \
-      CONFIGURE_MAXIMUM_POSIX_SEMAPHORES | CONFIGURE_MAXIMUM_POSIX_SHMS |  \
-      CONFIGURE_MAXIMUM_POSIX_THREADS | CONFIGURE_MAXIMUM_POSIX_TIMERS ) & \
-    RTEMS_UNLIMITED_OBJECTS ) != 0
-  #define _CONFIGURE_WORKSPACE_FALLBACK
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 const uintptr_t _Workspace_Size = CONFIGURE_EXECUTIVE_RAM_SIZE;
 
+#ifndef _CONFIGURE_WORKSPACE_EMPTY
 char _Workspace_Storage_area
   [ _CONFIGURE_WORKSPACE_STORAGE_SIZE ] RTEMS_ALIGNED(
     _CONFIGURE_WORKSPACE_STORAGE_ALIGNMENT
   ) RTEMS_NOINIT;
 
 const uintptr_t _Workspace_Storage_size = sizeof( _Workspace_Storage_area );
+#endif
 
 /*
  * With the fallback, the C Program Heap provides a thread-local storage area
@@ -371,6 +412,17 @@ void *_Workspace_Allocate( size_t size )
 void _Workspace_Free( void *ptr )
 {
   _Workspace_Free_with_fallback( ptr );
+}
+#elif defined( _CONFIGURE_WORKSPACE_EMPTY )
+void *_Workspace_Allocate( size_t size )
+{
+  (void) size;
+  return NULL;
+}
+
+void _Workspace_Free( void *ptr )
+{
+  (void) ptr;
 }
 #endif
 

@@ -1843,6 +1843,12 @@ bool _RBHeap_Extend(
   return result;
 }
 
+void _RBHeap_Initialize_empty( RBHeap_control *control )
+{
+  memset( control, 0, sizeof( *control ) );
+  _ISR_lock_Initialize( &control->Lock, "RBHeap" );
+}
+
 bool _RBHeap_Initialize(
   RBHeap_control *control,
   void           *area_begin,

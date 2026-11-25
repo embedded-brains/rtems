@@ -510,6 +510,15 @@ typedef struct RBHeap_control {
 } RBHeap_control;
 
 /**
+ * @brief Initializes the red-black tree heap so that it manages no area.
+ *
+ * Each allocation from the heap fails.
+ *
+ * @param[out] control is the control of the heap.
+ */
+void _RBHeap_Initialize_empty( RBHeap_control *control );
+
+/**
  * @brief Initializes the red-black tree heap so that it manages the area.
  *
  * The first slab of descriptors takes a part of the area.

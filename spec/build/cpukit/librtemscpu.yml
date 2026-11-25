@@ -1645,6 +1645,7 @@ source:
 - cpukit/score/src/wkspaceisunifieddefault.c
 - cpukit/score/src/wkspacerbheap.c
 - cpukit/score/src/wkspacestorageallocate.c
+- cpukit/score/src/wkspacestoragedefault.c
 - cpukit/score/src/wkspacestoragefree.c
 - cpukit/score/src/wkstringduplicate.c
 target: rtemscpu
