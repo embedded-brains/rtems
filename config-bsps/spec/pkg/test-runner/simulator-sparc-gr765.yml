@@ -7,7 +7,7 @@ command:
 - enabled-by: RTEMS_SMP
   value:
   - -m
-  - '4'
+  - '8'
 - ${.:/test-executable}
 copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
@@ -15,8 +15,7 @@ default-timeout-in-seconds: 180.0
 description: |
   Run the tests of the gr765 BSP on the ${/glossary/sis:/term}.  The GR765
   mode of SIS sets the extended interrupt line of the IRQ(A)MP to line 12.
-  An SMP test runs on four processors, since the validation test suites
-  configure at most five processors and leave the fifth without a scheduler.
+  An SMP test runs on the eight processors of the chip.
 discard-patterns: []
 do-not-run: []
 enabled-by: sparc/gr765
