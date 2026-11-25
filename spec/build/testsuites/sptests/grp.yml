@@ -281,6 +281,8 @@ links:
 - role: build-dependency
   uid: spheapprot
 - role: build-dependency
+  uid: spheapprot02
+- role: build-dependency
   uid: spinternalerror01
 - role: build-dependency
   uid: spinternalerror02

@@ -42,6 +42,7 @@
 #include <stdint.h>
 
 #include <rtems/score/cpu.h>
+#include <rtems/score/cpuopts.h>
 #include <rtems/score/heapinfo.h>
 #include <rtems/score/rbtree.h>
 
@@ -98,6 +99,14 @@ extern "C" {
  *
  * @{
  */
+
+#if defined( RTEMS_DEBUG ) && !defined( RBHEAP_GUARD )
+/**
+ * @brief Each used block ends with a guard word which a free and a resize
+ *   check.
+ */
+#define RBHEAP_GUARD
+#endif
 
 /**
  * @brief The least value of #RBHEAP_ALIGNMENT.

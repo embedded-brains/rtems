@@ -98,6 +98,15 @@ static inline bool _RBHeap_Guard_is_intact( uintptr_t begin, uintptr_t size )
   guard = (const uintptr_t *) ( begin + size - RBHEAP_GUARD_SIZE );
   return *guard == ~(uintptr_t) guard;
 }
+
+/*
+ * Returns true if the descriptor is NULL or if the guard of its block is
+ * overwritten.
+ */
+static inline bool _RBHeap_Is_invalid( const RBHeap_descriptor *desc )
+{
+  return desc == NULL || !_RBHeap_Guard_is_intact( desc->begin, desc->size );
+}
 #else
 static inline void _RBHeap_Guard_set( uintptr_t begin, uintptr_t size )
 {
@@ -105,11 +114,10 @@ static inline void _RBHeap_Guard_set( uintptr_t begin, uintptr_t size )
   (void) size;
 }
 
-static inline bool _RBHeap_Guard_is_intact( uintptr_t begin, uintptr_t size )
+/* Returns true if the descriptor is NULL. */
+static inline bool _RBHeap_Is_invalid( const RBHeap_descriptor *desc )
 {
-  (void) begin;
-  (void) size;
-  return true;
+  return desc == NULL;
 }
 #endif
 
@@ -1878,7 +1886,7 @@ static RBHeap_resize_status _RBHeap_Do_resize(
 
   desc = _RBHeap_Get_used( control, begin, NULL, &gap_end );
 
-  if ( desc == NULL || !_RBHeap_Guard_is_intact( desc->begin, desc->size ) ) {
+  if ( _RBHeap_Is_invalid( desc ) ) {
     *old_size = 0;
     return RBHEAP_RESIZE_INVALID_BLOCK;
   }
@@ -1996,7 +2004,7 @@ bool _RBHeap_Free( RBHeap_control *control, void *begin )
 
   desc = _RBHeap_Get_used( control, begin, &gap_begin, &gap_end );
 
-  if ( desc == NULL || !_RBHeap_Guard_is_intact( desc->begin, desc->size ) ) {
+  if ( _RBHeap_Is_invalid( desc ) ) {
     return false;
   }
 
