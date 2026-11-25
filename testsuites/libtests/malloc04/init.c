@@ -38,6 +38,7 @@
 #include <rtems/libcsupport.h>
 #include <rtems/malloc.h>
 #include <rtems/sysinit.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/score/threaddispatch.h>
 #include <errno.h>
 
@@ -71,6 +72,13 @@ void *rtems_heap_null_extend( RBHeap_control *heap, size_t alloc_size )
  * begins with an area of one unit.
  */
 #define UNIT 8192
+
+/*
+ * The heap keeps a slab of descriptors in its first unit.  One block of more
+ * than half of the rest fits into the first unit, a second one does not.
+ */
+#define MORE_THAN_HALF \
+  ( ( UNIT - RBHEAP_SLAB_SIZE ) / 2 + RBHEAP_ALIGNMENT )
 
 static char Malloc_Heap[ 5 * UNIT ] RTEMS_ALIGNED( 4096 );
 
@@ -231,11 +239,11 @@ rtems_task Init( rtems_task_argument argument )
   _Memory_Initialize_by_size( area, &Malloc_Heap[ 0 ], offset );
   _Malloc_Initialize();
 
-  p = malloc( UNIT / 2 );
+  p = malloc( MORE_THAN_HALF );
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 0 );
 
-  p = malloc( UNIT / 2 );
+  p = malloc( MORE_THAN_HALF );
   rtems_test_assert( p != NULL );
   rtems_test_assert( sbrk_count == 1 );
 
