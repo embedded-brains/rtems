@@ -15,7 +15,6 @@ source:
 - cpukit/score/src/percpujobs.c
 - cpukit/score/src/rbtreeappend.c
 - cpukit/score/src/rbtreeprepend.c
-- cpukit/score/src/rbtreereplace.c
 - cpukit/score/src/schedulerdefaultmakecleansticky.c
 - cpukit/score/src/schedulerdefaultpinunpindonothing.c
 - cpukit/score/src/schedulerdefaultsetaffinity.c
