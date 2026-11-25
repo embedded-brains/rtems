@@ -3254,6 +3254,38 @@
  */
 #define CONFIGURE_INTERRUPT_STACK_SIZE
 
+/* Find related documentation with spec:/acfg/if/malloc-descriptor-count */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+ *
+ * The value of this configuration option defines the count of block
+ * descriptors of the C Program Heap which `<rtems/confdefs.h>` allocates
+ * statically.
+ *
+ * @par Default Value
+ * The default value is 0.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be greater than or equal to
+ * zero.
+ *
+ * @par Notes
+ * @parblock
+ * The C Program Heap keeps a descriptor for each block apart from the block.
+ * It takes the descriptors from slabs. The statically allocated descriptors
+ * take no part of the memory of the C Program Heap. Further descriptors come
+ * from slabs in the memory of the C Program Heap.
+ *
+ * The size of a slab is 512 times the size of a pointer. Each slab holds one
+ * descriptor for itself. The `<rtems/confdefs.h>` rounds the count up to
+ * whole slabs.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+
 /* Find related documentation with spec:/acfg/if/malloc-dirty */
 
 /**
@@ -3915,6 +3947,54 @@
  * @endparblock
  */
 #define CONFIGURE_WORKSPACE_ALLOCATOR
+
+/* Find related documentation with spec:/acfg/if/workspace-descriptor-count */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+ *
+ * The value of this configuration option defines the count of block
+ * descriptors of the RTEMS Workspace which `<rtems/confdefs.h>` allocates
+ * statically if @ref CONFIGURE_WORKSPACE_ALLOCATOR is
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @par Default Value
+ * The default value is two times the count of blocks for which the RTEMS
+ * Workspace reserves memory, plus one.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be greater than or equal to
+ * zero.
+ *
+ * @par Notes
+ * @parblock
+ * The RTEMS Workspace keeps a descriptor for each block apart from the block.
+ * It takes the descriptors from slabs. The statically allocated descriptors
+ * take no part of the memory of the RTEMS Workspace. Further descriptors come
+ * from slabs in the memory of the RTEMS Workspace.
+ *
+ * The RTEMS Workspace reserves memory for one block for each thread stack, one
+ * block for the buffers of each message queue, one block for the name of each
+ * POSIX named object, and one block for the data of each POSIX shared memory
+ * object. A Classic message queue counts only if @ref
+ * CONFIGURE_MESSAGE_BUFFER_MEMORY is not zero, since a message queue which
+ * rtems_message_queue_construct() constructs takes no block. At most one free
+ * block lies before each used block and after the last used block. The
+ * default value therefore holds a descriptor for each block which the
+ * configuration reserves.
+ *
+ * An application which allocates further blocks from the RTEMS Workspace
+ * either increases this value or adds the memory for their slabs with
+ * @ref CONFIGURE_MEMORY_OVERHEAD.
+ *
+ * The size of a slab is 512 times the size of a pointer. Each slab holds one
+ * descriptor for itself. The `<rtems/confdefs.h>` rounds the count up to
+ * whole slabs.
+ * @endparblock
+ */
+#define CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
 
 /* Find related documentation with spec:/acfg/if/zero-workspace-automatically */
 

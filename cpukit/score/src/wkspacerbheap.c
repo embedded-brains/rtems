@@ -41,6 +41,7 @@
 #include <rtems/score/rbheap.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/score/assert.h>
+#include <rtems/score/interr.h>
 
 RBHeap_control _Workspace_RBHeap;
 
@@ -48,17 +49,41 @@ void _Workspace_RBHeap_initialize( void )
 {
   bool ok;
 
-  ok = _RBHeap_Initialize(
-    &_Workspace_RBHeap,
-    _Workspace_Storage_area,
-    _Workspace_Storage_size
-  );
-  _Assert( ok );
-  _Assert(
-    _Workspace_RBHeap.free_size >=
-    _Workspace_Storage_size - RBHEAP_AREA_OVERHEAD
-  );
-  (void) ok;
+  if ( _Workspace_Descriptor_size > 0 ) {
+    /* The first slab of the descriptor area is the first slab of the heap. */
+    ok = _RBHeap_Initialize_with_slab(
+      &_Workspace_RBHeap,
+      _Workspace_Storage_area,
+      _Workspace_Storage_size,
+      _Workspace_Descriptor_begin,
+      NULL
+    );
+    _Assert( ok );
+    _Assert( _Workspace_RBHeap.free_size == _Workspace_Storage_size );
 
+    if (
+      ok && _Workspace_Descriptor_size > RBHEAP_SLAB_SIZE &&
+      !_RBHeap_Add_descriptors(
+        &_Workspace_RBHeap,
+        (char *) _Workspace_Descriptor_begin + RBHEAP_SLAB_SIZE,
+        _Workspace_Descriptor_size - RBHEAP_SLAB_SIZE
+      )
+    ) {
+      _Internal_error( INTERNAL_ERROR_TOO_LITTLE_WORKSPACE );
+    }
+  } else {
+    ok = _RBHeap_Initialize(
+      &_Workspace_RBHeap,
+      _Workspace_Storage_area,
+      _Workspace_Storage_size
+    );
+    _Assert( ok );
+    _Assert(
+      _Workspace_RBHeap.free_size >=
+      _Workspace_Storage_size - RBHEAP_AREA_OVERHEAD
+    );
+  }
+
+  (void) ok;
   _Workspace_Check_TLS_allocation_size();
 }

@@ -66,14 +66,13 @@
 
 #define _Configure_Max( _a, _b ) ( ( _a ) > ( _b ) ? ( _a ) : ( _b ) )
 
-#define _Configure_From_workspace( _size )                       \
-  ( (uintptr_t) ( _Configure_Zero_or_one( _size ) *              \
-                  ( _Configure_Align_up(                         \
-                      _Configure_Max( _size, RBHEAP_MIN_SIZE ) + \
-                        RBHEAP_GUARD_SIZE,                       \
-                      RBHEAP_ALIGNMENT                           \
-                    ) +                                          \
-                    RBHEAP_BLOCK_OVERHEAD ) ) )
+#define _Configure_From_workspace( _size )                     \
+  ( (uintptr_t) ( _Configure_Zero_or_one( _size ) *            \
+                  _Configure_Align_up(                         \
+                    _Configure_Max( _size, RBHEAP_MIN_SIZE ) + \
+                      RBHEAP_GUARD_SIZE,                       \
+                    RBHEAP_ALIGNMENT                           \
+                  ) ) )
 
 #else
 
