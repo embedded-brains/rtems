@@ -97,6 +97,14 @@ void *realloc( void *ptr, size_t size )
       return ptr;
     case RBHEAP_RESIZE_UNSATISFIED:
       return new_alloc( ptr, size, old_size );
+#if defined( RTEMS_SMP )
+    case RBHEAP_RESIZE_BOUND:
+      if ( _RBHeap_Processor_keeps( heap, size, old_size ) ) {
+        return ptr;
+      }
+
+      return new_alloc( ptr, size, old_size );
+#endif
     default:
       errno = EINVAL;
       return NULL;

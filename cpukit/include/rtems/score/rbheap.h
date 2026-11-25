@@ -99,7 +99,8 @@ extern "C" {
 typedef enum {
   RBHEAP_RESIZE_SUCCESSFUL,
   RBHEAP_RESIZE_UNSATISFIED,
-  RBHEAP_RESIZE_INVALID_BLOCK
+  RBHEAP_RESIZE_INVALID_BLOCK,
+  RBHEAP_RESIZE_BOUND
 } RBHeap_resize_status;
 
 /**
@@ -341,6 +342,12 @@ typedef struct RBHeap_control {
   uintptr_t empty_count;
 
   /**
+   * @brief The count of slabs in the areas besides the home slab and the
+   *   draining slab.
+   */
+  uintptr_t area_slab_count;
+
+  /**
    * @brief The source of the slabs of descriptors, else NULL.
    *
    * Without a source, the heap takes each slab from its areas.  With a source,
@@ -369,6 +376,57 @@ typedef struct RBHeap_control {
    * split of a free block finds its descriptors.
    */
   uintptr_t entries;
+
+#if defined( RTEMS_SMP )
+  /**
+   * @brief The begin of the range of the bound descriptors.
+   *
+   * A bound descriptor lies outside of the slabs.  It describes a processor
+   * block.
+   */
+  uintptr_t bound_begin;
+
+  /**
+   * @brief The end of the range of the bound descriptors.
+   */
+  uintptr_t bound_end;
+
+  /**
+   * @brief The processor blocks of each processor, else NULL.
+   */
+  struct RBHeap_processor *processors;
+
+  /**
+   * @brief The count of processors with processor blocks.
+   */
+  uint32_t processor_count;
+
+  /**
+   * @brief The count of bins of each processor.
+   */
+  uint32_t bin_count;
+
+  /**
+   * @brief The count of blocks of a bin at which a free gives the block to the
+   *   heap.
+   */
+  uint32_t bin_capacity;
+
+  /**
+   * @brief The count of processor descriptors of each processor.
+   */
+  uintptr_t processor_pairs;
+
+  /**
+   * @brief The count of words of each bitmap of a processor.
+   */
+  uintptr_t processor_words;
+
+  /**
+   * @brief The maximum size of a processor block in bytes.
+   */
+  uintptr_t processor_max_size;
+#endif
 
   /**
    * @brief The statistics of the heap.
@@ -537,6 +595,10 @@ void *_RBHeap_Allocate_aligned(
  *
  * @retval RBHEAP_RESIZE_INVALID_BLOCK The address is no begin of a used
  *   block, or the guard word of the block is overwritten.
+ *
+ * @retval RBHEAP_RESIZE_BOUND The block is a processor block.  The block is
+ *   unchanged, and the old size is set.  Only a heap with processor blocks
+ *   returns this status.
  */
 RBHeap_resize_status _RBHeap_Resize(
   RBHeap_control *control,
@@ -554,10 +616,135 @@ RBHeap_resize_status _RBHeap_Resize(
  *
  * @retval true The block is free, or the block is NULL.
  *
- * @retval false The address is no begin of a used block, or the guard word of
- *   the block is overwritten.  The heap is unchanged.
+ * @retval false The address is no begin of a used block, the guard word of
+ *   the block is overwritten, or the block has a bound descriptor.  The heap
+ *   is unchanged.
  */
 bool _RBHeap_Free( RBHeap_control *control, void *block );
+
+#if defined( RTEMS_SMP )
+/**
+ * @brief Sets up the processor blocks of the red-black tree heap.
+ *
+ * Each processor gets the count of descriptors.  Two descriptors describe one
+ * processor block.  The heap provides the storage of the processor blocks.
+ * Without enough storage, the heap has no processor blocks.
+ *
+ * @param[in, out] control is the control of the heap.
+ *
+ * @param processor_count is the count of processors.
+ *
+ * @param descriptors is the count of descriptors of each processor.  It is
+ *   zero, or it is at least two times the count of size classes of the
+ *   maximum size.
+ *
+ * @param max_size is the maximum size of a processor block in bytes.  It is
+ *   a power of two of at least four times #RBHEAP_ALIGNMENT.
+ *
+ * @retval true The heap has processor blocks, or the count of descriptors is
+ *   zero.
+ *
+ * @retval false The heap has no storage for the processor blocks.
+ */
+bool _RBHeap_Initialize_processor_blocks(
+  RBHeap_control *control,
+  uint32_t        processor_count,
+  uintptr_t       descriptors,
+  uintptr_t       max_size
+);
+
+/**
+ * @brief Allocates a block of the size from a bin of the current processor.
+ *
+ * @param[in, out] control is the control of the heap.
+ *
+ * @param size is the size of the block.
+ *
+ * @return Returns the begin of the block, else NULL.
+ */
+void *_RBHeap_Allocate_from_processor(
+  RBHeap_control *control,
+  uintptr_t       size
+);
+
+/**
+ * @brief Gets the size of the request to the heap which gives a block of the
+ *   bound of the size class of the size.
+ *
+ * @param control is the control of the heap.
+ *
+ * @param size is the size of the request.
+ *
+ * @return Returns the size of the request to the heap, if the size has a
+ *   size class, else the size.
+ */
+uintptr_t _RBHeap_Round_for_processor(
+  const RBHeap_control *control,
+  uintptr_t             size
+);
+
+/**
+ * @brief Frees the block of the red-black tree heap through the processor
+ *   blocks.
+ *
+ * @param[in, out] control is the control of the heap.
+ *
+ * @param block is the begin of the block, or NULL.
+ *
+ * @retval true The block is free, or the block is NULL.
+ *
+ * @retval false The address is no begin of a used block, or the guard word of
+ *   the block is overwritten.  The value also reports an invalid free of a
+ *   processor block.
+ */
+bool _RBHeap_Free_to_processor( RBHeap_control *control, void *block );
+
+/**
+ * @brief Checks if a processor block of the old size serves a request of the
+ *   size.
+ *
+ * @param control is the control of the heap.
+ *
+ * @param size is the size of the request.
+ *
+ * @param old_size is the size of the processor block.
+ *
+ * @return Returns true, if the processor block serves the request, else
+ *   false.
+ */
+bool _RBHeap_Processor_keeps(
+  const RBHeap_control *control,
+  uintptr_t             size,
+  uintptr_t             old_size
+);
+
+/**
+ * @brief Moves the blocks in the bins and in the kept lists of the processors
+ *   from the used to the free information.
+ *
+ * @param control is the control of the heap.
+ *
+ * @param[in, out] info is the information of the heap.
+ */
+void _RBHeap_Get_processor_information(
+  const RBHeap_control   *control,
+  Heap_Information_block *info
+);
+
+/**
+ * @brief Checks if the red-black tree heap has processor blocks.
+ *
+ * @param control is the control of the heap.
+ *
+ * @return Returns true, if the heap has processor blocks, else false.
+ */
+static inline bool _RBHeap_Has_processor_blocks(
+  const RBHeap_control *control
+)
+{
+  return control->processors != NULL;
+}
+#endif
 
 /**
  * @brief Allocates a block of the size which begins at a multiple of the
@@ -639,6 +826,22 @@ void _RBHeap_Get_information(
 void _RBHeap_Get_statistics(
   const RBHeap_control *control,
   Heap_Statistics      *stats
+);
+
+/**
+ * @brief Gets the size of the slabs of the red-black tree heap which the heap
+ *   frees if the used tree loses the count of entries.
+ *
+ * @param control is the control of the heap.
+ *
+ * @param entries is the count of entries.
+ *
+ * @return Returns the size in bytes of the slabs in the areas which the
+ *   capacity does not need after the loss of the entries.
+ */
+uintptr_t _RBHeap_Get_releasable_size(
+  const RBHeap_control *control,
+  uintptr_t             entries
 );
 
 /**

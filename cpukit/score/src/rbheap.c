@@ -53,6 +53,15 @@
 
 #include <string.h>
 
+#if defined( RTEMS_SMP )
+#include <rtems/score/atomic.h>
+#include <rtems/score/interr.h>
+#include <rtems/score/isrlevel.h>
+#include <rtems/score/percpu.h>
+
+#include <limits.h>
+#endif
+
 static void _RBHeap_Acquire(
   const RBHeap_control *control,
   ISR_lock_Context     *lock_context
@@ -201,6 +210,18 @@ static bool _RBHeap_Is_hole( const RBHeap_descriptor *desc )
   return ( desc->begin & 1 ) != 0;
 }
 
+#if defined( RTEMS_SMP )
+/* Returns true if the descriptor lies in the range of the bound descriptors. */
+static bool _RBHeap_Is_bound(
+  const RBHeap_control    *control,
+  const RBHeap_descriptor *desc
+)
+{
+  return (uintptr_t) desc - control->bound_begin <
+         control->bound_end - control->bound_begin;
+}
+#endif
+
 /* Returns the begin of the used block or the hole. */
 static uintptr_t _RBHeap_Begin( const RBHeap_descriptor *desc )
 {
@@ -271,6 +292,7 @@ static void _RBHeap_Slab_initialize(
   } else {
     _RBHeap_Slab_add( &control->empty, slab );
     ++control->empty_count;
+    ++control->area_slab_count;
   }
 
   control->spare += RBHEAP_SLAB_SLOTS - 1;
@@ -1010,6 +1032,7 @@ static void _RBHeap_Cancel_drain( RBHeap_control *control )
     ++control->empty_count;
   }
 
+  ++control->area_slab_count;
   control->spare += RBHEAP_SLAB_SLOTS - 1 - slab->live;
   control->capacity += RBHEAP_SLAB_SLOTS - 1;
 }
@@ -1270,6 +1293,7 @@ static void _RBHeap_Release_slab( RBHeap_control *control )
       --control->empty_count;
     }
 
+    --control->area_slab_count;
     control->spare -= RBHEAP_SLAB_SLOTS - 1 - slab->live;
     control->capacity -= RBHEAP_SLAB_SLOTS - 1;
     control->draining = slab;
@@ -1394,6 +1418,7 @@ static void _RBHeap_Clear( RBHeap_control *control )
       } else {
         _RBHeap_Slab_remove( &control->empty, slab );
         --control->empty_count;
+        --control->area_slab_count;
       }
 
       control->spare -= RBHEAP_SLAB_SLOTS - 1;
@@ -1949,6 +1974,12 @@ static RBHeap_resize_status _RBHeap_Do_resize(
   current_size = desc->size;
   *old_size = current_size - RBHEAP_GUARD_SIZE;
 
+#if defined( RTEMS_SMP )
+  if ( _RBHeap_Is_bound( control, desc ) ) {
+    return RBHEAP_RESIZE_BOUND;
+  }
+#endif
+
   if ( size > RBHEAP_MAX_SIZE ) {
     return RBHEAP_RESIZE_UNSATISFIED;
   }
@@ -2050,6 +2081,28 @@ RBHeap_resize_status _RBHeap_Resize(
   return status;
 }
 
+/* Frees the used block of the descriptor of the heap. */
+static void _RBHeap_Free_used(
+  RBHeap_control    *control,
+  RBHeap_descriptor *desc,
+  uintptr_t          gap_begin,
+  uintptr_t          gap_end
+)
+{
+  (void) gap_begin;
+  (void) gap_end;
+  ++control->stats.frees;
+  --control->stats.used_blocks;
+  control->stats.lifetime_freed += desc->size;
+
+#if UINTPTR_MAX == UINT32_MAX
+  _RBHeap_Merge( control, desc, false );
+#else
+  _RBHeap_Merge_gap( control, desc, gap_begin, gap_end, false );
+#endif
+  _RBHeap_Release_slab( control );
+}
+
 static bool _RBHeap_Do_free( RBHeap_control *control, void *begin )
 {
   RBHeap_descriptor *desc;
@@ -2066,16 +2119,13 @@ static bool _RBHeap_Do_free( RBHeap_control *control, void *begin )
     return false;
   }
 
-  ++control->stats.frees;
-  --control->stats.used_blocks;
-  control->stats.lifetime_freed += desc->size;
-
-#if UINTPTR_MAX == UINT32_MAX
-  _RBHeap_Merge( control, desc, false );
-#else
-  _RBHeap_Merge_gap( control, desc, gap_begin, gap_end, false );
+#if defined( RTEMS_SMP )
+  if ( _RBHeap_Is_bound( control, desc ) ) {
+    return false;
+  }
 #endif
-  _RBHeap_Release_slab( control );
+
+  _RBHeap_Free_used( control, desc, gap_begin, gap_end );
   return true;
 }
 
@@ -2089,6 +2139,853 @@ bool _RBHeap_Free( RBHeap_control *control, void *begin )
   _RBHeap_Release( control, &lock_context );
   return result;
 }
+
+#if defined( RTEMS_SMP )
+/*
+ * A processor owns the blocks which it binds.  A bound block stays a used
+ * block of the heap.  Its heap descriptor is a bound descriptor of the
+ * processor, and a processor descriptor of the same index describes it in the
+ * processor.  A free block of a processor lies in the bin of the largest size
+ * class which its size reaches.  A used block of a processor lies in the used
+ * tree of the processor.
+ *
+ * The processor changes its bins and its used tree with interrupts disabled.
+ * A free on another processor sets the kept bit of the processor descriptor
+ * and pushes the block onto the kept list of the owner.  The first word of the
+ * block links the list.  A miss of the bins drains one kept block into its
+ * bin.  Only the owner reads its bins, so the free on another processor
+ * cannot see whether the block lies in a bin.  The owner checks the kept bit
+ * when it takes a descriptor out of a bin and when it drains a block.
+ *
+ * Each allocation and each free takes the lock of the heap at most once.
+ */
+
+#define BITS_PER_WORD ( sizeof( unsigned long ) * CHAR_BIT )
+
+typedef struct RBHeap_processor_descriptor {
+  union {
+    /**
+     * @brief The node of a used block in the used tree of the processor.
+     */
+    RBTree_Node node;
+
+    /**
+     * @brief The next descriptor of a bin or of the spare list.
+     */
+    struct RBHeap_processor_descriptor *next;
+  };
+
+  /**
+   * @brief The begin of the block.
+   */
+  uintptr_t begin;
+
+  /**
+   * @brief The size of the block without the guard word.
+   */
+  uintptr_t size;
+} RBHeap_processor_descriptor;
+
+typedef struct RBHeap_processor {
+  /**
+   * @brief The used blocks of the processor ordered by the begin.
+   */
+  RBTree_Control used;
+
+  /**
+   * @brief The descriptors without a block.
+   */
+  RBHeap_processor_descriptor *spare;
+
+  /**
+   * @brief The first descriptor of each bin.
+   */
+  RBHeap_processor_descriptor **bins;
+
+  /**
+   * @brief The count of descriptors of each bin.
+   */
+  uint32_t *bin_counts;
+
+  /**
+   * @brief The processor descriptors.
+   */
+  RBHeap_processor_descriptor *descs;
+
+  /**
+   * @brief The bound descriptors of the same index.
+   */
+  RBHeap_descriptor *bound;
+
+  /**
+   * @brief The kept bit of each descriptor.
+   *
+   * A set bit marks a descriptor whose block lies in the kept list.
+   */
+  Atomic_Ulong *kept_bits;
+
+  /**
+   * @brief The blocks of the kept list which the processor took and did not
+   *   drain yet.
+   */
+  void *pending;
+
+  /**
+   * @brief The count of blocks in the bins.
+   */
+  uintptr_t free_blocks;
+
+  /**
+   * @brief The total size of the blocks in the bins, the guard words
+   *   included.
+   */
+  uintptr_t free_bytes;
+
+  /**
+   * @brief The kept list which other processors push onto.
+   *
+   * Other processors write this member, so it begins a cache line of its own.
+   */
+  Atomic_Uintptr kept RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES );
+} RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES ) RBHeap_processor;
+
+/**
+ * @brief The status of a free through the processor blocks.
+ */
+typedef enum {
+  /**
+   * @brief The heap freed the block.
+   */
+  RBHEAP_FREE_FREED,
+
+  /**
+   * @brief A processor bound the block.  The block stays a used block of the
+   *   heap.
+   */
+  RBHEAP_FREE_BOUND,
+
+  /**
+   * @brief The block is a processor block of another processor.  The block
+   *   went into the kept list of its processor.
+   */
+  RBHEAP_FREE_DEFERRED,
+
+  /**
+   * @brief The address is no begin of a used block, the guard word of the
+   *   block is overwritten, or the free of the processor block is invalid.
+   *   The heap is unchanged.
+   */
+  RBHEAP_FREE_INVALID
+} RBHeap_free_status;
+
+static uint32_t _RBHeap_Processor_Msb( uintptr_t value )
+{
+  return (uint32_t) ( sizeof( unsigned long ) * CHAR_BIT - 1 ) -
+         (uint32_t) __builtin_clzl( (unsigned long) value );
+}
+
+/*
+ * A size class has a size in units of the alignment.  The classes of one to
+ * four units follow each other.  Above four units, each power of two has four
+ * classes in steps of a quarter of the power.
+ */
+static uint32_t _RBHeap_Processor_Class_up( uintptr_t units )
+{
+  uint32_t shift;
+
+  if ( units <= 4 ) {
+    return (uint32_t) units - 1;
+  }
+
+  shift = _RBHeap_Processor_Msb( units - 1 );
+  return 4 * ( shift - 1 ) +
+         (uint32_t) ( ( units - 1 - ( (uintptr_t) 1 << shift ) ) >>
+                      ( shift - 2 ) );
+}
+
+static uintptr_t _RBHeap_Processor_Class_units( uint32_t size_class )
+{
+  uint32_t shift;
+
+  if ( size_class < 4 ) {
+    return size_class + 1;
+  }
+
+  shift = size_class / 4 + 1;
+  return ( (uintptr_t) 1 << shift ) +
+         ( (uintptr_t) ( size_class % 4 + 1 ) << ( shift - 2 ) );
+}
+
+/* The units are at least one. */
+static uint32_t _RBHeap_Processor_Class_down( uintptr_t units )
+{
+  uint32_t size_class;
+
+  size_class = _RBHeap_Processor_Class_up( units );
+
+  if ( _RBHeap_Processor_Class_units( size_class ) > units ) {
+    --size_class;
+  }
+
+  return size_class;
+}
+
+static RBHeap_processor *_RBHeap_Processor_Current(
+  const RBHeap_control *control
+)
+{
+  return &control->processors[ _Per_CPU_Get_index( _Per_CPU_Get() ) ];
+}
+
+static bool _RBHeap_Processor_Less(
+  const void        *left,
+  const RBTree_Node *right
+)
+{
+  const uintptr_t                   *begin;
+  const RBHeap_processor_descriptor *desc;
+
+  begin = left;
+  desc = (const RBHeap_processor_descriptor *) right;
+  return *begin < desc->begin;
+}
+
+static void *_RBHeap_Processor_Map( RBTree_Node *node )
+{
+  return node;
+}
+
+static bool _RBHeap_Processor_Equal(
+  const void        *left,
+  const RBTree_Node *right
+)
+{
+  const uintptr_t                   *begin;
+  const RBHeap_processor_descriptor *desc;
+
+  begin = left;
+  desc = (const RBHeap_processor_descriptor *) right;
+  return *begin == desc->begin;
+}
+
+static RBHeap_processor_descriptor *_RBHeap_Processor_Used_find(
+  RBHeap_processor *cpu,
+  uintptr_t         begin
+)
+{
+  return _RBTree_Find_inline(
+    &cpu->used,
+    &begin,
+    _RBHeap_Processor_Equal,
+    _RBHeap_Processor_Less,
+    _RBHeap_Processor_Map
+  );
+}
+
+static void _RBHeap_Processor_Used_insert(
+  RBHeap_processor            *cpu,
+  RBHeap_processor_descriptor *desc
+)
+{
+  _RBTree_Initialize_node( &desc->node );
+  (void) _RBTree_Insert_inline(
+    &cpu->used,
+    &desc->node,
+    &desc->begin,
+    _RBHeap_Processor_Less
+  );
+}
+
+/*
+ * Returns the size class of the block of a request of the size.  The heap
+ * rounds the size of a block in the same way.
+ */
+static uint32_t _RBHeap_Processor_Class_of_request( uintptr_t size )
+{
+  if ( size < RBHEAP_MIN_SIZE ) {
+    size = RBHEAP_MIN_SIZE;
+  }
+
+  return _RBHeap_Processor_Class_up(
+    ( size + RBHEAP_GUARD_SIZE + RBHEAP_ALIGNMENT - 1 ) / RBHEAP_ALIGNMENT
+  );
+}
+
+/*
+ * Returns the bin of a block of the size without the guard word.  Each request
+ * of the size class of the bin fits into the block.
+ */
+static uint32_t _RBHeap_Processor_Bin_of( uintptr_t size )
+{
+  return _RBHeap_Processor_Class_down(
+    ( size + RBHEAP_GUARD_SIZE ) / RBHEAP_ALIGNMENT
+  );
+}
+
+static void _RBHeap_Processor_Bin_push(
+  RBHeap_processor            *cpu,
+  uint32_t                     bin,
+  RBHeap_processor_descriptor *desc
+)
+{
+  desc->next = cpu->bins[ bin ];
+  cpu->bins[ bin ] = desc;
+  ++cpu->bin_counts[ bin ];
+  ++cpu->free_blocks;
+  cpu->free_bytes += desc->size + RBHEAP_GUARD_SIZE;
+}
+
+/* Frees the block of the bound descriptor.  The heap has a spare descriptor. */
+static void _RBHeap_Do_free_bound(
+  RBHeap_control    *control,
+  RBHeap_descriptor *desc
+)
+{
+  ++control->stats.frees;
+  --control->stats.used_blocks;
+  control->stats.lifetime_freed += desc->size;
+  _RBHeap_Merge( control, desc, true );
+  _RBHeap_Release_slab( control );
+  _RBHeap_Update_min_free_size( control );
+}
+
+/*
+ * Frees the block of the bound descriptor, if the heap has a descriptor for
+ * the free block.
+ */
+static bool _RBHeap_Free_bound(
+  RBHeap_control    *control,
+  RBHeap_descriptor *desc
+)
+{
+  ISR_lock_Context lock_context;
+  bool             result;
+
+  _Assert( _RBHeap_Is_bound( control, desc ) );
+  _RBHeap_Acquire( control, &lock_context );
+  result = _RBHeap_Reserve_descriptor( control );
+
+  if ( result ) {
+    _RBHeap_Do_free_bound( control, desc );
+  }
+
+  _RBHeap_Release( control, &lock_context );
+  return result;
+}
+
+/*
+ * Puts the free block of the descriptor into its bin.  A block for a full bin
+ * goes to the heap.
+ */
+static void _RBHeap_Processor_Put(
+  RBHeap_control              *control,
+  RBHeap_processor            *cpu,
+  RBHeap_processor_descriptor *desc
+)
+{
+  uint32_t bin;
+
+  bin = _RBHeap_Processor_Bin_of( desc->size );
+
+  if (
+    cpu->bin_counts[ bin ] >= control->bin_capacity &&
+    _RBHeap_Free_bound( control, &cpu->bound[ desc - cpu->descs ] )
+  ) {
+    desc->next = cpu->spare;
+    cpu->spare = desc;
+    return;
+  }
+
+  _RBHeap_Processor_Bin_push( cpu, bin, desc );
+}
+
+static uintptr_t _RBHeap_Processor_Index(
+  const RBHeap_processor            *cpu,
+  const RBHeap_processor_descriptor *desc
+)
+{
+  return (uintptr_t) ( desc - cpu->descs );
+}
+
+static bool _RBHeap_Processor_Test_bit( Atomic_Ulong *bits, uintptr_t index )
+{
+  return ( _Atomic_Load_ulong(
+             &bits[ index / BITS_PER_WORD ],
+             ATOMIC_ORDER_RELAXED
+           ) &
+           ( 1UL << ( index % BITS_PER_WORD ) ) ) != 0;
+}
+
+static void _RBHeap_Processor_Clear_bit( Atomic_Ulong *bits, uintptr_t index )
+{
+  (void) _Atomic_Fetch_and_ulong(
+    &bits[ index / BITS_PER_WORD ],
+    ~( 1UL << ( index % BITS_PER_WORD ) ),
+    ATOMIC_ORDER_RELAXED
+  );
+}
+
+/* Moves one block of the kept list into its bin, also into a full bin. */
+static RTEMS_NO_INLINE void _RBHeap_Processor_Drain_kept(
+  RBHeap_processor *cpu
+)
+{
+  void                        *block;
+  RBHeap_processor_descriptor *desc;
+
+  if ( cpu->pending == NULL ) {
+    cpu->pending = (void *)
+      _Atomic_Exchange_uintptr( &cpu->kept, 0, ATOMIC_ORDER_ACQUIRE );
+
+    if ( cpu->pending == NULL ) {
+      return;
+    }
+  }
+
+  block = cpu->pending;
+  cpu->pending = *(void **) block;
+  desc = _RBHeap_Processor_Used_find( cpu, (uintptr_t) block );
+
+  if ( desc == NULL ) {
+    _Terminate( RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE, (Internal_errors_t) block );
+  }
+
+  _RBHeap_Processor_Clear_bit(
+    cpu->kept_bits,
+    _RBHeap_Processor_Index( cpu, desc )
+  );
+  _RBTree_Extract( &cpu->used, &desc->node );
+  _RBHeap_Processor_Bin_push(
+    cpu,
+    _RBHeap_Processor_Bin_of( desc->size ),
+    desc
+  );
+}
+
+void *_RBHeap_Allocate_from_processor(
+  RBHeap_control *control,
+  uintptr_t       size
+)
+{
+  ISR_Level                    level;
+  RBHeap_processor            *cpu;
+  RBHeap_processor_descriptor *desc;
+  uint32_t                     bin;
+  void                        *block;
+
+  if (
+    control->processors == NULL || size == 0 ||
+    size > control->processor_max_size
+  ) {
+    return NULL;
+  }
+
+  bin = _RBHeap_Processor_Class_of_request( size );
+
+#ifdef RBHEAP_GUARD
+  /* Only with the guard word, a request of the maximum size has no bin. */
+  if ( bin >= control->bin_count ) {
+    return NULL;
+  }
+#else
+  _Assert( bin < control->bin_count );
+#endif
+
+  _ISR_Local_disable( level );
+  cpu = _RBHeap_Processor_Current( control );
+  desc = cpu->bins[ bin ];
+
+  if ( desc == NULL ) {
+    _RBHeap_Processor_Drain_kept( cpu );
+    desc = cpu->bins[ bin ];
+  }
+
+  if ( desc != NULL ) {
+    /* Another processor freed the free block of the bin. */
+    if (
+      _RBHeap_Processor_Test_bit(
+        cpu->kept_bits,
+        _RBHeap_Processor_Index( cpu, desc )
+      )
+    ) {
+      _Terminate(
+        RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE,
+        (Internal_errors_t) desc->begin
+      );
+    }
+
+    cpu->bins[ bin ] = desc->next;
+    --cpu->bin_counts[ bin ];
+    --cpu->free_blocks;
+    cpu->free_bytes -= desc->size + RBHEAP_GUARD_SIZE;
+    _RBHeap_Processor_Used_insert( cpu, desc );
+    block = (void *) desc->begin;
+  } else {
+    block = NULL;
+  }
+
+  _ISR_Local_enable( level );
+  return block;
+}
+
+/*
+ * Returns a bound descriptor of the processor for the used block, else NULL.
+ * The heap lock is held.
+ */
+static RBHeap_descriptor *_RBHeap_Processor_Bind(
+  const RBHeap_control *control,
+  RBHeap_processor     *cpu,
+  uintptr_t             begin,
+  uintptr_t             size
+)
+{
+  RBHeap_processor_descriptor *desc;
+  uint32_t                     bin;
+
+  desc = cpu->spare;
+
+  if ( size > control->processor_max_size || desc == NULL ) {
+    return NULL;
+  }
+
+  bin = _RBHeap_Processor_Bin_of( size );
+  _Assert( bin < control->bin_count );
+
+  if ( cpu->bin_counts[ bin ] >= control->bin_capacity ) {
+    return NULL;
+  }
+
+  cpu->spare = desc->next;
+  desc->begin = begin;
+  desc->size = size;
+  _RBHeap_Processor_Bin_push( cpu, bin, desc );
+  return &cpu->bound[ desc - cpu->descs ];
+}
+
+/*
+ * Puts the block of the bound descriptor into the kept list of its processor.
+ * Returns false for an invalid free.  The heap lock is held.
+ */
+static bool _RBHeap_Processor_Release(
+  const RBHeap_control   *control,
+  const RBHeap_processor *cpu,
+  RBHeap_descriptor      *bound
+)
+{
+  uintptr_t         index;
+  RBHeap_processor *owner;
+  unsigned long     bit;
+  unsigned long     previous;
+  uintptr_t         head;
+  uintptr_t        *block;
+
+  index = (uintptr_t) ( bound - (RBHeap_descriptor *) control->bound_begin );
+  owner = &control->processors[ index / control->processor_pairs ];
+
+  if ( owner == cpu ) {
+    return false;
+  }
+
+  index %= control->processor_pairs;
+  bit = 1UL << ( index % BITS_PER_WORD );
+  previous = _Atomic_Fetch_or_ulong(
+    &owner->kept_bits[ index / BITS_PER_WORD ],
+    bit,
+    ATOMIC_ORDER_RELAXED
+  );
+
+  if ( ( previous & bit ) != 0 ) {
+    return false;
+  }
+
+  block = (uintptr_t *) bound->begin;
+  head = _Atomic_Load_uintptr( &owner->kept, ATOMIC_ORDER_RELAXED );
+
+  do {
+    *block = head;
+  } while ( !_Atomic_Compare_exchange_uintptr(
+    &owner->kept,
+    &head,
+    (uintptr_t) block,
+    ATOMIC_ORDER_RELEASE,
+    ATOMIC_ORDER_RELAXED
+  ) );
+
+  return true;
+}
+
+/*
+ * Frees the block to the heap, binds it to the processor, or puts it into the
+ * kept list of the processor of its bound descriptor.  The heap lock is held.
+ */
+static RBHeap_free_status _RBHeap_Do_free_to_heap(
+  RBHeap_control   *control,
+  RBHeap_processor *cpu,
+  void             *begin
+)
+{
+  RBHeap_descriptor *desc;
+  RBHeap_descriptor *bound;
+  uintptr_t          gap_begin;
+  uintptr_t          gap_end;
+
+  desc = _RBHeap_Get_used( control, begin, &gap_begin, &gap_end );
+
+  if ( _RBHeap_Is_invalid( desc ) ) {
+    return RBHEAP_FREE_INVALID;
+  }
+
+  if ( _RBHeap_Is_bound( control, desc ) ) {
+    if ( !_RBHeap_Processor_Release( control, cpu, desc ) ) {
+      return RBHEAP_FREE_INVALID;
+    }
+
+    return RBHEAP_FREE_DEFERRED;
+  }
+
+  bound = _RBHeap_Processor_Bind(
+    control,
+    cpu,
+    desc->begin,
+    desc->size - RBHEAP_GUARD_SIZE
+  );
+
+  if ( bound == NULL ) {
+    _RBHeap_Free_used( control, desc, gap_begin, gap_end );
+    return RBHEAP_FREE_FREED;
+  }
+
+  bound->begin = desc->begin;
+  bound->size = desc->size;
+  _RBTree_Replace_node( &control->used_root, &desc->node, &bound->node );
+  _RBHeap_Put_descriptor( control, desc );
+  _RBHeap_Release_slab( control );
+  return RBHEAP_FREE_BOUND;
+}
+
+bool _RBHeap_Free_to_processor( RBHeap_control *control, void *block )
+{
+  ISR_Level                    level;
+  ISR_lock_Context             lock_context;
+  RBHeap_processor            *cpu;
+  RBHeap_processor_descriptor *desc;
+  RBHeap_free_status           status;
+
+  if ( control->processors == NULL || block == NULL ) {
+    return _RBHeap_Free( control, block );
+  }
+
+  _ISR_Local_disable( level );
+  cpu = _RBHeap_Processor_Current( control );
+  desc = _RBHeap_Processor_Used_find( cpu, (uintptr_t) block );
+
+  if ( desc != NULL ) {
+    if (
+      _RBHeap_Processor_Test_bit(
+        cpu->kept_bits,
+        _RBHeap_Processor_Index( cpu, desc )
+      )
+    ) {
+      _ISR_Local_enable( level );
+      return false;
+    }
+
+    _RBTree_Extract( &cpu->used, &desc->node );
+    _RBHeap_Processor_Put( control, cpu, desc );
+    _ISR_Local_enable( level );
+    return true;
+  }
+
+  _RBHeap_Acquire( control, &lock_context );
+  status = _RBHeap_Do_free_to_heap( control, cpu, block );
+  _RBHeap_Release( control, &lock_context );
+  _ISR_Local_enable( level );
+  return status != RBHEAP_FREE_INVALID;
+}
+
+bool _RBHeap_Processor_keeps(
+  const RBHeap_control *control,
+  uintptr_t             size,
+  uintptr_t             old_size
+)
+{
+  (void) control;
+
+  if ( size > old_size ) {
+    return false;
+  }
+
+  return _RBHeap_Processor_Class_of_request( size ) >=
+         _RBHeap_Processor_Bin_of( old_size );
+}
+
+uintptr_t _RBHeap_Round_for_processor(
+  const RBHeap_control *control,
+  uintptr_t             size
+)
+{
+  uint32_t size_class;
+
+  if (
+    control->processors == NULL || size == 0 ||
+    size > control->processor_max_size
+  ) {
+    return size;
+  }
+
+  size_class = _RBHeap_Processor_Class_of_request( size );
+
+#ifdef RBHEAP_GUARD
+  /* Only with the guard word, a request of the maximum size has no bin. */
+  if ( size_class >= control->bin_count ) {
+    return size;
+  }
+#else
+  _Assert( size_class < control->bin_count );
+#endif
+
+  return _RBHeap_Processor_Class_units( size_class ) * RBHEAP_ALIGNMENT -
+         RBHEAP_GUARD_SIZE;
+}
+
+void _RBHeap_Get_processor_information(
+  const RBHeap_control   *control,
+  Heap_Information_block *info
+)
+{
+  uint32_t i;
+
+  if ( control->processors == NULL ) {
+    return;
+  }
+
+  for ( i = 0; i < control->processor_count; ++i ) {
+    const RBHeap_processor *cpu;
+    uintptr_t               blocks;
+    uintptr_t               bytes;
+
+    cpu = &control->processors[ i ];
+    blocks = cpu->free_blocks;
+    bytes = cpu->free_bytes;
+    info->Used.number -= blocks;
+    info->Used.total -= bytes;
+    info->Free.number += blocks;
+    info->Free.total += bytes;
+  }
+}
+
+static void _RBHeap_Processor_Free_parts(
+  RBHeap_control   *control,
+  RBHeap_processor *cpus,
+  uint32_t          cpu_count
+)
+{
+  uint32_t i;
+
+  for ( i = 0; i < cpu_count; ++i ) {
+    (void) _RBHeap_Free( control, cpus[ i ].bins );
+  }
+}
+
+bool _RBHeap_Initialize_processor_blocks(
+  RBHeap_control *control,
+  uint32_t        processor_count,
+  uintptr_t       descriptors,
+  uintptr_t       max_size
+)
+{
+  uintptr_t          pairs;
+  uint32_t           bin_count;
+  uintptr_t          words;
+  uintptr_t          total;
+  uintptr_t          part_size;
+  RBHeap_processor  *cpus;
+  RBHeap_descriptor *bound;
+  uint32_t           i;
+
+  if ( descriptors == 0 ) {
+    return true;
+  }
+
+  pairs = descriptors / 2;
+  bin_count = _RBHeap_Processor_Class_up( max_size / RBHEAP_ALIGNMENT ) + 1;
+
+  /* The application configuration checks the count of descriptors. */
+  _Assert( pairs >= bin_count );
+
+  words = ( pairs + BITS_PER_WORD - 1 ) / BITS_PER_WORD;
+  total = processor_count * pairs;
+  part_size = words * sizeof( *cpus->kept_bits ) +
+              pairs * sizeof( *cpus->descs ) +
+              bin_count * sizeof( *cpus->bins ) +
+              bin_count * sizeof( *cpus->bin_counts );
+
+  cpus = _RBHeap_Allocate_aligned(
+    control,
+    processor_count * sizeof( *cpus ),
+    CPU_CACHE_LINE_BYTES
+  );
+  bound = _RBHeap_Allocate( control, total * sizeof( *bound ) );
+
+  if ( cpus == NULL || bound == NULL ) {
+    (void) _RBHeap_Free( control, bound );
+    (void) _RBHeap_Free( control, cpus );
+    return false;
+  }
+
+  memset( cpus, 0, processor_count * sizeof( *cpus ) );
+
+  for ( i = 0; i < processor_count; ++i ) {
+    RBHeap_processor *cpu;
+    char             *part;
+    uintptr_t         j;
+
+    cpu = &cpus[ i ];
+    part = _RBHeap_Allocate( control, part_size );
+
+    if ( part == NULL ) {
+      _RBHeap_Processor_Free_parts( control, cpus, i );
+      (void) _RBHeap_Free( control, bound );
+      (void) _RBHeap_Free( control, cpus );
+      return false;
+    }
+
+    memset( part, 0, part_size );
+
+    /* The bins begin the part, so that the part is freed through them. */
+    cpu->bins = (RBHeap_processor_descriptor **) part;
+    part += bin_count * sizeof( *cpu->bins );
+    cpu->kept_bits = (Atomic_Ulong *) part;
+    part += words * sizeof( *cpu->kept_bits );
+    cpu->descs = (RBHeap_processor_descriptor *) part;
+    part += pairs * sizeof( *cpu->descs );
+    cpu->bin_counts = (uint32_t *) part;
+    cpu->bound = &bound[ i * pairs ];
+    _RBTree_Initialize_empty( &cpu->used );
+    _Atomic_Init_uintptr( &cpu->kept, 0 );
+
+    for ( j = 0; j < words; ++j ) {
+      _Atomic_Init_ulong( &cpu->kept_bits[ j ], 0 );
+    }
+
+    for ( j = pairs; j > 0; --j ) {
+      cpu->descs[ j - 1 ].next = cpu->spare;
+      cpu->spare = &cpu->descs[ j - 1 ];
+    }
+  }
+
+  control->processor_pairs = pairs;
+  control->processor_words = words;
+  control->processor_max_size = max_size;
+  control->processor_count = processor_count;
+  control->bin_count = bin_count;
+  control->bin_capacity = (uint32_t) ( pairs / bin_count );
+  control->bound_begin = (uintptr_t) bound;
+  control->bound_end = (uintptr_t) &bound[ total ];
+  control->processors = cpus;
+  return true;
+}
+#endif
 
 void *_RBHeap_Allocate_aligned_with_boundary(
   RBHeap_control *control,
@@ -2195,6 +3092,51 @@ void _RBHeap_Get_statistics(
   *stats = control->stats;
   stats->free_size = control->free_size;
   _RBHeap_Release( control, &lock_context );
+}
+
+uintptr_t _RBHeap_Get_releasable_size(
+  const RBHeap_control *control,
+  uintptr_t             entries
+)
+{
+  ISR_lock_Context lock_context;
+  uintptr_t        remaining;
+  uintptr_t        need;
+  uintptr_t        count;
+
+  _RBHeap_Acquire( control, &lock_context );
+
+  remaining = control->entries;
+
+  /* The draining slab is out of the capacity and leaves the tree. */
+  if ( control->draining != NULL ) {
+    --remaining;
+  }
+
+  if ( entries < remaining ) {
+    remaining -= entries;
+  } else {
+    remaining = 0;
+  }
+
+  /*
+   * Each release takes the slots of one slab from the capacity and one entry
+   * from the tree, see _RBHeap_Release_slab().
+   */
+  need = 2 * remaining + 3;
+
+  if ( control->capacity > need ) {
+    count = ( control->capacity - need ) / ( RBHEAP_SLAB_SLOTS - 3 );
+  } else {
+    count = 0;
+  }
+
+  if ( count > control->area_slab_count ) {
+    count = control->area_slab_count;
+  }
+
+  _RBHeap_Release( control, &lock_context );
+  return count * RBHEAP_SLAB_SIZE;
 }
 
 static void _RBHeap_Do_get_information(
@@ -2558,9 +3500,16 @@ static bool _RBHeap_Walk_slabs(
   uint32_t  i;
   uintptr_t draining_live;
   uintptr_t draining;
+  uintptr_t home;
 
-  if ( control->home != NULL && _RBHeap_Is_added( control->home ) ) {
-    return false;
+  if ( control->home != NULL ) {
+    if ( _RBHeap_Is_added( control->home ) ) {
+      return false;
+    }
+
+    home = 1;
+  } else {
+    home = 0;
   }
 
   if ( !_RBHeap_Walk_draining( control ) ) {
@@ -2598,6 +3547,7 @@ static bool _RBHeap_Walk_slabs(
          counts->slabs * ( RBHEAP_SLAB_SLOTS - 1 ) == control->capacity &&
          counts->empty == control->empty_count &&
          counts->area_slabs + draining == own &&
+         control->area_slab_count + home == counts->area_slabs &&
          ( own == 0 || control->slab_source == NULL );
 }
 
@@ -2684,8 +3634,13 @@ static bool _RBHeap_Do_walk( const RBHeap_control *control )
         ++used_blocks;
       }
 
-      if ( !_RBHeap_Walk_slot( control, node, &counts ) ) {
-        return false;
+#if defined( RTEMS_SMP )
+      if ( !_RBHeap_Is_bound( control, node ) )
+#endif
+      {
+        if ( !_RBHeap_Walk_slot( control, node, &counts ) ) {
+          return false;
+        }
       }
     }
 

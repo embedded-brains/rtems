@@ -52,6 +52,16 @@ typedef enum {
 
 Malloc_System_state _Malloc_System_state( void );
 
+/**
+ * @brief Allocates a block of the size from the C program heap and bypasses
+ *   the processor blocks.
+ *
+ * @param size is the size in bytes of the block.
+ *
+ * @return Returns the begin of the block, else NULL.
+ */
+void *_Malloc_Allocate_unbound( size_t size );
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

@@ -70,6 +70,42 @@ extern RBHeap_control *RTEMS_Malloc_Heap;
 
 void _Malloc_Initialize( void );
 
+/**
+ * @brief Returns the count of size classes of the processor blocks for the
+ *   maximum size.
+ *
+ * The maximum size is a power of two of at least four times
+ * #RBHEAP_ALIGNMENT.
+ */
+#define RTEMS_MALLOC_CPU_CLASS_COUNT( max_size ) \
+  ( 4 * ( RTEMS_MALLOC_CPU_LOG2( max_size ) -    \
+          RTEMS_MALLOC_CPU_LOG2( RBHEAP_ALIGNMENT ) - 1 ) )
+
+/**
+ * @brief Returns the binary logarithm of a power of two from 4 up to 2 to the
+ *   power of 20.
+ */
+#define RTEMS_MALLOC_CPU_LOG2( x ) \
+  ( ( x ) >= 0x100000  ? 20        \
+    : ( x ) >= 0x80000 ? 19        \
+    : ( x ) >= 0x40000 ? 18        \
+    : ( x ) >= 0x20000 ? 17        \
+    : ( x ) >= 0x10000 ? 16        \
+    : ( x ) >= 0x8000  ? 15        \
+    : ( x ) >= 0x4000  ? 14        \
+    : ( x ) >= 0x2000  ? 13        \
+    : ( x ) >= 0x1000  ? 12        \
+    : ( x ) >= 0x800   ? 11        \
+    : ( x ) >= 0x400   ? 10        \
+    : ( x ) >= 0x200   ? 9         \
+    : ( x ) >= 0x100   ? 8         \
+    : ( x ) >= 0x80    ? 7         \
+    : ( x ) >= 0x40    ? 6         \
+    : ( x ) >= 0x20    ? 5         \
+    : ( x ) >= 0x10    ? 4         \
+    : ( x ) >= 0x8     ? 3         \
+                       : 2 )
+
 typedef void
   *( *rtems_heap_extend_handler )( RBHeap_control *heap, size_t alloc_size );
 
