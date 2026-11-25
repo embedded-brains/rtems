@@ -466,6 +466,8 @@ links:
   uid: spwatchdog
 - role: build-dependency
   uid: spwkspace
+- role: build-dependency
+  uid: spwkspace02
 type: build
 use-after:
 - rtemstest

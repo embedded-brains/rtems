@@ -37,9 +37,14 @@
 
 #include <string.h>
 
+#include <rtems/score/rbheap.h>
 #include <rtems/score/wkspace.h>
 
-const char rtems_test_name[] = "SPWKSPACE";
+#ifndef SPWKSPACE_TEST_NAME
+#define SPWKSPACE_TEST_NAME "SPWKSPACE"
+#endif
+
+const char rtems_test_name[] = SPWKSPACE_TEST_NAME;
 
 /* The test checks the deprecated rtems_workspace_get_information() */
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -186,6 +191,12 @@ rtems_task Init( rtems_task_argument argument )
   Heap_Information_block info;
 
   TEST_BEGIN();
+
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+  rtems_test_assert(
+    _Workspace_RBHeap.area_begin == (uintptr_t) _Workspace_Storage_area
+  );
+#endif
 
   puts( "rtems_workspace_get_information - null pointer" );
   retbool = rtems_workspace_get_information( NULL );

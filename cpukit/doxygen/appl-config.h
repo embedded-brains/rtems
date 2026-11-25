@@ -3430,6 +3430,36 @@
  */
 #define CONFIGURE_VERBOSE_SYSTEM_INITIALIZATION
 
+/* Find related documentation with spec:/acfg/if/workspace-allocator */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_WORKSPACE_ALLOCATOR
+ *
+ * The value of this configuration option selects the heap which manages the
+ * storage area of the RTEMS Workspace.
+ *
+ * @par Default Value
+ * The default value is #RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be
+ * #RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT or
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @par Notes
+ * @parblock
+ * The first-fit heap searches a list of free blocks, so the time of an
+ * allocation grows with the count of free blocks. The red-black tree heap
+ * allocates and frees a block in a time logarithmic in the count of blocks. It
+ * keeps a descriptor for each block in slabs apart from the blocks.
+ *
+ * The application links only the selected heap for the RTEMS Workspace.
+ * @endparblock
+ */
+#define CONFIGURE_WORKSPACE_ALLOCATOR
+
 /* Find related documentation with spec:/acfg/if/zero-workspace-automatically */
 
 /**

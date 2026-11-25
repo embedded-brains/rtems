@@ -41,9 +41,6 @@
 #include <rtems/score/wkspace.h>
 #include <rtems/score/heapfirstfitimpl.h>
 #include <rtems/score/assert.h>
-#include <rtems/score/interr.h>
-#include <rtems/score/thread.h>
-#include <rtems/score/tls.h>
 #include <rtems/score/wkspacedata.h>
 #include <rtems/sysinit.h>
 
@@ -65,16 +62,7 @@ void _Workspace_Handler_initialization( void )
   ) );
   (void) available_size;
 
-  if ( _Workspace_TLS_area_count != 0 && _Thread_Maximum_TLS_size == 0 ) {
-    /*
-     * The storage area reserves THREAD_DEFAULT_MAXIMUM_TLS_SIZE for each
-     * thread-local storage area.
-     */
-    if ( _TLS_Get_allocation_size() > THREAD_DEFAULT_MAXIMUM_TLS_SIZE ) {
-      _Internal_error( INTERNAL_ERROR_TOO_LARGE_TLS_SIZE );
-    }
-  }
-
+  _Workspace_Check_TLS_allocation_size();
   _Heap_Protection_set_delayed_free_fraction( &_Workspace_Area, 1 );
 }
 

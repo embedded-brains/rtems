@@ -43,13 +43,39 @@
 
 #ifdef CONFIGURE_INIT
 
+#include <rtems/rtems/support.h>
 #include <rtems/score/heap.h>
+#include <rtems/score/rbheap.h>
+
+#ifndef CONFIGURE_WORKSPACE_ALLOCATOR
+  #define CONFIGURE_WORKSPACE_ALLOCATOR RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT
+#endif
+
+#if CONFIGURE_WORKSPACE_ALLOCATOR != RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT && \
+  CONFIGURE_WORKSPACE_ALLOCATOR != RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+  #error "CONFIGURE_WORKSPACE_ALLOCATOR has an invalid value"
+#endif
 
 #define _Configure_Zero_or_one( _number ) ( ( _number ) != 0 ? 1 : 0 )
 
 #define _Configure_Align_up( _val, _align ) \
   ( ( ( _val ) + ( _align ) - 1 ) -         \
     ( ( _val ) + ( _align ) - 1 ) % ( _align ) )
+
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+
+#define _Configure_Max( _a, _b ) ( ( _a ) > ( _b ) ? ( _a ) : ( _b ) )
+
+#define _Configure_From_workspace( _size )                       \
+  ( (uintptr_t) ( _Configure_Zero_or_one( _size ) *              \
+                  ( _Configure_Align_up(                         \
+                      _Configure_Max( _size, RBHEAP_MIN_SIZE ) + \
+                        RBHEAP_GUARD_SIZE,                       \
+                      RBHEAP_ALIGNMENT                           \
+                    ) +                                          \
+                    RBHEAP_BLOCK_OVERHEAD ) ) )
+
+#else
 
 #define _CONFIGURE_HEAP_MIN_BLOCK_SIZE \
   _Configure_Align_up( sizeof( Heap_Block ), CPU_HEAP_ALIGNMENT )
@@ -60,6 +86,8 @@
                     _size + HEAP_BLOCK_HEADER_SIZE, \
                     _CONFIGURE_HEAP_MIN_BLOCK_SIZE  \
                   ) ) )
+
+#endif
 
 #endif /* CONFIGURE_INIT */
 
