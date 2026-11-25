@@ -3254,6 +3254,76 @@
  */
 #define CONFIGURE_INTERRUPT_STACK_SIZE
 
+/* Find related documentation with spec:/acfg/if/malloc-cpu-descriptors */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_CPU_DESCRIPTORS
+ *
+ * The value of this configuration option defines the count of descriptors of
+ * the processor blocks of the C Program Heap for each configured processor.
+ *
+ * @par Default Value
+ * The default value is 0.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be zero or greater than or equal
+ * to two times the count of size classes of the processor blocks of the C
+ * Program Heap.
+ *
+ * @par Notes
+ * @parblock
+ * A processor block is a block of the C Program Heap which a processor keeps
+ * for the allocations on this processor. The allocations and the frees of
+ * blocks up to @ref CONFIGURE_MALLOC_CPU_MAX_SIZE use the processor blocks of
+ * the current processor first. A value of zero disables the processor blocks.
+ *
+ * The C Program Heap allocates the descriptors of the processor blocks during
+ * system initialization.
+ *
+ * This configuration option is only evaluated in SMP configurations of RTEMS.
+ * In all other configurations, it has no effect.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_CPU_DESCRIPTORS
+
+/* Find related documentation with spec:/acfg/if/malloc-cpu-max-size */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_CPU_MAX_SIZE
+ *
+ * The value of this configuration option defines the maximum size in bytes of
+ * a processor block of the C Program Heap.
+ *
+ * @par Default Value
+ * The default value is 4096.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * - The value of the configuration option shall be a power of two.
+ *
+ * - The value of the configuration option shall be greater than or equal to
+ *   four times the alignment of the red-black tree heap and less than or equal
+ *   to 1048576.
+ * @endparblock
+ *
+ * @par Notes
+ * @parblock
+ * The option has no effect if @ref CONFIGURE_MALLOC_CPU_DESCRIPTORS is zero.
+ * The maximum size determines the count of size classes of the processor
+ * blocks.
+ *
+ * This configuration option is only evaluated in SMP configurations of RTEMS.
+ * In all other configurations, it has no effect.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_CPU_MAX_SIZE
+
 /* Find related documentation with spec:/acfg/if/malloc-descriptor-count */
 
 /**
@@ -3280,8 +3350,8 @@
  * from slabs in the memory of the C Program Heap.
  *
  * The size of a slab is 512 times the size of a pointer. Each slab holds one
- * descriptor for itself. The `<rtems/confdefs.h>` rounds the count up to
- * whole slabs.
+ * descriptor for itself. The header file `<rtems/confdefs.h>` rounds the count
+ * up to whole slabs.
  * @endparblock
  */
 #define CONFIGURE_MALLOC_DESCRIPTOR_COUNT
@@ -3939,9 +4009,9 @@
  * @par Notes
  * @parblock
  * The first-fit heap searches a list of free blocks, so the time of an
- * allocation grows with the count of free blocks.  The red-black tree heap
- * allocates and frees a block in a time logarithmic in the count of blocks.
- * It keeps a descriptor for each block in slabs apart from the blocks.
+ * allocation grows with the count of free blocks. The red-black tree heap
+ * allocates and frees a block in a time logarithmic in the count of blocks. It
+ * keeps a descriptor for each block in slabs apart from the blocks.
  *
  * The application links only the selected heap for the RTEMS Workspace.
  * @endparblock
@@ -3975,26 +4045,32 @@
  * take no part of the memory of the RTEMS Workspace. Further descriptors come
  * from slabs in the memory of the RTEMS Workspace.
  *
- * The RTEMS Workspace reserves memory for one block for each thread stack, one
- * block for the buffers of each message queue, one block for the name of each
- * POSIX named object, and one block for the data of each POSIX shared memory
- * object. A Classic message queue counts only if @ref
- * CONFIGURE_MESSAGE_BUFFER_MEMORY is not zero, since a message queue which
- * rtems_message_queue_construct() constructs takes no block. At most one free
- * block lies before each used block and after the last used block. The
- * default value therefore holds a descriptor for each block which the
- * configuration reserves.
+ * The RTEMS Workspace reserves memory for one block for each of these objects:
+ *
+ * - a thread stack,
+ *
+ * - the buffers of a message queue,
+ *
+ * - the name of a POSIX named object, and
+ *
+ * - the data of a POSIX shared memory object.
+ *
+ * A Classic message queue counts only if @ref CONFIGURE_MESSAGE_BUFFER_MEMORY
+ * is not zero, since a message queue which rtems_message_queue_construct()
+ * constructs takes no block. At most one free block lies before each used
+ * block and after the last used block. The default value therefore holds a
+ * descriptor for each block which the configuration reserves.
  *
  * An application which allocates further blocks from the RTEMS Workspace
- * either increases this value or adds the memory for their slabs with
- * @ref CONFIGURE_MEMORY_OVERHEAD.
+ * either increases this value or adds the memory for their slabs with @ref
+ * CONFIGURE_MEMORY_OVERHEAD.
  *
  * A configuration which reserves no block gets an empty RTEMS Workspace
  * without descriptors. Each allocation from it fails.
  *
  * The size of a slab is 512 times the size of a pointer. Each slab holds one
- * descriptor for itself. The `<rtems/confdefs.h>` rounds the count up to
- * whole slabs.
+ * descriptor for itself. The header file `<rtems/confdefs.h>` rounds the count
+ * up to whole slabs.
  * @endparblock
  */
 #define CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT

@@ -10,7 +10,7 @@
 
 /*
  * Copyright (C) 2016 Pavel Pisa
- * Copyright (C) 2014, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2014, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 2000, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,18 +87,19 @@ extern "C" {
  * @par Notes
  * The system initialization starts the cache coherent allocator only if the
  * application uses rtems_cache_coherent_allocate() or
- * rtems_cache_coherent_free().  It starts the allocator after bsp_start() and
- * adds the areas which wait for it.  The directive adds an area to the started
+ * rtems_cache_coherent_free(). It starts the allocator after bsp_start() and
+ * adds the areas which wait for it. The directive adds an area to the started
  * allocator at once.
  *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
  *
- * - The directive may be called from within system initialization context.
  * - The directive is not included in the pre-qualified feature set of RTEMS.
  *   Applications which are restricted to only use interfaces of the
  *   pre-qualified feature set of RTEMS shall not use the directive.
+ *
+ * - The directive may be called from within system initialization context.
  *
  * - The directive may be called from within device driver initialization
  *   context.

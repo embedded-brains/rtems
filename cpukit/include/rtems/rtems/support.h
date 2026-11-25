@@ -240,15 +240,17 @@ static inline void rtems_name_to_characters(
  * @return Returns true, if the allocation was successful, otherwise false.
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * If the RTEMS Workspace allocates from the C Program Heap when its storage
+ * area is exhausted, then the directive also allocates from the C Program
+ * Heap.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within device driver initialization
  *   context.
@@ -261,6 +263,32 @@ static inline void rtems_name_to_characters(
  */
 bool rtems_workspace_allocate( size_t bytes, void **pointer );
 
+/* Find related documentation with spec:/rtems/workspace/if/allocator-first-fit */
+
+/**
+ * @ingroup RTEMSAPIClassicWorkspace
+ *
+ * @brief This constant selects the first-fit heap as the allocator of the
+ *   RTEMS Workspace.
+ *
+ * @par Notes
+ * See @ref CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT 0
+
+/* Find related documentation with spec:/rtems/workspace/if/allocator-red-black-tree */
+
+/**
+ * @ingroup RTEMSAPIClassicWorkspace
+ *
+ * @brief This constant selects the red-black tree heap as the allocator of the
+ *   RTEMS Workspace.
+ *
+ * @par Notes
+ * See @ref CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE 1
+
 /* Find related documentation with spec:/rtems/workspace/if/free */
 
 /**
@@ -270,16 +298,15 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  *
  * @param pointer is the begin address of the memory area to free.
  *
- * @return Returns true, if freeing the memory area was successful, otherwise
- *   false.
+ * @return Returns true.
+ *
+ * @par Notes
+ * The directive does not check that the memory area was allocated from the
+ * RTEMS Workspace.
  *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within device driver initialization
  *   context.
@@ -291,26 +318,6 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  * @endparblock
  */
 bool rtems_workspace_free( void *pointer );
-
-/**
- * @ingroup RTEMSAPIClassicSupport
- *
- * @brief This constant selects the first-fit heap as the allocator of the
- *   RTEMS Workspace.
- *
- * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
- */
-#define RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT 0
-
-/**
- * @ingroup RTEMSAPIClassicSupport
- *
- * @brief This constant selects the red-black tree heap as the allocator of
- *   the RTEMS Workspace.
- *
- * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
- */
-#define RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE 1
 
 /* Find related documentation with spec:/rtems/workspace/if/get-information */
 
@@ -406,7 +413,13 @@ void *rtems_workspace_greedy_allocate(
  *   by calling rtems_workspace_greedy_free().
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * If the RTEMS Workspace allocates from the C Program Heap when its storage
+ * area is exhausted, then the directive also uses all blocks of the C Program
+ * Heap.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -441,7 +454,12 @@ void *rtems_workspace_greedy_allocate_all_except_largest(
  *   rtems_workspace_greedy_allocate_all_except_largest().
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * The directive frees the blocks of the RTEMS Workspace and the blocks of the
+ * C Program Heap which the greedy allocation used.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -565,9 +583,10 @@ typedef struct {
  *
  * @par Notes
  * @parblock
- * The directive visits the free blocks of the RTEMS Workspace to get the size
- * of the largest free block, so its execution time depends on the number of
- * free blocks.
+ * With the first-fit heap, the directive visits the free blocks of the RTEMS
+ * Workspace to get the size of the largest free block, so its execution time
+ * depends on the number of free blocks. With the red-black tree heap, the
+ * directive visits no block.
  *
  * The RTEMS Workspace provides no resize operation, so the directive sets the
  * `resizes` member to zero.
@@ -576,10 +595,6 @@ typedef struct {
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within device driver initialization
  *   context.
