@@ -1,0 +1,499 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/realloc
+- role: requirement-refinement
+  uid: /score/heap/req/disjoint
+post-conditions:
+- name: Status
+  states:
+  - name: Same
+    test-code: |
+      T_eq_ptr( ctx->ptr, ctx->old );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/realloc:/name} shall be equal to
+      the ${../if/realloc:/params[0]/name} parameter.
+  - name: Other
+    test-code: |
+      T_not_null( ctx->ptr );
+      T_ne_ptr( ctx->ptr, ctx->old );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/realloc:/name} shall be the begin
+      address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term} other than the memory area
+      referenced by the ${../if/realloc:/params[0]/name} parameter.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/realloc:/name} shall be equal to
+      ${../if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_SENTINEL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/realloc:/name} call.
+  - name: ENOMEM
+    test-code: |
+      T_eq_int( ctx->errno_value, ENOMEM );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be equal to
+      ${/c/errno/if/enomem:/name}.
+  - name: EINVAL
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Content
+  states:
+  - name: Kept
+    test-code: |
+      T_true(
+        HasPattern( ctx->ptr, OLD_SIZE < ctx->size ? OLD_SIZE : ctx->size )
+      );
+    text: |
+      The memory area referenced by the ${/glossary/returnvalue:/term} shall begin
+      with the content of the memory area referenced by the
+      ${../if/realloc:/params[0]/name} parameter up to the lesser of the old and the
+      new size.
+  test-epilogue: null
+  test-prologue: null
+- name: Size
+  states:
+  - name: Valid
+    test-code: |
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->size );
+    text: |
+      The size of the ${/score/heap/glossary/used-block:/term} referenced by the
+      return value shall be greater than or equal to the
+      ${../if/realloc:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+- name: Old
+  states:
+  - name: Kept
+    test-code: |
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->old, &size ) );
+      T_eq_uptr( size, ctx->old_size );
+      T_true( HasPattern( ctx->old, OLD_SIZE ) );
+    text: |
+      The memory area referenced by the ${../if/realloc:/params[0]/name} parameter
+      shall be a ${/score/heap/glossary/used-block:/term} of unchanged size and
+      content.
+  - name: Freed
+    test-code: |
+      T_false( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->old, &size ) );
+    text: |
+      The memory area referenced by the ${../if/realloc:/params[0]/name} parameter
+      shall not be a ${/score/heap/glossary/used-block:/term}.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+pre-conditions:
+- name: Ptr
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->old = NULL;
+    text: |
+      While the ${../if/realloc:/params[0]/name} parameter is equal to
+      ${../if/null:/name}.
+  - name: Used
+    test-code: |
+      ctx->old = malloc( OLD_SIZE );
+      T_quiet_not_null( ctx->old );
+      memset( ctx->old, PATTERN, OLD_SIZE );
+      T_quiet_true(
+        _RBHeap_Size_of_block( &ctx->heap.heap, ctx->old, &ctx->old_size )
+      );
+    text: |
+      While the ${../if/realloc:/params[0]/name} parameter is the begin address of a
+      ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->old = HeapGetArea();
+    text: |
+      While the ${../if/realloc:/params[0]/name} parameter is not equal to
+      ${../if/null:/name}, while the ${../if/realloc:/params[0]/name} parameter is
+      not the begin address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Size
+  states:
+  - name: Zero
+    test-code: |
+      ctx->size = 0;
+    text: |
+      While the ${../if/realloc:/params[1]/name} parameter is equal to zero.
+  - name: Smaller
+    test-code: |
+      ctx->size = OLD_SIZE / 2;
+    text: |
+      While the ${../if/realloc:/params[1]/name} parameter is not equal to zero,
+      while the ${../if/realloc:/params[1]/name} parameter is less than or equal to
+      the size of the memory area referenced by the ${../if/realloc:/params[0]/name}
+      parameter.
+  - name: Larger
+    test-code: |
+      ctx->size = 2 * OLD_SIZE;
+    text: |
+      While the ${../if/realloc:/params[1]/name} parameter is greater than the size
+      of the memory area referenced by the ${../if/realloc:/params[0]/name}
+      parameter.
+  test-epilogue: null
+  test-prologue: null
+- name: Neighbour
+  states:
+  - name: Suffices
+    test-code: |
+      /* The free block after the block is large */
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has a
+      ${/score/heap/glossary/free-block:/term} which begins at the end of the memory
+      area referenced by the ${../if/realloc:/params[0]/name} parameter and which
+      holds the growth of the memory area.
+  - name: Insufficient
+    test-code: |
+      ctx->neighbour = malloc( 1 );
+      T_quiet_not_null( ctx->neighbour );
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has no
+      ${/score/heap/glossary/free-block:/term} which begins at the end of the memory
+      area referenced by the ${../if/realloc:/params[0]/name} parameter and which
+      holds the growth of the memory area.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The heap has free blocks */
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has a
+      ${/score/heap/glossary/free-block:/term} which satisfies a request of the size
+      specified by the ${../if/realloc:/params[1]/name} parameter.
+  - name: 'No'
+    test-code: |
+      HeapExhaust( &ctx->heap.heap );
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has no
+      ${/score/heap/glossary/free-block:/term} which satisfies a request of the size
+      specified by the ${../if/realloc:/params[1]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The ${/score/heap/glossary/c-program-heap:/term} frees the memory area
+  referenced by the ${../if/realloc:/params[0]/name} parameter for a
+  ${../if/realloc:/params[1]/name} parameter of zero and returns
+  ${../if/null:/name}.
+
+  The heap places the block of the Used state and the block of the Insufficient
+  state one after the other. The Neighbour states therefore follow from the order
+  of the two allocations.
+
+  Dimension Size covers the ${../if/realloc:/params[1]/name} parameter relative
+  to the size of the memory area, 3 states.
+
+  Dimension Neighbour covers the free block after the memory area referenced by
+  the ${../if/realloc:/params[0]/name} parameter, 2 states.
+
+  Dimension Fit covers the free blocks of the
+  ${/score/heap/glossary/c-program-heap:/term}, 2 states.
+requirement-type: functional
+skip-reasons:
+  Exhausted: |
+    An exhausted ${/score/heap/glossary/c-program-heap:/term} has no
+    ${/score/heap/glossary/free-block:/term} after the memory area referenced by
+    the ${../if/realloc:/params[0]/name} parameter.
+  Fatal: |
+    The ${../if/realloc:/name} function frees the memory area referenced by the
+    ${../if/realloc:/params[0]/name} parameter for a
+    ${../if/realloc:/params[1]/name} parameter of zero. An invalid
+    ${../if/realloc:/params[0]/name} parameter then terminates the system as
+    specified by ${free-invalid:/path}, so the test case cannot check the
+    post-conditions.
+test-action: |
+  errno = ERRNO_SENTINEL;
+  ctx->ptr = realloc( ctx->old, ctx->size );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/realloc:/name} call.
+  description: null
+  member: |
+    void *ptr
+- brief: |
+    This member contains the block after the memory area referenced by the
+    ${../if/realloc:/params[0]/name} parameter.
+  description: null
+  member: |
+    void *neighbour
+- brief: |
+    This member contains the size of the block referenced by the
+    ${../if/realloc:/params[0]/name} parameter.
+  description: null
+  member: |
+    uintptr_t old_size
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/realloc:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member specifies the ${../if/realloc:/params[0]/name} parameter value.
+  description: null
+  member: |
+    void *old
+- brief: |
+    This member specifies the ${../if/realloc:/params[1]/name} parameter value.
+  description: null
+  member: |
+    size_t size
+test-context-support: |
+  #define ERRNO_SENTINEL -1
+
+  #define OLD_SIZE 32
+
+  #define PATTERN 0x5a
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdlib.h
+- string.h
+test-local-includes:
+- tx-heap.h
+test-prepare: |
+  HeapReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: |
+  static bool HasPattern( const void *ptr, size_t size )
+  {
+    const unsigned char *bytes;
+    size_t               i;
+
+    bytes = ptr;
+
+    for ( i = 0; i < size; ++i ) {
+      if ( bytes[ i ] != PATTERN ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+test-target: testsuites/validation/tc-mem-realloc.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Content: N/A
+    Size: N/A
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - 'Null'
+    Size:
+    - Zero
+    Neighbour: all
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: Other
+    Errno: Nop
+    Content: N/A
+    Size: Valid
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - 'Null'
+    Size:
+    - Smaller
+    - Larger
+    Neighbour: all
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: ENOMEM
+    Content: N/A
+    Size: N/A
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - 'Null'
+    Size:
+    - Smaller
+    - Larger
+    Neighbour: all
+    Fit:
+    - 'No'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Content: N/A
+    Size: N/A
+    Old: Freed
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Zero
+    Neighbour:
+    - Insufficient
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Content: N/A
+    Size: N/A
+    Old: Freed
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Zero
+    Neighbour:
+    - Suffices
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: Same
+    Errno: Nop
+    Content: Kept
+    Size: Valid
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Smaller
+    Neighbour:
+    - Insufficient
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: Same
+    Errno: Nop
+    Content: Kept
+    Size: Valid
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Smaller
+    - Larger
+    Neighbour:
+    - Suffices
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: Other
+    Errno: Nop
+    Content: Kept
+    Size: Valid
+    Old: Freed
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Larger
+    Neighbour:
+    - Insufficient
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: ENOMEM
+    Content: N/A
+    Size: N/A
+    Old: Kept
+  pre-conditions:
+    Ptr:
+    - Used
+    Size:
+    - Larger
+    Neighbour:
+    - Insufficient
+    Fit:
+    - 'No'
+- enabled-by: true
+  post-conditions: Exhausted
+  pre-conditions:
+    Ptr:
+    - Used
+    Size: all
+    Neighbour:
+    - Suffices
+    Fit:
+    - 'No'
+- enabled-by: true
+  post-conditions: Fatal
+  pre-conditions:
+    Ptr:
+    - Invalid
+    Size:
+    - Zero
+    Neighbour: all
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: EINVAL
+    Content: N/A
+    Size: N/A
+    Old: N/A
+  pre-conditions:
+    Ptr:
+    - Invalid
+    Size:
+    - Smaller
+    - Larger
+    Neighbour: all
+    Fit: all
+type: requirement
