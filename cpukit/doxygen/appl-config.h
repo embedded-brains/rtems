@@ -3989,6 +3989,9 @@
  * either increases this value or adds the memory for their slabs with
  * @ref CONFIGURE_MEMORY_OVERHEAD.
  *
+ * A configuration which reserves no block gets an empty RTEMS Workspace
+ * without descriptors. Each allocation from it fails.
+ *
  * The size of a slab is 512 times the size of a pointer. Each slab holds one
  * descriptor for itself. The `<rtems/confdefs.h>` rounds the count up to
  * whole slabs.
