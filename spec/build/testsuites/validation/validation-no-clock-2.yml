@@ -31,6 +31,7 @@ source:
 - testsuites/validation/tr-tq-enqueue-fifo.c
 - testsuites/validation/tr-tq-enqueue-priority-inherit.c
 - testsuites/validation/tr-tq-enqueue-priority.c
+- testsuites/validation/tr-tq-extract-priority.c
 - testsuites/validation/tr-tq-surrender-priority-inherit.c
 - testsuites/validation/tr-tq-surrender-priority.c
 - testsuites/validation/tr-tq-surrender.c

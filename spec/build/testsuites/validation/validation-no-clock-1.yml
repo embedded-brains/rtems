@@ -102,6 +102,7 @@ source:
 - testsuites/validation/tr-tod-convert-date.c
 - testsuites/validation/tr-tod-convert-time.c
 - testsuites/validation/tr-tq-enqueue-fifo.c
+- testsuites/validation/tr-tq-extract-priority.c
 - testsuites/validation/tr-tq-flush-fifo.c
 - testsuites/validation/tr-tq-flush-priority-inherit.c
 - testsuites/validation/tr-tq-flush-priority.c

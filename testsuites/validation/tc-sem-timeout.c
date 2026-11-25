@@ -38,6 +38,7 @@
 #include <rtems.h>
 #include <string.h>
 
+#include "tr-tq-extract-priority.h"
 #include "tr-tq-timeout-priority-inherit.h"
 #include "tr-tq-timeout.h"
 #include "tx-support.h"
@@ -71,6 +72,7 @@ typedef enum {
 
 typedef enum {
   RtemsSemReqTimeout_Post_Action_Timeout,
+  RtemsSemReqTimeout_Post_Action_TimeoutPriority,
   RtemsSemReqTimeout_Post_Action_TimeoutMrsP,
   RtemsSemReqTimeout_Post_Action_TimeoutPriorityInherit,
   RtemsSemReqTimeout_Post_Action_NA
@@ -80,7 +82,7 @@ typedef struct {
   uint8_t Skip : 1;
   uint8_t Pre_Class_NA : 1;
   uint8_t Pre_Discipline_NA : 1;
-  uint8_t Post_Action : 2;
+  uint8_t Post_Action : 3;
 } RtemsSemReqTimeout_Entry;
 
 /**
@@ -266,14 +268,30 @@ static void RtemsSemReqTimeout_Post_Action_Check(
       break;
     }
 
+    case RtemsSemReqTimeout_Post_Action_TimeoutPriority: {
+      /*
+       * The semaphore obtain timeout actions shall be done as specified by
+       * spec:/score/tq/req/timeout and spec:/score/tq/req/extract-priority.
+       */
+      ctx->tq_ctx.wait = TQ_WAIT_TIMED;
+      ScoreTqReqTimeout_Run( &ctx->tq_ctx );
+      ScoreTqReqExtractPriority_Run(
+        &ctx->tq_ctx,
+        ( ctx->attribute_set & RTEMS_PRIORITY_CEILING ) != 0
+      );
+      break;
+    }
+
     case RtemsSemReqTimeout_Post_Action_TimeoutMrsP: {
       /*
        * The semaphore obtain timeout actions shall be done as specified by
-       * spec:/score/tq/req/timeout-mrsp.
+       * spec:/score/tq/req/timeout-mrsp and
+       * spec:/score/tq/req/extract-priority.
        */
       #if defined( RTEMS_SMP )
       ctx->tq_ctx.wait = TQ_WAIT_TIMED;
       ScoreTqReqTimeoutMrsp_Run( &ctx->tq_ctx );
+      ScoreTqReqExtractPriority_Run( &ctx->tq_ctx, false );
       #else
       T_unreachable();
       #endif
@@ -283,10 +301,12 @@ static void RtemsSemReqTimeout_Post_Action_Check(
     case RtemsSemReqTimeout_Post_Action_TimeoutPriorityInherit: {
       /*
        * The semaphore obtain timeout actions shall be done as specified by
-       * spec:/score/tq/req/timeout-priority-inherit.
+       * spec:/score/tq/req/timeout-priority-inherit and
+       * spec:/score/tq/req/extract-priority.
        */
       ctx->tq_ctx.wait = TQ_WAIT_FOREVER;
       ScoreTqReqTimeoutPriorityInherit_Run( &ctx->tq_ctx );
+      ScoreTqReqExtractPriority_Run( &ctx->tq_ctx, false );
       break;
     }
 
@@ -363,19 +383,20 @@ static void RtemsSemReqTimeout_Cleanup( RtemsSemReqTimeout_Context *ctx )
 
 static const RtemsSemReqTimeout_Entry
 RtemsSemReqTimeout_Entries[] = {
+  { 0, 0, 0, RtemsSemReqTimeout_Post_Action_TimeoutPriority },
   { 0, 0, 0, RtemsSemReqTimeout_Post_Action_Timeout },
   { 1, 0, 0, RtemsSemReqTimeout_Post_Action_NA },
   { 0, 0, 0, RtemsSemReqTimeout_Post_Action_TimeoutPriorityInherit },
 #if defined(RTEMS_SMP)
   { 0, 0, 0, RtemsSemReqTimeout_Post_Action_TimeoutMrsP }
 #else
-  { 0, 0, 0, RtemsSemReqTimeout_Post_Action_Timeout }
+  { 0, 0, 0, RtemsSemReqTimeout_Post_Action_TimeoutPriority }
 #endif
 };
 
 static const uint8_t
 RtemsSemReqTimeout_Map[] = {
-  0, 0, 0, 0, 0, 0, 1, 0, 1, 2, 1, 3
+  1, 0, 1, 0, 1, 0, 2, 0, 2, 3, 2, 4
 };
 
 /* clang-format on */
