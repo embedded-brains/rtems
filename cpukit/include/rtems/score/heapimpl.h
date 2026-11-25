@@ -204,55 +204,6 @@ void _Heap_Iterate(
 );
 
 /**
- * @brief Greedily allocates and empties the heap.
- *
- * Afterwards, the heap has at most @a block_count allocatable blocks of sizes
- * specified by @a block_sizes.  All other blocks are used.
- *
- * @param[in, out] heap The heap to operate upon
- * @param block_sizes The sizes of the allocatable blocks.  Must point to an
- *      array with @a block_count members.
- * @param block_count The maximum number of allocatable blocks of sizes
- *      specified by @block_sizes.
- *
- * @return Pointer to the first allocated block.
- *
- * @see _Heap_Greedy_free().
- */
-Heap_Block *_Heap_Greedy_allocate(
-  Heap_Control    *heap,
-  const uintptr_t *block_sizes,
-  size_t           block_count
-);
-
-/**
- * @brief Greedily allocates all blocks except the largest free block.
- *
- * Afterwards the heap has at most one allocatable block.  This block is the
- * largest free block if it exists.  All other blocks are used.
- *
- * @param[in, out] heap The heap to operate upon.
- * @param[out] allocatable_size Stores the size of the largest free block of
- *      the heap after the method call.
- *
- * @return Pointer to the first allocated block.
- *
- * @see _Heap_Greedy_free().
- */
-Heap_Block *_Heap_Greedy_allocate_all_except_largest(
-  Heap_Control *heap,
-  uintptr_t    *allocatable_size
-);
-
-/**
- * @brief Frees blocks of a greedy allocation.
- *
- * @param[in, out] heap The heap to operate upon.
- * @param blocks Must be the return value of _Heap_Greedy_allocate().
- */
-void _Heap_Greedy_free( Heap_Control *heap, Heap_Block *blocks );
-
-/**
  * @brief Returns information about used and free blocks for the heap.
  *
  * @param heap The heap to get the information from.

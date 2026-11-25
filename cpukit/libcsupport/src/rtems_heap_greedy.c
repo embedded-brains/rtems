@@ -12,7 +12,7 @@
  */
 
 /*
- * Copyright (c) 2012 embedded brains GmbH & Co. KG
+ * Copyright (C) 2012, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,23 +40,43 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>
+
+#include <rtems/score/greedyimpl.h>
+
 #include "malloc_p.h"
 
 #define SBRK_ALLOC_SIZE ( 128 * 1024UL * 1024UL )
+
+static const Greedy_Operations _Malloc_Greedy_operations = {
+  .allocate = rtems_malloc,
+  .free = free
+};
+
+static uintptr_t _Malloc_Greedy_prepare( void )
+{
+  rtems_heap_statistics stats;
+
+  rtems_heap_sbrk_greedy_allocate( RTEMS_Malloc_Heap, SBRK_ALLOC_SIZE );
+
+  _RTEMS_Lock_allocator();
+  (void) malloc_get_statistics( &stats );
+
+  return stats.largest_free_size;
+}
 
 void *rtems_heap_greedy_allocate(
   const uintptr_t *block_sizes,
   size_t           block_count
 )
 {
-  Heap_Control *heap = RTEMS_Malloc_Heap;
-  void         *opaque;
+  uintptr_t size_bound;
+  void     *opaque;
 
-  rtems_heap_sbrk_greedy_allocate( heap, SBRK_ALLOC_SIZE );
-
-  _RTEMS_Lock_allocator();
-  opaque = _Heap_Greedy_allocate(
-    RTEMS_Malloc_Heap,
+  size_bound = _Malloc_Greedy_prepare();
+  opaque = _Greedy_Allocate(
+    &_Malloc_Greedy_operations,
+    size_bound,
     block_sizes,
     block_count
   );
@@ -69,13 +89,15 @@ void *rtems_heap_greedy_allocate_all_except_largest(
   uintptr_t *allocatable_size
 )
 {
-  Heap_Control *heap = RTEMS_Malloc_Heap;
-  void         *opaque;
+  uintptr_t size_bound;
+  void     *opaque;
 
-  rtems_heap_sbrk_greedy_allocate( heap, SBRK_ALLOC_SIZE );
-
-  _RTEMS_Lock_allocator();
-  opaque = _Heap_Greedy_allocate_all_except_largest( heap, allocatable_size );
+  size_bound = _Malloc_Greedy_prepare();
+  opaque = _Greedy_Allocate_all_except_largest(
+    &_Malloc_Greedy_operations,
+    size_bound,
+    allocatable_size
+  );
   _RTEMS_Unlock_allocator();
 
   return opaque;
@@ -84,6 +106,6 @@ void *rtems_heap_greedy_allocate_all_except_largest(
 void rtems_heap_greedy_free( void *opaque )
 {
   _RTEMS_Lock_allocator();
-  _Heap_Greedy_free( RTEMS_Malloc_Heap, opaque );
+  _Greedy_Free( &_Malloc_Greedy_operations, opaque );
   _RTEMS_Unlock_allocator();
 }

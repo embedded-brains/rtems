@@ -11,6 +11,8 @@ malloc_get_statistics - called with NULL
 malloc_get_statistics - called with thread dispatching disabled
 malloc_get_statistics - check the counters of malloc() and free()
 malloc_get_statistics - check the counter of failed allocations
+rtems_heap_greedy_allocate_all_except_largest - OK
+rtems_heap_greedy_allocate - OK
 posix_memalign - NULL return pointer -- EINVAL
 posix_memalign - alignment of 0 -- EINVAL
 posix_memalign - alignment  of 2-- EINVAL

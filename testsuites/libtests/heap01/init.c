@@ -1002,7 +1002,9 @@ static void test_heap_extend_allocation_order_with_empty_heap( void )
 
   _Heap_Initialize( heap, init_area_begin, size, 0 );
 
-  _Heap_Greedy_allocate( heap, NULL, 0 );
+  while ( _Heap_Allocate( heap, 1 ) != NULL ) {
+    /* Use all blocks of the heap */
+  }
 
   ret = _Protected_heap_Extend( heap, extend_area_begin, size );
   test_heap_assert( ret, true );
@@ -1051,29 +1053,6 @@ static void test_heap_size_with_overhead( void )
   rtems_test_assert( s == HEAP_BLOCK_HEADER_SIZE + CPU_ALIGNMENT - 1 + 123 );
 }
 
-static void test_greedy_allocate( void )
-{
-  Heap_Control *heap = &TestHeap;
-  uintptr_t     block_size = 1;
-  void         *p;
-
-  _Heap_Initialize( heap, &TestHeapMemory[ 0 ], sizeof( TestHeapMemory ), 0 );
-
-  _Heap_Greedy_allocate( heap, &block_size, 1 );
-
-  p = _Heap_Allocate( heap, 1 );
-  rtems_test_assert( p != NULL );
-
-  p = _Heap_Allocate( heap, 1 );
-  rtems_test_assert( p == NULL );
-
-  /* The internal allocation fails */
-  _Heap_Greedy_allocate( heap, &block_size, 1 );
-
-  p = _Heap_Allocate( heap, 1 );
-  rtems_test_assert( p == NULL );
-}
-
 static void Init( rtems_task_argument argument )
 {
   (void) argument;
@@ -1092,7 +1071,6 @@ static void Init( rtems_task_argument argument )
   test_heap_no_extend();
   test_heap_size_with_overhead();
   test_protected_heap_info();
-  test_greedy_allocate();
 
   TEST_END();
   rtems_test_exit( 0 );

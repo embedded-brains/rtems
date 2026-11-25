@@ -131,6 +131,49 @@ static void test_workspace_get_statistics( void )
   rtems_test_assert( after.resizes == 0 );
 }
 
+static void test_workspace_greedy_allocate( void )
+{
+  uintptr_t size;
+  uintptr_t block_size;
+  void     *opaque;
+  void     *p;
+  void     *q;
+  bool      ok;
+
+  puts( "rtems_workspace_greedy_allocate_all_except_largest - OK" );
+  opaque = rtems_workspace_greedy_allocate_all_except_largest( &size );
+  rtems_test_assert( size > 0 );
+
+  ok = rtems_workspace_allocate( size + 1, &p );
+  rtems_test_assert( !ok );
+
+  ok = rtems_workspace_allocate( size, &p );
+  rtems_test_assert( ok );
+
+  ok = rtems_workspace_allocate( 1, &q );
+  rtems_test_assert( !ok );
+
+  ok = rtems_workspace_free( p );
+  rtems_test_assert( ok );
+
+  rtems_workspace_greedy_free( opaque );
+
+  puts( "rtems_workspace_greedy_allocate - OK" );
+  block_size = 42;
+  opaque = rtems_workspace_greedy_allocate( &block_size, 1 );
+
+  ok = rtems_workspace_allocate( block_size, &p );
+  rtems_test_assert( ok );
+
+  ok = rtems_workspace_allocate( 1, &q );
+  rtems_test_assert( !ok );
+
+  ok = rtems_workspace_free( p );
+  rtems_test_assert( ok );
+
+  rtems_workspace_greedy_free( opaque );
+}
+
 rtems_task Init( rtems_task_argument argument )
 {
   (void) argument;
@@ -175,6 +218,8 @@ rtems_task Init( rtems_task_argument argument )
   puts( "rtems_workspace_free - previous pointer to 42 bytes" );
   retbool = rtems_workspace_free( p1 );
   rtems_test_assert( retbool == true );
+
+  test_workspace_greedy_allocate();
 
   puts( "_Workspace_String_duplicate - samples" );
   test_workspace_string_duplicate();

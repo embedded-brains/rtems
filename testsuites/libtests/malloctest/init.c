@@ -301,6 +301,39 @@ static void test_malloc_get_statistics( void )
   rtems_test_assert( after.failed_allocs == before.failed_allocs + 1 );
 }
 
+static void test_rtems_heap_greedy_allocate( void )
+{
+  uintptr_t size;
+  uintptr_t block_size;
+  void     *opaque;
+  void     *p;
+
+  puts( "rtems_heap_greedy_allocate_all_except_largest - OK" );
+  opaque = rtems_heap_greedy_allocate_all_except_largest( &size );
+  rtems_test_assert( size > 0 );
+
+  p = rtems_malloc( size + 1 );
+  rtems_test_assert( p == NULL );
+
+  p = rtems_malloc( size );
+  rtems_test_assert( p != NULL );
+  rtems_test_assert( rtems_malloc( 1 ) == NULL );
+  free( p );
+
+  rtems_heap_greedy_free( opaque );
+
+  puts( "rtems_heap_greedy_allocate - OK" );
+  block_size = 42;
+  opaque = rtems_heap_greedy_allocate( &block_size, 1 );
+
+  p = rtems_malloc( block_size );
+  rtems_test_assert( p != NULL );
+  rtems_test_assert( rtems_malloc( 1 ) == NULL );
+  free( p );
+
+  rtems_heap_greedy_free( opaque );
+}
+
 static void test_rtems_heap_allocate_aligned_with_boundary( void )
 {
   void *p = NULL;
@@ -548,6 +581,7 @@ rtems_task Init( rtems_task_argument argument )
   test_realloc();
   test_heap_info();
   test_malloc_get_statistics();
+  test_rtems_heap_greedy_allocate();
   test_rtems_heap_allocate_aligned_with_boundary();
   test_rtems_malloc();
   test_rtems_calloc();
