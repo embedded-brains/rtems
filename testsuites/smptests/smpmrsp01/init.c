@@ -110,12 +110,6 @@ static void barrier( test_context *ctx, SMP_barrier_State *bs )
   _SMP_barrier_Wait( &ctx->barrier, bs, 2 );
 }
 
-static void barrier_and_delay( test_context *ctx, SMP_barrier_State *bs )
-{
-  barrier( ctx, bs );
-  busy_wait();
-}
-
 static rtems_task_priority get_prio( rtems_id task_id )
 {
   rtems_status_code   sc;
@@ -350,7 +344,7 @@ static void obtain_and_release_worker( rtems_task_argument arg )
   /* Obtain with timeout (A) */
   barrier( ctx, &barrier_state );
 
-  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 4 );
+  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 100 );
   rtems_test_assert( sc == RTEMS_TIMEOUT );
 
   assert_prio( RTEMS_SELF, 4 );
@@ -358,7 +352,7 @@ static void obtain_and_release_worker( rtems_task_argument arg )
   /* Obtain with priority change and timeout (B) */
   barrier( ctx, &barrier_state );
 
-  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 4 );
+  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 100 );
   rtems_test_assert( sc == RTEMS_TIMEOUT );
 
   assert_prio( RTEMS_SELF, 2 );
@@ -386,7 +380,7 @@ static void obtain_and_release_worker( rtems_task_argument arg )
   /* Obtain and help with timeout (E) */
   barrier( ctx, &barrier_state );
 
-  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 4 );
+  sc = rtems_semaphore_obtain( ctx->mrsp_ids[ 0 ], RTEMS_WAIT, 100 );
   rtems_test_assert( sc == RTEMS_TIMEOUT );
 
   assert_prio( RTEMS_SELF, 4 );
@@ -522,13 +516,15 @@ static void test_mrsp_obtain_and_release( test_context *ctx )
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
 
   /* Obtain with timeout (A) */
-  barrier_and_delay( ctx, &barrier_state );
+  barrier( ctx, &barrier_state );
+  wait_for_sticky_worker( ctx );
 
   assert_prio( ctx->worker_ids[ 0 ], 3 );
   assert_executing_worker( ctx );
 
   /* Obtain with priority change and timeout (B) */
-  barrier_and_delay( ctx, &barrier_state );
+  barrier( ctx, &barrier_state );
+  wait_for_sticky_worker( ctx );
 
   assert_prio( ctx->worker_ids[ 0 ], 3 );
   change_prio( ctx->worker_ids[ 0 ], 2 );
@@ -541,7 +537,8 @@ static void test_mrsp_obtain_and_release( test_context *ctx )
   change_prio( ctx->worker_ids[ 0 ], 4 );
 
   /* Obtain without timeout (D) */
-  barrier_and_delay( ctx, &barrier_state );
+  barrier( ctx, &barrier_state );
+  wait_for_sticky_worker( ctx );
 
   assert_prio( ctx->worker_ids[ 0 ], 3 );
   assert_executing_worker( ctx );
@@ -559,7 +556,8 @@ static void test_mrsp_obtain_and_release( test_context *ctx )
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
 
   /* Obtain and help with timeout (E) */
-  barrier_and_delay( ctx, &barrier_state );
+  barrier( ctx, &barrier_state );
+  wait_for_sticky_worker( ctx );
 
   sc = rtems_task_start(
     ctx->high_task_id[ 0 ],
