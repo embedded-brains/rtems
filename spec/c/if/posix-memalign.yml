@@ -1,9 +1,24 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Allocate a memory area of the size specified by ${.:/params[2]/name} with the
+  alignment specified by ${.:/params[1]/name} from the
+  ${/score/heap/glossary/c-program-heap:/term}.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void **${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    - ${/c/if/size_t:/name} ${.:/params[2]/name}
+    return: int
+  variants: []
+description: null
 enabled-by: true
 index-entries: []
-interface-type: unspecified-function
+interface-type: function
 links:
 - role: interface-placement
   uid: stdlib
@@ -13,4 +28,23 @@ links:
   role: reference
   uid: /ref/std/posix-2024
 name: posix_memalign
+notes: null
+params:
+- description: |
+    is the pointer to an object of type `void *`. When the call is successful, the
+    begin address of the allocated memory area will be stored in this object.
+  dir: out
+  name: memptr
+- description: |
+    is the alignment in bytes of the memory area.
+  dir: null
+  name: alignment
+- description: |
+    is the size in bytes of the memory area to allocate.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns zero, if the call was successful, otherwise an error number.
+  return-values: []
 type: interface
