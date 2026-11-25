@@ -31,6 +31,7 @@ source:
 - testsuites/validation/tc-thread-idle-body-no-return.c
 - testsuites/validation/tr-event-send-receive.c
 - testsuites/validation/ts-validation-0.c
+- testsuites/validation/tx-heap.c
 stlib: []
 target: testsuites/validation/ts-validation-0.exe
 type: build
