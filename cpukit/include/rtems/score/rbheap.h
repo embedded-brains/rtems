@@ -44,6 +44,7 @@
 #include <rtems/score/cpu.h>
 #include <rtems/score/cpuopts.h>
 #include <rtems/score/heapinfo.h>
+#include <rtems/score/isrlock.h>
 #include <rtems/score/rbtree.h>
 
 #ifdef __cplusplus
@@ -81,13 +82,14 @@ extern "C" {
  *
  * An allocation takes the best fit of the free tree which holds the block at a
  * multiple of the alignment.  It carves the block out of the free block.  The
- * parts before and after the block stay free.
+ * parts before and after the block stay free.  The allocation holds the heap
+ * ISR lock once.
  *
  * @image html rbheap-free.svg "Free"
  *
  * A free finds the block and the gap around it in the used tree.  It merges
  * the block with the free blocks of the gap.  It then drains a slab which the
- * reserve does not need.
+ * reserve does not need.  The free holds the heap ISR lock once.
  *
  * @image html rbheap-slabs.svg "Life cycle of a slab"
  *
@@ -181,6 +183,17 @@ typedef struct RBHeap_descriptor {
  * @brief The maximum size of the area and of a request.
  */
 #define RBHEAP_MAX_SIZE ( UINTPTR_MAX / 4 )
+
+/**
+ * @brief The count of successors of the best fit which an aligned allocation
+ *   tests in the free tree.
+ *
+ * The best fit and these successors may all fail to hold the block at its
+ * alignment.  The allocation then searches for a free block which holds the
+ * block at each begin.  An aligned allocation can therefore fail while a free
+ * block exists which holds the block.
+ */
+#define RBHEAP_FIND_SUCCESSORS 4
 
 /**
  * @brief The header of a slab of descriptors of the red-black tree heap.
@@ -282,6 +295,14 @@ typedef void *( *RBHeap_slab_source )( void );
  * @brief The control of a red-black tree heap.
  */
 typedef struct RBHeap_control {
+#if ISR_LOCK_NEEDS_OBJECT
+  /**
+   * @brief The lock which protects the trees, the slabs and the counters of
+   *   the heap.
+   */
+  ISR_lock_Control Lock;
+#endif
+
   /**
    * @brief The root of the free tree, which orders the free blocks by the size
    *   and then by the begin.
@@ -535,7 +556,9 @@ void *_RBHeap_Allocate( RBHeap_control *control, uintptr_t size );
  *
  * @return Returns the begin of the block, else NULL.  The begin is a
  *   multiple of the alignment and of #RBHEAP_ALIGNMENT.  The size of the
- *   block is a multiple of #RBHEAP_ALIGNMENT.
+ *   block is a multiple of #RBHEAP_ALIGNMENT.  The function can return NULL
+ *   while a free block exists which holds the block, see
+ *   #RBHEAP_FIND_SUCCESSORS.
  */
 void *_RBHeap_Allocate_aligned(
   RBHeap_control *control,
@@ -591,9 +614,9 @@ bool _RBHeap_Free( RBHeap_control *control, void *block );
  *   alignment and which crosses no multiple of the boundary in the red-black
  *   tree heap.
  *
- * A boundary other than zero raises the alignment to the boundary.  The block
- * then begins at a multiple of the boundary, so it crosses no multiple of the
- * boundary if its size is at most the boundary.
+ * The first size bytes of the block cross no multiple of a boundary other
+ * than zero.  The function can return NULL while a free block exists which
+ * holds the block, see #RBHEAP_FIND_SUCCESSORS.
  *
  * @param[in, out] control is the control of the heap.
  *

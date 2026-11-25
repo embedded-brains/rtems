@@ -67,8 +67,8 @@
   \node[usedb, minimum width=12mm] (b5) at (b4.east) {U3};
   \node[note] at (9.4,-1.6) {F1 is the best fit in the free tree, but no
     multiple of 64 in F1 leaves 64 bytes.
-    The search then takes the best fit for the size padded by the
-    alignment, F2.
+    The search tests up to \code{RBHEAP\_FIND\_SUCCESSORS} successors of the
+    best fit.  F2 is the next one and holds the block.
     \code{\_RBHeap\_Find()}};
   % 3: carve
   \node[num] at (-0.6,-3.2) {3};
@@ -82,5 +82,9 @@
   \node[note] at (9.4,-3.2) {F2 keeps its descriptor with the size of the
     part before U4.  U4 and F3 take a spare descriptor each.  U4 enters the
     used tree and F3 the free tree.  \code{\_RBHeap\_Carve()}};
+  \begin{scope}[on background layer]
+    \node[lockframe, fit={(-1.0,0.6) (17.6,-3.8)}] {};
+  \end{scope}
+  \node[font=\scriptsize\bfseries, text=gray!70!black, anchor=south west] at (-1.0,0.75) {one hold of the heap ISR lock \code{Lock}};
 \end{tikzpicture}
 \end{document}

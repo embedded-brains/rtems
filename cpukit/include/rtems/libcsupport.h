@@ -65,7 +65,18 @@ extern "C" {
 extern void malloc_dump(void);
 
 /**
- * @brief Malloc walk.
+ * @brief Checks the C Program Heap.
+ *
+ * The function visits each block of the heap with interrupts disabled.
+ *
+ * @param source is a number which the report of a corrupt heap contains.
+ *
+ * @param printf_enabled is true, if the function shall report a corrupt heap
+ *   through printk().
+ *
+ * @retval true The heap is consistent.
+ *
+ * @retval false The heap is corrupt.
  */
 extern bool malloc_walk(int source, bool printf_enabled);
 

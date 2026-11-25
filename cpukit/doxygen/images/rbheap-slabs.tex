@@ -70,5 +70,9 @@
     \\[1mm]
      A drain keeps one spare descriptor for each descriptor in use of the slab,
      plus one.};
+  \begin{scope}[on background layer]
+    \node[lockframe, fit={(-2.4,1.3) (19.2,-5.3)}] {};
+  \end{scope}
+  \node[font=\scriptsize\bfseries, text=gray!70!black, anchor=south west] at (-2.4,1.3) {each step runs in an allocation, a free, an extension or a resize, with the heap ISR lock \code{Lock} held};
 \end{tikzpicture}
 \end{document}

@@ -85,11 +85,6 @@ void *realloc( void *ptr, size_t size )
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _Malloc_Process_deferred_frees();
-      status = _RBHeap_Resize( heap, ptr, size, &old_size );
-      _RTEMS_Unlock_allocator();
-      break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
       status = _RBHeap_Resize( heap, ptr, size, &old_size );
       break;

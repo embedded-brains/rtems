@@ -84,5 +84,9 @@
   \node[note, text width=150mm] at (0,-5.0) {If the reserve does not need all
     slabs in the areas, the heap drains the slab with the fewest descriptors in
     use, see the life cycle of a slab.  \code{\_RBHeap\_Release\_slab()}};
+  \begin{scope}[on background layer]
+    \node[lockframe, fit={(-1.0,0.6) (17.6,-5.5)}] {};
+  \end{scope}
+  \node[font=\scriptsize\bfseries, text=gray!70!black, anchor=south west] at (-1.0,0.75) {one hold of the heap ISR lock \code{Lock}};
 \end{tikzpicture}
 \end{document}

@@ -41,17 +41,20 @@
 #ifdef RTEMS_NEWLIB
 #include "malloc_p.h"
 
+#include <rtems/bspIo.h>
+
 #include <stdlib.h>
 
 bool malloc_walk( int source, bool printf_enabled )
 {
   bool ok;
 
-  (void) source;
-  (void) printf_enabled;
-  _RTEMS_Lock_allocator();
   ok = _RBHeap_Walk( RTEMS_Malloc_Heap );
-  _RTEMS_Unlock_allocator();
+
+  if ( !ok && printf_enabled ) {
+    printk( "malloc_walk: source %d: the C Program Heap is corrupt\n", source );
+  }
+
   return ok;
 }
 

@@ -41,24 +41,15 @@
 #ifdef RTEMS_NEWLIB
 #include "malloc_p.h"
 
-#include <rtems/score/apimutex.h>
-
 rtems_status_code rtems_heap_extend( void *area_begin, uintptr_t area_size )
 {
   bool ok;
 
-  switch ( _Malloc_System_state() ) {
-    case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      ok = _RBHeap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
-      _RTEMS_Unlock_allocator();
-      break;
-    case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      ok = _RBHeap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
-      break;
-    default:
-      return RTEMS_INCORRECT_STATE;
+  if ( _Malloc_System_state() == MALLOC_SYSTEM_STATE_NO_ALLOCATION ) {
+    return RTEMS_INCORRECT_STATE;
   }
+
+  ok = _RBHeap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
 
   if ( ok ) {
     return RTEMS_SUCCESSFUL;
