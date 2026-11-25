@@ -139,6 +139,91 @@ void HeapExhaust( RBHeap_control *heap )
   }
 }
 
+size_t HeapExhaustAndRecord(
+  RBHeap_control *heap,
+  void          **blocks,
+  size_t          max
+)
+{
+  size_t    n;
+  uintptr_t size;
+
+  if ( max == 0 ) {
+    return 0;
+  }
+
+  /* The exhaustion surrounds the first block with used blocks */
+  blocks[ 0 ] = _RBHeap_Allocate( heap, 16 * RBHEAP_MIN_SIZE );
+
+  if ( blocks[ 0 ] == NULL ) {
+    return 0;
+  }
+
+  n = 1;
+
+  while ( n < max && ( size = HeapGetLargestAllocatableSize( heap ) ) > 0 ) {
+    blocks[ n ] = _RBHeap_Allocate( heap, size );
+
+    if ( blocks[ n ] == NULL ) {
+      break;
+    }
+
+    ++n;
+  }
+
+  while ( n < max ) {
+    blocks[ n ] = _RBHeap_Allocate( heap, 1 );
+
+    if ( blocks[ n ] == NULL ) {
+      break;
+    }
+
+    ++n;
+  }
+
+  return n;
+}
+
+bool HeapUseUpSpare(
+  RBHeap_control *heap,
+  void           *small,
+  char           *reserve,
+  size_t          reserve_size
+)
+{
+  size_t    offset;
+  uintptr_t old_size;
+
+  offset = 0;
+
+  while ( heap->spare >= 2 && offset + 128 <= reserve_size ) {
+    if ( !_RBHeap_Extend( heap, &reserve[ offset ], 64 ) ) {
+      return false;
+    }
+
+    offset += 128;
+  }
+
+  /* The free rest of the shrunk block takes the last spare descriptor */
+  if (
+    heap->spare == 1 &&
+    _RBHeap_Resize( heap, small, RBHEAP_MIN_SIZE, &old_size ) !=
+      RBHEAP_RESIZE_SUCCESSFUL
+  ) {
+    return false;
+  }
+
+  return heap->spare == 0;
+}
+
+void HeapFreeRecorded( RBHeap_control *heap, void **blocks, size_t n )
+{
+  while ( n > 0 ) {
+    --n;
+    T_quiet_true( _RBHeap_Free( heap, blocks[ n ] ) );
+  }
+}
+
 void HeapTakeSnapshot( const RBHeap_control *heap, HeapSnapshot *snapshot )
 {
   Heap_Statistics stats;

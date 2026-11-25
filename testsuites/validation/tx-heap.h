@@ -189,6 +189,63 @@ void HeapExhaust( RBHeap_control *heap );
  *
  * @param[out] snapshot is the snapshot.
  */
+/**
+ * @brief Exhausts the heap and records the allocated blocks.
+ *
+ * The first block has a size of 16 times ::RBHEAP_MIN_SIZE.  Used blocks
+ * surround it after the exhaustion.
+ *
+ * @param[in, out] heap is the heap.
+ *
+ * @param[out] blocks is the array of the allocated blocks.
+ *
+ * @param max is the element count of the array.
+ *
+ * @return Returns the count of the allocated blocks.
+ */
+size_t HeapExhaustAndRecord(
+  RBHeap_control *heap,
+  void          **blocks,
+  size_t          max
+);
+
+/**
+ * @brief Uses up the spare descriptors of an exhausted heap.
+ *
+ * Each extension with a piece of the reserved area adds a hole and a free
+ * block.  An odd count of spare descriptors needs one shrink of a small used
+ * block between used blocks.
+ *
+ * @param[in, out] heap is the heap.
+ *
+ * @param[in, out] small is the small used block, for example the first block
+ *   of HeapExhaustAndRecord().
+ *
+ * @param[out] reserve is the reserved area.  Its begin is a multiple of
+ *   ::RBHEAP_ALIGNMENT.
+ *
+ * @param reserve_size is the size of the reserved area.
+ *
+ * @return Returns true, if the heap has no spare descriptor, otherwise false.
+ */
+bool HeapUseUpSpare(
+  RBHeap_control *heap,
+  void           *small,
+  char           *reserve,
+  size_t          reserve_size
+);
+
+/**
+ * @brief Frees the recorded blocks in reverse order.
+ *
+ * @param[in, out] heap is the heap.
+ *
+ * @param blocks is the array of the blocks.
+ *
+ * @param n is the count of the blocks.
+ */
+void HeapFreeRecorded( RBHeap_control *heap, void **blocks, size_t n );
+
 void HeapTakeSnapshot( const RBHeap_control *heap, HeapSnapshot *snapshot );
 
 /**
