@@ -1,0 +1,25 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags: []
+enabled-by: true
+features: c cprogram
+includes: []
+ldflags:
+- -Wl,--wrap=_RTEMS_Lock_allocator
+links: []
+source:
+- testsuites/validation/tc-mem-get-statistics.c
+- testsuites/validation/tc-workspace-allocate.c
+- testsuites/validation/tc-workspace-free.c
+- testsuites/validation/tc-workspace-get-statistics.c
+- testsuites/validation/ts-validation-heap-0.c
+- testsuites/validation/tx-heap.c
+stlib: []
+target: testsuites/validation/ts-validation-heap-0.exe
+type: build
+use-after: []
+use-before: []
