@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2018 embedded brains GmbH & Co. KG
+ * Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,21 +36,52 @@
 
 #include <rtems/test.h>
 
-#include <rtems/score/heapimpl.h>
-#include <rtems/score/wkspace.h>
+#include <rtems.h>
+#include <rtems/libcsupport.h>
 #include <rtems/malloc.h>
 
+#include <string.h>
+
 typedef struct {
-  Heap_Information_block heap_info;
-  Heap_Information_block workspace_info;
+  uint32_t used_blocks;
+  size_t   used_size;
+} T_heap_usage;
+
+typedef struct {
+  T_heap_usage heap_usage;
+  T_heap_usage workspace_usage;
 } T_resource_heap_context;
 
 static T_resource_heap_context T_resource_heap_instance;
 
-static void T_get_heap_info( Heap_Control *heap, Heap_Information_block *info )
+/*
+ * Only the used blocks show a leak.  The free blocks depend on the heap
+ * implementation.
+ */
+static void T_get_heap_usage(
+  T_heap_usage                *usage,
+  const rtems_heap_statistics *stats
+)
 {
-  _Heap_Get_information( heap, info );
-  memset( &info->Stats, 0, sizeof( info->Stats ) );
+  memset( usage, 0, sizeof( *usage ) );
+  usage->used_blocks = stats->used_blocks;
+  usage->used_size = stats->size - stats->free_size;
+}
+
+static void T_get_workspace_usage( T_heap_usage *usage )
+{
+  rtems_heap_statistics stats;
+
+  (void) rtems_workspace_get_statistics( &stats );
+  T_get_heap_usage( usage, &stats );
+}
+
+static void T_get_malloc_usage( T_heap_usage *usage )
+{
+  rtems_heap_statistics stats;
+
+  (void) malloc_get_statistics( &stats );
+  T_get_heap_usage( usage, &stats );
 }
 
 static void T_heap_run_initialize( void )
@@ -58,23 +89,23 @@ static void T_heap_run_initialize( void )
   T_resource_heap_context *ctx;
 
   ctx = &T_resource_heap_instance;
-  T_get_heap_info( &_Workspace_Area, &ctx->workspace_info );
+  T_get_workspace_usage( &ctx->workspace_usage );
 
   if ( !rtems_configuration_get_unified_work_area() ) {
-    T_get_heap_info( RTEMS_Malloc_Heap, &ctx->heap_info );
+    T_get_malloc_usage( &ctx->heap_usage );
   }
 }
 
 static void T_heap_case_end( void )
 {
   T_resource_heap_context *ctx;
-  Heap_Information_block   info;
+  T_heap_usage             usage;
   bool                     ok;
 
   ctx = &T_resource_heap_instance;
 
-  T_get_heap_info( &_Workspace_Area, &info );
-  ok = memcmp( &info, &ctx->workspace_info, sizeof( info ) ) == 0;
+  T_get_workspace_usage( &usage );
+  ok = memcmp( &usage, &ctx->workspace_usage, sizeof( usage ) ) == 0;
 
   if ( !ok ) {
     const char *where;
@@ -86,16 +117,16 @@ static void T_heap_case_end( void )
     }
 
     T_check( &T_special, ok, "memory leak in %s", where );
-    memcpy( &ctx->workspace_info, &info, sizeof( info ) );
+    memcpy( &ctx->workspace_usage, &usage, sizeof( usage ) );
   }
 
   if ( !rtems_configuration_get_unified_work_area() ) {
-    T_get_heap_info( RTEMS_Malloc_Heap, &info );
-    ok = memcmp( &info, &ctx->heap_info, sizeof( info ) ) == 0;
+    T_get_malloc_usage( &usage );
+    ok = memcmp( &usage, &ctx->heap_usage, sizeof( usage ) ) == 0;
 
     if ( !ok ) {
       T_check( &T_special, ok, "memory leak in heap" );
-      memcpy( &ctx->heap_info, &info, sizeof( info ) );
+      memcpy( &ctx->heap_usage, &usage, sizeof( usage ) );
     }
   }
 }

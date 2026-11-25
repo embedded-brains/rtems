@@ -14,6 +14,7 @@
 /*
  *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +45,7 @@
 #include <stdint.h>
 
 #include <rtems/score/heap.h>
+#include <rtems/rtems/support.h>
 #include <rtems/rtems/tasks.h>
 
 #ifdef __cplusplus
@@ -147,8 +149,23 @@ typedef struct {
 } rtems_resource_posix_api;
 
 typedef struct {
-  Heap_Information_block workspace_info;
-  Heap_Information_block heap_info;
+  /**
+   * @brief This member contains the statistics of the RTEMS Workspace.
+   *
+   * The members which count events since the initialization of the heap and
+   * the members which record a least or largest value are zero.
+   */
+  rtems_heap_statistics workspace_info;
+
+  /**
+   * @brief This member contains the statistics of the heap which serves
+   *   malloc().
+   *
+   * The members which count events since the initialization of the heap and
+   * the members which record a least or largest value are zero.
+   */
+  rtems_heap_statistics heap_info;
+
   uint32_t active_posix_key_value_pairs;
   uint32_t active_posix_keys;
   rtems_resource_rtems_api rtems_api;

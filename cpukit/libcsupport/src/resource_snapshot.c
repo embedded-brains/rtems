@@ -11,7 +11,7 @@
  */
 
 /*
- * Copyright (C) 2012, 2014 embedded brains GmbH & Co. KG
+ * Copyright (C) 2012, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,9 +47,7 @@
 #include <rtems/libio_.h>
 #include <rtems/malloc.h>
 #include <rtems/score/rbtreeimpl.h>
-#include <rtems/score/protectedheap.h>
 #include <rtems/score/threadimpl.h>
-#include <rtems/score/wkspace.h>
 #include <rtems/posix/keyimpl.h>
 
 static const struct {
@@ -131,10 +129,20 @@ static int open_files( void )
   return (int) rtems_libio_number_iops - free_count;
 }
 
-static void get_heap_info( Heap_Control *heap, Heap_Information_block *info )
+/*
+ * A snapshot compares the state of a heap, so it clears the members which
+ * describe the history of the heap.
+ */
+static void clear_heap_history( rtems_heap_statistics *stats )
 {
-  _Heap_Get_information( heap, info );
-  memset( &info->Stats, 0, sizeof( info->Stats ) );
+  stats->lifetime_allocated = 0;
+  stats->lifetime_freed = 0;
+  stats->min_free_size = 0;
+  stats->max_free_blocks = 0;
+  stats->allocs = 0;
+  stats->failed_allocs = 0;
+  stats->frees = 0;
+  stats->resizes = 0;
 }
 
 static POSIX_Keys_Control *get_next_key( Objects_Id *id )
@@ -168,8 +176,10 @@ void rtems_resource_snapshot_take( rtems_resource_snapshot *snapshot )
 
   _Thread_Kill_zombies();
 
-  get_heap_info( RTEMS_Malloc_Heap, &snapshot->heap_info );
-  get_heap_info( &_Workspace_Area, &snapshot->workspace_info );
+  (void) malloc_get_statistics( &snapshot->heap_info );
+  clear_heap_history( &snapshot->heap_info );
+  (void) rtems_workspace_get_statistics( &snapshot->workspace_info );
+  clear_heap_history( &snapshot->workspace_info );
 
   for ( i = 0; i < RTEMS_ARRAY_SIZE( objects_info_table ); ++i ) {
     const Objects_Information *information;
