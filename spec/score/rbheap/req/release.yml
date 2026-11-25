@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  One allocation, free or resize moves at most four descriptors, so the release
+  of a slab spreads over several operations.
+requirement-type: functional
+text: |
+  When the slabs inside the memory areas of the heap hold more descriptors than
+  the reserve needs, the heap shall move the descriptors in use of the slab with
+  the fewest descriptors in use to other slabs and free that slab.
+type: requirement

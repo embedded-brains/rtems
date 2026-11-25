@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: null
+requirement-type: functional
+text: |
+  When the heap reports its information, the heap shall report the count, the
+  total size and the largest size of its free blocks and of its used blocks.
+type: requirement

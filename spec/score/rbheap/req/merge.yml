@@ -1,0 +1,15 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  At most one free block then lies between two used blocks.
+requirement-type: functional
+text: |
+  When the heap frees a used block, the heap shall merge the block with its free
+  neighbours.
+type: requirement

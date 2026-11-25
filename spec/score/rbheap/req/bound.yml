@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  Only SMP configurations have processor blocks.
+requirement-type: functional
+text: |
+  Where the heap has processor blocks, when a used block of at most the maximum
+  size of a processor block is freed through the processor blocks while the bin
+  of its size class on the current processor is not full, the heap shall keep the
+  block as a used block described by a bound descriptor of the current processor.
+type: requirement
