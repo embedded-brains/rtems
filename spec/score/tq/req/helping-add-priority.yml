@@ -1,0 +1,485 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: AddPosition
+  states:
+  - name: Initial
+    test-code: |
+      CheckAddPosition( ctx, PLACE_INITIAL );
+    text: |
+      The thread queue shall position the priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread after each
+      other priority queue of the thread queue.
+  - name: First
+    test-code: |
+      CheckAddPosition( ctx, PLACE_FIRST );
+    text: |
+      The thread queue shall position the thread as the first thread of the priority
+      queue associated with the ${/glossary/scheduler-helping:/term} which is added
+      to the thread.
+  - name: Second
+    test-code: |
+      CheckAddPosition( ctx, PLACE_SECOND );
+    text: |
+      The thread queue shall position the thread in the priority queue associated
+      with the ${/glossary/scheduler-helping:/term} which is added to the thread
+      after each thread of the priority queue with a priority higher than or equal to
+      the ${/glossary/priority-eligible:/term} of the thread with respect to this
+      ${/glossary/scheduler-helping:/term} and before each thread of the priority
+      queue with a lower priority.
+  test-epilogue: null
+  test-prologue: null
+- name: AddOrder
+  states:
+  - name: Kept
+    test-code: |
+      CheckAddOrder( ctx );
+    text: |
+      The addition of the ${/glossary/scheduler-helping:/term} shall not change the
+      order of the priority queues which the thread queue contained before the
+      addition.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: NewQueue
+  states:
+  - name: Empty
+    test-code: |
+      ctx->waiter_priority = PRIO_INVALID;
+
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has no priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread.
+  - name: High
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->lower = false;
+    - name: Lower
+      test-code: |
+        ctx->lower = true;
+    test-code: |
+      ctx->waiter_priority = PRIO_VERY_HIGH;
+
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread, while the
+      highest priority of the priority queue is higher than the
+      ${/glossary/priority-eligible:/term} of the thread with respect to this
+      ${/glossary/scheduler-helping:/term}.
+  - name: Equal
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->lower = false;
+    - name: Lower
+      test-code: |
+        ctx->lower = true;
+    test-code: |
+      ctx->waiter_priority = PRIO_HIGH;
+
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread, while the
+      highest priority of the priority queue is equal to the
+      ${/glossary/priority-eligible:/term} of the thread with respect to this
+      ${/glossary/scheduler-helping:/term}.
+  - name: Low
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->lower = false;
+    - name: Lower
+      test-code: |
+        ctx->lower = true;
+    test-code: |
+      ctx->waiter_priority = PRIO_NORMAL;
+
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread, while the
+      highest priority of the priority queue is lower than the
+      ${/glossary/priority-eligible:/term} of the thread with respect to this
+      ${/glossary/scheduler-helping:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherQueue
+  states:
+  - name: None
+    test-code: |
+      ctx->other = false;
+    text: |
+      While each priority queue of the thread queue is associated with the
+      ${/glossary/scheduler-home:/term} of the thread or with the
+      ${/glossary/scheduler-helping:/term} which is added to the thread.
+  - name: One
+    test-code: |
+      ctx->other = true;
+
+      if ( !HasProcessors( 3 ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue which is associated with a
+      ${/glossary/scheduler:/term} other than the ${/glossary/scheduler-home:/term}
+      of the thread and the ${/glossary/scheduler-helping:/term} which is added to
+      the thread.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension NewQueue covers the priority queue of the added helping scheduler
+  before the addition, 4 states. The states High, Equal, and Low have two
+  representatives. In the representative Alone, the priority queue contains one
+  thread. In the representative Lower, it also contains a thread with a priority
+  lower than the eligible priority of the thread.
+
+  Dimension OtherQueue covers a priority queue of a third scheduler, 2 states.
+
+  The test adds the helping scheduler through a thread which waits for a mutex
+  with the priority inheritance locking protocol owned by the thread. A thread
+  which waits for a mutex with the MrsP locking protocol occupies a processor, so
+  the test skips the sticky enqueue.
+requirement-type: functional
+skip-reasons:
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  rtems_status_code sc;
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQSetPriority( ctx->tq_ctx, TQ_WORKER_F, ctx->waiter_priority );
+  }
+
+  SetSelfPriority( PRIO_ULTRA_LOW );
+  ctx->tq_ctx->how_many = 1;
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  TQSendAndWaitForExecutionStop(
+    ctx->tq_ctx,
+    TQ_BLOCKER_C,
+    TQ_EVENT_MUTEX_A_OBTAIN
+  );
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  Enqueue(
+    ctx,
+    TQ_BLOCKER_C,
+    TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_MUTEX_A_RELEASE
+  );
+  ++ctx->tq_ctx->how_many;
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQClearDone( ctx->tq_ctx, TQ_WORKER_F );
+    Enqueue( ctx, TQ_WORKER_F, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  if ( ctx->lower ) {
+    TQClearDone( ctx->tq_ctx, TQ_WORKER_G );
+    Enqueue( ctx, TQ_WORKER_G, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  if ( ctx->other ) {
+    TQClearDone( ctx->tq_ctx, TQ_HELPER_C );
+    Enqueue( ctx, TQ_HELPER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  ctx->queue = GetTCB( ctx, TQ_BLOCKER_C )->Wait.queue;
+  T_assert_not_null( ctx->queue );
+  TQTakeSnapshot( &ctx->before, ctx->queue );
+  TQSendAndWaitForExecutionStop(
+    ctx->tq_ctx,
+    TQ_BLOCKER_E,
+    TQ_EVENT_MUTEX_A_OBTAIN
+  );
+  TQTakeSnapshot( &ctx->added, ctx->queue );
+
+  /*
+   * The restart extracts the thread from the thread queue of mutex A, so the
+   * waiting thread loses the helping scheduler.
+   */
+  sc = rtems_task_restart(
+    ctx->tq_ctx->worker_id[ TQ_BLOCKER_E ],
+    (rtems_task_argument) ctx->tq_ctx
+  );
+  T_rsc_success( sc );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_E );
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_C );
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_WORKER_F );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_WORKER_F );
+  }
+
+  if ( ctx->lower ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_WORKER_G );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_WORKER_G );
+  }
+
+  if ( ctx->other ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_HELPER_C );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_HELPER_C );
+  }
+
+  TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
+  TQMutexRelease( ctx->tq_ctx, TQ_MUTEX_A );
+  SetSelfPriority( PRIO_NORMAL );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the priority of the thread in the priority queue of the
+    added helping scheduler. PRIO_INVALID means that this priority queue does not
+    exist before the addition.
+  description: null
+  member: |
+    rtems_task_priority waiter_priority
+- brief: |
+    This member is true, if the priority queue of the added helping scheduler
+    contains a thread of a lower priority before the addition.
+  description: null
+  member: |
+    bool lower
+- brief: |
+    This member is true, if the thread queue has a priority queue of a third
+    scheduler.
+  description: null
+  member: |
+    bool other
+- brief: |
+    This member references the thread queue.
+  description: null
+  member: |
+    Thread_queue_Queue *queue
+- brief: |
+    This member contains the priority queues before the addition.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues after the addition.
+  description: null
+  member: |
+    TQSnapshot added
+test-context-support: |
+  typedef enum { PLACE_INITIAL, PLACE_FIRST, PLACE_SECOND } Place;
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-helping-add-priority.h
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
+test-local-includes:
+- tr-tq-helping-add-priority.h
+test-prepare: |
+  ctx->lower = false;
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
+
+    #if defined( RTEMS_SMP )
+    Setup( ctx );
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static bool HasProcessors( uint32_t count )
+  {
+    return rtems_scheduler_get_processor_maximum() >= count;
+  }
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static const rtems_tcb *GetTCB( const Context *ctx, TQWorkerKind worker )
+  {
+    return ctx->tq_ctx->worker_tcb[ worker ];
+  }
+
+  #if defined( RTEMS_SMP )
+  static void Setup( Context *ctx )
+  {
+    if ( HasProcessors( 2 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_G, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    }
+
+    if ( HasProcessors( 3 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_C_ID, PRIO_LOW );
+    }
+  }
+  #endif
+
+  static void CheckAddPosition( const Context *ctx, Place place )
+  {
+    const TQPriorityQueueSnapshot *queue;
+    size_t                         count;
+    size_t                         index;
+
+    index = TQSnapshotFind( &ctx->added, SCHEDULER_B_ID );
+    T_ne_sz( index, SIZE_MAX );
+
+    if ( index == SIZE_MAX ) {
+      return;
+    }
+
+    queue = &ctx->added.queue[ index ];
+    count = ctx->lower ? 3 : 2;
+
+    switch ( place ) {
+      case PLACE_INITIAL:
+        T_eq_sz( queue->count, 1 );
+        T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_BLOCKER_C ) );
+        T_eq_sz( index, ctx->added.count - 1 );
+        break;
+      case PLACE_FIRST:
+        T_eq_sz( queue->count, count );
+        T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_BLOCKER_C ) );
+        T_eq_ptr( queue->thread[ 1 ], GetTCB( ctx, TQ_WORKER_F ) );
+        break;
+      default:
+        T_eq_int( place, PLACE_SECOND );
+        T_eq_sz( queue->count, count );
+        T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_WORKER_F ) );
+        T_eq_ptr( queue->thread[ 1 ], GetTCB( ctx, TQ_BLOCKER_C ) );
+        break;
+    }
+
+    if ( place != PLACE_INITIAL && ctx->lower ) {
+      T_eq_ptr( queue->thread[ 2 ], GetTCB( ctx, TQ_WORKER_G ) );
+    }
+  }
+
+  /*
+   * The priority queues before the addition keep their order.  A new priority
+   * queue of the added helping scheduler is not part of the comparison.
+   */
+  static void CheckAddOrder( const Context *ctx )
+  {
+    const Scheduler_Control *added;
+    size_t                   i;
+    size_t                   j;
+
+    added = _Scheduler_Get_by_id( SCHEDULER_B_ID );
+    j = 0;
+
+    for ( i = 0; i < ctx->added.count; ++i ) {
+      if (
+        ctx->added.queue[ i ].scheduler == added &&
+        TQSnapshotFind( &ctx->before, SCHEDULER_B_ID ) == SIZE_MAX
+      ) {
+        continue;
+      }
+
+      T_lt_sz( j, ctx->before.count );
+
+      if ( j < ctx->before.count ) {
+        T_eq_ptr(
+          ctx->added.queue[ i ].scheduler,
+          ctx->before.queue[ j ].scheduler
+        );
+      }
+
+      ++j;
+    }
+
+    T_eq_sz( j, ctx->before.count );
+  }
+test-target: testsuites/validation/tr-tq-helping-add-priority.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_A_ID, PRIO_LOW );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_G, SCHEDULER_A_ID, PRIO_LOW );
+  description: null
+text: |
+  When a helping scheduler is added to a thread which waits on the thread queue.
+transition-map:
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    AddPosition:
+    - if:
+        pre-conditions:
+          NewQueue: Empty
+      then: Initial
+    - if:
+        pre-conditions:
+          NewQueue: Low
+      then: First
+    - else: Second
+    AddOrder: Kept
+  pre-conditions:
+    NewQueue: all
+    OtherQueue: all
+type: requirement
