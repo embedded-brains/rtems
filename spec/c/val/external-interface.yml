@@ -44,15 +44,29 @@ links:
 - role: validation
   uid: /c/errno/if/eagain
 - role: validation
+  uid: /c/errno/if/ebadf
+- role: validation
   uid: /c/errno/if/ebusy
 - role: validation
   uid: /c/errno/if/edeadlk
+- role: validation
+  uid: /c/errno/if/eexist
 - role: validation
   uid: /c/errno/if/efault
 - role: validation
   uid: /c/errno/if/einval
 - role: validation
+  uid: /c/errno/if/emsgsize
+- role: validation
+  uid: /c/errno/if/enametoolong
+- role: validation
+  uid: /c/errno/if/enfile
+- role: validation
+  uid: /c/errno/if/enoent
+- role: validation
   uid: /c/errno/if/enomem
+- role: validation
+  uid: /c/errno/if/enospc
 - role: validation
   uid: /c/errno/if/enotsup
 - role: validation
@@ -70,9 +84,17 @@ links:
 - role: validation
   uid: /c/errno/if/etimedout
 - role: validation
+  uid: /c/fcntl/if/o-creat
+- role: validation
+  uid: /c/fcntl/if/o-excl
+- role: validation
+  uid: /c/fcntl/if/o-nonblock
+- role: validation
   uid: /c/pthread/if/explicit-sched
 - role: validation
   uid: /c/if/false
+- role: validation
+  uid: /c/if/mq_prio_max
 - role: validation
   uid: /c/sched/if/fifo
 - role: validation
@@ -136,11 +158,19 @@ links:
 - role: validation
   uid: /c/pthread/if/scope-system
 - role: validation
+  uid: /c/if/mode_t
+- role: validation
+  uid: /c/if/mq_attr
+- role: validation
+  uid: /c/if/mqd_t
+- role: validation
   uid: /c/if/sched_param
 - role: validation
   uid: /c/if/size_max
 - role: validation
   uid: /c/if/size_t
+- role: validation
+  uid: /c/if/ssize_t
 - role: validation
   uid: /c/if/time_t
 - role: validation
