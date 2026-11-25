@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2008, 2014 embedded brains GmbH & Co. KG
+ * Copyright (C) 2008, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 2007, 2013 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,13 +70,8 @@ extern rtems_shell_topic_t * rtems_shell_first_topic;
 
 extern void rtems_shell_register_monitor_commands(void);
 
-extern void rtems_shell_print_heap_info(
-  const char             *c,
-  const Heap_Information *h
-);
-
-extern void rtems_shell_print_heap_stats(
-  const Heap_Statistics *s
+extern void rtems_shell_print_heap_statistics(
+  const rtems_heap_statistics *s
 );
 
 extern void rtems_shell_print_unified_work_area_message(void);

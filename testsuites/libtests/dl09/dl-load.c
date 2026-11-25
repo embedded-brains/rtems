@@ -51,9 +51,8 @@
 #include <rtems/rtl/rtl-shell.h>
 #include <rtems/rtl/rtl-trace.h>
 
-extern void rtems_shell_print_heap_info(
-  const char             *c,
-  const Heap_Information *h
+extern void rtems_shell_print_heap_statistics(
+  const rtems_heap_statistics *s
 );
 
 typedef struct {
@@ -77,14 +76,14 @@ static void dl_load_dump( void )
 #if DL09_RTL_CMDS
   char                  *list[] = { "rtl", "list", NULL };
   char                  *sym[] = { "rtl", "sym", NULL };
-  Heap_Information_block info;
-  malloc_info( &info );
+  rtems_heap_statistics  stats;
+  (void) malloc_get_statistics( &stats );
   printf( "RTL List:\n" );
   rtems_rtl_shell_command( 2, list );
   printf( "RTL Sym:\n" );
   rtems_rtl_shell_command( 2, sym );
   printf( "Malloc:\n" );
-  rtems_shell_print_heap_info( "free", &info.Free );
+  rtems_shell_print_heap_statistics( &stats );
 #endif
 }
 

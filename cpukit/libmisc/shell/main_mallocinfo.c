@@ -56,13 +56,11 @@ static int rtems_shell_main_malloc_info(
   if ( argc == 2 && strcmp( argv[ 1 ], "walk" ) == 0 ) {
     malloc_walk( 0, true );
   } else {
-    Heap_Information_block info;
+    rtems_heap_statistics stats;
 
     rtems_shell_print_unified_work_area_message();
-    malloc_info( &info );
-    rtems_shell_print_heap_info( "free", &info.Free );
-    rtems_shell_print_heap_info( "used", &info.Used );
-    rtems_shell_print_heap_stats( &info.Stats );
+    (void) malloc_get_statistics( &stats );
+    rtems_shell_print_heap_statistics( &stats );
   }
 
   return 0;

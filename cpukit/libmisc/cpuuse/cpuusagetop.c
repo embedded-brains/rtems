@@ -57,12 +57,10 @@
 #include <rtems/printer.h>
 #include <rtems/malloc.h>
 #include <rtems/score/objectimpl.h>
-#include <rtems/score/protectedheap.h>
 #include <rtems/score/schedulerimpl.h>
 #include <rtems/score/threadimpl.h>
 #include <rtems/score/todimpl.h>
 #include <rtems/score/watchdogimpl.h>
-#include <rtems/score/wkspace.h>
 #include <rtems/rtems/tasksimpl.h>
 
 /*
@@ -308,7 +306,7 @@ static void rtems_cpuusage_top_thread( rtems_task_argument arg )
   char                   cname[ 32 + 1 ];
   char                   pname[ _Thread_Maximum_name_size + 1 ];
   size_t                 i;
-  Heap_Information_block wksp;
+  rtems_heap_statistics  wksp;
   uint32_t               ival, fval;
   uint32_t               task_count;
   rtems_event_set        out;
@@ -390,7 +388,7 @@ static void rtems_cpuusage_top_thread( rtems_task_argument arg )
       continue;
     }
 
-    _Protected_heap_Get_information( &_Workspace_Area, &wksp );
+    (void) rtems_workspace_get_statistics( &wksp );
 
     if ( data->single_page ) {
       rtems_printf(
@@ -444,16 +442,16 @@ static void rtems_cpuusage_top_thread( rtems_task_argument arg )
      */
     if ( rtems_configuration_get_unified_work_area() ) {
       rtems_printf( data->printer, "\nMem: " );
-      print_memsize( data, wksp.Free.total, "free" );
-      print_memsize( data, wksp.Used.total, "used" );
+      print_memsize( data, wksp.free_size, "free" );
+      print_memsize( data, wksp.size - wksp.free_size, "used" );
     } else {
-      Heap_Information_block libc_heap;
-      malloc_info( &libc_heap );
+      rtems_heap_statistics libc_heap;
+      (void) malloc_get_statistics( &libc_heap );
       rtems_printf( data->printer, "\nMem: Wksp: " );
-      print_memsize( data, wksp.Free.total, "free" );
-      print_memsize( data, wksp.Used.total, "used  Heap: " );
-      print_memsize( data, libc_heap.Free.total, "free" );
-      print_memsize( data, libc_heap.Used.total, "used" );
+      print_memsize( data, wksp.free_size, "free" );
+      print_memsize( data, wksp.size - wksp.free_size, "used  Heap: " );
+      print_memsize( data, libc_heap.free_size, "free" );
+      print_memsize( data, libc_heap.size - libc_heap.free_size, "used" );
     }
 
     print_memsize( data, data->stack_size, "stack\n" );
