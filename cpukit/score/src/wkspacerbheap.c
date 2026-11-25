@@ -48,17 +48,43 @@ void _Workspace_RBHeap_initialize( void )
 {
   bool ok;
 
-  ok = _RBHeap_Initialize(
-    &_Workspace_RBHeap,
-    _Workspace_Storage_area,
-    _Workspace_Storage_size
-  );
-  _Assert( ok );
-  _Assert(
-    _Workspace_RBHeap.free_size >=
-    _Workspace_Storage_size - RBHEAP_AREA_OVERHEAD
-  );
-  (void) ok;
+  if ( _Workspace_Descriptor_size > 0 ) {
+    /* The first slab of the descriptor area is the first slab of the heap. */
+    ok = _RBHeap_Initialize_with_slab(
+      &_Workspace_RBHeap,
+      _Workspace_Storage_area,
+      _Workspace_Storage_size,
+      _Workspace_Descriptor_begin,
+      NULL
+    );
+    _Assert( ok );
+    _Assert( _Workspace_RBHeap.free_size == _Workspace_Storage_size );
 
+    /*
+     * The application configuration gives the descriptor area whole slabs
+     * which begin at a slab boundary and lie apart from the storage area.
+     */
+    if ( _Workspace_Descriptor_size > RBHEAP_SLAB_SIZE ) {
+      ok = _RBHeap_Add_descriptors(
+        &_Workspace_RBHeap,
+        (char *) _Workspace_Descriptor_begin + RBHEAP_SLAB_SIZE,
+        _Workspace_Descriptor_size - RBHEAP_SLAB_SIZE
+      );
+      _Assert( ok );
+    }
+  } else {
+    ok = _RBHeap_Initialize(
+      &_Workspace_RBHeap,
+      _Workspace_Storage_area,
+      _Workspace_Storage_size
+    );
+    _Assert( ok );
+    _Assert(
+      _Workspace_RBHeap.free_size >=
+      _Workspace_Storage_size - RBHEAP_AREA_OVERHEAD
+    );
+  }
+
+  (void) ok;
   _Workspace_Check_TLS_allocation_size();
 }

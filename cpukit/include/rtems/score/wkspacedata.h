@@ -244,6 +244,44 @@ void _Workspace_Get_statistics( Heap_Statistics *stats );
  */
 void _Workspace_Get_information( Heap_Information_block *info );
 
+/**
+ * @brief The begin of the static descriptor area of the RTEMS Workspace.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT via <rtems/confdefs.h> if
+ * #CONFIGURE_WORKSPACE_ALLOCATOR selects the red-black tree heap.
+ */
+extern void *const _Workspace_Descriptor_begin;
+
+/**
+ * @brief The size in bytes of the static descriptor area of the RTEMS
+ *   Workspace.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT via <rtems/confdefs.h> if
+ * #CONFIGURE_WORKSPACE_ALLOCATOR selects the red-black tree heap.
+ */
+extern const uintptr_t _Workspace_Descriptor_size;
+
+/**
+ * @brief The begin of the static descriptor area of the C Program Heap.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_MALLOC_DESCRIPTOR_COUNT via <rtems/confdefs.h> or a default
+ * configuration.
+ */
+extern void *const _Malloc_Descriptor_begin;
+
+/**
+ * @brief The size in bytes of the static descriptor area of the C
+ *   Program Heap.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_MALLOC_DESCRIPTOR_COUNT via <rtems/confdefs.h> or a default
+ * configuration.
+ */
+extern const uintptr_t _Malloc_Descriptor_size;
+
 /** @} */
 
 #ifdef __cplusplus

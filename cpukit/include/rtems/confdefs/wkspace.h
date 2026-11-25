@@ -201,8 +201,105 @@
 #endif
 
 #if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
-#define _CONFIGURE_WORKSPACE_AREA_OVERHEAD RBHEAP_AREA_OVERHEAD
+
+/*
+ * A message queue which rtems_message_queue_construct() constructs takes no
+ * block.  Without message buffer memory, no message queue takes a block of the
+ * workspace.
+ */
+#if CONFIGURE_MAXIMUM_MESSAGE_QUEUES > 0
+  #define _CONFIGURE_MESSAGE_QUEUE_BLOCK_COUNT                           \
+  ( CONFIGURE_MESSAGE_BUFFER_MEMORY != 0                                 \
+      ? rtems_resource_maximum_per_allocation(                           \
+          CONFIGURE_MAXIMUM_MESSAGE_QUEUES                               \
+        )                                                                \
+      : 0 )
 #else
+  #define _CONFIGURE_MESSAGE_QUEUE_BLOCK_COUNT 0
+#endif
+
+/* A POSIX message queue takes one block for its buffers and one for its name */
+#if CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES > 0
+  #define _CONFIGURE_POSIX_MESSAGE_QUEUE_BLOCK_COUNT \
+  ( 2 * rtems_resource_maximum_per_allocation(     \
+          CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES   \
+        ) )
+#else
+  #define _CONFIGURE_POSIX_MESSAGE_QUEUE_BLOCK_COUNT 0
+#endif
+
+#if CONFIGURE_MAXIMUM_POSIX_SEMAPHORES > 0
+  #define _CONFIGURE_POSIX_SEMAPHORE_BLOCK_COUNT \
+  rtems_resource_maximum_per_allocation( CONFIGURE_MAXIMUM_POSIX_SEMAPHORES )
+#else
+  #define _CONFIGURE_POSIX_SEMAPHORE_BLOCK_COUNT 0
+#endif
+
+/*
+ * A POSIX shared memory object takes one block for its name and one for its
+ * data.
+ */
+#if CONFIGURE_MAXIMUM_POSIX_SHMS > 0
+  #define _CONFIGURE_POSIX_SHM_BLOCK_COUNT \
+  ( 2 * rtems_resource_maximum_per_allocation( CONFIGURE_MAXIMUM_POSIX_SHMS ) )
+#else
+  #define _CONFIGURE_POSIX_SHM_BLOCK_COUNT 0
+#endif
+
+/*
+ * The storage area holds one block for each of these objects:
+ *
+ * - a thread stack with its thread-local storage area,
+ *
+ * - the buffers of a message queue,
+ *
+ * - the name of a POSIX named object, and
+ *
+ * - the data of a POSIX shared memory object.
+ */
+#define _CONFIGURE_WORKSPACE_BLOCK_COUNT                                 \
+  ( _CONFIGURE_WORKSPACE_TLS_AREA_COUNT +                                \
+    _CONFIGURE_MESSAGE_QUEUE_BLOCK_COUNT +                               \
+    _CONFIGURE_POSIX_MESSAGE_QUEUE_BLOCK_COUNT +                         \
+    _CONFIGURE_POSIX_SEMAPHORE_BLOCK_COUNT + _CONFIGURE_POSIX_SHM_BLOCK_COUNT )
+
+/*
+ * At most one free block lies before each used block and after the last used
+ * block, since adjacent free blocks merge.  The heap keeps a capacity of two
+ * descriptors per used block plus three, see _RBHeap_Holds_entry().
+ */
+#ifdef CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+  #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT \
+  CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+  #if CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT > 0
+    #define _CONFIGURE_WORKSPACE_DESCRIPTORS
+  #endif
+#else
+  #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT \
+  ( 2 * _CONFIGURE_WORKSPACE_BLOCK_COUNT + 3 )
+  #define _CONFIGURE_WORKSPACE_DESCRIPTORS
+#endif
+
+/*
+ * The first slab of the statically allocated descriptors is the first slab of
+ * the workspace.  These descriptors suffice for all blocks of the storage area.
+ * The storage area begins and ends at a multiple of the heap alignment.
+ * Without the descriptors, the storage area holds the slabs of the workspace.
+ */
+#define _CONFIGURE_WORKSPACE_STORAGE_SIZE                                    \
+  ( RTEMS_ALIGN_UP(                                                          \
+      CONFIGURE_EXECUTIVE_RAM_SIZE + _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE - \
+        _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD,                               \
+      RBHEAP_ALIGNMENT                                                       \
+    ) +                                                                      \
+    ( _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT > 0                              \
+        ? 0                                                                  \
+        : _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD + RBHEAP_AREA_OVERHEAD ) )
+
+#define _CONFIGURE_WORKSPACE_STORAGE_ALIGNMENT RBHEAP_ALIGNMENT
+
+#else /* CONFIGURE_WORKSPACE_ALLOCATOR */
+
 #define _CONFIGURE_WORKSPACE_PAGE_SIZE \
   RTEMS_ALIGN_UP( CPU_HEAP_ALIGNMENT, CPU_ALIGNMENT )
 
@@ -211,11 +308,14 @@
   ( _CONFIGURE_WORKSPACE_PAGE_SIZE - 1 +                                     \
     RTEMS_ALIGN_UP( sizeof( Heap_Block ), _CONFIGURE_WORKSPACE_PAGE_SIZE ) + \
     HEAP_BLOCK_HEADER_SIZE )
-#endif
 
 #define _CONFIGURE_WORKSPACE_STORAGE_SIZE                                  \
   ( CONFIGURE_EXECUTIVE_RAM_SIZE + _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE + \
     _CONFIGURE_WORKSPACE_AREA_OVERHEAD )
+
+#define _CONFIGURE_WORKSPACE_STORAGE_ALIGNMENT CPU_HEAP_ALIGNMENT
+
+#endif /* CONFIGURE_WORKSPACE_ALLOCATOR */
 
 #if defined( CONFIGURE_UNIFIED_WORK_AREAS ) ||                             \
   ( ( CONFIGURE_MAXIMUM_BARRIERS | CONFIGURE_MAXIMUM_MESSAGE_QUEUES |      \
@@ -240,7 +340,7 @@ const uintptr_t _Workspace_Size = CONFIGURE_EXECUTIVE_RAM_SIZE;
 
 char _Workspace_Storage_area
   [ _CONFIGURE_WORKSPACE_STORAGE_SIZE ] RTEMS_ALIGNED(
-    CPU_HEAP_ALIGNMENT
+    _CONFIGURE_WORKSPACE_STORAGE_ALIGNMENT
   ) RTEMS_NOINIT;
 
 const uintptr_t _Workspace_Storage_size = sizeof( _Workspace_Storage_area );
@@ -274,6 +374,15 @@ void _Workspace_Free( void *ptr )
 }
 #endif
 
+#ifndef CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+  #define CONFIGURE_MALLOC_DESCRIPTOR_COUNT 0
+#endif
+
+/* Each slab of a descriptor area provides all slots except one. */
+#define _Configure_Descriptor_area_size( _count )                            \
+  ( ( ( ( _count ) + RBHEAP_SLAB_SLOTS - 2 ) / ( RBHEAP_SLAB_SLOTS - 1 ) ) * \
+    RBHEAP_SLAB_SIZE )
+
 #if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
 RTEMS_SYSINIT_ITEM(
   _Workspace_RBHeap_initialize,
@@ -304,6 +413,35 @@ void _Workspace_Get_information( Heap_Information_block *info )
 {
   _RBHeap_Get_information( &_Workspace_RBHeap, info );
 }
+
+#ifdef _CONFIGURE_WORKSPACE_DESCRIPTORS
+static char _Configure_Workspace_descriptors[ _Configure_Descriptor_area_size(
+  _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+) ] RTEMS_ALIGNED( RBHEAP_SLAB_SIZE ) RTEMS_SECTION( ".noinit.rbheap.slabs" );
+
+void *const _Workspace_Descriptor_begin = _Configure_Workspace_descriptors;
+
+const uintptr_t _Workspace_Descriptor_size = sizeof(
+  _Configure_Workspace_descriptors
+);
+#else
+void *const _Workspace_Descriptor_begin = NULL;
+
+const uintptr_t _Workspace_Descriptor_size = 0;
+#endif
+
+#endif /* CONFIGURE_WORKSPACE_ALLOCATOR */
+
+#if CONFIGURE_MALLOC_DESCRIPTOR_COUNT > 0
+static char _Configure_Malloc_descriptors[ _Configure_Descriptor_area_size(
+  CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+) ] RTEMS_ALIGNED( RBHEAP_SLAB_SIZE ) RTEMS_SECTION( ".noinit.rbheap.slabs" );
+
+void *const _Malloc_Descriptor_begin = _Configure_Malloc_descriptors;
+
+const uintptr_t _Malloc_Descriptor_size = sizeof(
+  _Configure_Malloc_descriptors
+);
 #endif
 
 uint32_t rtems_minimum_stack_size = CONFIGURE_MINIMUM_TASK_STACK_SIZE;

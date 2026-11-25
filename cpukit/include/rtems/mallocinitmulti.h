@@ -39,6 +39,7 @@
 
 #include <rtems/malloc.h>
 #include <rtems/score/rbheap.h>
+#include <rtems/score/wkspacedata.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -87,6 +88,17 @@ static inline RBHeap_control *_Malloc_Initialize_for_multiple_areas(
     }
 
     if ( ok ) {
+      if (
+        !initialized && _Malloc_Descriptor_size > 0 &&
+        !_RBHeap_Add_descriptors(
+          heap,
+          _Malloc_Descriptor_begin,
+          _Malloc_Descriptor_size
+        )
+      ) {
+        _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
+      }
+
       _Memory_Consume( area, _Memory_Get_free_size( area ) );
       initialized = true;
     }
