@@ -24,6 +24,7 @@ source:
 - testsuites/validation/tc-mem-aligned-alloc.c
 - testsuites/validation/tc-mem-calloc.c
 - testsuites/validation/tc-mem-free.c
+- testsuites/validation/tc-mem-malloc-usable-size.c
 - testsuites/validation/tc-mem-malloc.c
 - testsuites/validation/tc-mem-posix-memalign.c
 - testsuites/validation/tc-mem-realloc.c
