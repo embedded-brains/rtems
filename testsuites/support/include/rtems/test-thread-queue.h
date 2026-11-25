@@ -190,6 +190,11 @@ typedef enum {
   TQ_HELPER_C,
 
   /**
+   * @brief This worker has the initial priority PRIO_LOW.
+   */
+  TQ_WORKER_G,
+
+  /**
    * @brief This member provides the count of workers.
    */
   TQ_WORKER_COUNT
@@ -935,6 +940,98 @@ void TQSetScheduler(
   rtems_id         scheduler_id,
   Priority         priority
 );
+
+/**
+ * @brief This structure holds a snapshot of one priority queue of a thread
+ *   queue.
+ */
+typedef struct {
+  /**
+   * @brief This member references the scheduler associated with the priority
+   *   queue.
+   */
+  const struct _Scheduler_Control *scheduler;
+
+  /**
+   * @brief This member contains the count of threads in the priority queue.
+   */
+  size_t count;
+
+  /**
+   * @brief This member references the threads of the priority queue in
+   *   priority order.
+   *
+   * A snapshot of a priority queue with more threads than this member holds
+   * fails the test.
+   */
+  const rtems_tcb *thread[ 4 ];
+} TQPriorityQueueSnapshot;
+
+/**
+ * @brief This structure holds a snapshot of the priority queues of a thread
+ *   queue.
+ */
+typedef struct {
+  /**
+   * @brief This member contains the count of priority queues.
+   */
+  size_t count;
+
+  /**
+   * @brief This member contains the priority queues in the order of the
+   *   thread queue.
+   */
+  TQPriorityQueueSnapshot queue[ 8 ];
+} TQSnapshot;
+
+/**
+ * @brief Takes a snapshot of the priority queues of the thread queue.
+ *
+ * @param[out] snapshot is the snapshot.
+ *
+ * @param queue is the thread queue which uses the priority discipline.
+ */
+void TQTakeSnapshot(
+  TQSnapshot                *snapshot,
+  struct Thread_queue_Queue *queue
+);
+
+/**
+ * @brief Gets the index of the priority queue associated with the scheduler.
+ *
+ * @param snapshot is the snapshot.
+ *
+ * @param scheduler_id is the identifier of the scheduler.
+ *
+ * @return Returns the index of the priority queue in the snapshot, otherwise
+ *   SIZE_MAX.
+ */
+size_t TQSnapshotFind( const TQSnapshot *snapshot, rtems_id scheduler_id );
+
+/**
+ * @brief Checks if the priority queue snapshot contains the thread.
+ *
+ * @param queue is the priority queue snapshot.
+ *
+ * @param thread is the thread.
+ *
+ * @return Returns true, if the snapshot of the priority queue contains the
+ *   thread, otherwise false.
+ */
+bool TQSnapshotContains(
+  const TQPriorityQueueSnapshot *queue,
+  const rtems_tcb               *thread
+);
+
+/**
+ * @brief Checks that both snapshots contain the priority queues of the same
+ *   schedulers in the same order.
+ *
+ * @param a is the first snapshot.
+ *
+ * @param b is the second snapshot.
+ */
+void TQCheckSameQueues( const TQSnapshot *a, const TQSnapshot *b );
 
 /**
  * @brief Initializes the thread queue test context.

@@ -75,6 +75,14 @@ extern "C" {
 
 #define TEST_SCHEDULER_D_NAME rtems_build_name( 'D', ' ', ' ', ' ' )
 
+#define TEST_SCHEDULER_E_NAME rtems_build_name( 'E', ' ', ' ', ' ' )
+
+#define TEST_SCHEDULER_F_NAME rtems_build_name( 'F', ' ', ' ', ' ' )
+
+#define TEST_SCHEDULER_G_NAME rtems_build_name( 'G', ' ', ' ', ' ' )
+
+#define TEST_SCHEDULER_H_NAME rtems_build_name( 'H', ' ', ' ', ' ' )
+
 #define TEST_MAXIMUM_BARRIERS 7
 
 #define TEST_MAXIMUM_MESSAGE_QUEUES 3

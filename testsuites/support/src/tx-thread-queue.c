@@ -43,11 +43,15 @@
 #include <rtems/test-thread-queue.h>
 #include <rtems/test-support.h>
 
+#include <rtems/score/priorityimpl.h>
+#include <rtems/score/schedulerimpl.h>
 #include <rtems/score/threadimpl.h>
+#include <rtems/score/threadqimpl.h>
 #include <rtems/rtems/semimpl.h>
 #include <rtems/posix/muteximpl.h>
 
 #include <pthread.h>
+#include <string.h>
 
 void TQSend( TQContext *ctx, TQWorkerKind worker, rtems_event_set events )
 {
@@ -251,6 +255,127 @@ void TQSetScheduler(
   (void) scheduler_id;
   SetPriority( ctx->worker_id[ worker ], priority );
 #endif
+}
+
+static void AddPriorityQueue(
+  TQSnapshot                 *snapshot,
+  const Priority_Aggregation *aggregation
+)
+{
+  TQPriorityQueueSnapshot *queue;
+  const RBTree_Node       *node;
+
+  T_quiet_lt_sz( snapshot->count, RTEMS_ARRAY_SIZE( snapshot->queue ) );
+
+  if ( snapshot->count >= RTEMS_ARRAY_SIZE( snapshot->queue ) ) {
+    return;
+  }
+
+  queue = &snapshot->queue[ snapshot->count ];
+  ++snapshot->count;
+  queue->scheduler = _Priority_Get_scheduler( aggregation );
+  queue->count = 0;
+  node = _RBTree_Minimum( &aggregation->Contributors );
+
+  while ( node != NULL ) {
+    const Priority_Node  *priority_node;
+    const Scheduler_Node *scheduler_node;
+
+    priority_node = RTEMS_CONTAINER_OF( node, Priority_Node, Node.RBTree );
+    scheduler_node = SCHEDULER_NODE_OF_WAIT_PRIORITY_NODE( priority_node );
+
+    if ( queue->count < RTEMS_ARRAY_SIZE( queue->thread ) ) {
+      queue->thread[ queue->count ] = _Scheduler_Node_get_owner(
+        scheduler_node
+      );
+    }
+
+    ++queue->count;
+    node = _RBTree_Successor( node );
+  }
+
+  T_quiet_le_sz( queue->count, RTEMS_ARRAY_SIZE( queue->thread ) );
+}
+
+void TQTakeSnapshot( TQSnapshot *snapshot, Thread_queue_Queue *queue )
+{
+  Thread_queue_Heads *heads;
+  ISR_lock_Context    lock_context;
+
+  memset( snapshot, 0, sizeof( *snapshot ) );
+  _ISR_lock_ISR_disable( &lock_context );
+  _Thread_queue_Queue_acquire_critical(
+    queue,
+    &_Thread_Get_executing()->Potpourri_stats,
+    &lock_context
+  );
+  heads = queue->heads;
+
+  if ( heads != NULL ) {
+#if defined( RTEMS_SMP )
+    const Chain_Node *node;
+    const Chain_Node *tail;
+
+    node = _Chain_Immutable_first( &heads->Heads.Fifo );
+    tail = _Chain_Immutable_tail( &heads->Heads.Fifo );
+
+    while ( node != tail ) {
+      const Thread_queue_Priority_queue *priority_queue;
+
+      priority_queue = (const Thread_queue_Priority_queue *) node;
+      AddPriorityQueue( snapshot, &priority_queue->Queue );
+      node = _Chain_Immutable_next( node );
+    }
+#else
+    AddPriorityQueue( snapshot, &heads->Heads.Priority.Queue );
+#endif
+  }
+
+  _Thread_queue_Queue_release( queue, &lock_context );
+}
+
+size_t TQSnapshotFind( const TQSnapshot *snapshot, rtems_id scheduler_id )
+{
+  const Scheduler_Control *scheduler;
+  size_t                   i;
+
+  scheduler = _Scheduler_Get_by_id( scheduler_id );
+
+  for ( i = 0; i < snapshot->count; ++i ) {
+    if ( snapshot->queue[ i ].scheduler == scheduler ) {
+      return i;
+    }
+  }
+
+  return SIZE_MAX;
+}
+
+bool TQSnapshotContains(
+  const TQPriorityQueueSnapshot *queue,
+  const rtems_tcb               *thread
+)
+{
+  size_t i;
+
+  for ( i = 0; i < queue->count && i < RTEMS_ARRAY_SIZE( queue->thread );
+        ++i ) {
+    if ( queue->thread[ i ] == thread ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void TQCheckSameQueues( const TQSnapshot *a, const TQSnapshot *b )
+{
+  size_t i;
+
+  T_eq_sz( a->count, b->count );
+
+  for ( i = 0; i < a->count && i < b->count; ++i ) {
+    T_eq_ptr( a->queue[ i ].scheduler, b->queue[ i ].scheduler );
+  }
 }
 
 static void Count( TQContext *ctx, TQWorkerKind worker )
@@ -498,6 +623,11 @@ static void HelperC( rtems_task_argument arg )
   Worker( arg, TQ_HELPER_C );
 }
 
+static void WorkerG( rtems_task_argument arg )
+{
+  Worker( arg, TQ_WORKER_G );
+}
+
 void TQInitialize( TQContext *ctx )
 {
   rtems_status_code sc;
@@ -554,6 +684,8 @@ void TQInitialize( TQContext *ctx )
   StartTask( ctx->worker_id[ TQ_HELPER_B ], HelperB, ctx );
   ctx->worker_id[ TQ_HELPER_C ] = CreateTask( "HLPC", PRIO_LOW );
   StartTask( ctx->worker_id[ TQ_HELPER_C ], HelperC, ctx );
+  ctx->worker_id[ TQ_WORKER_G ] = CreateTask( "WRKG", PRIO_LOW );
+  StartTask( ctx->worker_id[ TQ_WORKER_G ], WorkerG, ctx );
 
   for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->worker_tcb ); ++i ) {
     ctx->worker_tcb[ i ] = GetThread( ctx->worker_id[ i ] );
@@ -596,6 +728,7 @@ void TQReset( TQContext *ctx )
   TQSetScheduler( ctx, TQ_HELPER_A, scheduler_id, PRIO_LOW );
   TQSetScheduler( ctx, TQ_HELPER_B, scheduler_id, PRIO_LOW );
   TQSetScheduler( ctx, TQ_HELPER_C, scheduler_id, PRIO_LOW );
+  TQSetScheduler( ctx, TQ_WORKER_G, scheduler_id, PRIO_LOW );
 }
 
 void TQSortMutexesByID( TQContext *ctx )
