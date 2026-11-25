@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Gets the statistics of the ${/score/heap/glossary/c-program-heap:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/rtems/workspace/if/heap-statistics:/name} *${.:/params[0]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: /constraint/directive-ctx-devinit
+- role: constraint
+  uid: /constraint/directive-ctx-task
+name: malloc_get_statistics
+notes: |
+  The function takes the size of the largest free block from the free tree of the
+  heap. Its execution time grows with the logarithm of the number of free blocks.
+
+  The function does not change ${/c/errno/if/errno:/name}.
+params:
+- description: |
+    is the pointer to an ${/rtems/workspace/if/heap-statistics:/name} object. When
+    the function call is successful, the statistics of the
+    ${/score/heap/glossary/c-program-heap:/term} will be stored in this object.
+    When thread dispatching is disabled, each member of the object will be set to
+    zero.
+  dir: out
+  name: stats
+return:
+  return: |
+    Returns zero, if the function call was successful, otherwise an error number.
+  return-values:
+  - description: |
+      The function call was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The function was called with thread dispatching disabled.
+    value: ${/c/errno/if/eproto:/name}
+type: interface

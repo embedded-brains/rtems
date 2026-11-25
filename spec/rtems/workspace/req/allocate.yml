@@ -1,0 +1,266 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/allocate
+- role: requirement-refinement
+  uid: /score/heap/req/disjoint
+post-conditions:
+- name: Status
+  states:
+  - name: 'True'
+    test-code: |
+      T_true( ctx->status );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/allocate:/name} shall be true.
+  - name: 'False'
+    test-code: |
+      T_false( ctx->status );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/allocate:/name} shall be false.
+  test-epilogue: null
+  test-prologue: null
+- name: PointerVar
+  states:
+  - name: Set
+    test-code: |
+      T_true( _RBHeap_Size_of_block( &_Workspace_RBHeap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->bytes );
+    text: |
+      The value of the object referenced by the ${../if/allocate:/params[1]/name}
+      parameter shall be the begin address of a
+      ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/workspace:/term} of at least the size specified by the
+      ${../if/allocate:/params[0]/name} parameter.
+  - name: Nop
+    test-code: |
+      T_eq_ptr( ctx->ptr, &ctx->ptr );
+    text: |
+      Objects referenced by the ${../if/allocate:/params[1]/name} parameter in past
+      calls to ${../if/allocate:/name} shall not be accessed by the
+      ${../if/allocate:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+- name: Heap
+  states:
+  - name: Allocated
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks + 1 );
+    text: |
+      The ${/score/heap/glossary/workspace:/term} shall have one more
+      ${/score/heap/glossary/used-block:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+    text: |
+      The ${/score/heap/glossary/used-block:/plural} and the
+      ${/score/heap/glossary/free-block:/plural} of the
+      ${/score/heap/glossary/workspace:/term} shall not be changed by the
+      ${../if/allocate:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: AllocatorLock
+  states:
+  - name: Once
+    test-code: |
+      T_eq_uint( ctx->lock_count, 1 );
+    text: |
+      The ${../if/allocate:/name} directive shall obtain the object allocator mutex
+      exactly once.
+  - name: Nop
+    test-code: |
+      T_eq_uint( ctx->lock_count, 0 );
+    text: |
+      The ${../if/allocate:/name} directive shall not obtain the object allocator
+      mutex.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Pointer
+  states:
+  - name: Valid
+    test-code: |
+      ctx->pointer = &ctx->ptr;
+    text: |
+      While the ${../if/allocate:/params[1]/name} parameter references an object of
+      type `void *`.
+  - name: 'Null'
+    test-code: |
+      ctx->pointer = NULL;
+    text: |
+      While the ${../if/allocate:/params[1]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Bytes
+  states:
+  - name: Zero
+    test-code: |
+      ctx->bytes = 0;
+    text: |
+      While the ${../if/allocate:/params[0]/name} parameter is equal to zero.
+  - name: NonZero
+    test-code: |
+      ctx->bytes = 1;
+    text: |
+      While the ${../if/allocate:/params[0]/name} parameter is not equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The heap is empty */
+    text: |
+      While the ${/score/heap/glossary/workspace:/term} has a
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  - name: 'No'
+    test-code: |
+      HeapExhaust( &_Workspace_RBHeap );
+    text: |
+      While the ${/score/heap/glossary/workspace:/term} has no
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension Fit covers the free blocks of the
+  ${/score/heap/glossary/workspace:/term}, 2 states.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  HeapTakeSnapshot( &_Workspace_RBHeap, &ctx->before );
+  CallCounterObserve( &AllocatorLockCounter, rtems_task_self() );
+  ctx->status = rtems_workspace_allocate( ctx->bytes, ctx->pointer );
+  ctx->lock_count = CallCounterGet( &AllocatorLockCounter );
+  CallCounterObserve( &AllocatorLockCounter, 0 );
+  HeapTakeSnapshot( &_Workspace_RBHeap, &ctx->after );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the snapshot of the heap before the call.
+  description: null
+  member: |
+    HeapSnapshot before
+- brief: |
+    This member contains the snapshot of the heap after the call.
+  description: null
+  member: |
+    HeapSnapshot after
+- brief: |
+    This member contains the count of the obtains of the object allocator mutex
+    during the call.
+  description: null
+  member: |
+    unsigned int lock_count
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/allocate:/name} call.
+  description: null
+  member: |
+    bool status
+- brief: |
+    This member provides the object referenced by the
+    ${../if/allocate:/params[1]/name} parameter.
+  description: null
+  member: |
+    void *ptr
+- brief: |
+    This member specifies the ${../if/allocate:/params[0]/name} parameter value.
+  description: null
+  member: |
+    size_t bytes
+- brief: |
+    This member specifies the ${../if/allocate:/params[1]/name} parameter value.
+  description: null
+  member: |
+    void **pointer
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/score/wkspace.h
+test-local-includes:
+- tx-heap.h
+- tx-support.h
+test-prepare: |
+  ctx->ptr = &ctx->ptr;
+  WorkspaceReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    WorkspaceInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-workspace-allocate.c
+test-teardown:
+  brief: null
+  code: |
+    WorkspaceRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: 'False'
+    PointerVar: Nop
+    Heap: Nop
+    AllocatorLock: Nop
+  pre-conditions:
+    Pointer:
+    - 'Null'
+    Bytes: all
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'False'
+    PointerVar: Nop
+    Heap: Nop
+    AllocatorLock: Nop
+  pre-conditions:
+    Pointer:
+    - Valid
+    Bytes:
+    - Zero
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'True'
+    PointerVar: Set
+    Heap: Allocated
+    AllocatorLock: Once
+  pre-conditions:
+    Pointer:
+    - Valid
+    Bytes:
+    - NonZero
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: 'False'
+    PointerVar: Nop
+    Heap: Nop
+    AllocatorLock: Once
+  pre-conditions:
+    Pointer:
+    - Valid
+    Bytes:
+    - NonZero
+    Fit:
+    - 'No'
+type: requirement

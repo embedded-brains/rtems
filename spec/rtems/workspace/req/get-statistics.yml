@@ -1,0 +1,188 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/get-statistics
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_true( ctx->status );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      true.
+  - name: Error
+    test-code: |
+      T_false( ctx->status );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      false.
+  test-epilogue: null
+  test-prologue: null
+- name: StatsVar
+  states:
+  - name: Set
+    test-code: |
+      _RBHeap_Get_statistics( &_Workspace_RBHeap, &stats );
+      T_eq_u64( ctx->stats.lifetime_allocated, stats.lifetime_allocated );
+      T_eq_u64( ctx->stats.lifetime_freed, stats.lifetime_freed );
+      T_eq_sz( ctx->stats.size, stats.size );
+      T_eq_sz( ctx->stats.free_size, stats.free_size );
+      T_eq_sz( ctx->stats.min_free_size, stats.min_free_size );
+      T_eq_u32( ctx->stats.free_blocks, stats.free_blocks );
+      T_eq_u32( ctx->stats.max_free_blocks, stats.max_free_blocks );
+      T_eq_u32( ctx->stats.used_blocks, stats.used_blocks );
+      T_eq_u32( ctx->stats.allocs, stats.allocs );
+      T_eq_u32( ctx->stats.failed_allocs, stats.failed_allocs );
+      T_eq_u32( ctx->stats.frees, stats.frees );
+      T_eq_u32( ctx->stats.resizes, 0 );
+    text: |
+      The object referenced by the ${../if/get-statistics:/params[0]/name} parameter
+      shall contain the statistics of the ${/score/heap/glossary/workspace:/term}
+      with a ${/rtems/workspace/if/heap-statistics:/name}::resizes member of zero.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->stats.allocs, UINT32_MAX );
+    text: |
+      Objects referenced by the ${../if/get-statistics:/params[0]/name} parameter in
+      past calls to ${../if/get-statistics:/name} shall not be accessed by the
+      ${../if/get-statistics:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    Heap_Statistics stats;
+- name: AllocatorLock
+  states:
+  - name: Once
+    test-code: |
+      T_eq_uint( ctx->lock_count, 1 );
+    text: |
+      The ${../if/get-statistics:/name} directive shall obtain the object allocator
+      mutex exactly once.
+  - name: Nop
+    test-code: |
+      T_eq_uint( ctx->lock_count, 0 );
+    text: |
+      The ${../if/get-statistics:/name} directive shall not obtain the object
+      allocator mutex.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Stats
+  states:
+  - name: Valid
+    test-code: |
+      ctx->stats_ptr = &ctx->stats;
+    text: |
+      While the ${../if/get-statistics:/params[0]/name} parameter references an
+      object of type ${/rtems/workspace/if/heap-statistics:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->stats_ptr = NULL;
+    text: |
+      While the ${../if/get-statistics:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  CallCounterObserve( &AllocatorLockCounter, rtems_task_self() );
+  ctx->status = rtems_workspace_get_statistics( ctx->stats_ptr );
+  ctx->lock_count = CallCounterGet( &AllocatorLockCounter );
+  CallCounterObserve( &AllocatorLockCounter, 0 );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the count of the obtains of the object allocator mutex
+    during the call.
+  description: null
+  member: |
+    unsigned int lock_count
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/get-statistics:/name} call.
+  description: null
+  member: |
+    bool status
+- brief: |
+    This member provides the object referenced by the
+    ${../if/get-statistics:/params[0]/name} parameter.
+  description: null
+  member: |
+    rtems_heap_statistics stats
+- brief: |
+    This member specifies the ${../if/get-statistics:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    rtems_heap_statistics *stats_ptr
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- stdint.h
+- string.h
+- rtems.h
+- rtems/score/wkspace.h
+test-local-includes:
+- tx-heap.h
+- tx-support.h
+test-prepare: |
+  void     *ptr;
+  uintptr_t old_size;
+
+  memset( &ctx->stats, 0xff, sizeof( ctx->stats ) );
+  WorkspaceReset( &ctx->heap );
+  ptr = _RBHeap_Allocate( &_Workspace_RBHeap, 1 );
+  T_quiet_not_null( ptr );
+  T_quiet_eq_int(
+    _RBHeap_Resize( &_Workspace_RBHeap, ptr, 2 * RBHEAP_MIN_SIZE, &old_size ),
+    RBHEAP_RESIZE_SUCCESSFUL
+  );
+  T_quiet_null( _RBHeap_Allocate( &_Workspace_RBHeap, HEAP_AREA_SIZE ) );
+  ptr = _RBHeap_Allocate( &_Workspace_RBHeap, 1 );
+  T_quiet_true( _RBHeap_Free( &_Workspace_RBHeap, ptr ) );
+test-setup:
+  brief: null
+  code: |
+    WorkspaceInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-workspace-get-statistics.c
+test-teardown:
+  brief: null
+  code: |
+    WorkspaceRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+    StatsVar: Set
+    AllocatorLock: Once
+  pre-conditions:
+    Stats:
+    - Valid
+- enabled-by: true
+  post-conditions:
+    Status: Error
+    StatsVar: Nop
+    AllocatorLock: Nop
+  pre-conditions:
+    Stats:
+    - 'Null'
+type: requirement

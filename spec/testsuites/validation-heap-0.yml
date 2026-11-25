@@ -1,0 +1,25 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite contains the test cases of the heaps which need
+  processor blocks of the C Program Heap or blocks of the RTEMS Workspace.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define CONFIGURE_MALLOC_CPU_DESCRIPTORS 64
+
+  #define CONFIGURE_MEMORY_OVERHEAD 4
+
+  #include "ts-default.h"
+test-description: |
+  The application configuration of the test suite enables the processor blocks of
+  the C Program Heap and reserves memory for blocks of the RTEMS Workspace.
+test-includes: []
+test-local-includes: []
+test-target: testsuites/validation/ts-validation-heap-0.c
+type: test-suite
