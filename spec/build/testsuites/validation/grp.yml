@@ -40,6 +40,8 @@ links:
 - role: build-dependency
   uid: fatal-init-task-create-failed
 - role: build-dependency
+  uid: fatal-invalid-heap-free
+- role: build-dependency
   uid: fatal-mandatory-processor-not-present
 - role: build-dependency
   uid: fatal-record-dump

@@ -21,6 +21,7 @@ source:
 - testsuites/validation/tc-counter-ticks-to-sbintime.c
 - testsuites/validation/tc-counter.c
 - testsuites/validation/tc-event-send-receive.c
+- testsuites/validation/tc-mem-free.c
 - testsuites/validation/tc-mem-malloc.c
 - testsuites/validation/tc-mem-posix-memalign.c
 - testsuites/validation/tc-mem-rtems-calloc.c
