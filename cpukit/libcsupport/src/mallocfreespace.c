@@ -12,6 +12,7 @@
 /*
  *  COPYRIGHT (c) 1989-2010.
  *  On-Line Applications Research Corporation (OAR).
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,26 +40,13 @@
 #include "config.h"
 #endif
 
-#include <rtems.h>
 #include <rtems/libcsupport.h>
-#include <rtems/score/protectedheap.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <string.h>
-
-#include "malloc_p.h"
-
-/*
- *  Find amount of free heap remaining
- */
+#include <rtems/malloc.h>
 
 size_t malloc_free_space( void )
 {
-  Heap_Information info;
+  rtems_heap_statistics stats;
 
-  _Protected_heap_Get_free_information( RTEMS_Malloc_Heap, &info );
-  return (size_t) info.largest;
+  (void) malloc_get_statistics( &stats );
+  return stats.free_size;
 }

@@ -84,9 +84,12 @@ void malloc_set_heap_pointer(Heap_Control *new_heap);
 Heap_Control *malloc_get_heap_pointer( void );
 
 /**
- * @brief Get free malloc information.
- * 
- * Find amount of free heap remaining
+ * @brief Gets the number of free bytes of the heap which serves malloc().
+ *
+ * An allocation of this size may fail, since the free bytes may be spread
+ * over several free blocks.
+ *
+ * @return Returns the number of free bytes of the heap.
  */
 extern size_t malloc_free_space(void);
 

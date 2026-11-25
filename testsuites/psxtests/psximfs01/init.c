@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <rtems/libcsupport.h>
+#include <rtems/malloc.h>
 
 #define BLOCK_SIZE 16
 const char rtems_test_name[] = "PSXIMFS 1";
@@ -49,12 +50,12 @@ void  fill_space( void * );
 
 void *empty_space()
 {
-  return malloc( malloc_free_space() - 4 );
+  return rtems_heap_greedy_allocate( NULL, 0 );
 }
 
 void fill_space( void *memory )
 {
-  free( memory );
+  rtems_heap_greedy_free( memory );
 }
 
 /* configuration information */

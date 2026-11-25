@@ -53,7 +53,7 @@ rtems_task Init( rtems_task_argument ignored )
   TEST_BEGIN();
 
   printf(
-    "Largest C program heap block available: %zu\n",
+    "Free bytes of the C program heap: %zu\n",
     malloc_free_space()
   );
   for ( i = 0; i < SEMA_COUNT; i++ ) {
@@ -84,7 +84,7 @@ rtems_task Init( rtems_task_argument ignored )
 
   printf( "%d semaphores created\n", i );
   printf(
-    "Largest C program heap block available: %zu\n",
+    "Free bytes of the C program heap: %zu\n",
     malloc_free_space()
   );
 
@@ -99,7 +99,7 @@ rtems_task Init( rtems_task_argument ignored )
 
   printf( "%d semaphores successfully deleted\n", created );
   printf(
-    "Largest C program heap block available: %zu\n",
+    "Free bytes of the C program heap: %zu\n",
     malloc_free_space()
   );
 
