@@ -9,6 +9,8 @@ links:
 - role: requirement-refinement
   uid: ../../req/group-posix-api
 - role: function-implementation
+  uid: /score/tq/req/extract-priority
+- role: function-implementation
   uid: /score/tq/req/timeout
 - role: function-implementation
   uid: /score/tq/req/timeout-priority-inherit
@@ -24,13 +26,23 @@ post-conditions:
     text: |
       The timeout actions shall be done as specified by
       ${/score/tq/req/timeout:/spec}.
+  - name: TimeoutPriority
+    test-code: |
+      ctx->tq_ctx.wait = TQ_WAIT_TIMED;
+      ${/score/tq/req/timeout:/test-run}( &ctx->tq_ctx );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_ctx, true );
+    text: |
+      The timeout actions shall be done as specified by
+      ${/score/tq/req/timeout:/spec} and ${/score/tq/req/extract-priority:/spec}.
   - name: TimeoutPriorityInherit
     test-code: |
       ctx->tq_ctx.wait = TQ_WAIT_FOREVER;
       ${/score/tq/req/timeout-priority-inherit:/test-run}( &ctx->tq_ctx );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_ctx, false );
     text: |
       The timeout actions shall be done as specified by
-      ${/score/tq/req/timeout-priority-inherit:/spec}.
+      ${/score/tq/req/timeout-priority-inherit:/spec} and
+      ${/score/tq/req/extract-priority:/spec}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
@@ -111,6 +123,7 @@ test-includes:
 - pthread.h
 - string.h
 test-local-includes:
+- tr-tq-extract-priority.h
 - tr-tq-timeout.h
 - tr-tq-timeout-priority-inherit.h
 - tx-support.h
@@ -148,6 +161,10 @@ transition-map:
         pre-conditions:
           Protocol: Inherit
       then: TimeoutPriorityInherit
+    - if:
+        pre-conditions:
+          Protocol: Protect
+      then: TimeoutPriority
     - else: Timeout
   pre-conditions:
     Protocol: all

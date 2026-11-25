@@ -70,6 +70,7 @@ test-actions:
       ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_DEADLOCK;
       ${/score/tq/req/timeout-priority-inherit:/test-run}( &ctx->tq_mtx_ctx.base );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_mtx_ctx.base, false );
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-acquire-timed
@@ -178,6 +179,7 @@ test-actions:
       ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
       ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
       ${/score/tq/req/timeout-priority-inherit:/test-run}( &ctx->tq_mtx_ctx.base );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_mtx_ctx.base, false );
     links:
     - role: validation
       uid: ../req/sys-lock-mutex-recursive-acquire-timed
@@ -267,6 +269,7 @@ test-actions:
       ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
       SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
       ${/score/tq/req/timeout:/test-run}( &ctx->tq_sem_ctx.base );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_sem_ctx.base, false );
     links:
     - role: validation
       uid: ../req/sys-lock-semaphore-timeout
@@ -376,6 +379,7 @@ test-local-includes:
 - tr-sem-seize-try.h
 - tr-sem-seize-wait.h
 - tr-sem-surrender.h
+- tr-tq-extract-priority.h
 - tr-tq-timeout-priority-inherit.h
 - tr-tq-timeout.h
 - tx-thread-queue.h
