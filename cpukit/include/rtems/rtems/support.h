@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -208,6 +208,93 @@ static inline void rtems_name_to_characters(
   *c3 = (char) ( ( ( name ) >> 8 ) & 0xff );
   *c4 = (char) ( ( name ) & 0xff );
 }
+
+/* Find related documentation with spec:/rtems/support/if/heap-statistics */
+
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief This structure contains the statistics of a heap.
+ *
+ * The heap which serves malloc(), the RTEMS Workspace and each region provide
+ * these statistics.
+ */
+typedef struct {
+  /**
+   * @brief This member contains the number of bytes which the heap allocated
+   *   since its initialization.
+   */
+  uint64_t lifetime_allocated;
+
+  /**
+   * @brief This member contains the number of bytes which the heap freed since
+   *   its initialization.
+   */
+  uint64_t lifetime_freed;
+
+  /**
+   * @brief This member contains the size in bytes of the memory areas which
+   *   the heap manages.
+   */
+  size_t size;
+
+  /**
+   * @brief This member contains the number of free bytes of the heap.
+   */
+  size_t free_size;
+
+  /**
+   * @brief This member contains the size in bytes of the largest free block of
+   *   the heap.
+   */
+  size_t largest_free_size;
+
+  /**
+   * @brief This member contains the least number of free bytes of the heap
+   *   since its initialization.
+   */
+  size_t min_free_size;
+
+  /**
+   * @brief This member contains the number of free blocks of the heap.
+   */
+  uint32_t free_blocks;
+
+  /**
+   * @brief This member contains the largest number of free blocks of the heap
+   *   since its initialization.
+   */
+  uint32_t max_free_blocks;
+
+  /**
+   * @brief This member contains the number of used blocks of the heap.
+   */
+  uint32_t used_blocks;
+
+  /**
+   * @brief This member contains the number of successful allocations since the
+   *   initialization of the heap.
+   */
+  uint32_t allocs;
+
+  /**
+   * @brief This member contains the number of failed allocations since the
+   *   initialization of the heap.
+   */
+  uint32_t failed_allocs;
+
+  /**
+   * @brief This member contains the number of successful frees since the
+   *   initialization of the heap.
+   */
+  uint32_t frees;
+
+  /**
+   * @brief This member contains the number of successful resizes since the
+   *   initialization of the heap.
+   */
+  uint32_t resizes;
+} rtems_heap_statistics;
 
 /* Find related documentation with spec:/rtems/support/if/workspace-allocate */
 

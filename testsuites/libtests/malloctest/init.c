@@ -227,6 +227,80 @@ static void test_heap_info( void )
   rtems_test_assert( s1 == the_info.Free.largest );
 }
 
+static void test_malloc_get_statistics( void )
+{
+  rtems_heap_statistics before;
+  rtems_heap_statistics during;
+  rtems_heap_statistics after;
+  void                 *p;
+  int                   rv;
+
+  puts( "malloc_get_statistics - called with NULL" );
+  rv = malloc_get_statistics( NULL );
+  rtems_test_assert( rv == EINVAL );
+
+  puts( "malloc_get_statistics - called with thread dispatching disabled" );
+  memset( &after, 0xff, sizeof( after ) );
+  _Thread_Dispatch_disable();
+  rv = malloc_get_statistics( &after );
+  _Thread_Dispatch_enable( _Per_CPU_Get() );
+  rtems_test_assert( rv == EPROTO );
+  rtems_test_assert( after.size == 0 );
+  rtems_test_assert( after.free_size == 0 );
+
+  puts( "malloc_get_statistics - check the counters of malloc() and free()" );
+  rv = malloc_get_statistics( &before );
+  rtems_test_assert( rv == 0 );
+  rtems_test_assert( before.size > 0 );
+  rtems_test_assert( before.free_size <= before.size );
+  rtems_test_assert( before.largest_free_size > 0 );
+  rtems_test_assert( before.largest_free_size <= before.free_size );
+  rtems_test_assert( before.min_free_size <= before.free_size );
+  rtems_test_assert( before.free_blocks <= before.max_free_blocks );
+
+  p = malloc( 512 );
+  rtems_test_assert( p != NULL );
+
+  rv = malloc_get_statistics( &during );
+  rtems_test_assert( rv == 0 );
+  rtems_test_assert( during.size == before.size );
+  rtems_test_assert( during.free_size + 512 <= before.free_size );
+  rtems_test_assert( during.min_free_size <= during.free_size );
+  rtems_test_assert( during.used_blocks == before.used_blocks + 1 );
+  rtems_test_assert( during.allocs == before.allocs + 1 );
+  rtems_test_assert( during.failed_allocs == before.failed_allocs );
+  rtems_test_assert( during.frees == before.frees );
+  rtems_test_assert(
+    during.lifetime_allocated - before.lifetime_allocated ==
+    before.free_size - during.free_size
+  );
+  rtems_test_assert( during.lifetime_freed == before.lifetime_freed );
+
+  free( p );
+
+  rv = malloc_get_statistics( &after );
+  rtems_test_assert( rv == 0 );
+  rtems_test_assert( after.size == before.size );
+  rtems_test_assert( after.free_size == before.free_size );
+  rtems_test_assert( after.largest_free_size == before.largest_free_size );
+  rtems_test_assert( after.free_blocks == before.free_blocks );
+  rtems_test_assert( after.used_blocks == before.used_blocks );
+  rtems_test_assert( after.allocs == before.allocs + 1 );
+  rtems_test_assert( after.frees == before.frees + 1 );
+  rtems_test_assert(
+    after.lifetime_freed - before.lifetime_freed ==
+    during.lifetime_allocated - before.lifetime_allocated
+  );
+
+  puts( "malloc_get_statistics - check the counter of failed allocations" );
+  p = malloc( before.size );
+  rtems_test_assert( p == NULL );
+
+  rv = malloc_get_statistics( &after );
+  rtems_test_assert( rv == 0 );
+  rtems_test_assert( after.failed_allocs == before.failed_allocs + 1 );
+}
+
 static void test_rtems_heap_allocate_aligned_with_boundary( void )
 {
   void *p = NULL;
@@ -473,6 +547,7 @@ rtems_task Init( rtems_task_argument argument )
 
   test_realloc();
   test_heap_info();
+  test_malloc_get_statistics();
   test_rtems_heap_allocate_aligned_with_boundary();
   test_rtems_malloc();
   test_rtems_calloc();
