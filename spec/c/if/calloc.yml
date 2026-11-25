@@ -1,0 +1,44 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Allocate a zero-initialized memory area for an array of ${.:/params[0]/name}
+  objects of the size specified by ${.:/params[1]/name} from the
+  ${/score/heap/glossary/c-program-heap:/term}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/size_t:/name} ${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: stdlib
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/calloc
+name: calloc
+notes: null
+params:
+- description: |
+    is the number of objects.
+  dir: null
+  name: nmemb
+- description: |
+    is the size in bytes of each object.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns the begin address of the allocated memory area, otherwise
+    ${/c/if/null:/name}.
+  return-values: []
+type: interface
