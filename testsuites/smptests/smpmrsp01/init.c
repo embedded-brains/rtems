@@ -1309,6 +1309,13 @@ static void various_block_unblock( test_context *ctx )
   sc = rtems_task_resume( ctx->high_task_id[ 1 ] );
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
 
+  /*
+   * The release lets the home scheduler run a low task until the thread
+   * dispatch moves us back to our home processor.
+   */
+  rtems_test_assert( !ctx->low_run[ 0 ] );
+  rtems_test_assert( !ctx->low_run[ 1 ] );
+
   sc = rtems_semaphore_release( ctx->mrsp_ids[ 0 ] );
   rtems_test_assert( sc == RTEMS_SUCCESSFUL );
 
@@ -1423,9 +1430,6 @@ static void test_mrsp_various_block_and_unblock( test_context *ctx )
 
   unblock_ready_owner( ctx );
   various_block_unblock( ctx );
-
-  rtems_test_assert( !ctx->low_run[ 0 ] );
-  rtems_test_assert( !ctx->low_run[ 1 ] );
 
   print_switch_events( ctx );
   delete_timer( ctx );
