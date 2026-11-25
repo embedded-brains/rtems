@@ -12,6 +12,7 @@ ldflags:
 - -Wl,--wrap=_RTEMS_Lock_allocator
 links: []
 source:
+- testsuites/validation/tc-acfg-heap.c
 - testsuites/validation/tc-mem-get-statistics.c
 - testsuites/validation/tc-mem-processor-blocks.c
 - testsuites/validation/tc-score-rbheap-edges.c
