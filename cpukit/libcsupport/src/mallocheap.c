@@ -38,6 +38,8 @@
 #include "config.h"
 #endif
 
+#include "malloc_p.h"
+
 #include <rtems/malloc.h>
 #include <rtems/sysinit.h>
 #include <rtems/score/wkspacedata.h>

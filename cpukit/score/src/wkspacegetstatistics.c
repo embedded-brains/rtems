@@ -41,8 +41,15 @@
 #include <rtems/score/wkspace.h>
 #include <rtems/score/heapfirstfitimpl.h>
 
-void _Workspace_Get_statistics( Heap_Statistics *stats )
+void _Workspace_Get_statistics(
+  Heap_Statistics *stats,
+  uintptr_t       *largest_free_size
+)
 {
+  Heap_Information info;
+
   _Heap_Protection_free_all_delayed_blocks( &_Workspace_Area );
   *stats = _Workspace_Area.stats;
+  _Heap_Get_free_information( &_Workspace_Area, &info );
+  *largest_free_size = info.largest;
 }

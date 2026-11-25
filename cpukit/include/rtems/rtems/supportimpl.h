@@ -59,10 +59,13 @@ extern "C" {
  *
  * @param heap_stats is the statistics of the heap.
  *
+ * @param largest_free_size is the size of the largest free block of the heap.
+ *
  * @param[out] stats is the statistics of the API.
  */
 static inline void _RTEMS_Convert_heap_statistics(
   const Heap_Statistics *heap_stats,
+  uintptr_t              largest_free_size,
   rtems_heap_statistics *stats
 )
 {
@@ -70,6 +73,7 @@ static inline void _RTEMS_Convert_heap_statistics(
   stats->lifetime_freed = heap_stats->lifetime_freed;
   stats->size = heap_stats->size;
   stats->free_size = heap_stats->free_size;
+  stats->largest_free_size = largest_free_size;
   stats->min_free_size = heap_stats->min_free_size;
   stats->free_blocks = heap_stats->free_blocks;
   stats->max_free_blocks = heap_stats->max_free_blocks;

@@ -60,13 +60,15 @@
   \draw[trans] (drain) -- node[lbl, right=1mm, text width=44mm, align=left]
     {each operation moves up to\\\code{RBHEAP\_RELEASE\_MOVES}\\descriptors in use to other slabs\\\code{\_RBHeap\_Drain()}} (freed);
   \draw[cancel] (drain.south west) to[out=225, in=315] node[lbl, below=1mm, text width=60mm]
-    {an allocation needs capacity, or an extension or a resize needs the spare
-     descriptors of the drain\\\code{\_RBHeap\_Cancel\_drain()}} (list.south east);
+    {an allocation needs capacity, or an extension, a resize or, with
+     \code{RTEMS\_SMP}, the free of a bound block needs the spare descriptors of
+     the drain\\\code{\_RBHeap\_Cancel\_drain()}} (list.south east);
   \node[font=\scriptsize, align=left, anchor=north west, text width=85mm] at (-2.2,-2.0)
     {Reserve: with E entries in the used tree, the capacity holds at least 2E + 3
      descriptors after each operation.  \code{\_RBHeap\_Reserve\_entry()}\\[1mm]
-     Release: a slab drains if the capacity without one slab still holds the
-     reserve.  \code{\_RBHeap\_Release\_slab()}
+     Release: a slab drains if the capacity without two slabs still holds the
+     reserve, so an allocation and a free at the bound do not carve and release
+     a slab each time.  \code{\_RBHeap\_Release\_slab()}
     \\[1mm]
      A drain keeps one spare descriptor for each descriptor in use of the slab,
      plus one.};

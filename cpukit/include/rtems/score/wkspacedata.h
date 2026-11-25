@@ -230,8 +230,13 @@ void _Workspace_Storage_free( void *ptr );
  * allocator mutex.
  *
  * @param[out] stats is the statistics.
+ *
+ * @param[out] largest_free_size is the size of the largest free block.
  */
-void _Workspace_Get_statistics( Heap_Statistics *stats );
+void _Workspace_Get_statistics(
+  Heap_Statistics *stats,
+  uintptr_t       *largest_free_size
+);
 
 /**
  * @brief Gets the information of the storage area of the RTEMS Workspace.

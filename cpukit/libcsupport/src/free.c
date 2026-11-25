@@ -44,7 +44,15 @@
 
 void free( void *ptr )
 {
-  if ( !_RBHeap_Free( RTEMS_Malloc_Heap, ptr ) ) {
+  bool ok;
+
+#if defined( RTEMS_SMP )
+  ok = _RBHeap_Free_to_processor( RTEMS_Malloc_Heap, ptr );
+#else
+  ok = _RBHeap_Free( RTEMS_Malloc_Heap, ptr );
+#endif
+
+  if ( !ok ) {
     rtems_fatal(
       RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE,
       (rtems_fatal_code) ptr

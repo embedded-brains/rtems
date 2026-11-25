@@ -50,9 +50,28 @@
 #define _CONFIGURE_HEAP_EXTEND_VIA_SBRK
 #endif
 
+#ifndef CONFIGURE_MALLOC_CPU_DESCRIPTORS
+  #define CONFIGURE_MALLOC_CPU_DESCRIPTORS 0
+#endif
+
+#ifndef CONFIGURE_MALLOC_CPU_MAX_SIZE
+  #define CONFIGURE_MALLOC_CPU_MAX_SIZE 4096
+#endif
+
+#if defined( RTEMS_SMP ) && CONFIGURE_MALLOC_CPU_DESCRIPTORS > 0
+#define _CONFIGURE_MALLOC_PROCESSOR_BLOCKS
+#endif
+
 #if defined( _CONFIGURE_HEAP_EXTEND_VIA_SBRK ) || \
-  defined( CONFIGURE_MALLOC_DIRTY )
+  defined( CONFIGURE_MALLOC_DIRTY ) ||            \
+  defined( _CONFIGURE_MALLOC_PROCESSOR_BLOCKS )
 #include <rtems/malloc.h>
+#endif
+
+#ifdef _CONFIGURE_MALLOC_PROCESSOR_BLOCKS
+#include <rtems/config.h>
+#include <rtems/sysinit.h>
+#include <rtems/score/interr.h>
 #endif
 
 #ifdef __cplusplus
@@ -66,6 +85,44 @@ const rtems_heap_extend_handler
 
 #ifdef CONFIGURE_MALLOC_DIRTY
 rtems_malloc_dirtier_t rtems_malloc_dirty_helper = rtems_malloc_dirty_memory;
+#endif
+
+#ifdef _CONFIGURE_MALLOC_PROCESSOR_BLOCKS
+RTEMS_STATIC_ASSERT(
+  ( CONFIGURE_MALLOC_CPU_MAX_SIZE & ( CONFIGURE_MALLOC_CPU_MAX_SIZE - 1 ) ) ==
+      0 &&
+    CONFIGURE_MALLOC_CPU_MAX_SIZE >= 4 * RBHEAP_ALIGNMENT &&
+    CONFIGURE_MALLOC_CPU_MAX_SIZE <= 0x100000,
+  CONFIGURE_MALLOC_CPU_MAX_SIZE
+);
+
+RTEMS_STATIC_ASSERT(
+  CONFIGURE_MALLOC_CPU_DESCRIPTORS >=
+    2 * RTEMS_MALLOC_CPU_CLASS_COUNT( CONFIGURE_MALLOC_CPU_MAX_SIZE ),
+  CONFIGURE_MALLOC_CPU_DESCRIPTORS
+);
+
+static void _Malloc_Initialize_processor_blocks( void )
+{
+  bool ok;
+
+  ok = _RBHeap_Initialize_processor_blocks(
+    RTEMS_Malloc_Heap,
+    rtems_configuration_get_maximum_processors(),
+    CONFIGURE_MALLOC_CPU_DESCRIPTORS,
+    CONFIGURE_MALLOC_CPU_MAX_SIZE
+  );
+
+  if ( !ok ) {
+    _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
+  }
+}
+
+RTEMS_SYSINIT_ITEM(
+  _Malloc_Initialize_processor_blocks,
+  RTEMS_SYSINIT_MALLOC,
+  RTEMS_SYSINIT_ORDER_LAST
+);
 #endif
 
 #ifdef __cplusplus

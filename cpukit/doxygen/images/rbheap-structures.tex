@@ -58,6 +58,7 @@
   \node[field] (drain) at (0,3.3) {draining slab\\\code{draining}, \code{drain\_slot}};
   \node[field] (count) at (0,2.3) {descriptor counts\\\code{spare}, \code{capacity}, \code{entries}};
   \node[field] (lock) at (0,1.3) {heap ISR lock\\\code{Lock}};
+  \node[field, smp] (cpus) at (0,0.3) {processor blocks\\\code{processors}};
   % Free tree
   \node[title] at (6.5,8.1) {free tree: size, then begin};
   \node[tnode] (f1) at (6.5,7.2) {F2\\96};
@@ -102,5 +103,12 @@
   \node[font=\scriptsize, align=center, text width=64mm] at (13.3,2.0)
     {A full slab is on no list.  The draining slab leaves its list.};
   % Processor blocks
+  \begin{scope}[smp]
+    \node[field, minimum width=66mm, text width=64mm] (bins) at (13.3,0.3)
+      {bins of size classes, kept list, used tree of the processor\\
+       \code{RBHeap\_processor}: \code{bins[]}, \code{kept}, \code{pending}, \code{used}};
+  \end{scope}
+  \draw[link, smp] (cpus.east) -- node[lbl, above=1mm] {one per processor} (bins.west);
+  \node[font=\scriptsize, anchor=west] at (-2.0,-0.6) {dashed: only with \code{RTEMS\_SMP}};
 \end{tikzpicture}
 \end{document}

@@ -404,9 +404,13 @@ void _Workspace_Storage_free( void *ptr )
   (void) ok;
 }
 
-void _Workspace_Get_statistics( Heap_Statistics *stats )
+void _Workspace_Get_statistics(
+  Heap_Statistics *stats,
+  uintptr_t       *largest_free_size
+)
 {
   _RBHeap_Get_statistics( &_Workspace_RBHeap, stats );
+  *largest_free_size = _RBHeap_Get_largest_free_size( &_Workspace_RBHeap );
 }
 
 void _Workspace_Get_information( Heap_Information_block *info )

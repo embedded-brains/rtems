@@ -138,6 +138,7 @@ static int open_files( void )
 static void clear_heap_history( rtems_heap_statistics *stats )
 {
   stats->free_size = 0;
+  stats->largest_free_size = 0;
   stats->free_blocks = 0;
   stats->lifetime_allocated = 0;
   stats->lifetime_freed = 0;
