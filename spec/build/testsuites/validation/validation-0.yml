@@ -25,6 +25,7 @@ source:
 - testsuites/validation/tc-mem-free.c
 - testsuites/validation/tc-mem-malloc.c
 - testsuites/validation/tc-mem-posix-memalign.c
+- testsuites/validation/tc-mem-realloc.c
 - testsuites/validation/tc-mem-rtems-calloc.c
 - testsuites/validation/tc-mem-rtems-malloc.c
 - testsuites/validation/tc-stackchk-is-blown.c
