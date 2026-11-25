@@ -15,6 +15,7 @@ actions:
     - utf8proc01
     - validation-no-clock-0
     - validation-no-clock-1
+    - validation-no-clock-2
 build-type: option
 copyrights:
 - Copyright (C) 2020 embedded brains GmbH & Co. KG

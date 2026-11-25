@@ -42,7 +42,7 @@
 /**
  * @defgroup ScoreTqReqEnqueuePriority spec:/score/tq/req/enqueue-priority
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

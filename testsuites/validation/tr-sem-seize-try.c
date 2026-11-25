@@ -42,7 +42,7 @@
 /**
  * @defgroup ScoreSemReqSeizeTry spec:/score/sem/req/seize-try
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

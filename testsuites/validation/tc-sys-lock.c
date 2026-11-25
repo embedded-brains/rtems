@@ -55,7 +55,7 @@
 /**
  * @defgroup NewlibValSysLock spec:/newlib/val/sys-lock
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @brief Tests the `<sys/lock.h>` mutex and semaphore directives.
  *

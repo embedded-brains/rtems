@@ -33,6 +33,7 @@ actions:
     - validation-intr
     - validation-no-clock-0
     - validation-no-clock-1
+    - validation-no-clock-2
     - validation-non-smp
     - validation-one-cpu-0
     - validation-one-cpu-1

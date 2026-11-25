@@ -43,6 +43,7 @@
  * @defgroup ScoreTqReqEnqueueMrsp spec:/score/tq/req/enqueue-mrsp
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

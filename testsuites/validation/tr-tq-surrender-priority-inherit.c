@@ -48,6 +48,7 @@
  *   spec:/score/tq/req/surrender-priority-inherit
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

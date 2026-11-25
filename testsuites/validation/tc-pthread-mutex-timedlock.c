@@ -52,7 +52,7 @@
 /**
  * @defgroup CPthreadReqMutexTimedlock spec:/c/pthread/req/mutex-timedlock
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

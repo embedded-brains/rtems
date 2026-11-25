@@ -48,7 +48,7 @@
 /**
  * @defgroup ScoreSemReqSeizeWait spec:/score/sem/req/seize-wait
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * The enqueue runners check the thread timer of a blocked worker against the
  * ticks of its watchdog. The test requires that no clock tick occurs between

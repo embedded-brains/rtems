@@ -48,7 +48,7 @@
 /**
  * @defgroup RtemsMessageReqReceive spec:/rtems/message/req/receive
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

@@ -42,7 +42,7 @@
 /**
  * @defgroup ScoreTqReqEnqueueCeiling spec:/score/tq/req/enqueue-ceiling
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

@@ -46,6 +46,7 @@
  * @defgroup ScoreTqReqSurrenderMrsp spec:/score/tq/req/surrender-mrsp
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

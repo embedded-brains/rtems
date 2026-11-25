@@ -43,7 +43,7 @@
  * @defgroup ScoreTqReqEnqueuePriorityInherit \
  *   spec:/score/tq/req/enqueue-priority-inherit
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

@@ -45,6 +45,7 @@
  * @defgroup ScoreMtxReqSurrender spec:/score/mtx/req/surrender
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
