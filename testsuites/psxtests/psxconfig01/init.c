@@ -254,23 +254,19 @@ static void posix_key_dtor( void *key )
 
 static void print_info( void )
 {
-  Heap_Information_block info;
-  bool                   ok = rtems_workspace_get_information( &info );
+  rtems_heap_statistics stats;
+  bool                  ok = rtems_workspace_get_statistics( &stats );
   rtems_test_assert( ok );
 
   printf(
-    "used blocks = %" PRIuPTR ", "
-    "largest used block = %" PRIuPTR ", "
-    "used space = %" PRIuPTR "\n"
-    "free blocks = %" PRIuPTR ", "
-    "largest free block = %" PRIuPTR ", "
-    "free space = %" PRIuPTR "\n",
-    info.Used.number,
-    info.Used.largest,
-    info.Used.total,
-    info.Free.number,
-    info.Free.largest,
-    info.Free.total
+    "used blocks = %" PRIu32 ", "
+    "used space = %zu\n"
+    "free blocks = %" PRIu32 ", "
+    "free space = %zu\n",
+    stats.used_blocks,
+    stats.size - stats.free_size,
+    stats.free_blocks,
+    stats.free_size
   );
 }
 

@@ -45,7 +45,7 @@ rtems_task Task_1( rtems_task_argument argument )
   void                  *address_7;
   void                  *address_8;
   rtems_id               region_id;
-  Heap_Information_block region_info;
+  rtems_heap_statistics  region_stats;
   uintptr_t              segment_size;
   rtems_status_code      status;
 
@@ -206,29 +206,17 @@ rtems_task Task_1( rtems_task_argument argument )
   directive_failed( status, "rtems_region_get_segment_size of segment 8" );
   printf( "TA1 - got segment size of %" PRIuPTR "\n", segment_size );
 
-  /* Get information about the region */
+  /* Get the statistics of the region */
   printf(
-    "TA1 - rtems_region_get_information - 0x%08" PRIxrtems_id "\n",
+    "TA1 - rtems_region_get_statistics - 0x%08" PRIxrtems_id "\n",
     region_id
   );
-  status = rtems_region_get_information( region_id, &region_info );
-  directive_failed( status, "rtems_region_get_information of RN01" );
+  status = rtems_region_get_statistics( region_id, &region_stats );
+  directive_failed( status, "rtems_region_get_statistics of RN01" );
   printf(
-    "TA1 - got information - free = %" PRIuPTR ", used = %" PRIuPTR "\n",
-    region_info.Free.number,
-    region_info.Used.number
-  );
-
-  printf(
-    "TA1 - rtems_region_get_free_information - 0x%08" PRIxrtems_id "\n",
-    region_id
-  );
-  status = rtems_region_get_free_information( region_id, &region_info );
-  directive_failed( status, "rtems_region_get_free_information of RN01" );
-  printf(
-    "TA1 - got free information - free = %" PRIuPTR ", used = %" PRIuPTR "\n",
-    region_info.Free.number,
-    region_info.Used.number
+    "TA1 - got statistics - free = %" PRIu32 ", used = %" PRIu32 "\n",
+    region_stats.free_blocks,
+    region_stats.used_blocks
   );
 
   puts_nocr(
