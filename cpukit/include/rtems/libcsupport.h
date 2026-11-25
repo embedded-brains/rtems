@@ -44,7 +44,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#include <rtems/score/heap.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/rtems/support.h>
 #include <rtems/rtems/tasks.h>
 
@@ -74,14 +74,14 @@ extern bool malloc_walk(int source, bool printf_enabled);
  * 
  * This routine is primarily used for debugging. 
  */
-void malloc_set_heap_pointer(Heap_Control *new_heap);
+void malloc_set_heap_pointer( RBHeap_control *new_heap );
 
 /**
  * @brief Get malloc heap pointer.
  * 
  * This routine is primarily used for debugging. 
  */
-Heap_Control *malloc_get_heap_pointer( void );
+RBHeap_control *malloc_get_heap_pointer( void );
 
 /**
  * @brief Gets the number of free bytes of the heap which serves malloc().

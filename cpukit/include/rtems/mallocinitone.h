@@ -39,7 +39,7 @@
 
 #include <rtems/malloc.h>
 #include <rtems/score/assert.h>
-#include <rtems/score/heapimpl.h>
+#include <rtems/score/rbheap.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,27 +54,26 @@ extern "C" {
  * This implementation should be used by BSPs which provide exactly one memory
  * area via _Memory_Get() to implement _Workspace_Malloc_initialize_separate().
  */
-static inline Heap_Control *_Malloc_Initialize_for_one_area(
-  Heap_Control *heap
+static inline RBHeap_control *_Malloc_Initialize_for_one_area(
+  RBHeap_control *heap
 )
 {
   const Memory_Information *mem;
   Memory_Area              *area;
-  uintptr_t                 space_available;
 
   mem = _Memory_Get();
   _Assert( _Memory_Get_count( mem ) == 1 );
 
   RTEMS_Malloc_Heap = heap;
   area = _Memory_Get_area( mem, 0 );
-  space_available = _Heap_Initialize(
-    heap,
-    _Memory_Get_free_begin( area ),
-    _Memory_Get_free_size( area ),
-    CPU_HEAP_ALIGNMENT
-  );
+  if (
+    _RBHeap_Initialize(
+      heap,
+      _Memory_Get_free_begin( area ),
+      _Memory_Get_free_size( area )
+    )
+  ) {
 
-  if ( space_available > 0 ) {
     _Memory_Consume( area, _Memory_Get_free_size( area ) );
   } else {
     _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );

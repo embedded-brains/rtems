@@ -59,7 +59,7 @@ const char rtems_test_name[] = "MALLOC 4";
 /* end of configuration */
 
 #ifndef CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
-void *rtems_heap_null_extend( Heap_Control *heap, size_t alloc_size )
+void *rtems_heap_null_extend( RBHeap_control *heap, size_t alloc_size )
 {
   return rtems_heap_extend_via_sbrk( heap, alloc_size );
 }
@@ -79,7 +79,7 @@ static char Malloc_Heap[ 5 * UNIT ] RTEMS_ALIGNED( 4096 );
  */
 volatile int sbrk_count;
 
-Heap_Control TempHeap;
+RBHeap_control TempHeap;
 
 size_t offset;
 
@@ -140,7 +140,7 @@ rtems_task Init( rtems_task_argument argument )
 {
   (void) argument;
 
-  Heap_Control             *real_heap;
+  RBHeap_control           *real_heap;
   const Memory_Information *mem;
   Memory_Area              *area;
   size_t                    i;

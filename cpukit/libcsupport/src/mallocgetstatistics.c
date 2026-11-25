@@ -49,6 +49,8 @@
 
 int malloc_get_statistics( rtems_heap_statistics *stats )
 {
+  Heap_Statistics heap_stats;
+
   if ( stats == NULL ) {
     return EINVAL;
   }
@@ -56,16 +58,17 @@ int malloc_get_statistics( rtems_heap_statistics *stats )
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
       _RTEMS_Lock_allocator();
-      _RTEMS_Get_heap_statistics( RTEMS_Malloc_Heap, stats );
+      _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &heap_stats );
       _RTEMS_Unlock_allocator();
       break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      _RTEMS_Get_heap_statistics( RTEMS_Malloc_Heap, stats );
+      _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &heap_stats );
       break;
     default:
       memset( stats, 0, sizeof( *stats ) );
       return EPROTO;
   }
 
+  _RTEMS_Convert_heap_statistics( &heap_stats, stats );
   return 0;
 }

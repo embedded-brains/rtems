@@ -42,12 +42,32 @@
 #include <rtems.h>
 #include <rtems/malloc.h>
 #include <rtems/score/apimutex.h>
-#include <rtems/score/heapimpl.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/score/sysstate.h>
 
-static Heap_Control cache_coherent_heap_instance;
+static RBHeap_control cache_coherent_heap_instance;
 
-static Heap_Control *cache_coherent_heap;
+static RBHeap_control *cache_coherent_heap;
+
+/*
+ * The descriptors of the heap lie in cached memory.  A BSP may map the area of
+ * the heap as device memory, which allows no unaligned access.
+ */
+static char cache_coherent_slab[ RBHEAP_SLAB_SIZE ]
+  RTEMS_ALIGNED( RBHEAP_SLAB_SIZE );
+
+static void *cache_coherent_slab_source( void )
+{
+  RBHeap_control *heap;
+
+  heap = RTEMS_Malloc_Heap;
+
+  if ( heap == NULL ) {
+    return NULL;
+  }
+
+  return _RBHeap_Allocate_aligned( heap, RBHEAP_SLAB_SIZE, RBHEAP_SLAB_SIZE );
+}
 
 void *rtems_cache_coherent_allocate(
   size_t    size,
@@ -56,7 +76,7 @@ void *rtems_cache_coherent_allocate(
 )
 {
   void         *ptr;
-  Heap_Control *heap;
+  RBHeap_control *heap;
 
   _RTEMS_Lock_allocator();
 
@@ -65,7 +85,7 @@ void *rtems_cache_coherent_allocate(
     heap = RTEMS_Malloc_Heap;
   }
 
-  ptr = _Heap_Allocate_aligned_with_boundary(
+  ptr = _RBHeap_Allocate_aligned_with_boundary(
     heap,
     size,
     alignment,
@@ -79,13 +99,13 @@ void *rtems_cache_coherent_allocate(
 
 void rtems_cache_coherent_free( void *ptr )
 {
-  Heap_Control *heap;
+  RBHeap_control *heap;
 
   _RTEMS_Lock_allocator();
 
   heap = cache_coherent_heap;
   if ( heap != NULL ) {
-    if ( _Heap_Free( heap, ptr ) ) {
+    if ( _RBHeap_Free( heap, ptr ) ) {
       heap = NULL;
     } else {
       heap = RTEMS_Malloc_Heap;
@@ -95,7 +115,7 @@ void rtems_cache_coherent_free( void *ptr )
   }
 
   if ( heap != NULL ) {
-    _Heap_Free( heap, ptr );
+    (void) _RBHeap_Free( heap, ptr );
   }
 
   _RTEMS_Unlock_allocator();
@@ -103,17 +123,25 @@ void rtems_cache_coherent_free( void *ptr )
 
 static rtems_status_code add_area( void *area_begin, uintptr_t area_size )
 {
-  Heap_Control *heap = cache_coherent_heap;
+  RBHeap_control *heap = cache_coherent_heap;
 
   if ( heap == NULL ) {
     heap = &cache_coherent_heap_instance;
 
-    if ( _Heap_Initialize( heap, area_begin, area_size, 0 ) == 0 ) {
+    if (
+      !_RBHeap_Initialize_with_slab(
+        heap,
+        area_begin,
+        area_size,
+        cache_coherent_slab,
+        cache_coherent_slab_source
+      )
+    ) {
       return RTEMS_UNSATISFIED;
     }
     cache_coherent_heap = heap;
   } else {
-    if ( _Heap_Extend( heap, area_begin, area_size, 0 ) == 0 ) {
+    if ( !_RBHeap_Extend( heap, area_begin, area_size ) ) {
       return RTEMS_UNSATISFIED;
     }
   }

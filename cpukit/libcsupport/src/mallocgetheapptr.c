@@ -43,7 +43,7 @@
 #include <rtems/libcsupport.h>
 #include "malloc_p.h"
 
-Heap_Control *malloc_get_heap_pointer( void )
+RBHeap_control *malloc_get_heap_pointer( void )
 {
   return RTEMS_Malloc_Heap;
 }

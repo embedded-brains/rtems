@@ -610,6 +610,20 @@ void _RBHeap_Get_information(
 );
 
 /**
+ * @brief Gets the statistics of the red-black tree heap.
+ *
+ * The function visits no block of the heap.
+ *
+ * @param control is the control of the heap.
+ *
+ * @param[out] stats is the statistics of the heap.
+ */
+void _RBHeap_Get_statistics(
+  const RBHeap_control *control,
+  Heap_Statistics      *stats
+);
+
+/**
  * @brief Checks the trees, the blocks and the slabs of descriptors of the
  *   red-black tree heap.
  *

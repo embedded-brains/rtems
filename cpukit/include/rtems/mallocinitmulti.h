@@ -38,7 +38,7 @@
 #define _RTEMS_MALLOCINITMULTI_H
 
 #include <rtems/malloc.h>
-#include <rtems/score/heapimpl.h>
+#include <rtems/score/rbheap.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,39 +54,45 @@ extern "C" {
  * memory area via _Memory_Get() to implement
  * _Workspace_Malloc_initialize_separate().
  */
-static inline Heap_Control *_Malloc_Initialize_for_multiple_areas(
-  Heap_Control *heap
+static inline RBHeap_control *_Malloc_Initialize_for_multiple_areas(
+  RBHeap_control *heap
 )
 {
-  const Memory_Information              *mem;
-  Heap_Initialization_or_extend_handler  init_or_extend;
-  uintptr_t                              page_size;
-  size_t                                 i;
+  const Memory_Information *mem;
+  bool                      initialized;
+  size_t                    i;
 
   mem = _Memory_Get();
   RTEMS_Malloc_Heap = heap;
-  init_or_extend = _Heap_Initialize;
-  page_size = CPU_HEAP_ALIGNMENT;
+  initialized = false;
 
-  for (i = 0; i < _Memory_Get_count( mem ); ++i) {
+  for ( i = 0; i < _Memory_Get_count( mem ); ++i ) {
     Memory_Area *area;
-    uintptr_t    space_available;
+    bool         ok;
 
     area = _Memory_Get_area( mem, i );
-    space_available = ( *init_or_extend )(
-      heap,
-      _Memory_Get_free_begin( area ),
-      _Memory_Get_free_size( area ),
-      page_size
-    );
 
-    if ( space_available > 0 ) {
+    if ( initialized ) {
+      ok = _RBHeap_Extend(
+        heap,
+        _Memory_Get_free_begin( area ),
+        _Memory_Get_free_size( area )
+      );
+    } else {
+      ok = _RBHeap_Initialize(
+        heap,
+        _Memory_Get_free_begin( area ),
+        _Memory_Get_free_size( area )
+      );
+    }
+
+    if ( ok ) {
       _Memory_Consume( area, _Memory_Get_free_size( area ) );
-      init_or_extend = _Heap_Extend;
+      initialized = true;
     }
   }
 
-  if ( init_or_extend == _Heap_Initialize ) {
+  if ( !initialized ) {
     _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
   }
 
