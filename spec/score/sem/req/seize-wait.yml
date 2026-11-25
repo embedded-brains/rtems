@@ -8,6 +8,16 @@ links:
   uid: /score/tq/req/enqueue-fifo
 - role: function-implementation
   uid: /score/tq/req/enqueue-priority
+- role: function-implementation
+  uid: /score/tq/req/enqueue-priority-further-helping
+- role: function-implementation
+  uid: /score/tq/req/enqueue-priority-ineligible
+- role: function-implementation
+  uid: /score/tq/req/helping-add-priority
+- role: function-implementation
+  uid: /score/tq/req/helping-remove-priority
+- role: function-implementation
+  uid: /score/tq/req/priority-change-priority
 - role: requirement-refinement
   uid: ../if/group
 post-conditions:
@@ -37,9 +47,38 @@ post-conditions:
       The calling thread shall be enqueued in FIFO order.
   - name: Priority
     test-code: |
-      ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base );
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base, false );
+        ${../../tq/req/enqueue-priority-further-helping:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/enqueue-priority-ineligible:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/priority-change-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/helping-add-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/helping-remove-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+      }
     text: |
-      The calling thread shall be enqueued in priority order.
+      The calling thread shall wait on the thread queue of the semaphore as specified
+      by ${../../tq/req/enqueue-priority:/spec},
+      ${../../tq/req/enqueue-priority-further-helping:/spec},
+      ${../../tq/req/enqueue-priority-ineligible:/spec},
+      ${../../tq/req/priority-change-priority:/spec},
+      ${../../tq/req/helping-add-priority:/spec}, and
+      ${../../tq/req/helping-remove-priority:/spec}.
   test-epilogue: null
   test-prologue: null
 - name: Count
@@ -130,7 +169,13 @@ test-action: |
 test-brief: null
 test-cleanup: |
   ctx->tq_ctx->base.get_properties = NULL;
-test-context: []
+test-context:
+- brief: |
+    This member is true, if the test ran the test cases of the enqueue in priority
+    order.
+  description: null
+  member: |
+    bool position_done
 test-context-support: null
 test-description: |
   The enqueue runners check the thread timer of a blocked worker against the
@@ -156,12 +201,21 @@ test-local-includes:
 - tr-sem-seize-wait.h
 - tr-tq-enqueue-fifo.h
 - tr-tq-enqueue-priority.h
+- tr-tq-enqueue-priority-further-helping.h
+- tr-tq-enqueue-priority-ineligible.h
+- tr-tq-helping-add-priority.h
+- tr-tq-helping-remove-priority.h
+- tr-tq-priority-change-priority.h
 - tx-support.h
 test-prepare: |
   ctx->tq_ctx->base.enqueue_prepare = TQEnqueuePrepareDefault;
   ctx->tq_ctx->base.enqueue_done = TQEnqueueDoneDefault;
   ctx->tq_ctx->base.get_properties = GetProperties;
-test-setup: null
+test-setup:
+  brief: null
+  code: |
+    ctx->position_done = false;
+  description: null
 test-stop: null
 test-support: |
   typedef ${.:/test-context-type} Context;
