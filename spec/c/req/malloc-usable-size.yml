@@ -1,0 +1,135 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/malloc-usable-size
+post-conditions:
+- name: Value
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_sz( ctx->value, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/malloc-usable-size:/name} shall
+      be equal to zero.
+  - name: Usable
+    test-code: |
+      T_ge_sz( ctx->value, REQUEST_SIZE );
+      T_le_uptr( (uintptr_t) ctx->ptr + ctx->value, (uintptr_t) ctx->next );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/malloc-usable-size:/name} shall
+      be a size of at least the size of the request which returned the
+      ${/score/heap/glossary/used-block:/term} referenced by the
+      ${../if/malloc-usable-size:/params[0]/name} parameter, up to the end of this
+      block.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Ptr
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->ptr = NULL;
+    text: |
+      While the ${../if/malloc-usable-size:/params[0]/name} parameter is equal to
+      ${../if/null:/name}.
+  - name: Used
+    test-code: |
+      ctx->ptr = malloc( REQUEST_SIZE );
+      T_quiet_not_null( ctx->ptr );
+      ctx->next = malloc( 1 );
+      T_quiet_not_null( ctx->next );
+      T_quiet_gt_uptr( (uintptr_t) ctx->next, (uintptr_t) ctx->ptr );
+    text: |
+      While the ${../if/malloc-usable-size:/params[0]/name} parameter is the begin
+      address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->ptr = HeapGetArea();
+    text: |
+      While the ${../if/malloc-usable-size:/params[0]/name} parameter is not equal to
+      ${../if/null:/name}, while the ${../if/malloc-usable-size:/params[0]/name}
+      parameter is not the begin address of a
+      ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The heap places the block of the Used state and the next block one after the
+  other. The usable size of a block ends at or before the begin of the next
+  block.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->value = malloc_usable_size( ctx->ptr );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the begin address of the block after the block referenced
+    by the ${../if/malloc-usable-size:/params[0]/name} parameter.
+  description: null
+  member: |
+    void *next
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/malloc-usable-size:/name} call.
+  description: null
+  member: |
+    size_t value
+- brief: |
+    This member specifies the ${../if/malloc-usable-size:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    void *ptr
+test-context-support: |
+  #define REQUEST_SIZE 13
+test-description: null
+test-header: null
+test-includes:
+- malloc.h
+- stdlib.h
+test-local-includes:
+- tx-heap.h
+test-prepare: |
+  HeapReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-mem-malloc-usable-size.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Value: Zero
+  pre-conditions:
+    Ptr:
+    - 'Null'
+    - Invalid
+- enabled-by: true
+  post-conditions:
+    Value: Usable
+  pre-conditions:
+    Ptr:
+    - Used
+type: requirement
