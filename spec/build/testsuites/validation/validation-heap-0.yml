@@ -13,6 +13,7 @@ ldflags:
 links: []
 source:
 - testsuites/validation/tc-mem-get-statistics.c
+- testsuites/validation/tc-mem-processor-blocks.c
 - testsuites/validation/tc-score-rbheap-edges.c
 - testsuites/validation/tc-score-rbheap.c
 - testsuites/validation/tc-workspace-allocate.c
