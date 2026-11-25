@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 
 #include <bsp.h>
 #include <rtems/confdefs.h>
-#include <rtems/score/heap.h>
+#include <rtems/score/rbheap.h>
 
 #include "ts-config.h"
 #include "tx-support.h"
@@ -200,10 +200,7 @@ static void AcfgValAcfg_Action_0( void )
    * CONFIGURE_MINIMUM_TASKS_WITH_USER_PROVIDED_STORAGE value reduced the stack
    * space size.
    */
-  T_eq_uptr(
-    _Stack_Space_size,
-    RTEMS_ALIGN_UP( HEAP_BLOCK_HEADER_SIZE, CPU_HEAP_ALIGNMENT )
-  );
+  T_eq_uptr( _Stack_Space_size, RBHEAP_SLAB_SIZE );
 
   /*
    * Check the configured CONFIGURE_MAXIMUM_BARRIERS value.
