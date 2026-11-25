@@ -1,0 +1,29 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: /c/if/malloc
+- role: interface-function
+  uid: /c/if/calloc
+- role: interface-function
+  uid: /c/if/realloc
+- role: interface-function
+  uid: /c/if/aligned-alloc
+- role: interface-function
+  uid: /c/if/posix-memalign
+- role: interface-function
+  uid: /rtems/malloc/if/malloc
+- role: interface-function
+  uid: /rtems/malloc/if/calloc
+rationale: |
+  The system initialization and the system termination may allocate memory areas
+  with interrupts disabled.
+requirement-type: functional
+text: |
+  While the system is not up, the memory allocation functions of the
+  ${/score/heap/glossary/c-program-heap:/term} shall allocate memory areas
+  independent of the thread dispatch disable level.
+type: requirement
