@@ -6,6 +6,8 @@ glossary-type: term
 links:
 - role: glossary-member
   uid: group
+- role: reference
+  uid: /ref/research/brandenburg-2013-omip
 term: OMIP
 text: |
   This term is an acronym for O(m) Independence-Preserving Protocol. OMIP is a

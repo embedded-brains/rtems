@@ -6,6 +6,8 @@ glossary-type: term
 links:
 - role: glossary-member
   uid: group
+- role: reference
+  uid: /ref/research/burns-2013-mrsp
 term: MrsP
 text: |
   This term is an acronym for Multiprocessor Resource-Sharing Protocol.
