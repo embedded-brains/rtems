@@ -51,6 +51,7 @@ static void region_error_tests( void )
   uintptr_t              segment_size;
   rtems_status_code      status;
   Heap_Information_block the_info;
+  rtems_heap_statistics  the_stats;
   rtems_id               junk_id;
 
   Region_name[ 1 ] = rtems_build_name( 'R', 'N', '1', ' ' );
@@ -224,6 +225,33 @@ static void region_error_tests( void )
     "rtems_region_get_free_information with illegal id"
   );
   puts( "TA1 - rtems_region_get_free_information - unknown RTEMS_INVALID_ID" );
+
+  /* Check get_statistics errors */
+  status = rtems_region_get_statistics( Region_id[ 1 ], NULL );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ADDRESS,
+    "rtems_region_get_statistics with NULL statistics"
+  );
+  puts( "TA1 - rtems_region_get_statistics - RTEMS_INVALID_ADDRESS" );
+
+  status = rtems_region_get_statistics( 100, &the_stats );
+  fatal_directive_status(
+    status,
+    RTEMS_INVALID_ID,
+    "rtems_region_get_statistics with illegal id"
+  );
+  puts( "TA1 - rtems_region_get_statistics - unknown RTEMS_INVALID_ID" );
+
+  status = rtems_region_get_statistics( Region_id[ 1 ], &the_stats );
+  directive_failed( status, "rtems_region_get_statistics" );
+  rtems_test_assert( the_stats.size > 0 );
+  rtems_test_assert( the_stats.size <= REGION_LENGTH );
+  rtems_test_assert( the_stats.free_size == the_stats.size );
+  rtems_test_assert( the_stats.largest_free_size == the_stats.free_size );
+  rtems_test_assert( the_stats.free_blocks == 1 );
+  rtems_test_assert( the_stats.used_blocks == 0 );
+  puts( "TA1 - rtems_region_get_statistics - RTEMS_SUCCESSFUL" );
 
   /* get segment illegal id */
   status = rtems_region_get_segment(

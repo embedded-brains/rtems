@@ -14,6 +14,9 @@ TA1 - rtems_region_get_information - RTEMS_INVALID_ADDRESS
 TA1 - rtems_region_get_information - unknown RTEMS_INVALID_ID
 TA1 - rtems_region_get_free_information - RTEMS_INVALID_ADDRESS
 TA1 - rtems_region_get_free_information - unknown RTEMS_INVALID_ID
+TA1 - rtems_region_get_statistics - RTEMS_INVALID_ADDRESS
+TA1 - rtems_region_get_statistics - unknown RTEMS_INVALID_ID
+TA1 - rtems_region_get_statistics - RTEMS_SUCCESSFUL
 TA1 - rtems_region_get_segment - RTEMS_INVALID_ID
 TA1 - rtems_region_get_segment - RTEMS_INVALID_ADDRESS
 TA1 - rtems_region_get_segment - 0 size - RTEMS_INVALID_SIZE

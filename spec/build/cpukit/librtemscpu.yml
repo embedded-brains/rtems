@@ -1274,6 +1274,7 @@ source:
 - cpukit/rtems/src/regiongetinfo.c
 - cpukit/rtems/src/regiongetsegment.c
 - cpukit/rtems/src/regiongetsegmentsize.c
+- cpukit/rtems/src/regiongetstatistics.c
 - cpukit/rtems/src/regionident.c
 - cpukit/rtems/src/regionprocessqueue.c
 - cpukit/rtems/src/regionresizesegment.c
