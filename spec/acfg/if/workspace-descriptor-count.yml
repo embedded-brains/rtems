@@ -1,0 +1,56 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+appl-config-option-type: integer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default-value: |
+  The default value is two times the count of blocks for which the RTEMS
+  Workspace reserves memory, plus one.
+description: |
+  The value of this configuration option defines the count of block descriptors
+  of the RTEMS Workspace which ${header-confdefs:/path} allocates statically if
+  ${workspace-allocator:/name} is
+  ${/rtems/workspace/if/allocator-red-black-tree:/name}.
+enabled-by: true
+index-entries: []
+interface-type: appl-config-option
+links:
+- role: interface-placement
+  uid: domain
+- role: interface-ingroup
+  uid: group-general
+- role: constraint
+  uid: ../constraint/min-zero
+name: CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+notes: |
+  The RTEMS Workspace keeps a descriptor for each block apart from the block. It
+  takes the descriptors from slabs. The statically allocated descriptors take no
+  part of the memory of the RTEMS Workspace. Further descriptors come from slabs
+  in the memory of the RTEMS Workspace.
+
+  The RTEMS Workspace reserves memory for one block for each of these objects:
+
+  - a thread stack,
+
+  - the buffers of a message queue,
+
+  - the name of a POSIX named object, and
+
+  - the data of a POSIX shared memory object.
+
+  A Classic message queue counts only if ${message-buffer-memory:/name} is not
+  zero, since a message queue which ${/rtems/message/if/construct:/name}
+  constructs takes no block. At most one free block lies before each used block
+  and after the last used block. The default value therefore holds a descriptor
+  for each block which the configuration reserves.
+
+  An application which allocates further blocks from the RTEMS Workspace either
+  increases this value or adds the memory for their slabs with
+  ${memory-overhead:/name}.
+
+  A configuration which reserves no block gets an empty RTEMS Workspace without
+  descriptors. Each allocation from it fails.
+
+  The size of a slab is 512 times the size of a pointer. Each slab holds one
+  descriptor for itself. The header file ${header-confdefs:/path} rounds the
+  count up to whole slabs.
+type: interface

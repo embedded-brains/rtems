@@ -1,0 +1,27 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+appl-config-option-type: integer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default-value: ${/rtems/workspace/if/allocator-first-fit:/name}
+description: |
+  The value of this configuration option selects the heap which manages the
+  storage area of the RTEMS Workspace.
+enabled-by: true
+index-entries: []
+interface-type: appl-config-option
+links:
+- role: interface-placement
+  uid: domain
+- role: interface-ingroup
+  uid: group-general
+- role: constraint
+  uid: ../constraint/workspace-allocator
+name: CONFIGURE_WORKSPACE_ALLOCATOR
+notes: |
+  The first-fit heap searches a list of free blocks, so the time of an allocation
+  grows with the count of free blocks. The red-black tree heap allocates and
+  frees a block in a time logarithmic in the count of blocks. It keeps a
+  descriptor for each block in slabs apart from the blocks.
+
+  The application links only the selected heap for the RTEMS Workspace.
+type: interface

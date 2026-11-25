@@ -1,0 +1,29 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+appl-config-option-type: integer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default-value: 0
+description: |
+  The value of this configuration option defines the count of block descriptors
+  of the C Program Heap which ${header-confdefs:/path} allocates statically.
+enabled-by: true
+index-entries: []
+interface-type: appl-config-option
+links:
+- role: interface-placement
+  uid: domain
+- role: interface-ingroup
+  uid: group-general
+- role: constraint
+  uid: ../constraint/min-zero
+name: CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+notes: |
+  The C Program Heap keeps a descriptor for each block apart from the block. It
+  takes the descriptors from slabs. The statically allocated descriptors take no
+  part of the memory of the C Program Heap. Further descriptors come from slabs
+  in the memory of the C Program Heap.
+
+  The size of a slab is 512 times the size of a pointer. Each slab holds one
+  descriptor for itself. The header file ${header-confdefs:/path} rounds the
+  count up to whole slabs.
+type: interface

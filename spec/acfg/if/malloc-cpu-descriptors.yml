@@ -1,0 +1,31 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+appl-config-option-type: integer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default-value: 0
+description: |
+  The value of this configuration option defines the count of descriptors of the
+  processor blocks of the C Program Heap for each configured processor.
+enabled-by: true
+index-entries: []
+interface-type: appl-config-option
+links:
+- role: interface-placement
+  uid: domain
+- role: interface-ingroup
+  uid: group-general
+- role: constraint
+  uid: ../constraint/malloc-cpu-descriptors
+name: CONFIGURE_MALLOC_CPU_DESCRIPTORS
+notes: |
+  A processor block is a block of the C Program Heap which a processor keeps for
+  the allocations on this processor. The allocations and the frees of blocks up
+  to ${malloc-cpu-max-size:/name} use the processor blocks of the current
+  processor first. A value of zero disables the processor blocks.
+
+  The C Program Heap allocates the descriptors of the processor blocks during
+  system initialization.
+
+  This configuration option is only evaluated in SMP configurations of RTEMS. In
+  all other configurations, it has no effect.
+type: interface

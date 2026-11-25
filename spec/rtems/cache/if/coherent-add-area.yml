@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Adds a cache coherent memory area to the cache coherent allocator.
 copyrights:
-- Copyright (C) 2014, 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2014, 2026 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -24,13 +24,19 @@ links:
 - role: constraint
   uid: /constraint/directive-not-pre-qualified
 - role: constraint
+  uid: /constraint/directive-ctx-sysinit
+- role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint
   uid: /constraint/directive-ctx-task
 - role: constraint
   uid: /constraint/object-allocator
 name: rtems_cache_coherent_add_area
-notes: null
+notes: |
+  The system initialization starts the cache coherent allocator only if the
+  application uses ${coherent-allocate:/name} or ${coherent-free:/name}. It
+  starts the allocator after bsp_start() and adds the areas which wait for it.
+  The directive adds an area to the started allocator at once.
 params:
 - description: |
     is the begin address of the cache coherent memory area to add.
@@ -49,4 +55,7 @@ return:
   - description: |
       The requested operation was not successful.
     value: ${../../status/if/unsatisfied:/name}
+  - description: |
+      The cache coherent allocator was not started and four areas wait for it.
+    value: ${../../status/if/too-many:/name}
 type: interface

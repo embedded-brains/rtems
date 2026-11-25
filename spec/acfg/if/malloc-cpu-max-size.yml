@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+appl-config-option-type: integer
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+default-value: 4096
+description: |
+  The value of this configuration option defines the maximum size in bytes of a
+  processor block of the C Program Heap.
+enabled-by: true
+index-entries: []
+interface-type: appl-config-option
+links:
+- role: interface-placement
+  uid: domain
+- role: interface-ingroup
+  uid: group-general
+- role: constraint
+  uid: ../constraint/power-of-two
+- role: constraint
+  uid: ../constraint/malloc-cpu-max-size
+name: CONFIGURE_MALLOC_CPU_MAX_SIZE
+notes: |
+  The option has no effect if ${malloc-cpu-descriptors:/name} is zero. The
+  maximum size determines the count of size classes of the processor blocks.
+
+  This configuration option is only evaluated in SMP configurations of RTEMS. In
+  all other configurations, it has no effect.
+type: interface

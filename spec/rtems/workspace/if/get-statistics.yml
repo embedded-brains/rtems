@@ -21,8 +21,6 @@ links:
 - role: interface-ingroup
   uid: group
 - role: constraint
-  uid: /constraint/directive-not-pre-qualified
-- role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint
   uid: /constraint/directive-ctx-task
@@ -30,9 +28,10 @@ links:
   uid: /constraint/object-allocator
 name: rtems_workspace_get_statistics
 notes: |
-  The directive visits the free blocks of the RTEMS Workspace to get the size of
-  the largest free block, so its execution time depends on the number of free
-  blocks.
+  With the first-fit heap, the directive visits the free blocks of the RTEMS
+  Workspace to get the size of the largest free block, so its execution time
+  depends on the number of free blocks. With the red-black tree heap, the
+  directive visits no block.
 
   The RTEMS Workspace provides no resize operation, so the directive sets the
   `resizes` member to zero.
