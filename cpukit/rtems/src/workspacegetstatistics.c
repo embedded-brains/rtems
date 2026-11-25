@@ -44,13 +44,17 @@
 
 bool rtems_workspace_get_statistics( rtems_heap_statistics *stats )
 {
+  Heap_Statistics heap_stats;
+
   if ( stats == NULL ) {
     return false;
   }
 
   _RTEMS_Lock_allocator();
-  _RTEMS_Get_heap_statistics( &_Workspace_Area, stats );
+  _Workspace_Get_statistics( &heap_stats );
   _RTEMS_Unlock_allocator();
+
+  _RTEMS_Convert_heap_statistics( &heap_stats, stats );
 
   stats->resizes = 0;
   return true;

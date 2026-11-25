@@ -41,6 +41,7 @@
 #define _RTEMS_SCORE_WKSPACEDATA_H
 
 #include <rtems/score/basedefs.h>
+#include <rtems/score/heapinfo.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -175,6 +176,73 @@ void _Workspace_Free_with_fallback( void *ptr );
  * @return Returns the heap control used for the C Program Heap.
  */
 struct RBHeap_control *_Workspace_Malloc_initialize_separate( void );
+
+/**
+ * @brief This object is the red-black tree heap of the RTEMS Workspace.
+ *
+ * The application configuration uses this heap if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ */
+extern struct RBHeap_control _Workspace_RBHeap;
+
+/**
+ * @brief Initializes ::_Workspace_RBHeap with the storage area of the RTEMS
+ *   Workspace.
+ */
+void _Workspace_RBHeap_initialize( void );
+
+/**
+ * @brief Stops the system initialization if the allocation size of the
+ *   thread-local storage exceeds the size which the storage area of the RTEMS
+ *   Workspace reserves for it.
+ */
+void _Workspace_Check_TLS_allocation_size( void );
+
+/**
+ * @brief Allocates a memory area from the storage area of the RTEMS
+ *   Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  Otherwise, the function of the
+ * library allocates from ::_Workspace_Area.
+ *
+ * @param size is the size in bytes of the memory area.
+ *
+ * @return Returns the begin address of the memory area, otherwise NULL.
+ */
+void *_Workspace_Storage_allocate( size_t size );
+
+/**
+ * @brief Frees a memory area which _Workspace_Storage_allocate() returned.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @param ptr is the begin address of the memory area.
+ */
+void _Workspace_Storage_free( void *ptr );
+
+/**
+ * @brief Gets the statistics of the storage area of the RTEMS Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  The caller shall own the
+ * allocator mutex.
+ *
+ * @param[out] stats is the statistics.
+ */
+void _Workspace_Get_statistics( Heap_Statistics *stats );
+
+/**
+ * @brief Gets the information of the storage area of the RTEMS Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  The caller shall own the
+ * allocator mutex.
+ *
+ * @param[out] info is the information.
+ */
+void _Workspace_Get_information( Heap_Information_block *info );
 
 /** @} */
 

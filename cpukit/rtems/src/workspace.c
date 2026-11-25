@@ -42,7 +42,6 @@
 
 #include <rtems/score/apimutex.h>
 #include <rtems/score/wkspace.h>
-#include <rtems/score/protectedheap.h>
 #include <rtems/rtems/support.h>
 
 bool rtems_workspace_get_information( Heap_Information_block *the_info )
@@ -51,7 +50,11 @@ bool rtems_workspace_get_information( Heap_Information_block *the_info )
     return false;
   }
 
-  return _Protected_heap_Get_information( &_Workspace_Area, the_info );
+  _RTEMS_Lock_allocator();
+  _Workspace_Get_information( the_info );
+  _RTEMS_Unlock_allocator();
+
+  return true;
 }
 
 bool rtems_workspace_allocate( size_t bytes, void **pointer )

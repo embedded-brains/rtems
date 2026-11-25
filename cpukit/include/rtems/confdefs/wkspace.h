@@ -52,6 +52,7 @@
 #include <rtems/confdefs/threads.h>
 #include <rtems/confdefs/wkspacesupport.h>
 #include <rtems/score/coremsg.h>
+#include <rtems/score/assert.h>
 #include <rtems/score/context.h>
 #include <rtems/score/heap.h>
 #include <rtems/score/memory.h>
@@ -102,6 +103,13 @@
   #define CONFIGURE_MEMORY_OVERHEAD 0
 #endif
 
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+/*
+ * The last allocation may need a slab of descriptors for the free block which
+ * it leaves.
+ */
+#define _CONFIGURE_HEAP_HANDLER_OVERHEAD RBHEAP_SLAB_SIZE
+#else
 /*
  * We must be able to split the free block used for the second last allocation
  * into two parts so that we have a free block for the last allocation.  See
@@ -109,6 +117,7 @@
  */
 #define _CONFIGURE_HEAP_HANDLER_OVERHEAD \
   _Configure_Align_up( HEAP_BLOCK_HEADER_SIZE, CPU_HEAP_ALIGNMENT )
+#endif
 
 #define CONFIGURE_EXECUTIVE_RAM_SIZE                                        \
   ( _CONFIGURE_MEMORY_FOR_POSIX_OBJECTS + CONFIGURE_MESSAGE_BUFFER_MEMORY + \
@@ -139,6 +148,17 @@
       ) +                                                                   \
     _CONFIGURE_HEAP_HANDLER_OVERHEAD )
 
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+/*
+ * The executive RAM size and the stack space size each include the handler
+ * overhead.  The workspace holds both in one red-black tree heap, so it needs
+ * the overhead once.
+ */
+#define _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD _CONFIGURE_HEAP_HANDLER_OVERHEAD
+#else
+#define _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD 0
+#endif
+
 #else /* CONFIGURE_EXECUTIVE_RAM_SIZE */
 
 #if CONFIGURE_EXTRA_TASK_STACKS != 0
@@ -147,6 +167,8 @@
 #endif
 
 #define _CONFIGURE_STACK_SPACE_SIZE 0
+
+#define _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD 0
 
 #endif /* CONFIGURE_EXECUTIVE_RAM_SIZE */
 
@@ -173,11 +195,14 @@
     ) +                                                             \
     rtems_resource_maximum_per_allocation( CONFIGURE_MAXIMUM_POSIX_THREADS ) )
 
-  #define _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE \
-  ( _CONFIGURE_STACK_SPACE_SIZE +               \
+  #define _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE                            \
+  ( _CONFIGURE_STACK_SPACE_SIZE - _CONFIGURE_WORKSPACE_HANDLER_OVERHEAD + \
     _CONFIGURE_WORKSPACE_TLS_AREA_COUNT * _CONFIGURE_TLS_ALLOCATION_SIZE_LIMIT )
 #endif
 
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+#define _CONFIGURE_WORKSPACE_AREA_OVERHEAD RBHEAP_AREA_OVERHEAD
+#else
 #define _CONFIGURE_WORKSPACE_PAGE_SIZE \
   RTEMS_ALIGN_UP( CPU_HEAP_ALIGNMENT, CPU_ALIGNMENT )
 
@@ -186,6 +211,7 @@
   ( _CONFIGURE_WORKSPACE_PAGE_SIZE - 1 +                                     \
     RTEMS_ALIGN_UP( sizeof( Heap_Block ), _CONFIGURE_WORKSPACE_PAGE_SIZE ) + \
     HEAP_BLOCK_HEADER_SIZE )
+#endif
 
 #define _CONFIGURE_WORKSPACE_STORAGE_SIZE                                  \
   ( CONFIGURE_EXECUTIVE_RAM_SIZE + _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE + \
@@ -245,6 +271,38 @@ void *_Workspace_Allocate( size_t size )
 void _Workspace_Free( void *ptr )
 {
   _Workspace_Free_with_fallback( ptr );
+}
+#endif
+
+#if CONFIGURE_WORKSPACE_ALLOCATOR == RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+RTEMS_SYSINIT_ITEM(
+  _Workspace_RBHeap_initialize,
+  RTEMS_SYSINIT_WORKSPACE,
+  RTEMS_SYSINIT_ORDER_MIDDLE
+);
+
+void *_Workspace_Storage_allocate( size_t size )
+{
+  return _RBHeap_Allocate( &_Workspace_RBHeap, size );
+}
+
+void _Workspace_Storage_free( void *ptr )
+{
+  bool ok;
+
+  ok = _RBHeap_Free( &_Workspace_RBHeap, ptr );
+  _Assert( ok );
+  (void) ok;
+}
+
+void _Workspace_Get_statistics( Heap_Statistics *stats )
+{
+  _RBHeap_Get_statistics( &_Workspace_RBHeap, stats );
+}
+
+void _Workspace_Get_information( Heap_Information_block *info )
+{
+  _RBHeap_Get_information( &_Workspace_RBHeap, info );
 }
 #endif
 

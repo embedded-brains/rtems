@@ -292,6 +292,26 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  */
 bool rtems_workspace_free( void *pointer );
 
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief This constant selects the first-fit heap as the allocator of the
+ *   RTEMS Workspace.
+ *
+ * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT 0
+
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief This constant selects the red-black tree heap as the allocator of
+ *   the RTEMS Workspace.
+ *
+ * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE 1
+
 /* Find related documentation with spec:/rtems/workspace/if/get-information */
 
 /**
