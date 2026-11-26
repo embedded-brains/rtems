@@ -61,6 +61,24 @@ post-conditions:
   test-epilogue: null
   test-prologue: null
 pre-conditions:
+- name: Position
+  states:
+  - name: Inner
+    representatives:
+    - name: One
+      test-code: |
+        ctx->stop = 1;
+    - name: Three
+      test-code: |
+        ctx->stop = 3;
+    - name: Six
+      test-code: |
+        ctx->stop = 6;
+    test-code: null
+    text: |
+      While the ${../glossary/stop-index:/term} is greater than zero.
+  test-epilogue: null
+  test-prologue: null
 - name: Stop
   states:
   - name: BothEnd
@@ -113,21 +131,42 @@ pre-conditions:
 - name: Letters
   states:
   - name: None
-    test-code: |
-      SetPair( ctx, ctx->pairs[ 0 ] );
+    representatives:
+    - name: Wide
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 0 ][ 0 ] );
+    - name: Below
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 0 ][ 1 ] );
+    - name: Above
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 0 ][ 2 ] );
+    test-code: null
     text: |
       While no byte of the strings at the ${../glossary/stop-index:/term} is an
       ${/c/ctype/glossary/uppercase:/term} or a ${/c/ctype/glossary/lowercase:/term}.
   - name: One
-    test-code: |
-      SetPair( ctx, ctx->pairs[ 1 ] );
+    representatives:
+    - name: Low
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 1 ][ 0 ] );
+    - name: High
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 1 ][ 1 ] );
+    test-code: null
     text: |
       While exactly one byte of the strings at the ${../glossary/stop-index:/term} is
       an ${/c/ctype/glossary/uppercase:/term} or a
       ${/c/ctype/glossary/lowercase:/term}.
   - name: Both
-    test-code: |
-      SetPair( ctx, ctx->pairs[ 2 ] );
+    representatives:
+    - name: Low
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 2 ][ 0 ] );
+    - name: High
+      test-code: |
+        SetPair( ctx, ctx->pairs[ 2 ][ 1 ] );
+    test-code: null
     text: |
       While each byte of the strings at the ${../glossary/stop-index:/term} is an
       ${/c/ctype/glossary/uppercase:/term} or a ${/c/ctype/glossary/lowercase:/term}.
@@ -138,7 +177,10 @@ pre-conditions:
   - name: 'Yes'
     test-code: |
       ctx->s1_buf[ 0 ] = 'X';
-      ctx->s2_buf[ 1 ] = 'X';
+
+      if ( ctx->stop > 1 ) {
+        ctx->s2_buf[ 1 ] = 'X';
+      }
     text: |
       While the strings hold different bytes at an index less than the
       ${../glossary/stop-index:/term}.
@@ -164,8 +206,12 @@ rationale: |
   takes the rule of ${/c/string/if/strcmp:/name}, which interprets both bytes as
   type `unsigned char`.
 
-  The ${../glossary/stop-index:/term} decides the result. Its position does not,
-  so the test places it at index 3.
+  Dimension Position covers the position of the ${../glossary/stop-index:/term},
+  1 state. The ${../glossary/stop-index:/term} decides the result, and its
+  position does not. The Inner state places the ${../glossary/stop-index:/term}
+  at the indices one, three and six. The Yes state of the CaseDiffers dimension
+  needs a byte before the ${../glossary/stop-index:/term}, so the dimension holds
+  no index zero.
 
   Dimension Stop covers the pair of bytes at the ${../glossary/stop-index:/term},
   5 states. A null byte ends each string, so the end of each string takes a state
@@ -180,19 +226,26 @@ rationale: |
   from a conversion to uppercase. A pair of letters in different case can hold
   bytes whose order is the inverse of their order after the conversion. The bytes
   0x80 to 0xff are no letters, and their order depends on the interpretation as
-  type `unsigned char`.
+  type `unsigned char`. The None state takes a pair of a printable character and
+  a byte above 127. It also takes the pair of the commercial at and `[` and the
+  pair `[` and the grave accent. These characters are the neighbours of the
+  uppercase letters and the lowercase letters. The One and Both states take a
+  pair with the uppercase letter `A` or `B` and a pair with the uppercase letter
+  `Z`.
 
   Dimension CaseDiffers covers the bytes at the indices less than the
   ${../glossary/stop-index:/term}, 2 states. These bytes are equal after the
   conversion, so a different byte differs in case only.
 
   The Yes state places an ${/c/ctype/glossary/uppercase:/term} into the first
-  string at index zero and into the second string at index one. The
-  implementation converts the byte of each string on its own.
+  string at index zero. It places one into the second string at index one where
+  the ${../glossary/stop-index:/term} is greater than one. The implementation
+  converts the byte of each string on its own.
 
-  The Stop and Letters arrangements write the bytes at the
-  ${../glossary/stop-index:/term}. The CaseDiffers arrangement writes the bytes
-  before it.
+  The Position arrangement comes first, since the other arrangements write the
+  bytes relative to the ${../glossary/stop-index:/term}. The Stop and Letters
+  arrangements write the bytes at the ${../glossary/stop-index:/term}. The
+  CaseDiffers arrangement writes the bytes before it.
 
   ${/ref/std/posix-2024/strcasecmp:/name} states that the function does not
   change ${/c/errno/if/errno:/name} on valid input.
@@ -238,10 +291,11 @@ test-context:
     size_t stop
 - brief: |
     This member references the pairs of bytes at the
-    ${../glossary/stop-index:/term}, one pair for each number of letters.
+    ${../glossary/stop-index:/term}, three pairs for each number of letters, one
+    pair for each representative.
   description: null
   member: |
-    const unsigned char ( *pairs )[ 2 ]
+    const unsigned char ( *pairs )[ 3 ][ 2 ]
 - brief: |
     This member provides the string referenced by the
     ${../if/strcasecmp:/params[0]/name} parameter.
@@ -287,20 +341,35 @@ test-stop: null
 test-support: |
   typedef CStringsReqStrcasecmp_Context Context;
 
-  static const unsigned char both_end_pairs[ 3 ][ 2 ] =
-    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } };
+  static const unsigned char both_end_pairs[ 3 ][ 3 ][ 2 ] = {
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+  };
 
-  static const unsigned char s1_ends_pairs[ 3 ][ 2 ] =
-    { { '\0', 0xff }, { '\0', 'a' }, { '\0', '\0' } };
+  static const unsigned char s1_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+    { { '\0', 0xff }, { '\0', '@' }, { '\0', '[' } },
+    { { '\0', 'a' }, { '\0', 'Z' }, { '\0', 'Z' } },
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+  };
 
-  static const unsigned char s2_ends_pairs[ 3 ][ 2 ] =
-    { { 0xff, '\0' }, { 'a', '\0' }, { '\0', '\0' } };
+  static const unsigned char s2_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+    { { 0xff, '\0' }, { '@', '\0' }, { '[', '\0' } },
+    { { 'a', '\0' }, { 'Z', '\0' }, { 'Z', '\0' } },
+    { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+  };
 
-  static const unsigned char less_pairs[ 3 ][ 2 ] =
-    { { '!', 0x80 }, { '_', 'A' }, { 'a', 'B' } };
+  static const unsigned char less_pairs[ 3 ][ 3 ][ 2 ] = {
+    { { '!', 0x80 }, { '@', '[' }, { '[', '`' } },
+    { { '_', 'A' }, { '_', 'Z' }, { '_', 'Z' } },
+    { { 'a', 'B' }, { 'y', 'Z' }, { 'y', 'Z' } }
+  };
 
-  static const unsigned char greater_pairs[ 3 ][ 2 ] =
-    { { 0x80, '!' }, { 'A', '_' }, { 'B', 'a' } };
+  static const unsigned char greater_pairs[ 3 ][ 3 ][ 2 ] = {
+    { { 0x80, '!' }, { '[', '@' }, { '`', '[' } },
+    { { 'A', '_' }, { 'Z', '_' }, { 'Z', '_' } },
+    { { 'B', 'a' }, { 'Z', 'y' }, { 'Z', 'y' } }
+  };
 
   static void SetPair( Context *ctx, const unsigned char *pair )
   {
@@ -332,12 +401,14 @@ transition-map:
     S2: Nop
     Errno: Nop
   pre-conditions:
+    Position: all
     Stop: all
     Letters: all
     CaseDiffers: all
 - enabled-by: true
   post-conditions: NullIsNoLetter
   pre-conditions:
+    Position: all
     Stop:
     - BothEnd
     Letters:
@@ -347,6 +418,7 @@ transition-map:
 - enabled-by: true
   post-conditions: NullIsNoLetter
   pre-conditions:
+    Position: all
     Stop:
     - S1Ends
     - S2Ends
