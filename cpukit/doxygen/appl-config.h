@@ -3282,6 +3282,10 @@
  * The C Program Heap allocates the descriptors of the processor blocks during
  * system initialization.
  *
+ * A free block in the bins of one processor is not available to the
+ * allocations on other processors. An allocation which fails in the C Program
+ * Heap takes no block from the bins.
+ *
  * This configuration option is only evaluated in SMP configurations of RTEMS.
  * In all other configurations, it has no effect.
  * @endparblock
@@ -3317,6 +3321,11 @@
  * The option has no effect if @ref CONFIGURE_MALLOC_CPU_DESCRIPTORS is zero.
  * The maximum size determines the count of size classes of the processor
  * blocks.
+ *
+ * Four size classes cover each power of two. The C Program Heap rounds each
+ * request up to the maximum size to the size of its class, also if the heap
+ * and not a bin provides the block. The rounding to the size of the class
+ * therefore adds less than 25 percent to the size of a request.
  *
  * This configuration option is only evaluated in SMP configurations of RTEMS.
  * In all other configurations, it has no effect.
