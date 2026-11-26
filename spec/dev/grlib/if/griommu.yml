@@ -46,24 +46,14 @@ definition:
   offset: 0x20
   variants: []
 - default:
-    count: 1
+    count: 16
     name: MSTCFG
   offset: 0x40
   variants: []
 - default:
-    count: 1
-    name: MSTCFG
-  offset: 0x64
-  variants: []
-- default:
-    count: 1
+    count: 16
     name: GRPCTRL
   offset: 0x80
-  variants: []
-- default:
-    count: 1
-    name: GRPCTRL
-  offset: 0x9c
   variants: []
 - default:
     count: 1
@@ -71,14 +61,9 @@ definition:
   offset: 0xc0
   variants: []
 - default:
-    count: 1
+    count: 8
     name: DIAGD
   offset: 0xc4
-  variants: []
-- default:
-    count: 1
-    name: DIAGD
-  offset: 0xe0
   variants: []
 - default:
     count: 1
@@ -96,14 +81,9 @@ definition:
   offset: 0xec
   variants: []
 - default:
-    count: 1
+    count: 16
     name: ASMPCTRL
   offset: 0x100
-  variants: []
-- default:
-    count: 1
-    name: ASMPCTRL
-  offset: 0x10c
   variants: []
 description: null
 enabled-by: true
@@ -118,7 +98,7 @@ links:
 name: griommu
 notes: null
 register-block-group: GRIOMMU
-register-block-size: 272
+register-block-size: 320
 register-prefix: null
 registers:
 - bits:
@@ -654,12 +634,12 @@ registers:
   - default:
     - brief: null
       description: null
-      name: BASE_31_4
+      name: BASE_31_2
       properties:
       - r
       - w
-      start: 4
-      width: 28
+      start: 2
+      width: 30
     - brief: null
       description: null
       name: P
