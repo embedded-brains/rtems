@@ -62,6 +62,10 @@ links:
 - role: validation
   uid: /dev/grlib/if/grspwrouter
 - role: validation
+  uid: /dev/grlib/if/grspwrouter-ambaport
+- role: validation
+  uid: /dev/grlib/if/grspwrouter-ambaport-dma
+- role: validation
   uid: /dev/grlib/if/grspwrouter-portstats
 - role: validation
   uid: /dev/grlib/if/irqamp

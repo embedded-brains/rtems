@@ -1,0 +1,554 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure defines the ${.:/register-block-group} register block memory
+  map.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    count: 1
+    name: AMBACTRL
+  offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: AMBASTS
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
+    name: AMBADEFADDR
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
+    name: AMBADKEY
+  offset: 0x10
+  variants: []
+- default:
+    count: 1
+    name: AMBATC
+  offset: 0x14
+  variants: []
+- default:
+    count: 4
+    name: DMA
+  offset: 0x20
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTCTRL
+  offset: 0xa0
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTRX
+  offset: 0xa4
+  variants: []
+- default:
+    count: 1
+    name: AMBAACKRX
+  offset: 0xa8
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTTO0
+  offset: 0xac
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTTO1
+  offset: 0xb0
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTMSK0
+  offset: 0xb4
+  variants: []
+- default:
+    count: 1
+    name: AMBAINTMSK1
+  offset: 0xb8
+  variants: []
+description: null
+enabled-by: true
+identifier: RTEMSDeviceGRSPWRouterAMBAPort
+index-entries: []
+interface-type: register-block
+links:
+- role: interface-ingroup
+  uid: grspwrouter
+- role: interface-placement
+  uid: grspwrouter-header
+- name: DMA
+  role: register-block-include
+  uid: grspwrouter-ambaport-dma
+name: grspwrouter_ambaport
+notes: null
+register-block-group: SpaceWire Router AMBA Port
+register-block-size: 188
+register-prefix: grspwrouter
+registers:
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RA
+      properties:
+      - r
+      start: 31
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      start: 30
+      width: 1
+    - brief: null
+      description: null
+      name: RC
+      properties:
+      - r
+      start: 29
+      width: 1
+    - brief: null
+      description: null
+      name: NCH
+      properties:
+      - r
+      start: 27
+      width: 2
+    - brief: null
+      description: null
+      name: CC
+      properties:
+      - r
+      start: 25
+      width: 1
+    - brief: null
+      description: null
+      name: DI
+      properties:
+      - r
+      start: 24
+      width: 1
+    - brief: null
+      description: null
+      name: ME
+      properties:
+      - r
+      - w
+      start: 23
+      width: 1
+    - brief: null
+      description: null
+      name: RD
+      properties:
+      - r
+      - w
+      start: 17
+      width: 1
+    - brief: null
+      description: null
+      name: RE
+      properties:
+      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: TQ
+      properties:
+      - r
+      - w
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: TO
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: RS
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: PM
+      properties:
+      - r
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: TI
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: IE
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    variants: []
+  brief: |
+    AMBA port Control
+  description: null
+  name: AMBACTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: NIRQ
+      properties:
+      - r
+      start: 28
+      width: 3
+    - brief: null
+      description: null
+      name: NRXD
+      properties:
+      - r
+      start: 26
+      width: 2
+    - brief: null
+      description: null
+      name: NTXD
+      properties:
+      - r
+      start: 24
+      width: 2
+    - brief: null
+      description: null
+      name: ME
+      properties:
+      - r
+      - w1c
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: EE
+      properties:
+      - r
+      - w1c
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: IA
+      properties:
+      - r
+      - w1c
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TO
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    AMBA port Status
+  description: null
+  name: AMBASTS
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: DEFMASK
+      properties:
+      - r
+      - w
+      start: 8
+      width: 8
+    - brief: null
+      description: null
+      name: DEFADDR
+      properties:
+      - r
+      - w
+      start: 0
+      width: 8
+    variants: []
+  brief: |
+    AMBA port Default address
+  description: null
+  name: AMBADEFADDR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: DESTKEY
+      properties:
+      - r
+      - w
+      start: 0
+      width: 8
+    variants: []
+  brief: |
+    AMBA port Destination key
+  description: null
+  name: AMBADKEY
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TCMSK
+      properties:
+      - r
+      - w
+      start: 24
+      width: 8
+    - brief: null
+      description: null
+      name: TCVAL
+      properties:
+      - r
+      - w
+      start: 16
+      width: 8
+    - brief: null
+      description: null
+      name: TCTRL
+      properties:
+      - r
+      - w
+      start: 6
+      width: 2
+    - brief: null
+      description: null
+      name: TIMECNT
+      properties:
+      - r
+      - w
+      start: 0
+      width: 6
+    variants: []
+  brief: |
+    AMBA port Time-code
+  description: null
+  name: AMBATC
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: INTNUM
+      properties:
+      - r
+      - w
+      start: 26
+      width: 6
+    - brief: null
+      description: null
+      name: EE
+      properties:
+      - r
+      - w
+      start: 24
+      width: 1
+    - brief: null
+      description: null
+      name: IA
+      properties:
+      - r
+      - w
+      start: 23
+      width: 1
+    - brief: null
+      description: null
+      name: TQ
+      properties:
+      - r
+      - w
+      start: 20
+      width: 1
+    - brief: null
+      description: null
+      name: AQ
+      properties:
+      - r
+      - w
+      start: 19
+      width: 1
+    - brief: null
+      description: null
+      name: IQ
+      properties:
+      - r
+      - w
+      start: 18
+      width: 1
+    - brief: null
+      description: null
+      name: AA
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: AT
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: IT
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: ID
+      properties:
+      - r
+      - w1c
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: II
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: TXINT
+      properties:
+      - r
+      - w
+      start: 0
+      width: 6
+    variants: []
+  brief: |
+    AMBA port Distributed interrupt control
+  description: null
+  name: AMBAINTCTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt receive
+  description: null
+  name: AMBAINTRX
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RXACK
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt acknowledgment / extended interrupt receive
+  description: null
+  name: AMBAACKRX
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: INTTO
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt timeout, interrupt 0-31
+  description: null
+  name: AMBAINTTO0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: INTTO
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt timeout, interrupt 32-63
+  description: null
+  name: AMBAINTTO1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MASK
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt mask, interrupt 0-31
+  description: null
+  name: AMBAINTMSK0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MASK
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    AMBA port Interrupt mask, interrupt 32-63
+  description: null
+  name: AMBAINTMSK1
+  width: 32
+type: interface

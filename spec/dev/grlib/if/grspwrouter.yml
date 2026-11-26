@@ -317,13 +317,6 @@ registers:
       width: 8
     - brief: null
       description: null
-      name: RES
-      properties:
-      - r
-      start: 22
-      width: 2
-    - brief: null
-      description: null
       name: ST
       properties:
       - r
@@ -460,13 +453,6 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 4
-      width: 1
-    - brief: null
-      description: null
       name: CE
       properties:
       - r
@@ -578,13 +564,6 @@ registers:
       width: 4
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 19
-      width: 1
-    - brief: null
-      description: null
       name: TS
       properties:
       - r
@@ -606,13 +585,6 @@ registers:
       - r
       start: 7
       width: 5
-    - brief: null
-      description: null
-      name: RES
-      properties:
-      - r
-      start: 5
-      width: 2
     - brief: null
       description: null
       name: CP
@@ -816,7 +788,7 @@ registers:
       - r
       - w
       start: 0
-      width: 10
+      width: 32
     variants: []
   brief: |
     Port timer reload
@@ -888,13 +860,6 @@ registers:
       - r
       - w
       start: 14
-      width: 1
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
-      start: 13
       width: 1
     - brief: null
       description: null
@@ -975,13 +940,6 @@ registers:
       width: 5
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 16
-      width: 1
-    - brief: null
-      description: null
       name: SR
       properties:
       - r
@@ -1057,13 +1015,6 @@ registers:
       - r
       - w
       start: 6
-      width: 1
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
-      start: 5
       width: 1
     - brief: null
       description: null
@@ -1400,7 +1351,7 @@ registers:
       properties:
       - r
       - w
-      start: 0
+      start: 17
       width: 1
     - brief: null
       description: null
@@ -1408,7 +1359,7 @@ registers:
       properties:
       - r
       - w
-      start: 17
+      start: 16
       width: 1
     - brief: null
       description: null
@@ -1416,8 +1367,8 @@ registers:
       properties:
       - r
       - w
-      start: 6
-      width: 10
+      start: 0
+      width: 6
     variants: []
   brief: |
     Interrupt code generation
@@ -1511,19 +1462,14 @@ registers:
       name: LR
       properties:
       - r
-      start: 1
-      width: 31
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
       start: 0
-      width: 1
+      width: 32
     variants: []
   brief: |
     Link running status
-  description: null
+  description: |
+    Bit 0 of LR is reserved. LR includes it, so that bit n of LR corresponds to
+    port n.
   name: LRUNSTAT
   width: 32
 - bits:
@@ -1537,13 +1483,6 @@ registers:
       width: 2
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 23
-      width: 1
-    - brief: null
-      description: null
       name: PF
       properties:
       - r
@@ -1551,25 +1490,11 @@ registers:
       width: 3
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 19
-      width: 1
-    - brief: null
-      description: null
       name: RM
       properties:
       - r
       start: 16
       width: 3
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
-      start: 15
-      width: 1
     - brief: null
       description: null
       name: AA
@@ -1640,7 +1565,7 @@ registers:
       properties:
       - r
       start: 0
-      width: 26
+      width: 16
     variants: []
   brief: |
     SpaceWire Plug-and-Play - Device Vendor and Product ID
@@ -1664,7 +1589,7 @@ registers:
       - r
       - w
       start: 0
-      width: 26
+      width: 16
     variants: []
   brief: |
     SpaceWire Plug-and-Play - Unit Vendor and Product ID

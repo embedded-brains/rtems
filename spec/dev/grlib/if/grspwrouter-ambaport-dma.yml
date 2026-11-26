@@ -1,0 +1,334 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure defines the ${.:/register-block-group} register block memory
+  map.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    count: 1
+    name: AMBADMACTRL
+  offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: AMBADMAMAXLEN
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
+    name: AMBADMATXDESC
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
+    name: AMBADMARXDESC
+  offset: 0xc
+  variants: []
+- default:
+    count: 1
+    name: AMBADMAADDR
+  offset: 0x10
+  variants: []
+description: null
+enabled-by: true
+identifier: RTEMSDeviceGRSPWRouterAMBAPortDMA
+index-entries: []
+interface-type: register-block
+links:
+- role: interface-ingroup
+  uid: grspwrouter
+- role: interface-placement
+  uid: grspwrouter-header
+name: grspwrouter_ambaport_dma
+notes: null
+register-block-group: SpaceWire Router AMBA Port DMA
+register-block-size: 32
+register-prefix: grspwrouter
+registers:
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: INTNUM
+      properties:
+      - r
+      - w
+      start: 26
+      width: 6
+    - brief: null
+      description: null
+      name: EP
+      properties:
+      - r
+      - w1c
+      start: 23
+      width: 1
+    - brief: null
+      description: null
+      name: TR
+      properties:
+      - r
+      - w1c
+      start: 22
+      width: 1
+    - brief: null
+      description: null
+      name: IE
+      properties:
+      - r
+      - w
+      start: 21
+      width: 1
+    - brief: null
+      description: null
+      name: IT
+      properties:
+      - r
+      - w
+      start: 20
+      width: 1
+    - brief: null
+      description: null
+      name: RP
+      properties:
+      - r
+      - w1c
+      start: 19
+      width: 1
+    - brief: null
+      description: null
+      name: TP
+      properties:
+      - r
+      - w1c
+      start: 18
+      width: 1
+    - brief: null
+      description: null
+      name: SP
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: SA
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: EN
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: NS
+      properties:
+      - r
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RD
+      properties:
+      - r
+      - w
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: AT
+      properties:
+      - r
+      - w
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: RA
+      properties:
+      - r
+      - w1c
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: TA
+      properties:
+      - r
+      - w1c
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: PR
+      properties:
+      - r
+      - w1c
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: PS
+      properties:
+      - r
+      - w1c
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: AI
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: RI
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: TI
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: RE
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: TE
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    AMBA port DMA control/status
+  description: null
+  name: AMBADMACTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RXMAXLEN
+      properties:
+      - r
+      - w
+      start: 2
+      width: 23
+    variants: []
+  brief: |
+    AMBA port DMA RX maximum length
+  description: null
+  name: AMBADMAMAXLEN
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: DESCBASEADDR
+      properties:
+      - r
+      - w
+      start: 13
+      width: 19
+    - brief: null
+      description: null
+      name: DESCSEL
+      properties:
+      - r
+      - w
+      start: 4
+      width: 9
+    variants: []
+  brief: |
+    AMBA port DMA transmit descriptor table address
+  description: |
+    DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+    boundary between them is bit 9 plus AMBASTS.NTXD. A driver which uses a smaller
+    table accesses the register as a whole.
+  name: AMBADMATXDESC
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: DESCBASEADDR
+      properties:
+      - r
+      - w
+      start: 13
+      width: 19
+    - brief: null
+      description: null
+      name: DESCSEL
+      properties:
+      - r
+      - w
+      start: 3
+      width: 10
+    variants: []
+  brief: |
+    AMBA port DMA receive descriptor table address
+  description: |
+    DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+    boundary between them is bit 9 plus AMBASTS.NRXD. A driver which uses a smaller
+    table accesses the register as a whole.
+  name: AMBADMARXDESC
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MASK
+      properties:
+      - r
+      - w
+      start: 8
+      width: 8
+    - brief: null
+      description: null
+      name: ADDR
+      properties:
+      - r
+      - w
+      start: 0
+      width: 8
+    variants: []
+  brief: |
+    AMBA port DMA address
+  description: null
+  name: AMBADMAADDR
+  width: 32
+type: interface
