@@ -76,6 +76,7 @@ source:
 - testsuites/validation/tc-sys-lock-mutex-acquire-timed-timeout.c
 - testsuites/validation/tc-sys-lock-mutex-recursive-acquire-timed-timeout.c
 - testsuites/validation/tc-sys-lock.c
+- testsuites/validation/tc-time-nanosleep.c
 - testsuites/validation/tc-timer-cancel.c
 - testsuites/validation/tc-timer-create.c
 - testsuites/validation/tc-timer-delete.c
