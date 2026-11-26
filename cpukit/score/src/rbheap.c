@@ -812,22 +812,40 @@ static RBHeap_descriptor *_RBHeap_Next_free(
 
 /*
  * Returns true if a used block of the size begins in the free block at a
- * multiple of the alignment.
+ * multiple of the alignment.  The first area size bytes of the used block must
+ * also cross no multiple of the boundary.  A boundary of zero has no effect.
+ * The area size is at most the boundary, so the next multiple of the boundary
+ * is the only other begin to try.
  */
 static bool _RBHeap_Fit(
   const RBHeap_descriptor *free_desc,
   uintptr_t                block_size,
   uintptr_t                alignment,
+  uintptr_t                boundary,
+  uintptr_t                area_size,
   uintptr_t               *used_begin
 )
 {
   uintptr_t begin;
   uintptr_t size;
+  uintptr_t aligned;
   uintptr_t front;
 
   begin = free_desc->begin;
   size = free_desc->size;
-  front = ( ( begin + alignment - 1 ) & ~( alignment - 1 ) ) - begin;
+  aligned = ( begin + alignment - 1 ) & ~( alignment - 1 );
+
+  if ( boundary != 0 ) {
+    uintptr_t next;
+
+    next = ( aligned | ( boundary - 1 ) ) + 1;
+
+    if ( area_size > next - aligned ) {
+      aligned = next;
+    }
+  }
+
+  front = aligned - begin;
 
   if ( front > size || size - front < block_size ) {
     return false;
@@ -839,41 +857,71 @@ static bool _RBHeap_Fit(
 
 /*
  * Returns the free block of the best fit which holds a used block of the size
- * at a multiple of the alignment, else NULL.  If the block of the best fit
- * does not hold it, the search leaves room for the alignment.
+ * at a multiple of the alignment, else NULL.  The area of the used block
+ * crosses no multiple of the boundary.  The search tests the block of the best
+ * fit and up to #RBHEAP_FIND_SUCCESSORS of its successors in the free tree.
+ * If none of them holds the used block, the search leaves room for the
+ * alignment and the boundary.
  */
 static RBHeap_descriptor *_RBHeap_Find(
   const RBHeap_control *control,
   uintptr_t             block_size,
   uintptr_t             alignment,
+  uintptr_t             boundary,
+  uintptr_t             area_size,
   uintptr_t            *used_begin,
   uint32_t             *visits
 )
 {
   RBHeap_descriptor *desc;
+  uintptr_t          padded_size;
+  uint32_t           i;
   bool               fits;
 
   desc = _RBHeap_Free_find( control, block_size, visits );
 
+  for ( i = 0; desc != NULL && i <= RBHEAP_FIND_SUCCESSORS; ++i ) {
+    if (
+      _RBHeap_Fit(
+        desc,
+        block_size,
+        alignment,
+        boundary,
+        area_size,
+        used_begin
+      )
+    ) {
+      return desc;
+    }
+
+    desc = _RBHeap_Successor( desc );
+    ++*visits;
+  }
+
   if ( desc == NULL ) {
     return NULL;
   }
 
-  if ( _RBHeap_Fit( desc, block_size, alignment, used_begin ) ) {
-    return desc;
+  padded_size = block_size + alignment - RBHEAP_ALIGNMENT;
+
+  if ( boundary != 0 ) {
+    padded_size += block_size - RBHEAP_ALIGNMENT;
   }
 
-  desc = _RBHeap_Free_find(
-    control,
-    block_size + alignment - RBHEAP_ALIGNMENT,
-    visits
+  desc = _RBHeap_Free_find( control, padded_size, visits );
+
+  if ( desc == NULL ) {
+    return NULL;
+  }
+
+  fits = _RBHeap_Fit(
+    desc,
+    block_size,
+    alignment,
+    boundary,
+    area_size,
+    used_begin
   );
-
-  if ( desc == NULL ) {
-    return NULL;
-  }
-
-  fits = _RBHeap_Fit( desc, block_size, alignment, used_begin );
   _Assert( fits );
   (void) fits;
   return desc;
@@ -965,6 +1013,8 @@ static bool _RBHeap_New_slab( RBHeap_control *control )
   free_desc = _RBHeap_Find(
     control,
     RBHEAP_SLAB_SIZE,
+    RBHEAP_SLAB_SIZE,
+    0,
     RBHEAP_SLAB_SIZE,
     &used_begin,
     &visits
@@ -1884,9 +1934,11 @@ void *_RBHeap_Allocate( RBHeap_control *control, uintptr_t size )
 static void *_RBHeap_Do_allocate_aligned(
   RBHeap_control *control,
   uintptr_t       size,
-  uintptr_t       alignment
+  uintptr_t       alignment,
+  uintptr_t       boundary
 )
 {
+  uintptr_t          area_size;
   uintptr_t          block_size;
   uintptr_t          used_begin;
   RBHeap_descriptor *desc;
@@ -1896,6 +1948,8 @@ static void *_RBHeap_Do_allocate_aligned(
     ++control->stats.failed_allocs;
     return NULL;
   }
+
+  area_size = size;
 
   if ( size < RBHEAP_MIN_SIZE ) {
     size = RBHEAP_MIN_SIZE;
@@ -1912,7 +1966,15 @@ static void *_RBHeap_Do_allocate_aligned(
   visits = 0;
 
   if ( _RBHeap_Reserve_entry( control ) ) {
-    desc = _RBHeap_Find( control, block_size, alignment, &used_begin, &visits );
+    desc = _RBHeap_Find(
+      control,
+      block_size,
+      alignment,
+      boundary,
+      area_size,
+      &used_begin,
+      &visits
+    );
   } else {
     desc = NULL;
   }
@@ -1952,7 +2014,7 @@ void *_RBHeap_Allocate_aligned(
   void            *result;
 
   _RBHeap_Acquire( control, &lock_context );
-  result = _RBHeap_Do_allocate_aligned( control, size, alignment );
+  result = _RBHeap_Do_allocate_aligned( control, size, alignment, 0 );
   _RBHeap_Release( control, &lock_context );
   return result;
 }
@@ -3013,11 +3075,7 @@ void *_RBHeap_Allocate_aligned_with_boundary(
     ++control->stats.failed_allocs;
     block = NULL;
   } else {
-    if ( boundary != 0 ) {
-      alignment = boundary;
-    }
-
-    block = _RBHeap_Do_allocate_aligned( control, size, alignment );
+    block = _RBHeap_Do_allocate_aligned( control, size, alignment, boundary );
   }
 
   _RBHeap_Release( control, &lock_context );

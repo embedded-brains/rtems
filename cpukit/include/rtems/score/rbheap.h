@@ -149,6 +149,17 @@ typedef struct RBHeap_descriptor {
 #define RBHEAP_MAX_SIZE ( UINTPTR_MAX / 4 )
 
 /**
+ * @brief The count of successors of the best fit which an aligned allocation
+ *   tests in the free tree.
+ *
+ * The best fit and these successors may all fail to hold the block at its
+ * alignment.  The allocation then searches for a free block which holds the
+ * block at each begin.  An aligned allocation can therefore fail while a free
+ * block exists which holds the block.
+ */
+#define RBHEAP_FIND_SUCCESSORS 4
+
+/**
  * @brief The header of a slab of descriptors of the red-black tree heap.
  *
  * The header takes the room of one descriptor.  The first descriptor after
@@ -575,7 +586,9 @@ void *_RBHeap_Allocate( RBHeap_control *control, uintptr_t size );
  *
  * @return Returns the begin of the block, else NULL.  The begin is a
  *   multiple of the alignment and of #RBHEAP_ALIGNMENT.  The size of the
- *   block is a multiple of #RBHEAP_ALIGNMENT.
+ *   block is a multiple of #RBHEAP_ALIGNMENT.  The function can return NULL
+ *   while a free block exists which holds the block, see
+ *   #RBHEAP_FIND_SUCCESSORS.
  */
 void *_RBHeap_Allocate_aligned(
   RBHeap_control *control,
@@ -760,9 +773,9 @@ static inline bool _RBHeap_Has_processor_blocks(
  *   alignment and which crosses no multiple of the boundary in the red-black
  *   tree heap.
  *
- * A boundary other than zero raises the alignment to the boundary.  The block
- * then begins at a multiple of the boundary, so it crosses no multiple of the
- * boundary if its size is at most the boundary.
+ * The first size bytes of the block cross no multiple of a boundary other
+ * than zero.  The function can return NULL while a free block exists which
+ * holds the block, see #RBHEAP_FIND_SUCCESSORS.
  *
  * @param[in, out] control is the control of the heap.
  *
