@@ -5,7 +5,7 @@
  *
  * @ingroup RTEMSBSPsGR740ThSens
  *
- * @brief This header file defines the GR740 Temperatur Sensor Controller
+ * @brief This header file defines the GR740 Temperature Sensor Controller
  *   register block interface.
  */
 
@@ -53,11 +53,11 @@ extern "C" {
 /* Find related documentation with spec:/bsp/sparc/leon3/if/gr740-thsens */
 
 /**
- * @defgroup RTEMSBSPsGR740ThSens GR740 Temperatur Sensor Controller
+ * @defgroup RTEMSBSPsGR740ThSens GR740 Temperature Sensor Controller
  *
  * @ingroup RTEMSBSPsSPARCLEON3
  *
- * @brief This group contains the GR740 Temperatur Sensor Controller
+ * @brief This group contains the GR740 Temperature Sensor Controller
  *   interfaces.
  *
  * @{
@@ -186,7 +186,7 @@ extern "C" {
 /** @} */
 
 /**
- * @brief This structure defines the GR740 Temperatur Sensor Controller
+ * @brief This structure defines the GR740 Temperature Sensor Controller
  *   register block memory map.
  */
 typedef struct gr740_thsens {
@@ -204,6 +204,8 @@ typedef struct gr740_thsens {
    * @brief See @ref RTEMSBSPsGR740ThSensTHRES.
    */
   uint32_t thres;
+
+  uint32_t reserved_c_100[ 61 ];
 } gr740_thsens;
 
 /** @} */

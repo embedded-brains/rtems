@@ -5,7 +5,7 @@
  *
  * @ingroup RTEMSBSPsGR740Bootstrap
  *
- * @brief This header file defines the GR740 Boostrap Signals register block
+ * @brief This header file defines the GR740 Bootstrap Signals register block
  *   interface.
  */
 
@@ -114,6 +114,8 @@ typedef struct gr740_bootstrap {
    * @brief See @ref RTEMSBSPsGR740BootstrapBOOTSTRAP.
    */
   uint32_t bootstrap;
+
+  uint32_t reserved_4_100[ 63 ];
 } gr740_bootstrap;
 
 /** @} */

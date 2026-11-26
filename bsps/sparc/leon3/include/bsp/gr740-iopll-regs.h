@@ -53,11 +53,11 @@ extern "C" {
 /* Find related documentation with spec:/bsp/sparc/leon3/if/gr740-iopll */
 
 /**
- * @defgroup RTEMSBSPsGR740IOPLL GR740 I/0 and PLL Configuration
+ * @defgroup RTEMSBSPsGR740IOPLL GR740 I/O and PLL Configuration
  *
  * @ingroup RTEMSBSPsSPARCLEON3
  *
- * @brief This group contains the GR740 I/0 and PLL Configuration interfaces.
+ * @brief This group contains the GR740 I/O and PLL Configuration interfaces.
  *
  * @{
  */
@@ -608,7 +608,7 @@ extern "C" {
 /** @} */
 
 /**
- * @brief This structure defines the GR740 I/0 and PLL Configuration register
+ * @brief This structure defines the GR740 I/O and PLL Configuration register
  *   block memory map.
  */
 typedef struct gr740_iopll {
@@ -656,6 +656,8 @@ typedef struct gr740_iopll {
    * @brief See @ref RTEMSBSPsGR740IOPLLLOCKDOWN.
    */
   uint32_t lockdown;
+
+  uint32_t reserved_24_100[ 55 ];
 } gr740_iopll;
 
 /** @} */
