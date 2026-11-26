@@ -2186,9 +2186,8 @@ static bool _RBHeap_Do_free( RBHeap_control *control, void *begin )
   uintptr_t          gap_begin;
   uintptr_t          gap_end;
 
-  if ( begin == NULL ) {
-    return true;
-  }
+  /* The caller returns for a NULL block. */
+  _Assert( begin != NULL );
 
   desc = _RBHeap_Get_used( control, begin, &gap_begin, &gap_end );
 
