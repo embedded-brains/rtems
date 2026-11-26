@@ -53,6 +53,7 @@
 #include <rtems/stackchkimpl.h>
 #include <rtems/sysinit.h>
 #include <rtems/score/address.h>
+#include <rtems/score/atomic.h>
 #include <rtems/score/percpu.h>
 #include <rtems/score/smp.h>
 #include <rtems/score/threadimpl.h>
@@ -129,11 +130,38 @@ static inline bool Stack_check_Frame_pointer_in_range(
 #define Stack_check_Usable_stack_size( _the_stack ) \
   ( ( _the_stack )->size - STACK_CHECK_PATTERN_SIZE )
 
+typedef struct {
+  Stack_Control stack;
+
+  /*
+   * The begin extension sets this flag to a non-zero value with a release
+   * store after it sets up the stack.  A reader which observes the flag with an
+   * acquire load observes the area, the size and the stack content.
+   */
+  Atomic_Uint is_set_up;
+} Stack_check_Interrupt_stack_control;
+
 #if defined( RTEMS_SMP )
-static Stack_Control Stack_check_Interrupt_stack[ CPU_MAXIMUM_PROCESSORS ];
+static Stack_check_Interrupt_stack_control
+  Stack_check_Interrupt_stack[ CPU_MAXIMUM_PROCESSORS ];
 #else
-static Stack_Control Stack_check_Interrupt_stack[ 1 ];
+static Stack_check_Interrupt_stack_control Stack_check_Interrupt_stack[ 1 ];
 #endif
+
+static const Stack_Control *Stack_check_Get_interrupt_stack(
+  uint32_t cpu_index
+)
+{
+  const Stack_check_Interrupt_stack_control *control;
+
+  control = &Stack_check_Interrupt_stack[ cpu_index ];
+
+  if ( _Atomic_Load_uint( &control->is_set_up, ATOMIC_ORDER_ACQUIRE ) == 0 ) {
+    return NULL;
+  }
+
+  return &control->stack;
+}
 
 /*
  *  Fill an entire stack area with BYTE_PATTERN. This will be used
@@ -186,9 +214,9 @@ void rtems_stack_checker_begin_extension( Thread_Control *executing )
 {
   (void) executing;
 
-  Per_CPU_Control *cpu_self;
-  uint32_t         cpu_self_index;
-  Stack_Control   *stack;
+  Per_CPU_Control                     *cpu_self;
+  uint32_t                             cpu_self_index;
+  Stack_check_Interrupt_stack_control *control;
 
   /*
    * If appropriate, set up the interrupt stack of the current processor for
@@ -206,24 +234,25 @@ void rtems_stack_checker_begin_extension( Thread_Control *executing )
 #endif
 
   cpu_self_index = _Per_CPU_Get_index( cpu_self );
-  stack = &Stack_check_Interrupt_stack[ cpu_self_index ];
+  control = &Stack_check_Interrupt_stack[ cpu_self_index ];
 
-  if ( stack->area == NULL ) {
-    stack->area = cpu_self->interrupt_stack_low;
-    stack->size = (size_t) ( (char *) cpu_self->interrupt_stack_high -
-                             (char *) cpu_self->interrupt_stack_low );
+  if ( _Atomic_Load_uint( &control->is_set_up, ATOMIC_ORDER_RELAXED ) == 0 ) {
+    control->stack.area = cpu_self->interrupt_stack_low;
+    control->stack.size = (size_t) ( (char *) cpu_self->interrupt_stack_high -
+                                     (char *) cpu_self->interrupt_stack_low );
 
     /*
      * Sanity pattern has been added by Stack_check_Prepare_interrupt_stack()
      */
-    if ( !Stack_check_Is_sanity_pattern_valid( stack ) ) {
+    if ( !Stack_check_Is_sanity_pattern_valid( &control->stack ) ) {
       rtems_fatal(
         RTEMS_FATAL_SOURCE_STACK_CHECKER,
         rtems_build_name( 'I', 'N', 'T', 'R' )
       );
     }
 
-    Stack_check_Dope_stack( stack );
+    Stack_check_Dope_stack( &control->stack );
+    _Atomic_Store_uint( &control->is_set_up, 1, ATOMIC_ORDER_RELEASE );
   }
 
 #if defined( RTEMS_SMP )
@@ -290,9 +319,9 @@ void rtems_stack_checker_switch_extension(
   }
 #endif
 
-  stack = &Stack_check_Interrupt_stack[ _SMP_Get_current_processor() ];
+  stack = Stack_check_Get_interrupt_stack( _SMP_Get_current_processor() );
 
-  if ( stack->area != NULL && !Stack_check_Is_sanity_pattern_valid( stack ) ) {
+  if ( stack != NULL && !Stack_check_Is_sanity_pattern_valid( stack ) ) {
     rtems_fatal(
       RTEMS_FATAL_SOURCE_STACK_CHECKER,
       rtems_build_name( 'I', 'N', 'T', 'R' )
@@ -366,11 +395,6 @@ static void Stack_check_Visit_stack(
 {
   rtems_stack_checker_info info;
 
-  /* This is likely to occur if the stack checker is not actually enabled */
-  if ( stack->area == NULL ) {
-    return;
-  }
-
   info.id = id;
   info.name = name;
   info.current = current;
@@ -426,13 +450,25 @@ static bool Stack_check_Visit_thread( Thread_Control *the_thread, void *arg )
 }
 
 static void Stack_check_Visit_interrupt_stack(
-  const Stack_Control        *stack,
-  uint32_t                    id,
+  uint32_t                    cpu_index,
   rtems_stack_checker_visitor visit,
   void                       *arg
 )
 {
-  Stack_check_Visit_stack( stack, NULL, "Interrupt Stack", id, visit, arg );
+  const Stack_Control *stack;
+
+  stack = Stack_check_Get_interrupt_stack( cpu_index );
+
+  if ( stack != NULL ) {
+    Stack_check_Visit_stack(
+      stack,
+      NULL,
+      "Interrupt Stack",
+      cpu_index,
+      visit,
+      arg
+    );
+  }
 }
 
 static void Stack_check_Print_info(
@@ -502,12 +538,7 @@ void rtems_stack_checker_iterate(
   cpu_max = rtems_scheduler_get_processor_maximum();
 
   for ( cpu_index = 0; cpu_index < cpu_max; ++cpu_index ) {
-    Stack_check_Visit_interrupt_stack(
-      &Stack_check_Interrupt_stack[ cpu_index ],
-      cpu_index,
-      visit,
-      arg
-    );
+    Stack_check_Visit_interrupt_stack( cpu_index, visit, arg );
   }
 }
 
