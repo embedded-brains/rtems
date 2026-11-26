@@ -91,7 +91,7 @@ void apbuart_outbyte_polled( apbuart *regs, char ch );
  */
 void apbuart_outbyte_wait( const apbuart *regs );
 
-/* Generated from spec:/dev/grlib/if/apbuart-output-char-polled */
+/* Find related documentation with spec:/dev/grlib/if/apbuart-output-char-polled */
 
 /**
  * @ingroup RTEMSDeviceGRLIBAPBUART

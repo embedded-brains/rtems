@@ -117,6 +117,8 @@ typedef int ( *BSP_output_char_function_type )( int );
  */
 #define RTEMS_OUTPUT_CHAR_TRY 0x00000200
 
+/* Find related documentation with spec:/rtems/io/if/output-char-is-drain */
+
 /**
  * @ingroup RTEMSAPIKernelCharIO
  *
@@ -134,6 +136,8 @@ static inline bool rtems_output_char_is_drain( int c )
 {
   return c >= 0 && ( c & RTEMS_OUTPUT_CHAR_DRAIN ) != 0;
 }
+
+/* Find related documentation with spec:/rtems/io/if/output-char-is-try */
 
 /**
  * @ingroup RTEMSAPIKernelCharIO
@@ -170,12 +174,12 @@ static inline bool rtems_output_char_is_try( int c )
  * sign-extended character. It specifies the character to output in the bits of
  * #RTEMS_OUTPUT_CHAR_MASK and sets no flag.
  *
- * For a request without #RTEMS_OUTPUT_CHAR_DRAIN, the referenced function shall
- * output exactly the character specified by the parameter. In particular, it
- * shall not perform character translations, for example `NL` to `CR` followed
- * by `NR`. For a request with #RTEMS_OUTPUT_CHAR_DRAIN, the referenced function
- * shall ignore the bits of #RTEMS_OUTPUT_CHAR_MASK. The referenced function
- * shall not block the calling thread.
+ * For a request without #RTEMS_OUTPUT_CHAR_DRAIN, the referenced function
+ * shall output exactly the character specified by the parameter. In
+ * particular, it shall not perform character translations, for example `NL` to
+ * `CR` followed by `NR`. For a request with #RTEMS_OUTPUT_CHAR_DRAIN, the
+ * referenced function shall ignore the bits of #RTEMS_OUTPUT_CHAR_MASK. The
+ * referenced function shall not block the calling thread.
  *
  * The referenced function returns zero if it performed the request. It returns
  * minus one if it performed nothing. A BSP without a kernel character output
