@@ -1,0 +1,82 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite contains a test case which triggers a fatal error.
+  The initialization task frees a block, so the block goes into a bin. Another
+  processor frees the block again, so the block goes into the kept list of its
+  processor. An allocation of the processor finds no used block for the block of
+  the kept list.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  void *FreeDoubleBlock;
+
+  static void FreeBlock( void *arg )
+  {
+    free( arg );
+  }
+
+  static void Init( rtems_task_argument arg )
+  {
+    Per_CPU_Control *cpu_self;
+    uint32_t         other;
+    void            *ptr;
+
+    (void) arg;
+
+    /* The block goes into a bin */
+    ptr = malloc( 16 );
+    RTEMS_OBFUSCATE_VARIABLE( ptr );
+    FreeDoubleBlock = ptr;
+    free( ptr );
+
+    cpu_self = _Thread_Dispatch_disable();
+    other = ( _Per_CPU_Get_index( cpu_self ) + 1 ) %
+            rtems_scheduler_get_processor_maximum();
+    _SMP_Unicast_action( other, FreeBlock, FreeDoubleBlock );
+    _Thread_Dispatch_enable( cpu_self );
+
+    /* The bin of the size class is empty, so the allocation drains the list */
+    ptr = rtems_malloc( 3500 );
+    RTEMS_OBFUSCATE_VARIABLE( ptr );
+    rtems_fatal( RTEMS_FATAL_SOURCE_EXIT, 1 );
+  }
+
+  #define FATAL_SYSINIT_RUN CValFreeDouble_Run
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  /* The storage holds the thread-local storage area of errno */
+  #define CONFIGURE_IDLE_TASK_STORAGE_SIZE ( 2 * RTEMS_MINIMUM_STACK_SIZE )
+
+  #define CONFIGURE_MALLOC_CPU_DESCRIPTORS 64
+
+  #define CONFIGURE_WORKSPACE_ALLOCATOR RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+
+  #define CONFIGURE_MAXIMUM_PROCESSORS 2
+
+  #define CONFIGURE_MAXIMUM_TASKS 1
+
+  #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+  #define CONFIGURE_INIT_TASK_CONSTRUCT_STORAGE_SIZE \
+    ( 2 * RTEMS_MINIMUM_STACK_SIZE )
+
+  #define CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE 64
+
+  #include "ts-fatal-sysinit.h"
+test-description: null
+test-includes:
+- rtems/malloc.h
+- rtems/score/smpimpl.h
+- rtems/score/threaddispatch.h
+- stdlib.h
+test-local-includes:
+- tr-free-double.h
+test-target: testsuites/validation/ts-fatal-free-double-bin-remote.c
+type: test-suite

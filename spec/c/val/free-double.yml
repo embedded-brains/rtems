@@ -1,0 +1,68 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    The test suite frees a block twice.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the expected fatal source is present.
+    code: |
+      T_step_eq_int(
+        ${.:/step},
+        ctx->source,
+        RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE
+      );
+    links:
+    - role: validation
+      uid: ../req/free-invalid
+  - brief: |
+      Check that the address of the block is the fatal code.
+    code: |
+      T_step_eq_ulong( ${.:/step}, ctx->code, (rtems_fatal_code) FreeDoubleBlock );
+    links:
+    - role: validation
+      uid: ../req/free-invalid
+  links: []
+test-brief: |
+  Tests a free of a block which the application freed before.
+test-context: []
+test-context-support: null
+test-description: null
+test-header:
+  code: |
+    /**
+     * @brief This object contains the address of the block which the test
+     *   suite frees twice.
+     */
+    extern void *FreeDoubleBlock;
+  freestanding: true
+  includes:
+  - rtems.h
+  local-includes: []
+  run-params:
+  - description: |
+      is fatal source.
+    dir: null
+    name: source
+    specifier: ${/rtems/userext/if/fatal-source:/name} ${.:name}
+  - description: |
+      is fatal code.
+    dir: null
+    name: code
+    specifier: ${/rtems/userext/if/fatal-code:/name} ${.:name}
+  target: testsuites/validation/tr-free-double.h
+test-includes:
+- rtems.h
+test-local-includes:
+- tr-free-double.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-free-double.c
+test-teardown: null
+type: test-case
