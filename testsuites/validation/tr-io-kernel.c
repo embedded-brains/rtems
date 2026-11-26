@@ -60,8 +60,8 @@
  *   - Check that RTEMS_OUTPUT_CHAR_MASK selects the bits of an unsigned
  *     character.
  *
- *   - Check that RTEMS_OUTPUT_CHAR_DRAIN and RTEMS_OUTPUT_CHAR_TRY are distinct
- *     bits outside of RTEMS_OUTPUT_CHAR_MASK.
+ *   - Check that RTEMS_OUTPUT_CHAR_DRAIN and RTEMS_OUTPUT_CHAR_TRY are
+ *     distinct bits outside of RTEMS_OUTPUT_CHAR_MASK.
  *
  * - Call the function referenced by BSP_output_char with
  *   RTEMS_OUTPUT_CHAR_DRAIN. Then call it with RTEMS_OUTPUT_CHAR_DRAIN and
