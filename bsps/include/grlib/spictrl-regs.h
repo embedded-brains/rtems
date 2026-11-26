@@ -140,6 +140,8 @@ extern "C" {
  * @{
  */
 
+#define SPICTRL_MODE_AMEN 0x80000000U
+
 #define SPICTRL_MODE_LOOP 0x40000000U
 
 #define SPICTRL_MODE_CPOL 0x20000000U
@@ -150,7 +152,7 @@ extern "C" {
 
 #define SPICTRL_MODE_REV 0x4000000U
 
-#define SPICTRL_MODE_MX 0x2000000U
+#define SPICTRL_MODE_MS 0x2000000U
 
 #define SPICTRL_MODE_EN 0x1000000U
 
@@ -223,6 +225,8 @@ extern "C" {
 
 #define SPICTRL_EVENT_TIP 0x80000000U
 
+#define SPICTRL_EVENT_AT 0x8000U
+
 #define SPICTRL_EVENT_LT 0x4000U
 
 #define SPICTRL_EVENT_OV 0x1000U
@@ -247,6 +251,8 @@ extern "C" {
 
 #define SPICTRL_MASK_TIPE 0x80000000U
 
+#define SPICTRL_MASK_AT 0x8000U
+
 #define SPICTRL_MASK_LTE 0x4000U
 
 #define SPICTRL_MASK_OVE 0x1000U
@@ -255,7 +261,7 @@ extern "C" {
 
 #define SPICTRL_MASK_MMEE 0x400U
 
-#define SPICTRL_MASK_NEEE 0x200U
+#define SPICTRL_MASK_NEE 0x200U
 
 #define SPICTRL_MASK_NFE 0x100U
 
@@ -270,6 +276,20 @@ extern "C" {
  */
 
 #define SPICTRL_CMD_LST 0x400000U
+
+#define SPICTRL_CMD_PGRD 0x8U
+
+#define SPICTRL_CMD_DIR 0x4U
+
+#define SPICTRL_CMD_SPROT_SHIFT 0
+#define SPICTRL_CMD_SPROT_MASK  0x3U
+#define SPICTRL_CMD_SPROT_GET( _reg ) \
+  ( ( ( _reg ) & SPICTRL_CMD_SPROT_MASK ) >> SPICTRL_CMD_SPROT_SHIFT )
+#define SPICTRL_CMD_SPROT_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPICTRL_CMD_SPROT_MASK ) | \
+    ( ( ( _val ) << SPICTRL_CMD_SPROT_SHIFT ) & SPICTRL_CMD_SPROT_MASK ) )
+#define SPICTRL_CMD_SPROT( _val ) \
+  ( ( ( _val ) << SPICTRL_CMD_SPROT_SHIFT ) & SPICTRL_CMD_SPROT_MASK )
 
 /** @} */
 
@@ -322,7 +342,7 @@ extern "C" {
  */
 
 #define SPICTRL_SLVSEL_SLVSEL_SHIFT 0
-#define SPICTRL_SLVSEL_SLVSEL_MASK  0x3U
+#define SPICTRL_SLVSEL_SLVSEL_MASK  0xffffffffU
 #define SPICTRL_SLVSEL_SLVSEL_GET( _reg ) \
   ( ( ( _reg ) & SPICTRL_SLVSEL_SLVSEL_MASK ) >> SPICTRL_SLVSEL_SLVSEL_SHIFT )
 #define SPICTRL_SLVSEL_SLVSEL_SET( _reg, _val )     \
@@ -344,7 +364,7 @@ extern "C" {
  */
 
 #define SPICTRL_ASLVSEL_ASLVSEL_SHIFT 0
-#define SPICTRL_ASLVSEL_ASLVSEL_MASK  0x3U
+#define SPICTRL_ASLVSEL_ASLVSEL_MASK  0xffffffffU
 #define SPICTRL_ASLVSEL_ASLVSEL_GET( _reg )        \
   ( ( ( _reg ) & SPICTRL_ASLVSEL_ASLVSEL_MASK ) >> \
     SPICTRL_ASLVSEL_ASLVSEL_SHIFT )
@@ -359,6 +379,144 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLCAP1 \
+ *   SPI controller Capability register 1 (CAP1)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_CAP1_PROT_SHIFT 0
+#define SPICTRL_CAP1_PROT_MASK  0x3U
+#define SPICTRL_CAP1_PROT_GET( _reg ) \
+  ( ( ( _reg ) & SPICTRL_CAP1_PROT_MASK ) >> SPICTRL_CAP1_PROT_SHIFT )
+#define SPICTRL_CAP1_PROT_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPICTRL_CAP1_PROT_MASK ) | \
+    ( ( ( _val ) << SPICTRL_CAP1_PROT_SHIFT ) & SPICTRL_CAP1_PROT_MASK ) )
+#define SPICTRL_CAP1_PROT( _val ) \
+  ( ( ( _val ) << SPICTRL_CAP1_PROT_SHIFT ) & SPICTRL_CAP1_PROT_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLAMPER \
+ *   SPI controller AM period register (AMPER)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_AMPER_AMPER_SHIFT 0
+#define SPICTRL_AMPER_AMPER_MASK  0xffffffffU
+#define SPICTRL_AMPER_AMPER_GET( _reg ) \
+  ( ( ( _reg ) & SPICTRL_AMPER_AMPER_MASK ) >> SPICTRL_AMPER_AMPER_SHIFT )
+#define SPICTRL_AMPER_AMPER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPICTRL_AMPER_AMPER_MASK ) |    \
+    ( ( ( _val ) << SPICTRL_AMPER_AMPER_SHIFT ) & \
+      SPICTRL_AMPER_AMPER_MASK ) )
+#define SPICTRL_AMPER_AMPER( _val ) \
+  ( ( ( _val ) << SPICTRL_AMPER_AMPER_SHIFT ) & SPICTRL_AMPER_AMPER_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLAMMASK \
+ *   SPI controller AM Mask register (AMMASK)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_AMMASK_AM_MASK_SHIFT 0
+#define SPICTRL_AMMASK_AM_MASK_MASK  0xffffffffU
+#define SPICTRL_AMMASK_AM_MASK_GET( _reg )        \
+  ( ( ( _reg ) & SPICTRL_AMMASK_AM_MASK_MASK ) >> \
+    SPICTRL_AMMASK_AM_MASK_SHIFT )
+#define SPICTRL_AMMASK_AM_MASK_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPICTRL_AMMASK_AM_MASK_MASK ) |    \
+    ( ( ( _val ) << SPICTRL_AMMASK_AM_MASK_SHIFT ) & \
+      SPICTRL_AMMASK_AM_MASK_MASK ) )
+#define SPICTRL_AMMASK_AM_MASK( _val )             \
+  ( ( ( _val ) << SPICTRL_AMMASK_AM_MASK_SHIFT ) & \
+    SPICTRL_AMMASK_AM_MASK_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLAMTX \
+ *   SPI controller AM Transmit register (AMTX)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_AMTX_TDATA_SHIFT 0
+#define SPICTRL_AMTX_TDATA_MASK  0xffffffffU
+#define SPICTRL_AMTX_TDATA_GET( _reg ) \
+  ( ( ( _reg ) & SPICTRL_AMTX_TDATA_MASK ) >> SPICTRL_AMTX_TDATA_SHIFT )
+#define SPICTRL_AMTX_TDATA_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPICTRL_AMTX_TDATA_MASK ) | \
+    ( ( ( _val ) << SPICTRL_AMTX_TDATA_SHIFT ) & SPICTRL_AMTX_TDATA_MASK ) )
+#define SPICTRL_AMTX_TDATA( _val ) \
+  ( ( ( _val ) << SPICTRL_AMTX_TDATA_SHIFT ) & SPICTRL_AMTX_TDATA_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLAMRX \
+ *   SPI controller AM Receive register (AMRX)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_AMRX_RDATA_SHIFT 0
+#define SPICTRL_AMRX_RDATA_MASK  0xffffffffU
+#define SPICTRL_AMRX_RDATA_GET( _reg ) \
+  ( ( ( _reg ) & SPICTRL_AMRX_RDATA_MASK ) >> SPICTRL_AMRX_RDATA_SHIFT )
+#define SPICTRL_AMRX_RDATA_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPICTRL_AMRX_RDATA_MASK ) | \
+    ( ( ( _val ) << SPICTRL_AMRX_RDATA_SHIFT ) & SPICTRL_AMRX_RDATA_MASK ) )
+#define SPICTRL_AMRX_RDATA( _val ) \
+  ( ( ( _val ) << SPICTRL_AMRX_RDATA_SHIFT ) & SPICTRL_AMRX_RDATA_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPICTRLAMCFG \
+ *   SPI controller AM configuration register (AMCFG)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPICTRL_AMCFG_ECGC 0x100U
+
+#define SPICTRL_AMCFG_LOCK 0x80U
+
+#define SPICTRL_AMCFG_ERPT 0x40U
+
+#define SPICTRL_AMCFG_SEQ 0x20U
+
+#define SPICTRL_AMCFG_STRICT 0x10U
+
+#define SPICTRL_AMCFG_OVTB 0x8U
+
+#define SPICTRL_AMCFG_OVDB 0x4U
+
+#define SPICTRL_AMCFG_ACT 0x2U
+
+#define SPICTRL_AMCFG_EACT 0x1U
+
+/** @} */
+
+/**
  * @brief This structure defines the SPICTRL register block memory map.
  */
 typedef struct spictrl {
@@ -367,7 +525,12 @@ typedef struct spictrl {
    */
   uint32_t cap;
 
-  uint32_t reserved_4_20[ 7 ];
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLCAP1.
+   */
+  uint32_t cap1;
+
+  uint32_t reserved_8_20[ 6 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBSPICTRLMODE.
@@ -408,6 +571,35 @@ typedef struct spictrl {
    * @brief See @ref RTEMSDeviceGRLIBSPICTRLASLVSEL.
    */
   uint32_t aslvsel;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLAMCFG.
+   */
+  uint32_t amcfg;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLAMPER.
+   */
+  uint32_t amper;
+
+  uint32_t reserved_48_50[ 2 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLAMMASK.
+   */
+  uint32_t ammask[ 4 ];
+
+  uint32_t reserved_60_200[ 104 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLAMTX.
+   */
+  uint32_t amtx[ 128 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBSPICTRLAMRX.
+   */
+  uint32_t amrx[ 128 ];
 } spictrl;
 
 /** @} */
