@@ -1,0 +1,76 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure defines the ${.:/register-block-group} memory map.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    count: 1
+    name: DESC
+  offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: TIMESTAMP_MSB
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
+    name: TIMESTAMP_LSB
+  offset: 0xc
+  variants: []
+description: |
+  The descriptor is expanded by the two timestamp words if the core was built
+  with timestamping support and the feature is enabled by the timestamp enable
+  bit of the control register. The count of descriptors in a table is halved to
+  ${grethgbit-ts-desc-max-count:/name} since the descriptor size is doubled.
+enabled-by: true
+identifier: RTEMSDeviceGRETHGBITTransmitTimestampDescriptor
+index-entries: []
+interface-type: register-block
+links:
+- role: interface-ingroup
+  uid: group
+- role: interface-placement
+  uid: grethgbit-header
+- name: DESC
+  role: register-block-include
+  uid: grethgbit-txdesc
+name: grethgbit_tx_ts_desc
+notes: null
+register-block-group: GRETH_GBIT TX timestamp descriptor
+register-block-size: 16
+register-domain: memory
+register-prefix: grethgbit_tx_ts
+registers:
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MSB
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Transmit descriptor word 2
+  description: null
+  name: TIMESTAMP_MSB
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LSB
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Transmit descriptor word 3
+  description: null
+  name: TIMESTAMP_LSB
+  width: 32
+type: interface

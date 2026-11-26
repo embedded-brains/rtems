@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant defines the required alignment in bytes of the GRETH_GBIT DMA
+  descriptor table base address.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '1024'
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-ingroup
+  uid: group
+- role: interface-placement
+  uid: grethgbit-header
+name: GRETHGBIT_DMA_DESC_ALIGNMENT
+notes: null
+type: interface

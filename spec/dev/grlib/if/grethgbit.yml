@@ -42,6 +42,21 @@ definition:
   variants: []
 - default:
     count: 1
+    name: EDCLIP
+  offset: 0x1c
+  variants: []
+- default:
+    count: 1
+    name: HMSB
+  offset: 0x20
+  variants: []
+- default:
+    count: 1
+    name: HLSB
+  offset: 0x24
+  variants: []
+- default:
+    count: 1
     name: EDCLMACMSB
   offset: 0x28
   variants: []
@@ -49,6 +64,21 @@ definition:
     count: 1
     name: EDCLMACLSB
   offset: 0x2c
+  variants: []
+- default:
+    count: 512
+    name: TXRAM
+  offset: 0x10000
+  variants: []
+- default:
+    count: 512
+    name: RXRAM
+  offset: 0x20000
+  variants: []
+- default:
+    count: 16384
+    name: EDCLBUF
+  offset: 0x30000
   variants: []
 description: null
 enabled-by: true
@@ -63,7 +93,7 @@ links:
 name: grethgbit
 notes: null
 register-block-group: GRETH_GBIT
-register-block-size: 48
+register-block-size: 262144
 register-prefix: null
 registers:
 - bits:
@@ -102,6 +132,21 @@ registers:
       properties:
       - r
       start: 25
+      width: 1
+    - brief: null
+      description: null
+      name: TC
+      properties:
+      - r
+      start: 23
+      width: 1
+    - brief: null
+      description: null
+      name: TS
+      properties:
+      - r
+      - w
+      start: 15
       width: 1
     - brief: null
       description: null
@@ -455,6 +500,54 @@ registers:
   - default:
     - brief: null
       description: null
+      name: EDCL_IP_ADDRESS
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    GRETH_GBIT EDCL IP register
+  description: null
+  name: EDCLIP
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: HASH_TABLE_MSB
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    GRETH Hash table MSB register
+  description: null
+  name: HMSB
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: HASH_TABLE_LSB
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    GRETH Hash table LSB register
+  description: null
+  name: HLSB
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: MSB
       properties:
       - r
@@ -482,5 +575,53 @@ registers:
     EDCL MAC address LSB.
   description: null
   name: EDCLMACLSB
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TXRAM
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Transmitter RAM debug area
+  description: null
+  name: TXRAM
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RXRAM
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Receiver RAM debug area
+  description: null
+  name: RXRAM
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDCLBUF
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    EDCL buffer RAM debug area
+  description: null
+  name: EDCLBUF
   width: 32
 type: interface

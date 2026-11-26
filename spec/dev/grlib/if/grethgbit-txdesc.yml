@@ -1,0 +1,146 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure defines the ${.:/register-block-group} memory map.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    count: 1
+    name: CTRL
+  offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: ADDR
+  offset: 0x4
+  variants: []
+description: null
+enabled-by: true
+identifier: RTEMSDeviceGRETHGBITTransmitDescriptor
+index-entries: []
+interface-type: register-block
+links:
+- role: interface-ingroup
+  uid: group
+- role: interface-placement
+  uid: grethgbit-header
+name: grethgbit_tx_desc
+notes: null
+register-block-group: GRETH_GBIT TX descriptor
+register-block-size: 8
+register-domain: memory
+register-prefix: grethgbit_tx
+registers:
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LENGTH
+      properties:
+      - r
+      - w
+      start: 0
+      width: 11
+    - brief: null
+      description: null
+      name: EN
+      properties:
+      - r
+      - w
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: WR
+      properties:
+      - r
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: IE
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: UE
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: AL
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: LC
+      properties:
+      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: MO
+      properties:
+      - r
+      - w
+      start: 17
+      width: 1
+    - brief: null
+      description: null
+      name: IC
+      properties:
+      - r
+      - w
+      start: 18
+      width: 1
+    - brief: null
+      description: null
+      name: TC
+      properties:
+      - r
+      - w
+      start: 19
+      width: 1
+    - brief: null
+      description: null
+      name: UC
+      properties:
+      - r
+      - w
+      start: 20
+      width: 1
+    variants: []
+  brief: |
+    Transmit descriptor word 0
+  description: null
+  name: CTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ADDRESS
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Transmit descriptor word 1
+  description: null
+  name: ADDR
+  width: 32
+type: interface

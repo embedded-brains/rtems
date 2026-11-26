@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This constant defines the maximum count of GRETH_GBIT DMA descriptors in a
+  descriptor table if timestamping is enabled.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '64'
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-ingroup
+  uid: group
+- role: interface-placement
+  uid: grethgbit-header
+name: GRETHGBIT_DMA_TS_DESC_MAX_COUNT
+notes: null
+type: interface

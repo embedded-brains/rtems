@@ -36,6 +36,20 @@ links:
 - role: validation
   uid: /dev/grlib/if/grethgbit
 - role: validation
+  uid: /dev/grlib/if/grethgbit-desc-alignment
+- role: validation
+  uid: /dev/grlib/if/grethgbit-desc-max-count
+- role: validation
+  uid: /dev/grlib/if/grethgbit-rxdesc
+- role: validation
+  uid: /dev/grlib/if/grethgbit-rxdesc-ts
+- role: validation
+  uid: /dev/grlib/if/grethgbit-ts-desc-max-count
+- role: validation
+  uid: /dev/grlib/if/grethgbit-txdesc
+- role: validation
+  uid: /dev/grlib/if/grethgbit-txdesc-ts
+- role: validation
   uid: /dev/grlib/if/grgpio
 - role: validation
   uid: /dev/grlib/if/griommu
