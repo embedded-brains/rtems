@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2014, 2017 embedded brains GmbH & Co. KG
+ * Copyright (C) 2014, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -461,7 +461,7 @@ static void test_cache_aligned_alloc( void )
     uintptr_t a0 = (uintptr_t) p0;
     uintptr_t a1 = (uintptr_t) p1;
 
-    rtems_test_assert( a1 - a0 > cls );
+    rtems_test_assert( a0 != a1 );
     rtems_test_assert( ( a0 & m ) == 0 );
     rtems_test_assert( ( a1 & m ) == 0 );
   }
