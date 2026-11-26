@@ -62,7 +62,7 @@ extern "C" {
  */
 
 /**
- * @defgroup RTEMSDeviceGRLIBL4STATCVAL Counter 0-15 value register (CVAL)
+ * @defgroup RTEMSDeviceGRLIBL4STATCVAL Counter 0-31 value register (CVAL)
  *
  * @brief This group contains register bit definitions.
  *
@@ -82,25 +82,15 @@ extern "C" {
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRLIBL4STATCCTRL Counter 0-15 control register (CCTRL)
+ * @defgroup RTEMSDeviceGRLIBL4STATCCTRL Counter 0-31 control register (CCTRL)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define L4STAT_CCTRL_NCPU_SHIFT 28
-#define L4STAT_CCTRL_NCPU_MASK  0xf0000000U
-#define L4STAT_CCTRL_NCPU_GET( _reg ) \
-  ( ( ( _reg ) & L4STAT_CCTRL_NCPU_MASK ) >> L4STAT_CCTRL_NCPU_SHIFT )
-#define L4STAT_CCTRL_NCPU_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~L4STAT_CCTRL_NCPU_MASK ) | \
-    ( ( ( _val ) << L4STAT_CCTRL_NCPU_SHIFT ) & L4STAT_CCTRL_NCPU_MASK ) )
-#define L4STAT_CCTRL_NCPU( _val ) \
-  ( ( ( _val ) << L4STAT_CCTRL_NCPU_SHIFT ) & L4STAT_CCTRL_NCPU_MASK )
-
 #define L4STAT_CCTRL_NCNT_SHIFT 23
-#define L4STAT_CCTRL_NCNT_MASK  0xf800000U
+#define L4STAT_CCTRL_NCNT_MASK  0xff800000U
 #define L4STAT_CCTRL_NCNT_GET( _reg ) \
   ( ( ( _reg ) & L4STAT_CCTRL_NCNT_MASK ) >> L4STAT_CCTRL_NCNT_SHIFT )
 #define L4STAT_CCTRL_NCNT_SET( _reg, _val )  \
@@ -163,7 +153,7 @@ extern "C" {
 
 /**
  * @defgroup RTEMSDeviceGRLIBL4STATCSVAL \
- *   Counter 0-15 max/latch register (CSVAL)
+ *   Counter 0-31 max/latch register (CSVAL)
  *
  * @brief This group contains register bit definitions.
  *
@@ -210,44 +200,23 @@ typedef struct l4stat {
   /**
    * @brief See @ref RTEMSDeviceGRLIBL4STATCVAL.
    */
-  uint32_t cval_0;
+  uint32_t cval[ 32 ];
 
-  uint32_t reserved_4_3c[ 14 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBL4STATCVAL.
-   */
-  uint32_t cval_1;
-
-  uint32_t reserved_40_80[ 16 ];
+  uint32_t reserved_80_100[ 32 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL4STATCCTRL.
    */
-  uint32_t cctrl_0;
+  uint32_t cctrl[ 32 ];
 
-  uint32_t reserved_84_cc[ 18 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBL4STATCCTRL.
-   */
-  uint32_t cctrl_1;
-
-  uint32_t reserved_d0_100[ 12 ];
+  uint32_t reserved_180_200[ 32 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL4STATCSVAL.
    */
-  uint32_t csval_0;
+  uint32_t csval[ 32 ];
 
-  uint32_t reserved_104_13c[ 14 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBL4STATCSVAL.
-   */
-  uint32_t csval_1;
-
-  uint32_t reserved_140_180[ 16 ];
+  uint32_t reserved_280_300[ 32 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL4STATTSTAMP.
