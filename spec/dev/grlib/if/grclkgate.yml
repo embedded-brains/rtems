@@ -98,7 +98,7 @@ registers:
       - r
       - w
       start: 16
-      width: 4
+      width: 16
     - brief: null
       description: null
       name: OVERRIDE
@@ -106,7 +106,7 @@ registers:
       - r
       - w
       start: 0
-      width: 4
+      width: 16
     variants: []
   brief: |
     CPU/FPU override register
