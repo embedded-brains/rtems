@@ -824,8 +824,10 @@ bool _RBHeap_Size_of_block(
 /**
  * @brief Gets the information of the red-black tree heap.
  *
- * The free information and the used information come from a walk of the
- * trees.  The used information holds the blocks of the users alone.
+ * The information comes from the counters of the heap and from the largest
+ * block of the free tree.  The function therefore takes logarithmic time in
+ * the count of the free blocks.  The used information holds the blocks of the
+ * users alone.  The size of the largest used block is zero.
  *
  * @param[in] control is the control of the heap.
  *
@@ -878,6 +880,10 @@ uintptr_t _RBHeap_Get_releasable_size(
 /**
  * @brief Checks the trees, the blocks and the slabs of descriptors of the
  *   red-black tree heap.
+ *
+ * The function is a debug aid.  It visits each block and each slot of each
+ * slab with interrupts disabled.  Its time grows with the count of blocks
+ * times the height of the trees, plus the capacity of the slabs.
  *
  * @param[in] control is the control of the heap.
  *

@@ -3138,16 +3138,6 @@ static RBHeap_descriptor *_RBHeap_First( const RBHeap_descriptor *root )
   return node;
 }
 
-static void _RBHeap_Add_information( Heap_Information *info, uintptr_t size )
-{
-  ++info->number;
-  info->total += size;
-
-  if ( size > info->largest ) {
-    info->largest = size;
-  }
-}
-
 void _RBHeap_Get_statistics(
   const RBHeap_control *control,
   Heap_Statistics      *stats
@@ -3161,13 +3151,14 @@ void _RBHeap_Get_statistics(
   _RBHeap_Release( control, &lock_context );
 }
 
-uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control )
+/* Returns the size of the largest free block, else zero. */
+static uintptr_t _RBHeap_Do_get_largest_free_size(
+  const RBHeap_control *control
+)
 {
-  ISR_lock_Context         lock_context;
   const RBHeap_descriptor *node;
   uintptr_t                size;
 
-  _RBHeap_Acquire( control, &lock_context );
   node = _RBHeap_Root( &control->free_root );
   size = 0;
 
@@ -3177,6 +3168,16 @@ uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control )
     node = _RBHeap_Right( node );
   }
 
+  return size;
+}
+
+uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control )
+{
+  ISR_lock_Context lock_context;
+  uintptr_t        size;
+
+  _RBHeap_Acquire( control, &lock_context );
+  size = _RBHeap_Do_get_largest_free_size( control );
   _RBHeap_Release( control, &lock_context );
   return size;
 }
@@ -3227,33 +3228,24 @@ uintptr_t _RBHeap_Get_releasable_size(
   return count * RBHEAP_SLAB_SIZE;
 }
 
+/*
+ * The counters provide the information without a visit of each block.  The
+ * size of the largest used block stays zero.
+ */
 static void _RBHeap_Do_get_information(
   const RBHeap_control   *control,
   Heap_Information_block *info
 )
 {
-  const RBHeap_descriptor *node;
-
   memset( info, 0, sizeof( *info ) );
   info->Stats = control->stats;
   info->Stats.free_size = control->free_size;
-
-  node = _RBHeap_First( _RBHeap_Root( &control->free_root ) );
-
-  while ( node != NULL ) {
-    _RBHeap_Add_information( &info->Free, node->size );
-    node = _RBHeap_Successor( node );
-  }
-
-  node = _RBHeap_First( _RBHeap_Root( &control->used_root ) );
-
-  while ( node != NULL ) {
-    if ( !_RBHeap_Is_hole( node ) && !_RBHeap_Is_own( node ) ) {
-      _RBHeap_Add_information( &info->Used, node->size );
-    }
-
-    node = _RBHeap_Successor( node );
-  }
+  info->Free.number = control->stats.free_blocks;
+  info->Free.total = control->free_size;
+  info->Free.largest = _RBHeap_Do_get_largest_free_size( control );
+  info->Used.number = control->stats.used_blocks;
+  info->Used.total = (uintptr_t) ( control->stats.lifetime_allocated -
+                                   control->stats.lifetime_freed );
 }
 
 void _RBHeap_Get_information(
@@ -3651,6 +3643,7 @@ static bool _RBHeap_Do_walk( const RBHeap_control *control )
   uintptr_t                used_blocks;
   uintptr_t                entries;
   uintptr_t                own;
+  uint64_t                 used_size;
 
   if (
     !_RBHeap_Walk_tree( _RBHeap_Root( &control->free_root ) ) ||
@@ -3684,6 +3677,7 @@ static bool _RBHeap_Do_walk( const RBHeap_control *control )
   free_size = 0;
   free_blocks = 0;
   used_blocks = 0;
+  used_size = 0;
   entries = 0;
   own = 0;
   node = _RBHeap_First( _RBHeap_Root( &control->used_root ) );
@@ -3720,6 +3714,7 @@ static bool _RBHeap_Do_walk( const RBHeap_control *control )
     } else {
       if ( !_RBHeap_Is_hole( node ) ) {
         ++used_blocks;
+        used_size += node->size;
       }
 
 #if defined( RTEMS_SMP )
@@ -3754,6 +3749,8 @@ static bool _RBHeap_Do_walk( const RBHeap_control *control )
          free_blocks == control->stats.free_blocks &&
          free_nodes == free_blocks && entries == control->entries &&
          used_blocks == control->stats.used_blocks &&
+         used_size ==
+           control->stats.lifetime_allocated - control->stats.lifetime_freed &&
          _RBHeap_Walk_slabs( control, &counts, own );
 }
 

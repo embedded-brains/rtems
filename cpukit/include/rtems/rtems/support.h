@@ -334,8 +334,14 @@ bool rtems_workspace_free( void *pointer );
  *   false.
  *
  * @par Notes
+ * @parblock
  * The directive is deprecated. Use rtems_workspace_get_statistics() instead.
  * The directive will be removed after the RTEMS 7 release.
+ *
+ * If @ref CONFIGURE_WORKSPACE_ALLOCATOR is
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE, then the size of the largest used
+ * block is zero.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
