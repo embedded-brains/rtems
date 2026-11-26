@@ -52,6 +52,8 @@ links:
 - role: build-dependency
   uid: fatal-invalid-heap-free
 - role: build-dependency
+  uid: fatal-malloc-cpu-descriptors
+- role: build-dependency
   uid: fatal-mandatory-processor-not-present
 - role: build-dependency
   uid: fatal-record-dump
