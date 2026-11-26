@@ -47,6 +47,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: BCTW
+  offset: 0x54
+  variants: []
+- default:
+    count: 1
     name: BCRP
   offset: 0x58
   variants: []
@@ -336,6 +341,14 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: DBUF
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
       name: CVER
       properties:
       - r
@@ -544,6 +557,30 @@ registers:
     GR1553B BC Timer register
   description: null
   name: BCT
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: WKEN
+      properties:
+      - r
+      - w
+      start: 31
+      width: 1
+    - brief: null
+      description: null
+      name: WKTM
+      properties:
+      - r
+      - w
+      start: 0
+      width: 24
+    variants: []
+  brief: |
+    GR1553B BC Timer wake-up register
+  description: null
+  name: BCTW
   width: 32
 - bits:
   - default:
@@ -990,8 +1027,8 @@ registers:
       properties:
       - r
       - w
-      start: 0
-      width: 32
+      start: 2
+      width: 30
     variants: []
   brief: |
     GR1553B RT Event log size mask register
@@ -1331,8 +1368,8 @@ registers:
       properties:
       - r
       - w
-      start: 0
-      width: 32
+      start: 3
+      width: 19
     variants: []
   brief: |
     GR1553B BM Log buffer end
@@ -1347,8 +1384,8 @@ registers:
       properties:
       - r
       - w
-      start: 0
-      width: 32
+      start: 3
+      width: 19
     variants: []
   brief: |
     GR1553B BM Log buffer position
