@@ -22,8 +22,18 @@ definition:
   variants: []
 - default:
     count: 1
+    name: MCFG4
+  offset: 0xc
+  variants: []
+- default:
+    count: 1
     name: MCFG5
   offset: 0x10
+  variants: []
+- default:
+    count: 1
+    name: MCFG6
+  offset: 0x14
   variants: []
 - default:
     count: 1
@@ -103,13 +113,6 @@ registers:
       - r
       - w
       start: 19
-      width: 1
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
-      start: 18
       width: 1
     - brief: null
       description: null
@@ -304,10 +307,27 @@ registers:
   - default:
     - brief: null
       description: null
+      name: RSE
+      properties:
+      - r
+      - w
+      start: 28
+      width: 1
+    - brief: null
+      description: null
       name: ME
-      properties: []
+      properties:
+      - r
       start: 27
       width: 1
+    - brief: null
+      description: null
+      name: SDRAM_REFRESH_COUNTER
+      properties:
+      - r
+      - w
+      start: 12
+      width: 15
     - brief: null
       description: null
       name: WB
@@ -323,6 +343,14 @@ registers:
       - r
       - w
       start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RE
+      properties:
+      - r
+      - w
+      start: 9
       width: 1
     - brief: null
       description: null
@@ -350,6 +378,30 @@ registers:
   - default:
     - brief: null
       description: null
+      name: WB
+      properties:
+      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: TCB
+      properties:
+      - r
+      - w
+      start: 0
+      width: 16
+    variants: []
+  brief: |
+    Memory configuration register 4
+  description: null
+  name: MCFG4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: IOHWS
       properties:
       - r
@@ -369,6 +421,22 @@ registers:
     Memory configuration register 5
   description: null
   name: MCFG5
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RAMHWS
+      properties:
+      - r
+      - w
+      start: 7
+      width: 7
+    variants: []
+  brief: |
+    Memory configuration register 6
+  description: null
+  name: MCFG6
   width: 32
 - bits:
   - default:
