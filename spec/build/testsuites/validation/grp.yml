@@ -102,6 +102,8 @@ links:
 - role: build-dependency
   uid: validation-heap-1
 - role: build-dependency
+  uid: validation-heap-2
+- role: build-dependency
   uid: validation-intr
 - role: build-dependency
   uid: validation-io-kernel

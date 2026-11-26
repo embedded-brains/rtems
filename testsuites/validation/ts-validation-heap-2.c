@@ -1,0 +1,93 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/**
+ * @file
+ *
+ * @ingroup TestsuitesValidationHeap2
+ */
+
+/*
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <rtems/score/wkspace.h>
+
+#include "ts-acfg.h"
+#include "tx-support.h"
+
+#include <rtems/test.h>
+
+/**
+ * @defgroup TestsuitesValidationHeap2 spec:/testsuites/validation-heap-2
+ *
+ * @ingroup RTEMSTestSuitesValidation
+ *
+ * @brief This validation test suite contains test cases for an RTEMS Workspace
+ *   with the default count of statically allocated descriptors and 49 threads
+ *   which allocate their stacks from the RTEMS Workspace.
+ *
+ * @{
+ */
+
+const char rtems_test_name[] = "TestsuitesValidationHeap2";
+
+#define CONFIGURE_IDLE_TASK_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
+
+#define CONFIGURE_IDLE_TASK_INITIALIZES_APPLICATION
+
+void *IdleBody( uintptr_t ignored )
+{
+  (void) ignored;
+  RunTestSuite();
+}
+
+#define CONFIGURE_IDLE_TASK_BODY IdleBody
+
+#define CONFIGURE_MAXIMUM_TASKS 49
+
+static void *AllocateStack( size_t size )
+{
+  return _Workspace_Allocate( size );
+}
+
+static void FreeStack( void *stack )
+{
+  _Workspace_Free( stack );
+}
+
+#define CONFIGURE_TASK_STACK_ALLOCATOR AllocateStack
+
+#define CONFIGURE_TASK_STACK_DEALLOCATOR FreeStack
+
+#define CONFIGURE_WORKSPACE_ALLOCATOR RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+
+#define CONFIGURE_INIT
+
+#include <rtems/confdefs.h>
+
+/** @} */
