@@ -141,12 +141,20 @@ static size_t decoded_size;
 
 static uint32_t fatal_cpu_index;
 
-static void CaptureChar( char c )
+static int CaptureChar( int c )
 {
+  if ( rtems_output_char_is_drain( c ) ) {
+    return 0;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
   if ( c != '\r' && output_size < sizeof( output ) ) {
-    output[ output_size ] = c;
+    output[ output_size ] = (char) c;
     ++output_size;
   }
+
+  return 0;
 }
 
 static void StartCapture( void )

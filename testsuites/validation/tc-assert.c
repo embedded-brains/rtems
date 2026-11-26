@@ -261,20 +261,26 @@ static const char *const *const CAssertReqAssert_PreDesc[] = {
 
 typedef CAssertReqAssert_Context Context;
 
-static void OutputChar( char c )
+static int OutputChar( int c )
 {
   Context *ctx;
   size_t   index;
+
+  if ( rtems_output_char_is_drain( c ) ) {
+    return 0;
+  }
 
   ctx = T_fixture_context();
   index = ctx->output_count;
 
   if ( index < sizeof( ctx->output ) - 1 ) {
-    ctx->output[ index ] = c;
+    ctx->output[ index ] = (char) ( c & RTEMS_OUTPUT_CHAR_MASK );
     ctx->output[ index + 1 ] = '\0';
   }
 
   ctx->output_count = index + 1;
+
+  return 0;
 }
 
 static void Fatal(
