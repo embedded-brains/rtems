@@ -12,6 +12,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: CAP1
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
     name: MODE
   offset: 0x20
   variants: []
@@ -50,6 +55,31 @@ definition:
     name: ASLVSEL
   offset: 0x3c
   variants: []
+- default:
+    count: 1
+    name: AMCFG
+  offset: 0x40
+  variants: []
+- default:
+    count: 1
+    name: AMPER
+  offset: 0x44
+  variants: []
+- default:
+    count: 4
+    name: AMMASK
+  offset: 0x50
+  variants: []
+- default:
+    count: 128
+    name: AMTX
+  offset: 0x200
+  variants: []
+- default:
+    count: 128
+    name: AMRX
+  offset: 0x400
+  variants: []
 description: null
 enabled-by: true
 identifier: RTEMSDeviceGRLIBSPICTRL
@@ -63,7 +93,7 @@ links:
 name: spictrl
 notes: null
 register-block-group: SPICTRL
-register-block-size: 64
+register-block-size: 1536
 register-prefix: null
 registers:
 - bits:
@@ -148,6 +178,14 @@ registers:
   - default:
     - brief: null
       description: null
+      name: AMEN
+      properties:
+      - r
+      - w
+      start: 31
+      width: 1
+    - brief: null
+      description: null
       name: LOOP
       properties:
       - r
@@ -188,7 +226,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: MX
+      name: MS
       properties:
       - r
       - w
@@ -315,6 +353,13 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: AT
+      properties:
+      - r
+      start: 15
+      width: 1
+    - brief: null
+      description: null
       name: LT
       properties:
       - r
@@ -377,6 +422,14 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: AT
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
       name: LTE
       properties:
       - r
@@ -409,7 +462,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: NEEE
+      name: NEE
       properties:
       - r
       - w
@@ -438,6 +491,29 @@ registers:
       - w
       start: 22
       width: 1
+    - brief: null
+      description: null
+      name: PGRD
+      properties:
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: DIR
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: SPROT
+      properties:
+      - r
+      - w
+      start: 0
+      width: 2
     variants: []
   brief: |
     Command register
@@ -483,7 +559,7 @@ registers:
       - r
       - w
       start: 0
-      width: 2
+      width: 32
     variants: []
   brief: |
     Slave select register
@@ -499,11 +575,170 @@ registers:
       - r
       - w
       start: 0
-      width: 2
+      width: 32
     variants: []
   brief: |
     Automatic slave select register
   description: null
   name: ASLVSEL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: PROT
+      properties:
+      - r
+      start: 0
+      width: 2
+    variants: []
+  brief: |
+    SPI controller Capability register 1
+  description: null
+  name: CAP1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: AMPER
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SPI controller AM period register
+  description: null
+  name: AMPER
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: AM_MASK
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SPI controller AM Mask register
+  description: null
+  name: AMMASK
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TDATA
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SPI controller AM Transmit register
+  description: null
+  name: AMTX
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RDATA
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SPI controller AM Receive register
+  description: null
+  name: AMRX
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ECGC
+      properties:
+      - r
+      - w
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: LOCK
+      properties:
+      - r
+      - w
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: ERPT
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: SEQ
+      properties:
+      - r
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: STRICT
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: OVTB
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OVDB
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: ACT
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: EACT
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    SPI controller AM configuration register
+  description: null
+  name: AMCFG
   width: 32
 type: interface
