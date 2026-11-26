@@ -104,8 +104,6 @@ extern "C" {
 
 #define FTMCTRL_MCFG1_IOEN 0x80000U
 
-#define FTMCTRL_MCFG1_R 0x40000U
-
 #define FTMCTRL_MCFG1_ROMBANKSZ_SHIFT 14
 #define FTMCTRL_MCFG1_ROMBANKSZ_MASK  0x3c000U
 #define FTMCTRL_MCFG1_ROMBANKSZ_GET( _reg )        \
@@ -304,11 +302,28 @@ extern "C" {
  * @{
  */
 
+#define FTMCTRL_MCFG3_RSE 0x10000000U
+
 #define FTMCTRL_MCFG3_ME 0x8000000U
+
+#define FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_SHIFT 12
+#define FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_MASK  0x7fff000U
+#define FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_GET( _reg )        \
+  ( ( ( _reg ) & FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_MASK ) >> \
+    FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_SHIFT )
+#define FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_SHIFT ) & \
+      FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_MASK ) )
+#define FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER( _val )             \
+  ( ( ( _val ) << FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_SHIFT ) & \
+    FTMCTRL_MCFG3_SDRAM_REFRESH_COUNTER_MASK )
 
 #define FTMCTRL_MCFG3_WB 0x800U
 
 #define FTMCTRL_MCFG3_RB 0x400U
+
+#define FTMCTRL_MCFG3_RE 0x200U
 
 #define FTMCTRL_MCFG3_PE 0x100U
 
@@ -321,6 +336,29 @@ extern "C" {
     ( ( ( _val ) << FTMCTRL_MCFG3_TCB_SHIFT ) & FTMCTRL_MCFG3_TCB_MASK ) )
 #define FTMCTRL_MCFG3_TCB( _val ) \
   ( ( ( _val ) << FTMCTRL_MCFG3_TCB_SHIFT ) & FTMCTRL_MCFG3_TCB_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBFTMCTRLMCFG4 \
+ *   Memory configuration register 4 (MCFG4)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define FTMCTRL_MCFG4_WB 0x10000U
+
+#define FTMCTRL_MCFG4_TCB_SHIFT 0
+#define FTMCTRL_MCFG4_TCB_MASK  0xffffU
+#define FTMCTRL_MCFG4_TCB_GET( _reg ) \
+  ( ( ( _reg ) & FTMCTRL_MCFG4_TCB_MASK ) >> FTMCTRL_MCFG4_TCB_SHIFT )
+#define FTMCTRL_MCFG4_TCB_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG4_TCB_MASK ) | \
+    ( ( ( _val ) << FTMCTRL_MCFG4_TCB_SHIFT ) & FTMCTRL_MCFG4_TCB_MASK ) )
+#define FTMCTRL_MCFG4_TCB( _val ) \
+  ( ( ( _val ) << FTMCTRL_MCFG4_TCB_SHIFT ) & FTMCTRL_MCFG4_TCB_MASK )
 
 /** @} */
 
@@ -354,6 +392,28 @@ extern "C" {
       FTMCTRL_MCFG5_ROMHWS_MASK ) )
 #define FTMCTRL_MCFG5_ROMHWS( _val ) \
   ( ( ( _val ) << FTMCTRL_MCFG5_ROMHWS_SHIFT ) & FTMCTRL_MCFG5_ROMHWS_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBFTMCTRLMCFG6 \
+ *   Memory configuration register 6 (MCFG6)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define FTMCTRL_MCFG6_RAMHWS_SHIFT 7
+#define FTMCTRL_MCFG6_RAMHWS_MASK  0x3f80U
+#define FTMCTRL_MCFG6_RAMHWS_GET( _reg ) \
+  ( ( ( _reg ) & FTMCTRL_MCFG6_RAMHWS_MASK ) >> FTMCTRL_MCFG6_RAMHWS_SHIFT )
+#define FTMCTRL_MCFG6_RAMHWS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~FTMCTRL_MCFG6_RAMHWS_MASK ) |    \
+    ( ( ( _val ) << FTMCTRL_MCFG6_RAMHWS_SHIFT ) & \
+      FTMCTRL_MCFG6_RAMHWS_MASK ) )
+#define FTMCTRL_MCFG6_RAMHWS( _val ) \
+  ( ( ( _val ) << FTMCTRL_MCFG6_RAMHWS_SHIFT ) & FTMCTRL_MCFG6_RAMHWS_MASK )
 
 /** @} */
 
@@ -413,14 +473,20 @@ typedef struct ftmctrl {
    */
   uint32_t mcfg3;
 
-  uint32_t reserved_c_10;
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG4.
+   */
+  uint32_t mcfg4;
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG5.
    */
   uint32_t mcfg5;
 
-  uint32_t reserved_14_18;
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG6.
+   */
+  uint32_t mcfg6;
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBFTMCTRLMCFG7.
