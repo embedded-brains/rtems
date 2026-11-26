@@ -188,7 +188,8 @@ static bool _RBHeap_Is_slab( const RBHeap_descriptor *desc )
 
 /*
  * Returns true if the used descriptor lies in its own block.  The descriptor
- * then describes a slab or a hole.
+ * then describes a slab inside an area.  The descriptor of a hole lies in a
+ * slab, see _RBHeap_Is_hole().
  */
 static bool _RBHeap_Is_own( const RBHeap_descriptor *desc )
 {
