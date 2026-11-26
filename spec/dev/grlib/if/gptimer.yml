@@ -26,7 +26,7 @@ definition:
   offset: 0xc
   variants: []
 - default:
-    count: 15
+    count: 7
     name: TIMER
   offset: 0x10
   variants: []
@@ -58,7 +58,7 @@ registers:
       - r
       - w
       start: 0
-      width: 16
+      width: 32
     variants: []
   brief: |
     Scaler value register
@@ -74,7 +74,7 @@ registers:
       - r
       - w
       start: 0
-      width: 16
+      width: 32
     variants: []
   brief: |
     Scaler reload value register
@@ -83,6 +83,13 @@ registers:
   width: 32
 - bits:
   - default:
+    - brief: null
+      description: null
+      name: TIMEREN
+      properties:
+      - w
+      start: 16
+      width: 7
     - brief: null
       description: null
       name: EV

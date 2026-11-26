@@ -77,6 +77,14 @@ registers:
   - default:
     - brief: null
       description: null
+      name: WDOGWINC
+      properties:
+      - r
+      - w
+      start: 16
+      width: 16
+    - brief: null
+      description: null
       name: WS
       properties:
       - r
