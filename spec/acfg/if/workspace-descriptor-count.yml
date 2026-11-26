@@ -4,7 +4,7 @@ copyrights:
 - Copyright (C) 2026 embedded brains GmbH & Co. KG
 default-value: |
   The default value is two times the count of blocks for which the RTEMS
-  Workspace reserves memory, plus one.
+  Workspace reserves memory, plus three.
 description: |
   The value of this configuration option defines the count of block descriptors
   of the RTEMS Workspace which ${header-confdefs:/path} allocates statically if
@@ -40,8 +40,9 @@ notes: |
   A Classic message queue counts only if ${message-buffer-memory:/name} is not
   zero, since a message queue which ${/rtems/message/if/construct:/name}
   constructs takes no block. At most one free block lies before each used block
-  and after the last used block. The default value therefore holds a descriptor
-  for each block which the configuration reserves.
+  and after the last used block. The RTEMS Workspace keeps two more descriptors
+  for the next allocation. The default value therefore holds a descriptor for
+  each block which the configuration reserves.
 
   An application which allocates further blocks from the RTEMS Workspace either
   increases this value or adds the memory for their slabs with
