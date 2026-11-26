@@ -26,6 +26,10 @@ notes: |
   The C Program Heap allocates the descriptors of the processor blocks during
   system initialization.
 
+  A free block in the bins of one processor is not available to the allocations
+  on other processors. An allocation which fails in the C Program Heap takes no
+  block from the bins.
+
   This configuration option is only evaluated in SMP configurations of RTEMS. In
   all other configurations, it has no effect.
 type: interface
