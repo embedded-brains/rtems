@@ -168,11 +168,14 @@ extern "C" {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of ACTIVE is reserved. ACTIVE includes it, so that bit n of ACTIVE
+ * corresponds to port n.
+ *
  * @{
  */
 
-#define SPWPNP_PNPACTLNK_ACTIVE_SHIFT 1
-#define SPWPNP_PNPACTLNK_ACTIVE_MASK  0xfffffffeU
+#define SPWPNP_PNPACTLNK_ACTIVE_SHIFT 0
+#define SPWPNP_PNPACTLNK_ACTIVE_MASK  0xffffffffU
 #define SPWPNP_PNPACTLNK_ACTIVE_GET( _reg )        \
   ( ( ( _reg ) & SPWPNP_PNPACTLNK_ACTIVE_MASK ) >> \
     SPWPNP_PNPACTLNK_ACTIVE_SHIFT )
@@ -183,6 +186,73 @@ extern "C" {
 #define SPWPNP_PNPACTLNK_ACTIVE( _val )             \
   ( ( ( _val ) << SPWPNP_PNPACTLNK_ACTIVE_SHIFT ) & \
     SPWPNP_PNPACTLNK_ACTIVE_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPLINFO \
+ *   SpaceWire Plug-and-Play - Link Information (PNPLINFO)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPWPNP_PNPLINFO_OLA_SHIFT 24
+#define SPWPNP_PNPLINFO_OLA_MASK  0xff000000U
+#define SPWPNP_PNPLINFO_OLA_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLINFO_OLA_MASK ) >> SPWPNP_PNPLINFO_OLA_SHIFT )
+#define SPWPNP_PNPLINFO_OLA_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPLINFO_OLA_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPLINFO_OLA_SHIFT ) & \
+      SPWPNP_PNPLINFO_OLA_MASK ) )
+#define SPWPNP_PNPLINFO_OLA( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLINFO_OLA_SHIFT ) & SPWPNP_PNPLINFO_OLA_MASK )
+
+#define SPWPNP_PNPLINFO_OAL_SHIFT 22
+#define SPWPNP_PNPLINFO_OAL_MASK  0xc00000U
+#define SPWPNP_PNPLINFO_OAL_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLINFO_OAL_MASK ) >> SPWPNP_PNPLINFO_OAL_SHIFT )
+#define SPWPNP_PNPLINFO_OAL_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPLINFO_OAL_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPLINFO_OAL_SHIFT ) & \
+      SPWPNP_PNPLINFO_OAL_MASK ) )
+#define SPWPNP_PNPLINFO_OAL( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLINFO_OAL_SHIFT ) & SPWPNP_PNPLINFO_OAL_MASK )
+
+#define SPWPNP_PNPLINFO_OL_SHIFT 16
+#define SPWPNP_PNPLINFO_OL_MASK  0x1f0000U
+#define SPWPNP_PNPLINFO_OL_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLINFO_OL_MASK ) >> SPWPNP_PNPLINFO_OL_SHIFT )
+#define SPWPNP_PNPLINFO_OL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPWPNP_PNPLINFO_OL_MASK ) | \
+    ( ( ( _val ) << SPWPNP_PNPLINFO_OL_SHIFT ) & SPWPNP_PNPLINFO_OL_MASK ) )
+#define SPWPNP_PNPLINFO_OL( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLINFO_OL_SHIFT ) & SPWPNP_PNPLINFO_OL_MASK )
+
+#define SPWPNP_PNPLINFO_RL_SHIFT 8
+#define SPWPNP_PNPLINFO_RL_MASK  0x1f00U
+#define SPWPNP_PNPLINFO_RL_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLINFO_RL_MASK ) >> SPWPNP_PNPLINFO_RL_SHIFT )
+#define SPWPNP_PNPLINFO_RL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPWPNP_PNPLINFO_RL_MASK ) | \
+    ( ( ( _val ) << SPWPNP_PNPLINFO_RL_SHIFT ) & SPWPNP_PNPLINFO_RL_MASK ) )
+#define SPWPNP_PNPLINFO_RL( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLINFO_RL_SHIFT ) & SPWPNP_PNPLINFO_RL_MASK )
+
+#define SPWPNP_PNPLINFO_T 0x80U
+
+#define SPWPNP_PNPLINFO_U 0x40U
+
+#define SPWPNP_PNPLINFO_LC_SHIFT 0
+#define SPWPNP_PNPLINFO_LC_MASK  0x1fU
+#define SPWPNP_PNPLINFO_LC_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLINFO_LC_MASK ) >> SPWPNP_PNPLINFO_LC_SHIFT )
+#define SPWPNP_PNPLINFO_LC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPWPNP_PNPLINFO_LC_MASK ) | \
+    ( ( ( _val ) << SPWPNP_PNPLINFO_LC_SHIFT ) & SPWPNP_PNPLINFO_LC_MASK ) )
+#define SPWPNP_PNPLINFO_LC( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLINFO_LC_SHIFT ) & SPWPNP_PNPLINFO_LC_MASK )
 
 /** @} */
 
@@ -391,6 +461,50 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPPID1 \
+ *   SpaceWire Plug-and-Play - Protocol Identification 1 (PNPPID1)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPWPNP_PNPPID1_PID1_SHIFT 0
+#define SPWPNP_PNPPID1_PID1_MASK  0xffffffffU
+#define SPWPNP_PNPPID1_PID1_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPPID1_PID1_MASK ) >> SPWPNP_PNPPID1_PID1_SHIFT )
+#define SPWPNP_PNPPID1_PID1_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPPID1_PID1_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPPID1_PID1_SHIFT ) & \
+      SPWPNP_PNPPID1_PID1_MASK ) )
+#define SPWPNP_PNPPID1_PID1( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPPID1_PID1_SHIFT ) & SPWPNP_PNPPID1_PID1_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPPID2 \
+ *   SpaceWire Plug-and-Play - Protocol Identification 2 (PNPPID2)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPWPNP_PNPPID2_PID2_SHIFT 0
+#define SPWPNP_PNPPID2_PID2_MASK  0xffffffffU
+#define SPWPNP_PNPPID2_PID2_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPPID2_PID2_MASK ) >> SPWPNP_PNPPID2_PID2_SHIFT )
+#define SPWPNP_PNPPID2_PID2_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPPID2_PID2_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPPID2_PID2_SHIFT ) & \
+      SPWPNP_PNPPID2_PID2_MASK ) )
+#define SPWPNP_PNPPID2_PID2( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPPID2_PID2_SHIFT ) & SPWPNP_PNPPID2_PID2_MASK )
+
+/** @} */
+
+/**
  * @defgroup RTEMSDeviceGRLIBSPWPNPPNPACNT \
  *   SpaceWire Plug-and-Play - Application Count (PNPACNT)
  *
@@ -412,87 +526,247 @@ extern "C" {
 /** @} */
 
 /**
- * @brief This set of defines the SpaceWire Plug-and-Play address map.
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPTCC \
+ *   SpaceWire Plug-and-Play - Time-Code Counter (PNPTCC)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
  */
-typedef struct spwpnp {
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVEND.
-   */
-  uint32_t pnpvend;
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVER.
-   */
-  uint32_t pnpver;
+#define SPWPNP_PNPTCC_TC_SHIFT 0
+#define SPWPNP_PNPTCC_TC_MASK  0x3fU
+#define SPWPNP_PNPTCC_TC_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPTCC_TC_MASK ) >> SPWPNP_PNPTCC_TC_SHIFT )
+#define SPWPNP_PNPTCC_TC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPWPNP_PNPTCC_TC_MASK ) | \
+    ( ( ( _val ) << SPWPNP_PNPTCC_TC_SHIFT ) & SPWPNP_PNPTCC_TC_MASK ) )
+#define SPWPNP_PNPTCC_TC( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPTCC_TC_SHIFT ) & SPWPNP_PNPTCC_TC_MASK )
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPDEVSTS.
-   */
-  uint32_t pnpdevsts;
+/** @} */
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPACTLNK.
-   */
-  uint32_t pnpactlnk;
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPLSTS \
+ *   SpaceWire Plug-and-Play - Link Status (PNPLSTS)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA0.
-   */
-  uint32_t pnpoa0;
+#define SPWPNP_PNPLSTS_ND 0x80000000U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA1.
-   */
-  uint32_t pnpoa1;
+#define SPWPNP_PNPLSTS_LT 0x40000000U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA2.
-   */
-  uint32_t pnpoa2;
+#define SPWPNP_PNPLSTS_LS_SHIFT 16
+#define SPWPNP_PNPLSTS_LS_MASK  0x70000U
+#define SPWPNP_PNPLSTS_LS_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPLSTS_LS_MASK ) >> SPWPNP_PNPLSTS_LS_SHIFT )
+#define SPWPNP_PNPLSTS_LS_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~SPWPNP_PNPLSTS_LS_MASK ) | \
+    ( ( ( _val ) << SPWPNP_PNPLSTS_LS_SHIFT ) & SPWPNP_PNPLSTS_LS_MASK ) )
+#define SPWPNP_PNPLSTS_LS( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPLSTS_LS_SHIFT ) & SPWPNP_PNPLSTS_LS_MASK )
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPDEVID.
-   */
-  uint32_t pnpdevid;
+#define SPWPNP_PNPLSTS_CE 0x40U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPUVEND.
-   */
-  uint32_t pnpuvend;
+#define SPWPNP_PNPLSTS_ER 0x20U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPUSN.
-   */
-  uint32_t pnpusn;
+#define SPWPNP_PNPLSTS_PE 0x10U
 
-  uint16_t reserved_e_4000[ 8185 ];
+#define SPWPNP_PNPLSTS_DE 0x8U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVSTRL.
-   */
-  uint32_t pnpvstrl;
+#define SPWPNP_PNPLSTS_IA 0x2U
 
-  uint32_t reserved_4004_6000[ 2047 ];
+/** @} */
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPSTRL.
-   */
-  uint32_t pnppstrl;
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPLCTRL \
+ *   SpaceWire Plug-and-Play - Link Control (PNPLCTRL)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
 
-  uint32_t reserved_6004_8000[ 2047 ];
+#define SPWPNP_PNPLCTRL_TT 0x10U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPCNT.
-   */
-  uint32_t pnppcnt;
+#define SPWPNP_PNPLCTRL_LD 0x4U
 
-  uint32_t reserved_8004_c000[ 4095 ];
+#define SPWPNP_PNPLCTRL_LS 0x2U
 
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPACNT.
-   */
-  uint32_t pnpacnt;
-} spwpnp;
+#define SPWPNP_PNPLCTRL_AS 0x1U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPMWLEN \
+ *   SpaceWire Plug-and-Play - Maximum Write Length (PNPMWLEN)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPWPNP_PNPMWLEN_LEN_SHIFT 0
+#define SPWPNP_PNPMWLEN_LEN_MASK  0x7fffU
+#define SPWPNP_PNPMWLEN_LEN_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPMWLEN_LEN_MASK ) >> SPWPNP_PNPMWLEN_LEN_SHIFT )
+#define SPWPNP_PNPMWLEN_LEN_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPMWLEN_LEN_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPMWLEN_LEN_SHIFT ) & \
+      SPWPNP_PNPMWLEN_LEN_MASK ) )
+#define SPWPNP_PNPMWLEN_LEN( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPMWLEN_LEN_SHIFT ) & SPWPNP_PNPMWLEN_LEN_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBSPWPNPPNPMRLEN \
+ *   SpaceWire Plug-and-Play - Maximum Read Length (PNPMRLEN)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define SPWPNP_PNPMRLEN_LEN_SHIFT 0
+#define SPWPNP_PNPMRLEN_LEN_MASK  0x7fffU
+#define SPWPNP_PNPMRLEN_LEN_GET( _reg ) \
+  ( ( ( _reg ) & SPWPNP_PNPMRLEN_LEN_MASK ) >> SPWPNP_PNPMRLEN_LEN_SHIFT )
+#define SPWPNP_PNPMRLEN_LEN_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~SPWPNP_PNPMRLEN_LEN_MASK ) |    \
+    ( ( ( _val ) << SPWPNP_PNPMRLEN_LEN_SHIFT ) & \
+      SPWPNP_PNPMRLEN_LEN_MASK ) )
+#define SPWPNP_PNPMRLEN_LEN( _val ) \
+  ( ( ( _val ) << SPWPNP_PNPMRLEN_LEN_SHIFT ) & SPWPNP_PNPMRLEN_LEN_MASK )
+
+/** @} */
+
+/**
+ * @name Registers
+ *
+ * @brief This set of defines the SpaceWire Plug-and-Play address map.
+ *
+ * The offsets are the word addresses which an RMAP command of the SpaceWire
+ * Plug-and-Play protocol carries. The registers are not mapped into a memory
+ * address space, so the block defines the offsets and no structure.
+ *
+ * @{
+ */
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVEND.
+ */
+#define SPWPNP_PNPVEND 0x0
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVER.
+ */
+#define SPWPNP_PNPVER 0x1
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPDEVSTS.
+ */
+#define SPWPNP_PNPDEVSTS 0x2
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPACTLNK.
+ */
+#define SPWPNP_PNPACTLNK 0x3
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPLINFO.
+ */
+#define SPWPNP_PNPLINFO 0x4
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA0.
+ */
+#define SPWPNP_PNPOA0 0x5
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA1.
+ */
+#define SPWPNP_PNPOA1 0x6
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPOA2.
+ */
+#define SPWPNP_PNPOA2 0x7
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPDEVID.
+ */
+#define SPWPNP_PNPDEVID 0x8
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPUVEND.
+ */
+#define SPWPNP_PNPUVEND 0x9
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPUSN.
+ */
+#define SPWPNP_PNPUSN 0xa
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPVSTRL.
+ */
+#define SPWPNP_PNPVSTRL 0x4000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPSTRL.
+ */
+#define SPWPNP_PNPPSTRL 0x6000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPCNT.
+ */
+#define SPWPNP_PNPPCNT 0x8000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPID1.
+ */
+#define SPWPNP_PNPPID1 0x8001
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPPID2.
+ */
+#define SPWPNP_PNPPID2 0x8002
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPACNT.
+ */
+#define SPWPNP_PNPACNT 0xc000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPTCC.
+ */
+#define SPWPNP_PNPTCC 0x80000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPLSTS.
+ */
+#define SPWPNP_PNPLSTS 0x84008
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPLCTRL.
+ */
+#define SPWPNP_PNPLCTRL 0x84009
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPMWLEN.
+ */
+#define SPWPNP_PNPMWLEN 0x100000
+
+/**
+ * @brief See @ref RTEMSDeviceGRLIBSPWPNPPNPMRLEN.
+ */
+#define SPWPNP_PNPMRLEN 0x100001
+
+/** @} */
 
 /** @} */
 
