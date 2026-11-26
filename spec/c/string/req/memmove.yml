@@ -67,8 +67,14 @@ pre-conditions:
     text: |
       While the size specified by ${../if/memmove:/params[2]/name} is equal to one.
   - name: Short
-    test-code: |
-      ctx->n = 2;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->n = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->n = sizeof( long ) - 2;
+    test-code: null
     text: |
       While the size specified by ${../if/memmove:/params[2]/name} is greater than
       one, while the size specified by ${../if/memmove:/params[2]/name} is less than
@@ -85,44 +91,36 @@ pre-conditions:
     text: |
       While the size specified by ${../if/memmove:/params[2]/name} is equal to the
       size of type long.
-  - name: AboveWord
-    test-code: |
-      ctx->n = sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memmove:/params[2]/name} is equal to the
-      size of type long plus one.
-  - name: Medium
-    test-code: |
-      ctx->n = sizeof( long ) + 2;
-    text: |
-      While the size specified by ${../if/memmove:/params[2]/name} is greater than
-      the size of type long plus one, while the size specified by
-      ${../if/memmove:/params[2]/name} is less than four times the size of type long
-      minus one.
-  - name: BelowBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
-      times the size of type long minus one.
-  - name: Block
-    test-code: |
-      ctx->n = 4 * sizeof( long );
-    text: |
-      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
-      times the size of type long.
-  - name: AboveBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memmove:/params[2]/name} is equal to four
-      times the size of type long plus one.
-  - name: Long
-    test-code: |
-      ctx->n = 9 * sizeof( long ) + 1;
+  - name: More
+    representatives:
+    - name: WordPlusOne
+      test-code: |
+        ctx->n = sizeof( long ) + 1;
+    - name: WordPlusTwo
+      test-code: |
+        ctx->n = sizeof( long ) + 2;
+    - name: BlockMinusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 2;
+    - name: BlockMinusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 1;
+    - name: Block
+      test-code: |
+        ctx->n = 4 * sizeof( long );
+    - name: BlockPlusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 1;
+    - name: BlockPlusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 2;
+    - name: TwoBlocks
+      test-code: |
+        ctx->n = 9 * sizeof( long ) + 1;
+    test-code: null
     text: |
       While the size specified by ${../if/memmove:/params[2]/name} is greater than
-      four times the size of type long plus one.
+      the size of type long.
   test-epilogue: null
   test-prologue: null
 - name: DestAlignment
@@ -195,24 +193,20 @@ pre-conditions:
   test-prologue: null
 - name: Overlap
   states:
-  - name: DisjointBelow
-    test-code: |
-      ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
-      ctx->src_offset = 14 * sizeof( long ) + ctx->src_misalign;
+  - name: Disjoint
+    representatives:
+    - name: DestBelow
+      test-code: |
+        ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
+        ctx->src_offset = 14 * sizeof( long ) + ctx->src_misalign;
+    - name: DestAbove
+      test-code: |
+        ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
+        ctx->dest_offset = 14 * sizeof( long ) + ctx->dest_misalign;
+    test-code: null
     text: |
       While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
-      ${../if/memmove:/params[1]/name} parameters do not overlap, while the
-      ${../if/memmove:/params[0]/name} parameter is less than the
-      ${../if/memmove:/params[1]/name} parameter.
-  - name: DisjointAbove
-    test-code: |
-      ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
-      ctx->dest_offset = 14 * sizeof( long ) + ctx->dest_misalign;
-    text: |
-      While the memory areas referenced by the ${../if/memmove:/params[0]/name} and
-      ${../if/memmove:/params[1]/name} parameters do not overlap, while the
-      ${../if/memmove:/params[0]/name} parameter is greater than the
-      ${../if/memmove:/params[1]/name} parameter.
+      ${../if/memmove:/params[1]/name} parameters do not overlap.
   - name: Same
     test-code: |
       ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
@@ -243,14 +237,19 @@ pre-conditions:
   test-epilogue: null
   test-prologue: null
 rationale: |
-  Dimension N covers the size, 11 states. ${/ref/std/c23/memmove:/name} defines
+  Dimension N covers the size, 6 states. ${/ref/std/c23/memmove:/name} defines
   the copy for each size. A size of zero copies no byte. The implementation of
   the pre-qualified library compares the size against zero, the size of type long
-  and four times this size. The states Zero and One hold the boundary zero and
-  the value above it. Each other boundary has a state for the value below it, at
-  it and above it. The states Short, Medium and Long hold the values between and
-  after these states. A size beyond the memory areas is outside the domain, so N
-  has no state for the last value of the type.
+  and four times this size. The alignment of two overlapping memory areas sets
+  their least distance, and a size which does not exceed this distance leaves
+  them disjoint. The states One, Short, BelowWord and Word therefore remain
+  apart. The Short state takes the sizes two and two below the size of type long.
+  The More state takes the size of type long plus one and plus two and four times
+  this size. It also takes the sizes one and two below and above four times the
+  size of type long, and nine times this size plus one. The last size is the
+  largest which the buffer holds for two disjoint memory areas. A size beyond the
+  memory areas is outside the domain, so N has no state for the last value of the
+  type.
 
   Dimension DestAlignment covers the start address of the destination memory
   area, 4 states. Dimension SrcAlignment covers the start address of the source
@@ -263,10 +262,11 @@ rationale: |
   BelowAligned holds the largest offset. The state Between holds the offsets
   between them.
 
-  Dimension Overlap covers the relative position of the two memory areas, 5
+  Dimension Overlap covers the relative position of the two memory areas, 4
   states. ${/ref/std/c23/memmove:/name} defines the copy also for overlapping
-  areas. Two disjoint areas and two overlapping areas differ by the side of the
-  destination. Two equal pointers overlap in every byte.
+  areas. Two overlapping areas differ by the side of the destination. Two equal
+  pointers overlap in every byte. The Disjoint state places the destination below
+  and above the source.
 
   ${/ref/std/posix-2024/memmove:/name} states that the function does not change
   ${/c/errno/if/errno:/name} on valid input.
@@ -453,8 +453,7 @@ transition-map:
     DestAlignment: all
     SrcAlignment: all
     Overlap:
-    - DisjointBelow
-    - DisjointAbove
+    - Disjoint
 - enabled-by: true
   post-conditions:
     Result: Dest
@@ -477,12 +476,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id002
     SrcAlignment: *id003
     Overlap:
@@ -508,12 +502,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id002
     SrcAlignment: *id003
     Overlap:
@@ -552,12 +541,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id004
     SrcAlignment: *id005
     Overlap:
@@ -581,12 +565,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id004
     SrcAlignment: *id005
     Overlap:
@@ -623,12 +602,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id006
     SrcAlignment: *id007
     Overlap:
@@ -654,12 +628,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id006
     SrcAlignment: *id007
     Overlap:
@@ -694,12 +663,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id008
     SrcAlignment: *id009
     Overlap:
@@ -727,12 +691,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id008
     SrcAlignment: *id009
     Overlap:
@@ -766,12 +725,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id010
     SrcAlignment: *id011
     Overlap:
@@ -799,12 +753,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id010
     SrcAlignment: *id011
     Overlap:
@@ -841,12 +790,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id012
     SrcAlignment: *id013
     Overlap:
@@ -872,12 +816,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id012
     SrcAlignment: *id013
     Overlap:
@@ -916,12 +855,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id014
     SrcAlignment: *id015
     Overlap:
@@ -945,12 +879,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id014
     SrcAlignment: *id015
     Overlap:
@@ -987,12 +916,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id016
     SrcAlignment: *id017
     Overlap:
@@ -1018,12 +942,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id016
     SrcAlignment: *id017
     Overlap:
@@ -1059,12 +978,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id018
     SrcAlignment: *id019
     Overlap:
@@ -1090,12 +1004,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id018
     SrcAlignment: *id019
     Overlap:
@@ -1130,12 +1039,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id020
     SrcAlignment: *id021
     Overlap:
@@ -1163,12 +1067,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id020
     SrcAlignment: *id021
     Overlap:
@@ -1205,12 +1104,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id022
     SrcAlignment: *id023
     Overlap:
@@ -1236,12 +1130,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id022
     SrcAlignment: *id023
     Overlap:
@@ -1280,12 +1169,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id024
     SrcAlignment: *id025
     Overlap:
@@ -1309,12 +1193,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id024
     SrcAlignment: *id025
     Overlap:
@@ -1352,12 +1231,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id026
     SrcAlignment: *id027
     Overlap:
@@ -1381,12 +1255,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id026
     SrcAlignment: *id027
     Overlap:
@@ -1423,12 +1292,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id028
     SrcAlignment: *id029
     Overlap:
@@ -1454,12 +1318,7 @@ transition-map:
     N:
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id028
     SrcAlignment: *id029
     Overlap:
@@ -1494,12 +1353,7 @@ transition-map:
   pre-conditions:
     N:
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id030
     SrcAlignment: *id031
     Overlap:
@@ -1527,12 +1381,7 @@ transition-map:
     - Short
     - BelowWord
     - Word
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id030
     SrcAlignment: *id031
     Overlap:
@@ -1569,12 +1418,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id032
     SrcAlignment: *id033
     Overlap:
@@ -1600,12 +1444,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - AboveWord
-    - Medium
-    - BelowBlock
-    - Block
-    - AboveBlock
-    - Long
+    - More
     DestAlignment: *id032
     SrcAlignment: *id033
     Overlap:
