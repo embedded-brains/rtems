@@ -496,18 +496,18 @@ extern "C" {
  * @{
  */
 
-#define GRIOMMU_GRPCTRL_BASE_31_4_SHIFT 4
-#define GRIOMMU_GRPCTRL_BASE_31_4_MASK  0xfffffff0U
-#define GRIOMMU_GRPCTRL_BASE_31_4_GET( _reg )        \
-  ( ( ( _reg ) & GRIOMMU_GRPCTRL_BASE_31_4_MASK ) >> \
-    GRIOMMU_GRPCTRL_BASE_31_4_SHIFT )
-#define GRIOMMU_GRPCTRL_BASE_31_4_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRIOMMU_GRPCTRL_BASE_31_4_MASK ) |    \
-    ( ( ( _val ) << GRIOMMU_GRPCTRL_BASE_31_4_SHIFT ) & \
-      GRIOMMU_GRPCTRL_BASE_31_4_MASK ) )
-#define GRIOMMU_GRPCTRL_BASE_31_4( _val )             \
-  ( ( ( _val ) << GRIOMMU_GRPCTRL_BASE_31_4_SHIFT ) & \
-    GRIOMMU_GRPCTRL_BASE_31_4_MASK )
+#define GRIOMMU_GRPCTRL_BASE_31_2_SHIFT 2
+#define GRIOMMU_GRPCTRL_BASE_31_2_MASK  0xfffffffcU
+#define GRIOMMU_GRPCTRL_BASE_31_2_GET( _reg )        \
+  ( ( ( _reg ) & GRIOMMU_GRPCTRL_BASE_31_2_MASK ) >> \
+    GRIOMMU_GRPCTRL_BASE_31_2_SHIFT )
+#define GRIOMMU_GRPCTRL_BASE_31_2_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRIOMMU_GRPCTRL_BASE_31_2_MASK ) |    \
+    ( ( ( _val ) << GRIOMMU_GRPCTRL_BASE_31_2_SHIFT ) & \
+      GRIOMMU_GRPCTRL_BASE_31_2_MASK ) )
+#define GRIOMMU_GRPCTRL_BASE_31_2( _val )             \
+  ( ( ( _val ) << GRIOMMU_GRPCTRL_BASE_31_2_SHIFT ) & \
+    GRIOMMU_GRPCTRL_BASE_31_2_MASK )
 
 #define GRIOMMU_GRPCTRL_P 0x2U
 
@@ -719,30 +719,12 @@ typedef struct griommu {
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUMSTCFG.
    */
-  uint32_t mstcfg_0;
-
-  uint32_t reserved_44_64[ 8 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRIOMMUMSTCFG.
-   */
-  uint32_t mstcfg_1;
-
-  uint32_t reserved_68_80[ 6 ];
+  uint32_t mstcfg[ 16 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUGRPCTRL.
    */
-  uint32_t grpctrl_0;
-
-  uint32_t reserved_84_9c[ 6 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRIOMMUGRPCTRL.
-   */
-  uint32_t grpctrl_1;
-
-  uint32_t reserved_a0_c0[ 8 ];
+  uint32_t grpctrl[ 16 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUDIAGCTRL.
@@ -752,14 +734,7 @@ typedef struct griommu {
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUDIAGD.
    */
-  uint32_t diagd_0;
-
-  uint32_t reserved_c8_e0[ 6 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRIOMMUDIAGD.
-   */
-  uint32_t diagd_1;
+  uint32_t diagd[ 8 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUDIAGT.
@@ -781,14 +756,7 @@ typedef struct griommu {
   /**
    * @brief See @ref RTEMSDeviceGRIOMMUASMPCTRL.
    */
-  uint32_t asmpctrl_0;
-
-  uint32_t reserved_104_10c[ 2 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRIOMMUASMPCTRL.
-   */
-  uint32_t asmpctrl_1;
+  uint32_t asmpctrl[ 16 ];
 } griommu;
 
 /** @} */
