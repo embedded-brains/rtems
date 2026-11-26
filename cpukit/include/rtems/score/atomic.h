@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2015, 2024 embedded brains GmbH & Co. KG
+ * Copyright (C) 2015, 2026 embedded brains GmbH & Co. KG
  * COPYRIGHT (c) 2012-2013 Deng Hengyi.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,6 +78,8 @@
 
 #if defined( _RTEMS_SCORE_ATOMIC_USE_ATOMIC )
 
+typedef unsigned char Atomic_Uchar;
+
 typedef unsigned int Atomic_Uint;
 
 typedef unsigned long Atomic_Ulong;
@@ -108,6 +110,8 @@ typedef std::memory_order Atomic_Order;
 
 #elif defined( _RTEMS_SCORE_ATOMIC_USE_STDATOMIC )
 
+typedef atomic_uchar Atomic_Uchar;
+
 typedef atomic_uint Atomic_Uint;
 
 typedef atomic_ulong Atomic_Ulong;
@@ -137,6 +141,8 @@ typedef memory_order Atomic_Order;
 #define ATOMIC_INITIALIZER_FLAG ATOMIC_FLAG_INIT
 
 #else
+
+typedef unsigned char Atomic_Uchar;
 
 typedef unsigned int Atomic_Uint;
 
@@ -243,6 +249,34 @@ static inline void _Atomic_Init_uintptr(
 }
 
 /**
+ * @brief Loads value of Uchar considering the order.
+ *
+ * @param obj The CPU atomic Uchar to get the value from.
+ * @param order The atomic order for getting the value.
+ *
+ * @return The value of @a obj considering the @a order.
+ */
+static inline unsigned char _Atomic_Load_uchar(
+  const Atomic_Uchar *obj,
+  Atomic_Order        order
+)
+{
+#if defined( _RTEMS_SCORE_ATOMIC_USE_ATOMIC )
+  return reinterpret_cast< const std::atomic_uchar * >( obj )->load( order );
+#elif defined( _RTEMS_SCORE_ATOMIC_USE_STDATOMIC )
+  return atomic_load_explicit( obj, order );
+#else
+  unsigned char val;
+
+  (void) order;
+  val = *obj;
+  RTEMS_COMPILER_MEMORY_BARRIER();
+
+  return val;
+#endif
+}
+
+/**
  * @brief Loads value of Uint considering the order.
  *
  * @param obj The CPU atomic Uint to get the value from.
@@ -325,6 +359,30 @@ static inline uintptr_t _Atomic_Load_uintptr(
   RTEMS_COMPILER_MEMORY_BARRIER();
 
   return val;
+#endif
+}
+
+/**
+ * @brief Stores a value to Uchar considering the order.
+ *
+ * @param[out] obj The CPU atomic Uchar to store a value in.
+ * @param desired The desired value for @a obj.
+ * @param order The atomic order for storing the value.
+ */
+static inline void _Atomic_Store_uchar(
+  Atomic_Uchar *obj,
+  unsigned char desired,
+  Atomic_Order  order
+)
+{
+#if defined( _RTEMS_SCORE_ATOMIC_USE_ATOMIC )
+  reinterpret_cast< std::atomic_uchar * >( obj )->store( desired, order );
+#elif defined( _RTEMS_SCORE_ATOMIC_USE_STDATOMIC )
+  atomic_store_explicit( obj, desired, order );
+#else
+  (void) order;
+  RTEMS_COMPILER_MEMORY_BARRIER();
+  *obj = desired;
 #endif
 }
 
