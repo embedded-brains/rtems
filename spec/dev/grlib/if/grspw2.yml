@@ -52,6 +52,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: ACKRX_INTRXEXT
+  offset: 0xa8
+  variants: []
+- default:
+    count: 1
     name: INTTO
   offset: 0xac
   variants: []
@@ -109,6 +114,11 @@ definition:
     count: 1
     name: PNPVEND
   offset: 0xe0
+  variants: []
+- default:
+    count: 1
+    name: PNPLINFO
+  offset: 0xe4
   variants: []
 - default:
     count: 1
@@ -212,13 +222,6 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 23
-      width: 1
-    - brief: null
-      description: null
       name: LE
       properties:
       - r
@@ -274,13 +277,6 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 14
-      width: 1
-    - brief: null
-      description: null
       name: TL
       properties:
       - r
@@ -326,13 +322,6 @@ registers:
       - r
       - w
       start: 8
-      width: 1
-    - brief: null
-      description: null
-      name: R
-      properties:
-      - r
-      start: 7
       width: 1
     - brief: null
       description: null
@@ -410,8 +399,8 @@ registers:
       name: NTXD
       properties:
       - r
-      start: 25
-      width: 1
+      start: 24
+      width: 2
     - brief: null
       description: null
       name: LS
@@ -442,13 +431,6 @@ registers:
       - w1c
       start: 7
       width: 1
-    - brief: null
-      description: null
-      name: RES
-      properties:
-      - r
-      start: 5
-      width: 2
     - brief: null
       description: null
       name: PE
@@ -619,22 +601,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: RES
-      properties:
-      - r
-      start: 1
-      width: 1
-    - brief: null
-      description: null
       name: TQ
-      properties:
-      - r
-      - w
-      start: 21
-      width: 2
-    - brief: null
-      description: null
-      name: AQ
       properties:
       - r
       - w
@@ -642,7 +609,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: IQ
+      name: AQ
       properties:
       - r
       - w
@@ -650,9 +617,10 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: RES
+      name: IQ
       properties:
       - r
+      - w
       start: 18
       width: 1
     - brief: null
@@ -661,19 +629,11 @@ registers:
       properties:
       - r
       - w
-      start: 16
-      width: 2
-    - brief: null
-      description: null
-      name: AT
-      properties:
-      - r
-      - w
       start: 15
       width: 1
     - brief: null
       description: null
-      name: IT
+      name: AT
       properties:
       - r
       - w
@@ -681,9 +641,10 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: RES
+      name: IT
       properties:
       - r
+      - w
       start: 13
       width: 1
     - brief: null
@@ -692,15 +653,15 @@ registers:
       properties:
       - r
       - w1c
-      start: 8
-      width: 5
+      start: 7
+      width: 1
     - brief: null
       description: null
       name: II
       properties:
       - r
       - w
-      start: 7
+      start: 6
       width: 1
     - brief: null
       description: null
@@ -708,8 +669,8 @@ registers:
       properties:
       - r
       - w
-      start: 6
-      width: 1
+      start: 0
+      width: 6
     variants: []
   brief: |
     Interrupt distribution control
@@ -731,6 +692,22 @@ registers:
     Interrupt-code receive
   description: null
   name: INTRX
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RXACK_INTRXEXT
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Interrupt-acknowledge-code receive / Interrupt receive extended
+  description: null
+  name: ACKRX_INTRXEXT
   width: 32
 - bits:
   - default:
@@ -911,13 +888,6 @@ registers:
   - default:
     - brief: null
       description: null
-      name: R
-      properties:
-      - r
-      start: 31
-      width: 1
-    - brief: null
-      description: null
       name: RL
       properties:
       - r
@@ -1023,6 +993,63 @@ registers:
     SpaceWire Plug-and-Play - Device Vendor and Product ID
   description: null
   name: PNPVEND
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: OLA
+      properties:
+      - r
+      start: 24
+      width: 8
+    - brief: null
+      description: null
+      name: OAL
+      properties:
+      - r
+      start: 22
+      width: 2
+    - brief: null
+      description: null
+      name: OL
+      properties:
+      - r
+      start: 16
+      width: 5
+    - brief: null
+      description: null
+      name: RL
+      properties:
+      - r
+      start: 8
+      width: 5
+    - brief: null
+      description: null
+      name: T
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: U
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: LC
+      properties:
+      - r
+      start: 0
+      width: 5
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Link Information
+  description: null
+  name: PNPLINFO
   width: 32
 - bits:
   - default:

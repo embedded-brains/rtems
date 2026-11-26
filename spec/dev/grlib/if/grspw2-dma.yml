@@ -58,13 +58,6 @@ registers:
       width: 6
     - brief: null
       description: null
-      name: RES
-      properties:
-      - r
-      start: 24
-      width: 2
-    - brief: null
-      description: null
       name: EP
       properties:
       - r
@@ -270,13 +263,6 @@ registers:
       - w
       start: 2
       width: 23
-    - brief: null
-      description: null
-      name: RES
-      properties:
-      - r
-      start: 0
-      width: 2
     variants: []
   brief: |
     DMA RX maximum length
@@ -291,8 +277,8 @@ registers:
       properties:
       - r
       - w
-      start: 0
-      width: 32
+      start: 13
+      width: 19
     - brief: null
       description: null
       name: DESCSEL
@@ -300,11 +286,14 @@ registers:
       - r
       - w
       start: 4
-      width: 28
+      width: 9
     variants: []
   brief: |
     DMA transmit descriptor table address
-  description: null
+  description: |
+    DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+    boundary between them is bit 9 plus STS.NTXD. A driver which uses a smaller
+    table accesses the register as a whole.
   name: DMATXDESC
   width: 32
 - bits:
@@ -315,8 +304,8 @@ registers:
       properties:
       - r
       - w
-      start: 10
-      width: 22
+      start: 13
+      width: 19
     - brief: null
       description: null
       name: DESCSEL
@@ -324,11 +313,14 @@ registers:
       - r
       - w
       start: 3
-      width: 7
+      width: 10
     variants: []
   brief: |
     DMA receive descriptor table address
-  description: null
+  description: |
+    DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+    boundary between them is bit 9 plus STS.NRXD. A driver which uses a smaller
+    table accesses the register as a whole.
   name: DMARXDESC
   width: 32
 - bits:
