@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+author: Frontgrade Gaisler
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+month: October
+organization: Frontgrade Gaisler AB
+reference-type: manual
+title: GRLIB IP Core User's Manual (GRIP), Version 2026.3
+type: reference
+work-hash: v-nwMq0PsxbHWjc6mix-02CnjwcsPsxopYZ7mKoXrnk=
+work-url: https://download.gaisler.com/products/GRLIB/doc/grip.pdf
+year: '2026'
