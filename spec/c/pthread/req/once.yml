@@ -1,0 +1,831 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/once
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/pthread-once
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->retval, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/once:/name} shall be zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->retval, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/once:/name} shall be
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_PATTERN );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/once:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: Routine
+  states:
+  - name: Once
+    test-code: |
+      T_eq_u32( ctx->calls[ CALLS_ROUTINE ], 1 );
+      T_eq_u32( ctx->routine_id, ctx->caller_id );
+    text: |
+      The initialization routine referenced by the ${../if/once:/params[1]/name}
+      parameter shall be called once by the calling thread, before the
+      ${../if/once:/name} call returns.
+  - name: None
+    test-code: |
+      T_eq_u32( ctx->calls[ CALLS_ROUTINE ], 0 );
+    text: |
+      The initialization routine referenced by the ${../if/once:/params[1]/name}
+      parameter shall not be called.
+  test-epilogue: null
+  test-prologue: null
+- name: Completed
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_true( ctx->seen_completed );
+    text: |
+      When the ${../if/once:/name} call returns, the initialization routine
+      associated with the once-control object referenced by the
+      ${../if/once:/params[0]/name} parameter shall have completed.
+  test-epilogue: null
+  test-prologue: null
+- name: Effects
+  states:
+  - name: Visible
+    test-code: |
+      T_eq_u32( ctx->seen_data, DATA_DONE );
+    text: |
+      When the ${../if/once:/name} call returns, the effects of the initialization
+      routine shall be visible to the calling thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Control
+  states:
+  - name: Done
+    test-code: |
+      CheckControl( ctx, 0 );
+    text: |
+      A later ${../if/once:/name} call for the once-control object referenced by the
+      ${../if/once:/params[0]/name} parameter shall not call its initialization
+      routine.
+  - name: Nop
+    test-code: |
+      CheckControl( ctx, 1 );
+    text: |
+      A later ${../if/once:/name} call for the once-control object referenced by the
+      ${../if/once:/params[0]/name} parameter shall call its initialization routine
+      once, as if ${../if/once:/name} was never called for this object.
+  test-epilogue: null
+  test-prologue: null
+- name: Caller
+  states:
+  - name: Returned
+    test-code: |
+      T_true( ctx->returned );
+    text: |
+      The ${../if/once:/name} call shall return to the calling thread.
+  test-epilogue: null
+  test-prologue: null
+- name: Request
+  states:
+  - name: Kept
+    test-code: |
+      if ( ctx->request || ( ctx->cancel && ctx->state == STATE_PENDING ) ) {
+        T_false( ctx->survived );
+        T_eq_ptr( ctx->caller_exit, PTHREAD_CANCELED );
+      }
+
+      if ( ctx->cancel && ctx->state == STATE_RUNNING ) {
+        T_eq_ptr( ctx->other_exit, PTHREAD_CANCELED );
+      }
+    text: |
+      The ${../glossary/thread-cancel-request:/term} shall stay pending for the
+      thread to which it was made, so that the thread is terminated at its next call
+      of ${../if/testcancel:/name} after the ${../if/once:/name} call returned.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: Released
+    test-code: |
+      T_eq_u32( ctx->waiters_returned, WAITER_COUNT );
+      T_eq_u32( ctx->waiters_after_routine, WAITER_COUNT );
+      T_eq_u32( ctx->waiters_failed, 0 );
+      T_eq_u32( ctx->calls[ CALLS_WAITER ], 0 );
+    text: |
+      Each other thread which calls ${../if/once:/name} for the once-control object
+      referenced by the ${../if/once:/params[0]/name} parameter while the
+      initialization routine executes shall return zero from its call after the
+      initialization routine completed, without a call of its own initialization
+      routine.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Control
+  states:
+  - name: Obj
+    test-code: |
+      ctx->once_control = &ctx->once_obj;
+    text: |
+      While the ${../if/once:/params[0]/name} parameter references an object of type
+      ${/c/if/pthread_once_t:/name} which was initialized by
+      ${../if/once-init:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->once_control = NULL;
+    text: |
+      While the ${../if/once:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Routine
+  states:
+  - name: Valid
+    test-code: |
+      ctx->init_routine = Routine;
+    text: |
+      While the ${../if/once:/params[1]/name} parameter references an initialization
+      routine.
+  - name: 'Null'
+    test-code: |
+      ctx->init_routine = NULL;
+    text: |
+      While the ${../if/once:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: Pending
+    test-code: |
+      ctx->state = STATE_PENDING;
+    text: |
+      While the initialization routine associated with the once-control object
+      referenced by the ${../if/once:/params[0]/name} parameter has not been called.
+  - name: Running
+    test-code: |
+      ctx->state = STATE_RUNNING;
+    text: |
+      While another thread executes the initialization routine associated with the
+      once-control object referenced by the ${../if/once:/params[0]/name} parameter.
+  - name: Done
+    test-code: |
+      ctx->state = STATE_DONE;
+    text: |
+      While the initialization routine associated with the once-control object
+      referenced by the ${../if/once:/params[0]/name} parameter has completed.
+  test-epilogue: null
+  test-prologue: null
+- name: Request
+  states:
+  - name: None
+    test-code: |
+      ctx->request = false;
+    text: |
+      While no ${../glossary/thread-cancel-request:/term} is pending for the calling
+      thread.
+  - name: Pending
+    test-code: |
+      ctx->request = true;
+    text: |
+      While a ${../glossary/thread-cancel-request:/term} is pending for the calling
+      thread, while the ${../glossary/thread-cancel-state:/term} of the calling
+      thread is ${../if/cancel-enable:/name} and its
+      ${../glossary/thread-cancel-type:/term} is ${../if/cancel-deferred:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Cancel
+  states:
+  - name: None
+    test-code: |
+      ctx->cancel = false;
+    text: |
+      While the initialization routine does not call ${../if/testcancel:/name}.
+  - name: Point
+    test-code: |
+      ctx->cancel = true;
+    text: |
+      While the initialization routine calls ${../if/testcancel:/name}, while a
+      ${../glossary/thread-cancel-request:/term} is pending for the thread which
+      executes it, while the ${../glossary/thread-cancel-state:/term} of this thread
+      is ${../if/cancel-enable:/name} and its ${../glossary/thread-cancel-type:/term}
+      is ${../if/cancel-deferred:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Waiters
+  states:
+  - name: None
+    test-code: |
+      ctx->waiters = false;
+    text: |
+      While no other thread calls ${../if/once:/name} for the once-control object
+      referenced by the ${../if/once:/params[0]/name} parameter during the execution
+      of the initialization routine.
+  - name: Some
+    test-code: |
+      ctx->waiters = true;
+    text: |
+      While other threads call ${../if/once:/name} for the once-control object
+      referenced by the ${../if/once:/params[0]/name} parameter during the execution
+      of the initialization routine.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/pthread-once:/name} specifies ${../if/once:/name}.
+
+  Dimension State covers the once-control object, 3 states. The standard requires
+  that the first call calls the routine, that later calls do not call it, and
+  that the routine has completed on return. Pending is the first call, Done a
+  later call, and Running a call while another thread executes the routine. The
+  caller then returns after the completion. Where the system has more than one
+  processor, the caller of the states Running and Done runs on another processor
+  than the thread which executes the routine, so that the test checks the
+  visibility of the effects of the routine.
+
+  Dimension Request covers the statement that the function is not a cancellation
+  point. A pending request of the calling thread does not end the call.
+
+  Dimension Cancel covers a routine which calls ${../if/testcancel:/name} with a
+  pending request. RTEMS delays the request of the thread until the call returns,
+  so the routine completes, the once-control object is complete, and a waiting
+  caller does not call its routine. The request stays pending. This follows the
+  constraint ${../constraint/once-cancel:/spec}. This deviates from the standard.
+
+  Dimension Waiters covers other threads which call the function while the
+  routine executes. They return after the completion without a call of their
+  routine.
+
+  The standard requires the return value zero and forbids EINTR. RTEMS extends
+  the standard with ${/c/errno/if/einval:/name} for a ${/c/if/null:/name}
+  parameter. This holds for every state. Dimension Control and Routine cover the
+  extension. The function does not change ${/c/errno/if/errno:/name}.
+
+  The constraints of the interface cover the behaviour which the standard leaves
+  undefined, and the recursive call, which does not return.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  Prepare( ctx );
+  ctx->caller_id = CreateTask( "CALL", PRIO_HIGH );
+
+  if ( ctx->caller_cpu != 0 ) {
+    /* The processor with the index one belongs to the scheduler B. */
+    SetScheduler( ctx->caller_id, SCHEDULER_B_ID, PRIO_HIGH );
+  }
+
+  SetAffinityOne( ctx->caller_id, ctx->caller_cpu );
+  StartTask( ctx->caller_id, Caller, ctx );
+
+  if ( ctx->state == STATE_RUNNING ) {
+    if ( ctx->once_control != NULL && ctx->init_routine != NULL ) {
+      T_true( WaitForBlockedState(
+        ctx->caller_id,
+        STATES_WAITING_FOR_CONDITION_VARIABLE,
+        &ctx->caller_done
+      ) );
+      T_eq_uint( GetFlag( &ctx->caller_done ), 0 );
+    }
+
+    SendEvents( ctx->other_id, RTEMS_EVENT_0 );
+    T_eq_int( pthread_join( (pthread_t) ctx->other_id, &ctx->other_exit ), 0 );
+  }
+
+  T_eq_int( pthread_join( (pthread_t) ctx->caller_id, &ctx->caller_exit ), 0 );
+test-brief: null
+test-cleanup: |
+  if ( ctx->waiters ) {
+    size_t i;
+
+    for ( i = 0; i < WAITER_COUNT; ++i ) {
+      DeleteTask( ctx->waiter_id[ i ] );
+    }
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/once:/params[0]/name} parameter value.
+  description: null
+  member: |
+    pthread_once_t *once_control
+- brief: |
+    This member specifies the ${../if/once:/params[1]/name} parameter value.
+  description: null
+  member: |
+    void ( *init_routine )( void )
+- brief: |
+    This member contains the return value of the ${../if/once:/name} call.
+  description: null
+  member: |
+    int retval
+- brief: |
+    This member contains the value of errno after the ${../if/once:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member provides the once-control object.
+  description: null
+  member: |
+    pthread_once_t once_obj
+- brief: |
+    This member specifies the state of the once-control object.
+  description: null
+  member: |
+    State state
+- brief: |
+    This member is true, if a cancel request shall be pending for the calling
+    thread.
+  description: null
+  member: |
+    bool request
+- brief: |
+    This member is true, if the initialization routine shall reach a cancellation
+    point with a pending cancel request.
+  description: null
+  member: |
+    bool cancel
+- brief: |
+    This member is true, if other threads shall call the function during the
+    execution of the initialization routine.
+  description: null
+  member: |
+    bool waiters
+- brief: |
+    This member contains the identifier of the runner task.
+  description: null
+  member: |
+    rtems_id runner_id
+- brief: |
+    This member contains the identifier of the caller task.
+  description: null
+  member: |
+    rtems_id caller_id
+- brief: |
+    This member contains the identifier of the other task, which executes the
+    initialization routine while the caller task calls the function.
+  description: null
+  member: |
+    rtems_id other_id
+- brief: |
+    This member contains the index of the processor of the caller task.
+  description: null
+  member: |
+    uint32_t caller_cpu
+- brief: |
+    This member contains the identifier of the task which executed the
+    initialization routine of the caller task.
+  description: null
+  member: |
+    rtems_id routine_id
+- brief: |
+    This member contains the counts of the calls of the initialization routines,
+    indexed by the routine.
+  description: null
+  member: |
+    uint32_t calls[ CALLS_COUNT ]
+- brief: |
+    This member is set by the initialization routines.
+  description: null
+  member: |
+    uint32_t data
+- brief: |
+    This member is true, if an initialization routine completed.
+  description: null
+  member: |
+    bool routine_completed
+- brief: |
+    This member contains the value of the data member which the caller task read
+    after the call.
+  description: null
+  member: |
+    uint32_t seen_data
+- brief: |
+    This member is true, if the caller task read the completion state of the
+    initialization routine as true after the call.
+  description: null
+  member: |
+    bool seen_completed
+- brief: |
+    This member is true, if the caller task continued after a call of
+    ${../if/testcancel:/name} which it made with a pending request.
+  description: null
+  member: |
+    bool survived
+- brief: |
+    This member is true, if the call returned to the caller task.
+  description: null
+  member: |
+    bool returned
+- brief: |
+    This member is set to one, when the caller task ended its call.
+  description: null
+  member: |
+    Atomic_Uint caller_done
+- brief: |
+    This member contains the exit value of the caller task.
+  description: null
+  member: |
+    void *caller_exit
+- brief: |
+    This member contains the exit value of the other task.
+  description: null
+  member: |
+    void *other_exit
+- brief: |
+    This member contains the identifiers of the waiter tasks.
+  description: null
+  member: |
+    rtems_id waiter_id[ WAITER_COUNT ]
+- brief: |
+    This member contains the count of waiter tasks whose call returned.
+  description: null
+  member: |
+    uint32_t waiters_returned
+- brief: |
+    This member contains the count of waiter tasks whose call returned a value
+    other than zero.
+  description: null
+  member: |
+    uint32_t waiters_failed
+- brief: |
+    This member contains the count of waiter tasks whose call returned after the
+    initialization routine completed.
+  description: null
+  member: |
+    uint32_t waiters_after_routine
+test-context-support: |
+  #define WAITER_COUNT 2
+
+  #define DATA_DONE 0x600dd00d
+
+  typedef enum {
+    CALLS_ROUTINE,
+    CALLS_OTHER,
+    CALLS_PROBE,
+    CALLS_WAITER,
+    CALLS_COUNT
+  } Calls;
+
+  typedef enum { STATE_PENDING, STATE_RUNNING, STATE_DONE } State;
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- pthread.h
+- string.h
+- rtems.h
+- rtems/score/statesimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->once_control = NULL;
+  ctx->init_routine = NULL;
+  ctx->retval = -1;
+  ctx->errno_value = -1;
+  ctx->state = STATE_PENDING;
+  ctx->request = false;
+  ctx->cancel = false;
+  ctx->waiters = false;
+  ctx->caller_id = RTEMS_ID_NONE;
+  ctx->other_id = RTEMS_ID_NONE;
+  ctx->caller_cpu = 0;
+  ctx->routine_id = RTEMS_ID_NONE;
+  memset( &ctx->calls, 0, sizeof( ctx->calls ) );
+  ctx->data = 0;
+  ctx->routine_completed = false;
+  ctx->seen_data = 0;
+  ctx->seen_completed = false;
+  ctx->returned = false;
+  ctx->survived = false;
+  SetFlag( &ctx->caller_done, 0 );
+  ctx->caller_exit = NULL;
+  ctx->other_exit = NULL;
+  memset( &ctx->waiter_id, 0, sizeof( ctx->waiter_id ) );
+  ctx->waiters_returned = 0;
+  ctx->waiters_failed = 0;
+  ctx->waiters_after_routine = 0;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    SetSelfAffinityOne( 0 );
+    ctx->runner_id = rtems_task_self();
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #define ERRNO_PATTERN 1234
+
+  static const pthread_once_t once_init = PTHREAD_ONCE_INIT;
+
+  static int caller_exit_object;
+
+  static int other_exit_object;
+
+  static void Routine( void )
+  {
+    Context *ctx;
+    size_t   i;
+
+    ctx = &CPthreadReqOnce_Instance;
+    ++ctx->calls[ CALLS_ROUTINE ];
+    ctx->routine_id = rtems_task_self();
+
+    for ( i = 0; ctx->waiters && i < WAITER_COUNT; ++i ) {
+      /*
+       * The waiter has a higher priority.  It runs now, calls the function for
+       * the once-control object, whose routine this thread executes, and waits.
+       * This thread continues, once the waiter is blocked.
+       */
+      SendEvents( ctx->waiter_id[ i ], RTEMS_EVENT_0 );
+    }
+
+    if ( ctx->cancel && ctx->state == STATE_PENDING ) {
+      T_eq_int( pthread_cancel( pthread_self() ), 0 );
+      pthread_testcancel();
+    }
+
+    ctx->data = DATA_DONE;
+    ctx->routine_completed = true;
+  }
+
+  static void OtherRoutine( void )
+  {
+    Context *ctx;
+
+    ctx = &CPthreadReqOnce_Instance;
+    ++ctx->calls[ CALLS_OTHER ];
+
+    /* The caller task calls the function, while this routine waits. */
+    (void) ReceiveAnyEvents();
+
+    if ( ctx->cancel ) {
+      T_eq_int( pthread_cancel( pthread_self() ), 0 );
+      pthread_testcancel();
+    }
+
+    ctx->data = DATA_DONE;
+    ctx->routine_completed = true;
+  }
+
+  static void ProbeRoutine( void )
+  {
+    ++CPthreadReqOnce_Instance.calls[ CALLS_PROBE ];
+  }
+
+  static void WaiterRoutine( void )
+  {
+    ++CPthreadReqOnce_Instance.calls[ CALLS_WAITER ];
+  }
+
+  static void Waiter( rtems_task_argument arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = (Context *) arg;
+    (void) ReceiveAnyEvents();
+    eno = pthread_once( &ctx->once_obj, WaiterRoutine );
+
+    if ( eno != 0 ) {
+      ++ctx->waiters_failed;
+    }
+
+    if ( ctx->routine_completed ) {
+      ++ctx->waiters_after_routine;
+    }
+
+    ++ctx->waiters_returned;
+    SuspendSelf();
+  }
+
+  static void Other( rtems_task_argument arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = (Context *) arg;
+    SetCancelability( PTHREAD_CANCEL_ENABLE, PTHREAD_CANCEL_DEFERRED );
+    eno = pthread_once( &ctx->once_obj, OtherRoutine );
+    T_eq_int( eno, 0 );
+
+    if ( ctx->cancel ) {
+      pthread_testcancel();
+    }
+
+    pthread_exit( &other_exit_object );
+  }
+
+  static void Caller( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    if ( ctx->request ) {
+      /* The request stays pending, since the cancel state is disabled. */
+      DisableCancelability( NULL, NULL );
+      T_eq_int( pthread_cancel( pthread_self() ), 0 );
+    }
+
+    SetCancelability( PTHREAD_CANCEL_ENABLE, PTHREAD_CANCEL_DEFERRED );
+    T_eq_u32( rtems_scheduler_get_processor(), ctx->caller_cpu );
+    errno = ERRNO_PATTERN;
+    ctx->retval = pthread_once( ctx->once_control, ctx->init_routine );
+    ctx->errno_value = errno;
+    ctx->seen_data = ctx->data;
+    ctx->seen_completed = ctx->routine_completed;
+    ctx->returned = true;
+    SetFlag( &ctx->caller_done, 1 );
+
+    if ( ctx->request || ( ctx->cancel && ctx->state == STATE_PENDING ) ) {
+      /* The request is still pending, so the thread ends here. */
+      pthread_testcancel();
+      ctx->survived = true;
+    }
+
+    pthread_exit( &caller_exit_object );
+  }
+
+  static void Prepare( Context *ctx )
+  {
+    int    eno;
+    size_t i;
+
+    ctx->once_obj = once_init;
+
+    switch ( ctx->state ) {
+      case STATE_DONE:
+        eno = pthread_once( &ctx->once_obj, Routine );
+        T_eq_int( eno, 0 );
+        T_eq_u32( ctx->calls[ CALLS_ROUTINE ], 1 );
+        ctx->calls[ CALLS_ROUTINE ] = 0;
+        ctx->routine_id = RTEMS_ID_NONE;
+        break;
+      case STATE_RUNNING:
+        ctx->other_id = CreateTask( "OTHR", PRIO_HIGH );
+        SetAffinityOne( ctx->other_id, 0 );
+
+        /*
+         * The other task has a higher priority than the runner on the same
+         * processor.  It runs now and waits in its initialization routine.
+         */
+        StartTask( ctx->other_id, Other, ctx );
+        T_eq_u32( ctx->calls[ CALLS_OTHER ], 1 );
+        break;
+      default:
+        break;
+    }
+
+    if ( ctx->waiters ) {
+      for ( i = 0; i < WAITER_COUNT; ++i ) {
+        ctx->waiter_id[ i ] = CreateTask( "WAIT", PRIO_VERY_HIGH );
+        SetAffinityOne( ctx->waiter_id[ i ], 0 );
+        StartTask( ctx->waiter_id[ i ], Waiter, ctx );
+      }
+    }
+
+    if (
+      ctx->state != STATE_PENDING && rtems_scheduler_get_processor_maximum() > 1
+    ) {
+      ctx->caller_cpu = 1;
+    }
+  }
+
+  static void CheckControl( Context *ctx, uint32_t probe_calls )
+  {
+    int eno;
+
+    eno = pthread_once( &ctx->once_obj, ProbeRoutine );
+    T_eq_int( eno, 0 );
+    T_eq_u32( ctx->calls[ CALLS_PROBE ], probe_calls );
+  }
+test-target: testsuites/validation/tc-pthread-once.c
+test-teardown:
+  brief: null
+  code: |
+    SetSelfAffinityAll();
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Control: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+      then: Inval
+    - else: Ok
+    Errno: Nop
+    Routine:
+    - if:
+        pre-conditions:
+          Control: 'Null'
+      then: None
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+      then: None
+    - if:
+        pre-conditions:
+          State: Pending
+      then: Once
+    - else: None
+    Completed:
+    - if:
+        pre-conditions:
+          Control: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+      then: N/A
+    - else: 'Yes'
+    Effects:
+    - if:
+        pre-conditions:
+          Control: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+      then: N/A
+    - else: Visible
+    Control:
+    - if:
+        pre-conditions:
+          Control: 'Null'
+      then: N/A
+    - if:
+        pre-conditions:
+          Routine: 'Null'
+          State: Pending
+      then: Nop
+    - else: Done
+    Caller: Returned
+    Request:
+    - if:
+        pre-conditions:
+          Request: Pending
+      then: Kept
+    - if:
+        pre-conditions:
+          Cancel: Point
+      then: Kept
+    - else: N/A
+    Waiters:
+    - if:
+        pre-conditions:
+          Waiters: Some
+      then: Released
+    - else: N/A
+  pre-conditions:
+    Control: all
+    Routine: all
+    State:
+      applicable:
+        pre-conditions:
+          Control: Obj
+    Request:
+      applicable:
+        pre-conditions:
+          Control: Obj
+          Routine: Valid
+    Cancel:
+      applicable:
+        pre-conditions:
+          Control: Obj
+          Routine: Valid
+          State:
+          - Pending
+          - Running
+    Waiters:
+      applicable:
+        pre-conditions:
+          Cancel: None
+          Control: Obj
+          Request: None
+          Routine: Valid
+          State: Pending
+type: requirement

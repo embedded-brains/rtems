@@ -1,0 +1,84 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Dynamically initialize a package using the once-control object referenced by
+  ${.:/params[0]/name} and the initialization routine specified by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/pthread_once_t:/name} *${.:/params[0]/name}
+    - void ( *${.:/params[1]/name} )( void )
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: constraint
+  uid: ../constraint/once-cancel
+- role: constraint
+  uid: ../constraint/once-initialized
+- role: constraint
+  uid: ../constraint/once-no-exit
+- role: constraint
+  uid: ../constraint/once-no-jump
+- role: constraint
+  uid: ../constraint/once-no-recursion
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The ${.:/params[1]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/pthread-once
+name: pthread_once
+notes: |
+  See ${/ref/std/posix-2024/pthread-once:/name}.
+
+  A caller which waits in ${.:/name} has its thread life protected. The system
+  delays a ${../if/cancel:/name}, a ${/rtems/task/if/restart:/name} or a
+  ${/rtems/task/if/delete:/name} of this caller until its ${.:/name} call
+  returns. A ${/rtems/task/if/delete:/name} does not return before that. Together
+  with the constraint that the initialization routine shall not end its thread,
+  the deleting task then waits forever as well. The standard does not state this.
+
+  ${.:/params[1]/name} runs without the mutex of `_Once()`. A caller of high
+  priority which waits for a routine of a thread of low priority gives that
+  thread no priority. A thread of medium priority can therefore delay the waiter
+  without bound. The standard does not state this.
+params:
+- description: |
+    is the once-control object used to ensure the initialization routine is called
+    only once.
+  dir: inout
+  name: once_control
+- description: |
+    is the pointer to the initialization routine.
+  dir: null
+  name: init_routine
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      The ${.:/params[0]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+  - description: |
+      The ${.:/params[1]/name} parameter was ${/c/if/null:/name}.
+    value: ${/c/errno/if/einval:/name}
+type: interface

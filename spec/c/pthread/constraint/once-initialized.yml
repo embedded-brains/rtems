@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  The once-control object shall not have automatic storage duration and shall be
+  initialized by ${../if/once-init:/name}. Otherwise, the behaviour of
+  ${../if/once:/name} is undefined.
+type: constraint

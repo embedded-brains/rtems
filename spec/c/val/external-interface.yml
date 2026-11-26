@@ -86,6 +86,8 @@ links:
 - role: validation
   uid: /c/pthread/if/mutex-recursive
 - role: validation
+  uid: /c/pthread/if/once-init
+- role: validation
   uid: /c/sched/if/other
 - role: validation
   uid: /c/pthread/if/prio-inherit
@@ -101,6 +103,8 @@ links:
   uid: /c/if/pthread_mutex_t
 - role: validation
   uid: /c/if/pthread_mutexattr_t
+- role: validation
+  uid: /c/if/pthread_once_t
 - role: validation
   uid: /c/sched/if/rr
 - role: validation

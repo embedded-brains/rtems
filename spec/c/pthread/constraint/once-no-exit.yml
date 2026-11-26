@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: |
+  ${/ref/std/posix-2024/pthread-once:/name} does not state the effect of a thread
+  which ends in the initialization routine. In RTEMS, the once-control object
+  stays in progress. Every later caller of ${../if/once:/name} with it, and every
+  caller which waits for it, waits forever.
+text: |
+  The initialization routine shall not end the thread which executes it, for
+  example by a call to ${../if/exit:/name} or ${/rtems/task/if/exit:/name}.
+type: constraint
