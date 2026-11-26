@@ -444,6 +444,31 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRGPIOLSR Logical-Set&Clear registers (LSR)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * Each register pair updates one register by two consecutive writes. The first
+ * write goes to the lower address of the pair and sets bits. The second write
+ * goes to the higher address and clears bits. An access to the core between
+ * the two writes cancels the update.
+ *
+ * @{
+ */
+
+#define GRGPIO_LSR_VALUE_SHIFT 0
+#define GRGPIO_LSR_VALUE_MASK  0xffffffffU
+#define GRGPIO_LSR_VALUE_GET( _reg ) \
+  ( ( ( _reg ) & GRGPIO_LSR_VALUE_MASK ) >> GRGPIO_LSR_VALUE_SHIFT )
+#define GRGPIO_LSR_VALUE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRGPIO_LSR_VALUE_MASK ) | \
+    ( ( ( _val ) << GRGPIO_LSR_VALUE_SHIFT ) & GRGPIO_LSR_VALUE_MASK ) )
+#define GRGPIO_LSR_VALUE( _val ) \
+  ( ( ( _val ) << GRGPIO_LSR_VALUE_SHIFT ) & GRGPIO_LSR_VALUE_MASK )
+
+/** @} */
+
+/**
  * @brief This structure defines the GRGPIO register block memory map.
  */
 typedef struct grgpio {
@@ -512,7 +537,10 @@ typedef struct grgpio {
    */
   uint32_t pulse;
 
-  uint32_t reserved_50_54;
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLOR.
+   */
+  uint32_t lor_ipen;
 
   /**
    * @brief See @ref RTEMSDeviceGRGPIOLOR.
@@ -529,7 +557,10 @@ typedef struct grgpio {
    */
   uint32_t lor_imask;
 
-  uint32_t reserved_60_64;
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLAND.
+   */
+  uint32_t land_ipen;
 
   /**
    * @brief See @ref RTEMSDeviceGRGPIOLAND.
@@ -546,7 +577,10 @@ typedef struct grgpio {
    */
   uint32_t land_imask;
 
-  uint32_t reserved_70_74;
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLXOR.
+   */
+  uint32_t lxor_ipen;
 
   /**
    * @brief See @ref RTEMSDeviceGRGPIOLXOR.
@@ -562,6 +596,46 @@ typedef struct grgpio {
    * @brief See @ref RTEMSDeviceGRGPIOLXOR.
    */
   uint32_t lxor_imask;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_ipen_set;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_ipen_clr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_output_set;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_output_clr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_direction_set;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_direction_clr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_imask_set;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRGPIOLSR.
+   */
+  uint32_t lsr_imask_clr;
 } grgpio;
 
 /** @} */
