@@ -36,6 +36,9 @@ actions:
     - validation-non-smp
     - validation-one-cpu-0
     - validation-one-cpu-1
+    - validation-record-0
+    - validation-record-1
+    - validation-record-2
     - validation-timecounter-0
     - validation-timecounter-1
     - validation-tls-0
