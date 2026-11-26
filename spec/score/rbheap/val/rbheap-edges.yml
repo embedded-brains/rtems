@@ -46,13 +46,16 @@ test-actions:
   - role: validation
     uid: ../req/find
 - action-brief: |
-    Allocate, resize and free with huge sizes and invalid blocks.
+    Allocate, resize and free with huge sizes and invalid blocks. Extend a heap by
+    an area of a huge size.
   action-code: |
     RunHuge( ctx );
   checks: []
   links:
   - role: validation
     uid: ../req/slab
+  - role: validation
+    uid: ../req/extend
 - action-brief: |
     Allocate blocks from a heap whose slab source returns no slab. Initialize heaps
     with slabs and invalid memory areas.
@@ -438,6 +441,7 @@ test-support: |
     RBHeap_control *heap;
     void           *ptr;
     uintptr_t       old_size;
+    uintptr_t       begin;
 
     heap = &ctx->heap;
     Init( ctx, 0, AREA_SIZE );
@@ -461,6 +465,19 @@ test-support: |
     T_false( _RBHeap_Free( heap, ctx->area ) );
     T_false( _RBHeap_Size_of_block( heap, ctx->area, &old_size ) );
     T_true( _RBHeap_Free( heap, NULL ) );
+    T_true( _RBHeap_Walk( heap ) );
+
+    /*
+     * The heap has spare descriptors, so the extension writes nothing into the
+     * area.  No allocation takes a block of it.
+     */
+    Init( ctx, 0, AREA_SIZE );
+    begin = (uintptr_t) &ctx->area[ AREA_SIZE ] + RBHEAP_SLAB_SIZE;
+    T_true( _RBHeap_Extend( heap, (void *) begin, UINTPTR_MAX ) );
+    T_eq_uptr(
+      heap->area_end,
+      ( begin + RBHEAP_MAX_SIZE ) & ~( (uintptr_t) RBHEAP_ALIGNMENT - 1 )
+    );
     T_true( _RBHeap_Walk( heap ) );
   }
 
