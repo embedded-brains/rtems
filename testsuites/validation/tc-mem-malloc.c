@@ -36,6 +36,7 @@
 #endif
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "tx-heap.h"
@@ -144,6 +145,22 @@ typedef struct {
     size_t pcs[ 2 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 18 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -168,13 +185,200 @@ typedef struct {
 
 static CReqMalloc_Context CReqMalloc_Instance;
 
-static const char *const CReqMalloc_PreDesc_Size[] =
-  { "Zero", "NonZero", "NA" };
+static const char *const CReqMalloc_PreDesc_Size[] = {
+  "Zero",
+  "NonZeroOne",
+  "NonZeroMinMinusOne",
+  "NonZeroMin",
+  "NonZeroMinPlusOne",
+  "NonZeroUnitMinusOne",
+  "NonZeroUnit",
+  "NonZeroUnitPlusOne",
+  "NonZeroSlab",
+  "NonZeroMax",
+  "NonZeroAboveMax",
+  "NonZeroSizeMax",
+  "NA"
+};
 
-static const char *const CReqMalloc_PreDesc_Fit[] = { "Yes", "No", "NA" };
+static const char *const CReqMalloc_PreDesc_Fit[] =
+  { "YesEmpty", "YesExact", "NoExhausted", "NoShort", "NA" };
 
 static const char *const *const CReqMalloc_PreDesc[] =
   { CReqMalloc_PreDesc_Size, CReqMalloc_PreDesc_Fit, NULL };
+
+typedef enum {
+  CReqMalloc_Pre_Size_NonZero_One,
+  CReqMalloc_Pre_Size_NonZero_MinMinusOne,
+  CReqMalloc_Pre_Size_NonZero_Min,
+  CReqMalloc_Pre_Size_NonZero_MinPlusOne,
+  CReqMalloc_Pre_Size_NonZero_UnitMinusOne,
+  CReqMalloc_Pre_Size_NonZero_Unit,
+  CReqMalloc_Pre_Size_NonZero_UnitPlusOne,
+  CReqMalloc_Pre_Size_NonZero_Slab,
+  CReqMalloc_Pre_Size_NonZero_Max,
+  CReqMalloc_Pre_Size_NonZero_AboveMax,
+  CReqMalloc_Pre_Size_NonZero_SizeMax
+} CReqMalloc_Pre_Size_NonZero_Rep;
+
+typedef enum {
+  CReqMalloc_Pre_Fit_Yes_Empty,
+  CReqMalloc_Pre_Fit_Yes_Exact
+} CReqMalloc_Pre_Fit_Yes_Rep;
+
+typedef enum {
+  CReqMalloc_Pre_Fit_No_Exhausted,
+  CReqMalloc_Pre_Fit_No_Short
+} CReqMalloc_Pre_Fit_No_Rep;
+
+static const uint8_t CReqMalloc_PreRepOffset_Size[] = { 0, 1, 12, 13 };
+
+static const uint8_t CReqMalloc_PreRepOffset_Fit[] = { 0, 2, 4, 5 };
+
+static const uint8_t *const CReqMalloc_PreRepOffset[] = {
+  CReqMalloc_PreRepOffset_Size,
+  CReqMalloc_PreRepOffset_Fit
+};
+
+static size_t CReqMalloc_GetRepresentativeCountOf(
+  const CReqMalloc_Context *ctx,
+  size_t                    index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CReqMalloc_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CReqMalloc_GetRepresentative(
+  const CReqMalloc_Context *ctx,
+  size_t                    index
+)
+{
+  size_t count;
+
+  count = CReqMalloc_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CReqMalloc_GetRepresentativeCount(
+  const CReqMalloc_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 2; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CReqMalloc_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CReqMalloc_Pre_Size_NonZero_Rep
+CReqMalloc_Pre_Size_NonZero_GetRepresentative( const CReqMalloc_Context *ctx )
+{
+  return (
+    CReqMalloc_Pre_Size_NonZero_Rep
+  ) CReqMalloc_GetRepresentative( ctx, 0 );
+}
+
+static CReqMalloc_Pre_Fit_Yes_Rep CReqMalloc_Pre_Fit_Yes_GetRepresentative(
+  const CReqMalloc_Context *ctx
+)
+{
+  return (CReqMalloc_Pre_Fit_Yes_Rep) CReqMalloc_GetRepresentative( ctx, 1 );
+}
+
+static CReqMalloc_Pre_Fit_No_Rep CReqMalloc_Pre_Fit_No_GetRepresentative(
+  const CReqMalloc_Context *ctx
+)
+{
+  return (CReqMalloc_Pre_Fit_No_Rep) CReqMalloc_GetRepresentative( ctx, 1 );
+}
+
+static const uint8_t CReqMalloc_PreRepBase[] = { 0, 13 };
+
+static const uint8_t CReqMalloc_PreRepStates[] = { 2, 2 };
+
+static void CReqMalloc_ResetRepresentatives( CReqMalloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 18; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CReqMalloc_MarkRepresentatives( CReqMalloc_Context *ctx )
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 2; ++i ) {
+    size_t rep;
+
+    rep = CReqMalloc_PreRepBase[ i ] +
+          CReqMalloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CReqMalloc_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CReqMalloc_CheckRepresentatives( const CReqMalloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 2; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CReqMalloc_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CReqMalloc_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CReqMalloc_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CReqMalloc_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static void CReqMalloc_Pre_Size_Prepare(
   CReqMalloc_Context *ctx,
@@ -194,7 +398,62 @@ static void CReqMalloc_Pre_Size_Prepare(
       /*
        * While the `size` parameter is not equal to zero.
        */
-      ctx->size = 1;
+      switch ( CReqMalloc_Pre_Size_NonZero_GetRepresentative( ctx ) ) {
+        case CReqMalloc_Pre_Size_NonZero_One: {
+          ctx->size = 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_MinMinusOne: {
+          ctx->size = RBHEAP_MIN_SIZE - 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_Min: {
+          ctx->size = RBHEAP_MIN_SIZE;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_MinPlusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_UnitMinusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT - 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_Unit: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_UnitPlusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT + 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_Slab: {
+          ctx->size = RBHEAP_SLAB_SIZE;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_Max: {
+          ctx->size = RBHEAP_MAX_SIZE;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_AboveMax: {
+          ctx->size = RBHEAP_MAX_SIZE + 1;
+          break;
+        }
+
+        case CReqMalloc_Pre_Size_NonZero_SizeMax: {
+          ctx->size = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -213,7 +472,23 @@ static void CReqMalloc_Pre_Fit_Prepare(
       /*
        * While the C Program Heap has a free block which satisfies the request.
        */
-      /* The heap is empty */
+      switch ( CReqMalloc_Pre_Fit_Yes_GetRepresentative( ctx ) ) {
+        case CReqMalloc_Pre_Fit_Yes_Empty: {
+          if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+            ctx->Map.skip_rep = true;
+          }
+          break;
+        }
+
+        case CReqMalloc_Pre_Fit_Yes_Exact: {
+          if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            HeapLeaveFreeBlock( &ctx->heap.heap, ctx->size, RBHEAP_ALIGNMENT );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -222,7 +497,28 @@ static void CReqMalloc_Pre_Fit_Prepare(
        * While the C Program Heap has no free block which satisfies the
        * request.
        */
-      HeapExhaust( &ctx->heap.heap );
+      switch ( CReqMalloc_Pre_Fit_No_GetRepresentative( ctx ) ) {
+        case CReqMalloc_Pre_Fit_No_Exhausted: {
+          HeapExhaust( &ctx->heap.heap );
+          break;
+        }
+
+        case CReqMalloc_Pre_Fit_No_Short: {
+          if (
+            ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+            ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->size - RBHEAP_ALIGNMENT,
+              RBHEAP_ALIGNMENT
+            );
+          } else {
+            HeapExhaust( &ctx->heap.heap );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -430,7 +726,15 @@ static size_t CReqMalloc_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqMalloc_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 2 ];
+    size_t i;
+
+    for ( i = 0; i < 2; ++i ) {
+      pcd[ i ] = CReqMalloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CReqMalloc_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CReqMalloc_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -457,6 +761,11 @@ static void CReqMalloc_TestVariant( CReqMalloc_Context *ctx )
 {
   CReqMalloc_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CReqMalloc_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CReqMalloc_Action( ctx );
   CReqMalloc_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
   CReqMalloc_Post_Errno_Check( ctx, ctx->Map.entry.Post_Errno );
@@ -475,6 +784,7 @@ T_TEST_CASE_FIXTURE( CReqMalloc, &CReqMalloc_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CReqMalloc_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CReqMalloc_Pre_Size_Zero;
@@ -487,10 +797,22 @@ T_TEST_CASE_FIXTURE( CReqMalloc, &CReqMalloc_Fixture )
       ++ctx->Map.pcs[ 1 ]
     ) {
       ctx->Map.entry = CReqMalloc_PopEntry( ctx );
-      CReqMalloc_Prepare( ctx );
-      CReqMalloc_TestVariant( ctx );
+
+      for (
+        ctx->Map.rep = 0;
+        ctx->Map.rep < CReqMalloc_GetRepresentativeCount( ctx );
+        ++ctx->Map.rep
+      ) {
+        ctx->Map.skip_rep = false;
+        CReqMalloc_Prepare( ctx );
+        CReqMalloc_TestVariant( ctx );
+
+        CReqMalloc_MarkRepresentatives( ctx );
+      }
     }
   }
+
+  CReqMalloc_CheckRepresentatives( ctx );
 }
 
 /** @} */

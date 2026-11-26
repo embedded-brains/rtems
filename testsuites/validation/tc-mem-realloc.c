@@ -36,6 +36,7 @@
 #endif
 
 #include <errno.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -174,6 +175,22 @@ typedef struct {
     size_t pcs[ 4 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 21 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -201,13 +218,23 @@ static CReqRealloc_Context CReqRealloc_Instance;
 static const char *const CReqRealloc_PreDesc_Ptr[] =
   { "Null", "Used", "Invalid", "NA" };
 
-static const char *const CReqRealloc_PreDesc_Size[] =
-  { "Zero", "Smaller", "Larger", "NA" };
+static const char *const CReqRealloc_PreDesc_Size[] = {
+  "Zero",
+  "SmallerOne",
+  "SmallerHalf",
+  "SmallerUsable",
+  "LargerUsablePlusOne",
+  "LargerTwiceOld",
+  "LargerSlab",
+  "LargerSizeMax",
+  "NA"
+};
 
 static const char *const CReqRealloc_PreDesc_Neighbour[] =
   { "Suffices", "Insufficient", "NA" };
 
-static const char *const CReqRealloc_PreDesc_Fit[] = { "Yes", "No", "NA" };
+static const char *const CReqRealloc_PreDesc_Fit[] =
+  { "YesFree", "YesExact", "NoExhausted", "NoShort", "NA" };
 
 static const char *const *const CReqRealloc_PreDesc[] = {
   CReqRealloc_PreDesc_Ptr,
@@ -216,6 +243,194 @@ static const char *const *const CReqRealloc_PreDesc[] = {
   CReqRealloc_PreDesc_Fit,
   NULL
 };
+
+typedef enum {
+  CReqRealloc_Pre_Size_Smaller_One,
+  CReqRealloc_Pre_Size_Smaller_Half,
+  CReqRealloc_Pre_Size_Smaller_Usable
+} CReqRealloc_Pre_Size_Smaller_Rep;
+
+typedef enum {
+  CReqRealloc_Pre_Size_Larger_UsablePlusOne,
+  CReqRealloc_Pre_Size_Larger_TwiceOld,
+  CReqRealloc_Pre_Size_Larger_Slab,
+  CReqRealloc_Pre_Size_Larger_SizeMax
+} CReqRealloc_Pre_Size_Larger_Rep;
+
+typedef enum {
+  CReqRealloc_Pre_Fit_Yes_Free,
+  CReqRealloc_Pre_Fit_Yes_Exact
+} CReqRealloc_Pre_Fit_Yes_Rep;
+
+typedef enum {
+  CReqRealloc_Pre_Fit_No_Exhausted,
+  CReqRealloc_Pre_Fit_No_Short
+} CReqRealloc_Pre_Fit_No_Rep;
+
+static const uint8_t CReqRealloc_PreRepOffset_Ptr[] = { 0, 1, 2, 3, 4 };
+
+static const uint8_t CReqRealloc_PreRepOffset_Size[] = { 0, 1, 4, 8, 9 };
+
+static const uint8_t CReqRealloc_PreRepOffset_Neighbour[] = { 0, 1, 2, 3 };
+
+static const uint8_t CReqRealloc_PreRepOffset_Fit[] = { 0, 2, 4, 5 };
+
+static const uint8_t *const CReqRealloc_PreRepOffset[] = {
+  CReqRealloc_PreRepOffset_Ptr,
+  CReqRealloc_PreRepOffset_Size,
+  CReqRealloc_PreRepOffset_Neighbour,
+  CReqRealloc_PreRepOffset_Fit
+};
+
+static size_t CReqRealloc_GetRepresentativeCountOf(
+  const CReqRealloc_Context *ctx,
+  size_t                     index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CReqRealloc_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CReqRealloc_GetRepresentative(
+  const CReqRealloc_Context *ctx,
+  size_t                     index
+)
+{
+  size_t count;
+
+  count = CReqRealloc_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CReqRealloc_GetRepresentativeCount(
+  const CReqRealloc_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CReqRealloc_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CReqRealloc_Pre_Size_Smaller_Rep
+CReqRealloc_Pre_Size_Smaller_GetRepresentative(
+  const CReqRealloc_Context *ctx
+)
+{
+  return (
+    CReqRealloc_Pre_Size_Smaller_Rep
+  ) CReqRealloc_GetRepresentative( ctx, 1 );
+}
+
+static CReqRealloc_Pre_Size_Larger_Rep
+CReqRealloc_Pre_Size_Larger_GetRepresentative( const CReqRealloc_Context *ctx )
+{
+  return (
+    CReqRealloc_Pre_Size_Larger_Rep
+  ) CReqRealloc_GetRepresentative( ctx, 1 );
+}
+
+static CReqRealloc_Pre_Fit_Yes_Rep CReqRealloc_Pre_Fit_Yes_GetRepresentative(
+  const CReqRealloc_Context *ctx
+)
+{
+  return (CReqRealloc_Pre_Fit_Yes_Rep) CReqRealloc_GetRepresentative( ctx, 3 );
+}
+
+static CReqRealloc_Pre_Fit_No_Rep CReqRealloc_Pre_Fit_No_GetRepresentative(
+  const CReqRealloc_Context *ctx
+)
+{
+  return (CReqRealloc_Pre_Fit_No_Rep) CReqRealloc_GetRepresentative( ctx, 3 );
+}
+
+static const uint8_t CReqRealloc_PreRepBase[] = { 0, 4, 13, 16 };
+
+static const uint8_t CReqRealloc_PreRepStates[] = { 3, 3, 2, 2 };
+
+static void CReqRealloc_ResetRepresentatives( CReqRealloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 21; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CReqRealloc_MarkRepresentatives( CReqRealloc_Context *ctx )
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t rep;
+
+    rep = CReqRealloc_PreRepBase[ i ] +
+          CReqRealloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CReqRealloc_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CReqRealloc_CheckRepresentatives( const CReqRealloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 4; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CReqRealloc_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CReqRealloc_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CReqRealloc_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CReqRealloc_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static bool HasPattern( const void *ptr, size_t size )
 {
@@ -296,7 +511,22 @@ static void CReqRealloc_Pre_Size_Prepare(
        * parameter is less than or equal to the size of the memory area
        * referenced by the `ptr` parameter.
        */
-      ctx->size = OLD_SIZE / 2;
+      switch ( CReqRealloc_Pre_Size_Smaller_GetRepresentative( ctx ) ) {
+        case CReqRealloc_Pre_Size_Smaller_One: {
+          ctx->size = 1;
+          break;
+        }
+
+        case CReqRealloc_Pre_Size_Smaller_Half: {
+          ctx->size = OLD_SIZE / 2;
+          break;
+        }
+
+        case CReqRealloc_Pre_Size_Smaller_Usable: {
+          ctx->size = ( ctx->old_size != 0 ? ctx->old_size : OLD_SIZE );
+          break;
+        }
+      }
       break;
     }
 
@@ -305,7 +535,27 @@ static void CReqRealloc_Pre_Size_Prepare(
        * While the `size` parameter is greater than the size of the memory area
        * referenced by the `ptr` parameter.
        */
-      ctx->size = 2 * OLD_SIZE;
+      switch ( CReqRealloc_Pre_Size_Larger_GetRepresentative( ctx ) ) {
+        case CReqRealloc_Pre_Size_Larger_UsablePlusOne: {
+          ctx->size = ( ctx->old_size != 0 ? ctx->old_size : OLD_SIZE ) + 1;
+          break;
+        }
+
+        case CReqRealloc_Pre_Size_Larger_TwiceOld: {
+          ctx->size = 2 * OLD_SIZE;
+          break;
+        }
+
+        case CReqRealloc_Pre_Size_Larger_Slab: {
+          ctx->size = RBHEAP_SLAB_SIZE;
+          break;
+        }
+
+        case CReqRealloc_Pre_Size_Larger_SizeMax: {
+          ctx->size = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -357,7 +607,26 @@ static void CReqRealloc_Pre_Fit_Prepare(
        * While the C Program Heap has a free block which satisfies a request of
        * the size specified by the `size` parameter.
        */
-      /* The heap has free blocks */
+      switch ( CReqRealloc_Pre_Fit_Yes_GetRepresentative( ctx ) ) {
+        case CReqRealloc_Pre_Fit_Yes_Free: {
+          if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+            ctx->Map.skip_rep = true;
+          }
+          break;
+        }
+
+        case CReqRealloc_Pre_Fit_Yes_Exact: {
+          if (
+            ctx->neighbour == NULL ||
+            ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            HeapLeaveFreeBlock( &ctx->heap.heap, ctx->size, RBHEAP_ALIGNMENT );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -366,7 +635,28 @@ static void CReqRealloc_Pre_Fit_Prepare(
        * While the C Program Heap has no free block which satisfies a request
        * of the size specified by the `size` parameter.
        */
-      HeapExhaust( &ctx->heap.heap );
+      switch ( CReqRealloc_Pre_Fit_No_GetRepresentative( ctx ) ) {
+        case CReqRealloc_Pre_Fit_No_Exhausted: {
+          HeapExhaust( &ctx->heap.heap );
+          break;
+        }
+
+        case CReqRealloc_Pre_Fit_No_Short: {
+          if (
+            ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+            ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->size - RBHEAP_ALIGNMENT,
+              RBHEAP_ALIGNMENT
+            );
+          } else {
+            HeapExhaust( &ctx->heap.heap );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -558,6 +848,8 @@ static void CReqRealloc_Teardown_Wrap( void *arg )
 static void CReqRealloc_Prepare( CReqRealloc_Context *ctx )
 {
   HeapReset( &ctx->heap );
+  ctx->neighbour = NULL;
+  ctx->old_size = 0;
 }
 
 static void CReqRealloc_Action( CReqRealloc_Context *ctx )
@@ -618,7 +910,15 @@ static size_t CReqRealloc_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqRealloc_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 4 ];
+    size_t i;
+
+    for ( i = 0; i < 4; ++i ) {
+      pcd[ i ] = CReqRealloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CReqRealloc_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CReqRealloc_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -649,6 +949,11 @@ static void CReqRealloc_TestVariant( CReqRealloc_Context *ctx )
   CReqRealloc_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CReqRealloc_Pre_Neighbour_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CReqRealloc_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CReqRealloc_Action( ctx );
   CReqRealloc_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
   CReqRealloc_Post_Errno_Check( ctx, ctx->Map.entry.Post_Errno );
@@ -667,6 +972,7 @@ T_TEST_CASE_FIXTURE( CReqRealloc, &CReqRealloc_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CReqRealloc_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CReqRealloc_Pre_Ptr_Null;
@@ -694,12 +1000,23 @@ T_TEST_CASE_FIXTURE( CReqRealloc, &CReqRealloc_Fixture )
             continue;
           }
 
-          CReqRealloc_Prepare( ctx );
-          CReqRealloc_TestVariant( ctx );
+          for (
+            ctx->Map.rep = 0;
+            ctx->Map.rep < CReqRealloc_GetRepresentativeCount( ctx );
+            ++ctx->Map.rep
+          ) {
+            ctx->Map.skip_rep = false;
+            CReqRealloc_Prepare( ctx );
+            CReqRealloc_TestVariant( ctx );
+
+            CReqRealloc_MarkRepresentatives( ctx );
+          }
         }
       }
     }
   }
+
+  CReqRealloc_CheckRepresentatives( ctx );
 }
 
 /** @} */

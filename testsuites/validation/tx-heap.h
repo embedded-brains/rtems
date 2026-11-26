@@ -183,6 +183,35 @@ uintptr_t HeapGetLargestAllocatableSize( const RBHeap_control *heap );
 void HeapExhaust( RBHeap_control *heap );
 
 /**
+ * @brief Exhausts the heap except one free block which holds a block of the
+ *   size at a multiple of the alignment.
+ *
+ * The free block has the size of the block which the heap allocates for the
+ * request.  If the heap cannot allocate the block, the heap stays exhausted.
+ *
+ * @param[in, out] heap is the heap.
+ *
+ * @param size is the size of the block.
+ *
+ * @param alignment is the alignment of the block.
+ */
+void HeapLeaveFreeBlock(
+  RBHeap_control *heap,
+  uintptr_t       size,
+  uintptr_t       alignment
+);
+
+/**
+ * @brief Gets an alignment which the heap accepts.
+ *
+ * @param alignment is the alignment of a request.
+ *
+ * @return Returns the alignment, if it is a power of two, else
+ *   ::RBHEAP_ALIGNMENT.
+ */
+uintptr_t HeapFitAlignment( uintptr_t alignment );
+
+/**
  * @brief Takes a snapshot of the blocks of the heap.
  *
  * @param heap is the heap.

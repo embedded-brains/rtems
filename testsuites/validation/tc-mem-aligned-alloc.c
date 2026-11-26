@@ -160,6 +160,22 @@ typedef struct {
     size_t pcs[ 3 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 31 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -184,14 +200,40 @@ typedef struct {
 
 static CReqAlignedAlloc_Context CReqAlignedAlloc_Instance;
 
-static const char *const CReqAlignedAlloc_PreDesc_Alignment[] =
-  { "Zero", "NotPower2", "Power2", "NA" };
+static const char *const CReqAlignedAlloc_PreDesc_Alignment[] = {
+  "Zero",
+  "NotPower2Three",
+  "NotPower2PointerPlusOne",
+  "NotPower2HeapPlusOne",
+  "NotPower2TwiceHeapMinusOne",
+  "NotPower2SizeMax",
+  "Power2One",
+  "Power2Two",
+  "Power2Pointer",
+  "Power2Heap",
+  "Power2TwiceHeap",
+  "Power2Slab",
+  "NA"
+};
 
-static const char *const CReqAlignedAlloc_PreDesc_Size[] =
-  { "Zero", "NonZero", "NA" };
+static const char *const CReqAlignedAlloc_PreDesc_Size[] = {
+  "Zero",
+  "NonZeroOne",
+  "NonZeroMinMinusOne",
+  "NonZeroMin",
+  "NonZeroMinPlusOne",
+  "NonZeroUnitMinusOne",
+  "NonZeroUnit",
+  "NonZeroUnitPlusOne",
+  "NonZeroSlab",
+  "NonZeroMax",
+  "NonZeroAboveMax",
+  "NonZeroSizeMax",
+  "NA"
+};
 
 static const char *const CReqAlignedAlloc_PreDesc_Fit[] =
-  { "Yes", "No", "NA" };
+  { "YesEmpty", "YesExact", "NoExhausted", "NoShort", "NA" };
 
 static const char *const *const CReqAlignedAlloc_PreDesc[] = {
   CReqAlignedAlloc_PreDesc_Alignment,
@@ -199,6 +241,234 @@ static const char *const *const CReqAlignedAlloc_PreDesc[] = {
   CReqAlignedAlloc_PreDesc_Fit,
   NULL
 };
+
+typedef enum {
+  CReqAlignedAlloc_Pre_Alignment_NotPower2_Three,
+  CReqAlignedAlloc_Pre_Alignment_NotPower2_PointerPlusOne,
+  CReqAlignedAlloc_Pre_Alignment_NotPower2_HeapPlusOne,
+  CReqAlignedAlloc_Pre_Alignment_NotPower2_TwiceHeapMinusOne,
+  CReqAlignedAlloc_Pre_Alignment_NotPower2_SizeMax
+} CReqAlignedAlloc_Pre_Alignment_NotPower2_Rep;
+
+typedef enum {
+  CReqAlignedAlloc_Pre_Alignment_Power2_One,
+  CReqAlignedAlloc_Pre_Alignment_Power2_Two,
+  CReqAlignedAlloc_Pre_Alignment_Power2_Pointer,
+  CReqAlignedAlloc_Pre_Alignment_Power2_Heap,
+  CReqAlignedAlloc_Pre_Alignment_Power2_TwiceHeap,
+  CReqAlignedAlloc_Pre_Alignment_Power2_Slab
+} CReqAlignedAlloc_Pre_Alignment_Power2_Rep;
+
+typedef enum {
+  CReqAlignedAlloc_Pre_Size_NonZero_One,
+  CReqAlignedAlloc_Pre_Size_NonZero_MinMinusOne,
+  CReqAlignedAlloc_Pre_Size_NonZero_Min,
+  CReqAlignedAlloc_Pre_Size_NonZero_MinPlusOne,
+  CReqAlignedAlloc_Pre_Size_NonZero_UnitMinusOne,
+  CReqAlignedAlloc_Pre_Size_NonZero_Unit,
+  CReqAlignedAlloc_Pre_Size_NonZero_UnitPlusOne,
+  CReqAlignedAlloc_Pre_Size_NonZero_Slab,
+  CReqAlignedAlloc_Pre_Size_NonZero_Max,
+  CReqAlignedAlloc_Pre_Size_NonZero_AboveMax,
+  CReqAlignedAlloc_Pre_Size_NonZero_SizeMax
+} CReqAlignedAlloc_Pre_Size_NonZero_Rep;
+
+typedef enum {
+  CReqAlignedAlloc_Pre_Fit_Yes_Empty,
+  CReqAlignedAlloc_Pre_Fit_Yes_Exact
+} CReqAlignedAlloc_Pre_Fit_Yes_Rep;
+
+typedef enum {
+  CReqAlignedAlloc_Pre_Fit_No_Exhausted,
+  CReqAlignedAlloc_Pre_Fit_No_Short
+} CReqAlignedAlloc_Pre_Fit_No_Rep;
+
+static const uint8_t CReqAlignedAlloc_PreRepOffset_Alignment[] =
+  { 0, 1, 6, 12, 13 };
+
+static const uint8_t CReqAlignedAlloc_PreRepOffset_Size[] = { 0, 1, 12, 13 };
+
+static const uint8_t CReqAlignedAlloc_PreRepOffset_Fit[] = { 0, 2, 4, 5 };
+
+static const uint8_t *const CReqAlignedAlloc_PreRepOffset[] = {
+  CReqAlignedAlloc_PreRepOffset_Alignment,
+  CReqAlignedAlloc_PreRepOffset_Size,
+  CReqAlignedAlloc_PreRepOffset_Fit
+};
+
+static size_t CReqAlignedAlloc_GetRepresentativeCountOf(
+  const CReqAlignedAlloc_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CReqAlignedAlloc_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CReqAlignedAlloc_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx,
+  size_t                          index
+)
+{
+  size_t count;
+
+  count = CReqAlignedAlloc_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CReqAlignedAlloc_GetRepresentativeCount(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CReqAlignedAlloc_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CReqAlignedAlloc_Pre_Alignment_NotPower2_Rep
+CReqAlignedAlloc_Pre_Alignment_NotPower2_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  return (
+    CReqAlignedAlloc_Pre_Alignment_NotPower2_Rep
+  ) CReqAlignedAlloc_GetRepresentative( ctx, 0 );
+}
+
+static CReqAlignedAlloc_Pre_Alignment_Power2_Rep
+CReqAlignedAlloc_Pre_Alignment_Power2_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  return (
+    CReqAlignedAlloc_Pre_Alignment_Power2_Rep
+  ) CReqAlignedAlloc_GetRepresentative( ctx, 0 );
+}
+
+static CReqAlignedAlloc_Pre_Size_NonZero_Rep
+CReqAlignedAlloc_Pre_Size_NonZero_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  return (
+    CReqAlignedAlloc_Pre_Size_NonZero_Rep
+  ) CReqAlignedAlloc_GetRepresentative( ctx, 1 );
+}
+
+static CReqAlignedAlloc_Pre_Fit_Yes_Rep
+CReqAlignedAlloc_Pre_Fit_Yes_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  return (
+    CReqAlignedAlloc_Pre_Fit_Yes_Rep
+  ) CReqAlignedAlloc_GetRepresentative( ctx, 2 );
+}
+
+static CReqAlignedAlloc_Pre_Fit_No_Rep
+CReqAlignedAlloc_Pre_Fit_No_GetRepresentative(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  return (
+    CReqAlignedAlloc_Pre_Fit_No_Rep
+  ) CReqAlignedAlloc_GetRepresentative( ctx, 2 );
+}
+
+static const uint8_t CReqAlignedAlloc_PreRepBase[] = { 0, 13, 26 };
+
+static const uint8_t CReqAlignedAlloc_PreRepStates[] = { 3, 2, 2 };
+
+static void CReqAlignedAlloc_ResetRepresentatives(
+  CReqAlignedAlloc_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 31; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CReqAlignedAlloc_MarkRepresentatives(
+  CReqAlignedAlloc_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t rep;
+
+    rep = CReqAlignedAlloc_PreRepBase[ i ] +
+          CReqAlignedAlloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CReqAlignedAlloc_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CReqAlignedAlloc_CheckRepresentatives(
+  const CReqAlignedAlloc_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 3; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CReqAlignedAlloc_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CReqAlignedAlloc_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CReqAlignedAlloc_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CReqAlignedAlloc_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static void CReqAlignedAlloc_Pre_Alignment_Prepare(
   CReqAlignedAlloc_Context      *ctx,
@@ -216,19 +486,77 @@ static void CReqAlignedAlloc_Pre_Alignment_Prepare(
 
     case CReqAlignedAlloc_Pre_Alignment_NotPower2: {
       /*
-       * While the `alignment` parameter is greater than or equal to `sizeof(
-       * void * )`, while the `alignment` parameter is not a power of two.
+       * While the `alignment` parameter is not equal to zero, while the
+       * `alignment` parameter is not a power of two.
        */
-      ctx->alignment = sizeof( void * ) + 1;
+      switch (
+        CReqAlignedAlloc_Pre_Alignment_NotPower2_GetRepresentative( ctx )
+      ) {
+        case CReqAlignedAlloc_Pre_Alignment_NotPower2_Three: {
+          ctx->alignment = 3;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_NotPower2_PointerPlusOne: {
+          ctx->alignment = sizeof( void * ) + 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_NotPower2_HeapPlusOne: {
+          ctx->alignment = RBHEAP_ALIGNMENT + 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_NotPower2_TwiceHeapMinusOne: {
+          ctx->alignment = 2 * RBHEAP_ALIGNMENT - 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_NotPower2_SizeMax: {
+          ctx->alignment = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
     case CReqAlignedAlloc_Pre_Alignment_Power2: {
       /*
-       * While the `alignment` parameter is greater than or equal to `sizeof(
-       * void * )`, while the `alignment` parameter is a power of two.
+       * While the `alignment` parameter is a power of two.
        */
-      ctx->alignment = 128;
+      switch (
+        CReqAlignedAlloc_Pre_Alignment_Power2_GetRepresentative( ctx )
+      ) {
+        case CReqAlignedAlloc_Pre_Alignment_Power2_One: {
+          ctx->alignment = 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_Power2_Two: {
+          ctx->alignment = 2;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_Power2_Pointer: {
+          ctx->alignment = sizeof( void * );
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_Power2_Heap: {
+          ctx->alignment = RBHEAP_ALIGNMENT;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_Power2_TwiceHeap: {
+          ctx->alignment = 2 * RBHEAP_ALIGNMENT;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Alignment_Power2_Slab: {
+          ctx->alignment = RBHEAP_SLAB_SIZE;
+          break;
+        }
+      }
       break;
     }
 
@@ -255,7 +583,62 @@ static void CReqAlignedAlloc_Pre_Size_Prepare(
       /*
        * While the `size` parameter is not equal to zero.
        */
-      ctx->size = sizeof( uint64_t );
+      switch ( CReqAlignedAlloc_Pre_Size_NonZero_GetRepresentative( ctx ) ) {
+        case CReqAlignedAlloc_Pre_Size_NonZero_One: {
+          ctx->size = 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_MinMinusOne: {
+          ctx->size = RBHEAP_MIN_SIZE - 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_Min: {
+          ctx->size = RBHEAP_MIN_SIZE;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_MinPlusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_UnitMinusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT - 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_Unit: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_UnitPlusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT + 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_Slab: {
+          ctx->size = RBHEAP_SLAB_SIZE;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_Max: {
+          ctx->size = RBHEAP_MAX_SIZE;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_AboveMax: {
+          ctx->size = RBHEAP_MAX_SIZE + 1;
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Size_NonZero_SizeMax: {
+          ctx->size = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -274,7 +657,27 @@ static void CReqAlignedAlloc_Pre_Fit_Prepare(
       /*
        * While the C Program Heap has a free block which satisfies the request.
        */
-      /* The heap is empty */
+      switch ( CReqAlignedAlloc_Pre_Fit_Yes_GetRepresentative( ctx ) ) {
+        case CReqAlignedAlloc_Pre_Fit_Yes_Empty: {
+          if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+            ctx->Map.skip_rep = true;
+          }
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Fit_Yes_Exact: {
+          if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->size,
+              HeapFitAlignment( ctx->alignment )
+            );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -283,7 +686,28 @@ static void CReqAlignedAlloc_Pre_Fit_Prepare(
        * While the C Program Heap has no free block which satisfies the
        * request.
        */
-      HeapExhaust( &ctx->heap.heap );
+      switch ( CReqAlignedAlloc_Pre_Fit_No_GetRepresentative( ctx ) ) {
+        case CReqAlignedAlloc_Pre_Fit_No_Exhausted: {
+          HeapExhaust( &ctx->heap.heap );
+          break;
+        }
+
+        case CReqAlignedAlloc_Pre_Fit_No_Short: {
+          if (
+            ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+            ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->size - RBHEAP_ALIGNMENT,
+              HeapFitAlignment( ctx->alignment )
+            );
+          } else {
+            HeapExhaust( &ctx->heap.heap );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -502,7 +926,15 @@ static size_t CReqAlignedAlloc_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqAlignedAlloc_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 3 ];
+    size_t i;
+
+    for ( i = 0; i < 3; ++i ) {
+      pcd[ i ] = CReqAlignedAlloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CReqAlignedAlloc_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CReqAlignedAlloc_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -532,6 +964,11 @@ static void CReqAlignedAlloc_TestVariant( CReqAlignedAlloc_Context *ctx )
   CReqAlignedAlloc_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CReqAlignedAlloc_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CReqAlignedAlloc_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CReqAlignedAlloc_Action( ctx );
   CReqAlignedAlloc_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
   CReqAlignedAlloc_Post_Errno_Check( ctx, ctx->Map.entry.Post_Errno );
@@ -550,6 +987,7 @@ T_TEST_CASE_FIXTURE( CReqAlignedAlloc, &CReqAlignedAlloc_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CReqAlignedAlloc_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CReqAlignedAlloc_Pre_Alignment_Zero;
@@ -567,11 +1005,23 @@ T_TEST_CASE_FIXTURE( CReqAlignedAlloc, &CReqAlignedAlloc_Fixture )
         ++ctx->Map.pcs[ 2 ]
       ) {
         ctx->Map.entry = CReqAlignedAlloc_PopEntry( ctx );
-        CReqAlignedAlloc_Prepare( ctx );
-        CReqAlignedAlloc_TestVariant( ctx );
+
+        for (
+          ctx->Map.rep = 0;
+          ctx->Map.rep < CReqAlignedAlloc_GetRepresentativeCount( ctx );
+          ++ctx->Map.rep
+        ) {
+          ctx->Map.skip_rep = false;
+          CReqAlignedAlloc_Prepare( ctx );
+          CReqAlignedAlloc_TestVariant( ctx );
+
+          CReqAlignedAlloc_MarkRepresentatives( ctx );
+        }
       }
     }
   }
+
+  CReqAlignedAlloc_CheckRepresentatives( ctx );
 }
 
 /** @} */

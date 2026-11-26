@@ -165,6 +165,22 @@ typedef struct {
     size_t pcs[ 4 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 24 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -189,16 +205,31 @@ typedef struct {
 
 static CReqCalloc_Context CReqCalloc_Instance;
 
-static const char *const CReqCalloc_PreDesc_Nmemb[] =
-  { "Zero", "NonZero", "NA" };
+static const char *const CReqCalloc_PreDesc_Nmemb[] = {
+  "Zero",
+  "NonZeroTwo",
+  "NonZeroOne",
+  "NonZeroLarge",
+  "NonZeroSizeMax",
+  "NA"
+};
 
-static const char *const CReqCalloc_PreDesc_Size[] =
-  { "Zero", "NonZero", "NA" };
+static const char *const CReqCalloc_PreDesc_Size[] = {
+  "Zero",
+  "NonZeroOne",
+  "NonZeroMinMinusOne",
+  "NonZeroMin",
+  "NonZeroMinPlusOne",
+  "NonZeroSlab",
+  "NonZeroSizeMax",
+  "NA"
+};
 
 static const char *const CReqCalloc_PreDesc_Product[] =
-  { "Valid", "Overflow", "NA" };
+  { "ValidGiven", "ValidLimit", "OverflowJustAbove", "OverflowMax", "NA" };
 
-static const char *const CReqCalloc_PreDesc_Fit[] = { "Yes", "No", "NA" };
+static const char *const CReqCalloc_PreDesc_Fit[] =
+  { "YesEmpty", "YesExact", "NoExhausted", "NoShort", "NA" };
 
 static const char *const *const CReqCalloc_PreDesc[] = {
   CReqCalloc_PreDesc_Nmemb,
@@ -207,6 +238,223 @@ static const char *const *const CReqCalloc_PreDesc[] = {
   CReqCalloc_PreDesc_Fit,
   NULL
 };
+
+typedef enum {
+  CReqCalloc_Pre_Nmemb_NonZero_Two,
+  CReqCalloc_Pre_Nmemb_NonZero_One,
+  CReqCalloc_Pre_Nmemb_NonZero_Large,
+  CReqCalloc_Pre_Nmemb_NonZero_SizeMax
+} CReqCalloc_Pre_Nmemb_NonZero_Rep;
+
+typedef enum {
+  CReqCalloc_Pre_Size_NonZero_One,
+  CReqCalloc_Pre_Size_NonZero_MinMinusOne,
+  CReqCalloc_Pre_Size_NonZero_Min,
+  CReqCalloc_Pre_Size_NonZero_MinPlusOne,
+  CReqCalloc_Pre_Size_NonZero_Slab,
+  CReqCalloc_Pre_Size_NonZero_SizeMax
+} CReqCalloc_Pre_Size_NonZero_Rep;
+
+typedef enum {
+  CReqCalloc_Pre_Product_Valid_Given,
+  CReqCalloc_Pre_Product_Valid_Limit
+} CReqCalloc_Pre_Product_Valid_Rep;
+
+typedef enum {
+  CReqCalloc_Pre_Product_Overflow_JustAbove,
+  CReqCalloc_Pre_Product_Overflow_Max
+} CReqCalloc_Pre_Product_Overflow_Rep;
+
+typedef enum {
+  CReqCalloc_Pre_Fit_Yes_Empty,
+  CReqCalloc_Pre_Fit_Yes_Exact
+} CReqCalloc_Pre_Fit_Yes_Rep;
+
+typedef enum {
+  CReqCalloc_Pre_Fit_No_Exhausted,
+  CReqCalloc_Pre_Fit_No_Short
+} CReqCalloc_Pre_Fit_No_Rep;
+
+static const uint8_t CReqCalloc_PreRepOffset_Nmemb[] = { 0, 1, 5, 6 };
+
+static const uint8_t CReqCalloc_PreRepOffset_Size[] = { 0, 1, 7, 8 };
+
+static const uint8_t CReqCalloc_PreRepOffset_Product[] = { 0, 2, 4, 5 };
+
+static const uint8_t CReqCalloc_PreRepOffset_Fit[] = { 0, 2, 4, 5 };
+
+static const uint8_t *const CReqCalloc_PreRepOffset[] = {
+  CReqCalloc_PreRepOffset_Nmemb,
+  CReqCalloc_PreRepOffset_Size,
+  CReqCalloc_PreRepOffset_Product,
+  CReqCalloc_PreRepOffset_Fit
+};
+
+static size_t CReqCalloc_GetRepresentativeCountOf(
+  const CReqCalloc_Context *ctx,
+  size_t                    index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CReqCalloc_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CReqCalloc_GetRepresentative(
+  const CReqCalloc_Context *ctx,
+  size_t                    index
+)
+{
+  size_t count;
+
+  count = CReqCalloc_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CReqCalloc_GetRepresentativeCount(
+  const CReqCalloc_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CReqCalloc_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CReqCalloc_Pre_Nmemb_NonZero_Rep
+CReqCalloc_Pre_Nmemb_NonZero_GetRepresentative( const CReqCalloc_Context *ctx )
+{
+  return (
+    CReqCalloc_Pre_Nmemb_NonZero_Rep
+  ) CReqCalloc_GetRepresentative( ctx, 0 );
+}
+
+static CReqCalloc_Pre_Size_NonZero_Rep
+CReqCalloc_Pre_Size_NonZero_GetRepresentative( const CReqCalloc_Context *ctx )
+{
+  return (
+    CReqCalloc_Pre_Size_NonZero_Rep
+  ) CReqCalloc_GetRepresentative( ctx, 1 );
+}
+
+static CReqCalloc_Pre_Product_Valid_Rep
+CReqCalloc_Pre_Product_Valid_GetRepresentative( const CReqCalloc_Context *ctx )
+{
+  return (
+    CReqCalloc_Pre_Product_Valid_Rep
+  ) CReqCalloc_GetRepresentative( ctx, 2 );
+}
+
+static CReqCalloc_Pre_Product_Overflow_Rep
+CReqCalloc_Pre_Product_Overflow_GetRepresentative(
+  const CReqCalloc_Context *ctx
+)
+{
+  return (
+    CReqCalloc_Pre_Product_Overflow_Rep
+  ) CReqCalloc_GetRepresentative( ctx, 2 );
+}
+
+static CReqCalloc_Pre_Fit_Yes_Rep CReqCalloc_Pre_Fit_Yes_GetRepresentative(
+  const CReqCalloc_Context *ctx
+)
+{
+  return (CReqCalloc_Pre_Fit_Yes_Rep) CReqCalloc_GetRepresentative( ctx, 3 );
+}
+
+static CReqCalloc_Pre_Fit_No_Rep CReqCalloc_Pre_Fit_No_GetRepresentative(
+  const CReqCalloc_Context *ctx
+)
+{
+  return (CReqCalloc_Pre_Fit_No_Rep) CReqCalloc_GetRepresentative( ctx, 3 );
+}
+
+static const uint8_t CReqCalloc_PreRepBase[] = { 0, 6, 14, 19 };
+
+static const uint8_t CReqCalloc_PreRepStates[] = { 2, 2, 2, 2 };
+
+static void CReqCalloc_ResetRepresentatives( CReqCalloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 24; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CReqCalloc_MarkRepresentatives( CReqCalloc_Context *ctx )
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t rep;
+
+    rep = CReqCalloc_PreRepBase[ i ] +
+          CReqCalloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CReqCalloc_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CReqCalloc_CheckRepresentatives( const CReqCalloc_Context *ctx )
+{
+  size_t i;
+
+  for ( i = 0; i < 4; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CReqCalloc_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CReqCalloc_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CReqCalloc_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CReqCalloc_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static bool IsZero( const void *ptr, size_t size )
 {
@@ -242,7 +490,27 @@ static void CReqCalloc_Pre_Nmemb_Prepare(
       /*
        * While the `nmemb` parameter is not equal to zero.
        */
-      ctx->nmemb = 2;
+      switch ( CReqCalloc_Pre_Nmemb_NonZero_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Nmemb_NonZero_Two: {
+          ctx->nmemb = 2;
+          break;
+        }
+
+        case CReqCalloc_Pre_Nmemb_NonZero_One: {
+          ctx->nmemb = 1;
+          break;
+        }
+
+        case CReqCalloc_Pre_Nmemb_NonZero_Large: {
+          ctx->nmemb = 65536;
+          break;
+        }
+
+        case CReqCalloc_Pre_Nmemb_NonZero_SizeMax: {
+          ctx->nmemb = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -269,7 +537,37 @@ static void CReqCalloc_Pre_Size_Prepare(
       /*
        * While the `size` parameter is not equal to zero.
        */
-      ctx->size = 3;
+      switch ( CReqCalloc_Pre_Size_NonZero_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Size_NonZero_One: {
+          ctx->size = 1;
+          break;
+        }
+
+        case CReqCalloc_Pre_Size_NonZero_MinMinusOne: {
+          ctx->size = RBHEAP_MIN_SIZE - 1;
+          break;
+        }
+
+        case CReqCalloc_Pre_Size_NonZero_Min: {
+          ctx->size = RBHEAP_MIN_SIZE;
+          break;
+        }
+
+        case CReqCalloc_Pre_Size_NonZero_MinPlusOne: {
+          ctx->size = RBHEAP_MIN_SIZE + 1;
+          break;
+        }
+
+        case CReqCalloc_Pre_Size_NonZero_Slab: {
+          ctx->size = RBHEAP_SLAB_SIZE;
+          break;
+        }
+
+        case CReqCalloc_Pre_Size_NonZero_SizeMax: {
+          ctx->size = SIZE_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -289,7 +587,23 @@ static void CReqCalloc_Pre_Product_Prepare(
        * While the product of the `nmemb` and the `size` parameters is less
        * than or equal to SIZE_MAX.
        */
-      /* The product of the parameters is small */
+      switch ( CReqCalloc_Pre_Product_Valid_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Product_Valid_Given: {
+          if ( ctx->nmemb != 0 && ctx->size > SIZE_MAX / ctx->nmemb ) {
+            ctx->Map.skip_rep = true;
+          }
+          break;
+        }
+
+        case CReqCalloc_Pre_Product_Valid_Limit: {
+          if ( ctx->nmemb == 0 || ctx->size == 0 ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            ctx->size = SIZE_MAX / ctx->nmemb;
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -298,7 +612,25 @@ static void CReqCalloc_Pre_Product_Prepare(
        * While the product of the `nmemb` and the `size` parameters is greater
        * than SIZE_MAX.
        */
-      ctx->size = SIZE_MAX / ctx->nmemb + 1;
+      switch ( CReqCalloc_Pre_Product_Overflow_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Product_Overflow_JustAbove: {
+          if ( ctx->nmemb < 2 ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            ctx->size = SIZE_MAX / ctx->nmemb + 1;
+          }
+          break;
+        }
+
+        case CReqCalloc_Pre_Product_Overflow_Max: {
+          if ( ctx->nmemb < 2 ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            ctx->size = SIZE_MAX;
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -317,7 +649,33 @@ static void CReqCalloc_Pre_Fit_Prepare(
       /*
        * While the C Program Heap has a free block which satisfies the request.
        */
-      /* The heap is empty */
+      switch ( CReqCalloc_Pre_Fit_Yes_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Fit_Yes_Empty: {
+          if (
+            ctx->nmemb * ctx->size >
+            HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            ctx->Map.skip_rep = true;
+          }
+          break;
+        }
+
+        case CReqCalloc_Pre_Fit_Yes_Exact: {
+          if (
+            ctx->nmemb * ctx->size >
+            HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            ctx->Map.skip_rep = true;
+          } else {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->nmemb * ctx->size,
+              RBHEAP_ALIGNMENT
+            );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -326,7 +684,29 @@ static void CReqCalloc_Pre_Fit_Prepare(
        * While the C Program Heap has no free block which satisfies the
        * request.
        */
-      HeapExhaust( &ctx->heap.heap );
+      switch ( CReqCalloc_Pre_Fit_No_GetRepresentative( ctx ) ) {
+        case CReqCalloc_Pre_Fit_No_Exhausted: {
+          HeapExhaust( &ctx->heap.heap );
+          break;
+        }
+
+        case CReqCalloc_Pre_Fit_No_Short: {
+          if (
+            ctx->nmemb * ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+            ctx->nmemb * ctx->size <=
+              HeapGetLargestAllocatableSize( &ctx->heap.heap )
+          ) {
+            HeapLeaveFreeBlock(
+              &ctx->heap.heap,
+              ctx->nmemb * ctx->size - RBHEAP_ALIGNMENT,
+              RBHEAP_ALIGNMENT
+            );
+          } else {
+            HeapExhaust( &ctx->heap.heap );
+          }
+          break;
+        }
+      }
       break;
     }
 
@@ -538,7 +918,15 @@ static size_t CReqCalloc_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CReqCalloc_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 4 ];
+    size_t i;
+
+    for ( i = 0; i < 4; ++i ) {
+      pcd[ i ] = CReqCalloc_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CReqCalloc_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CReqCalloc_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -567,6 +955,11 @@ static void CReqCalloc_TestVariant( CReqCalloc_Context *ctx )
   CReqCalloc_Pre_Size_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CReqCalloc_Pre_Product_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CReqCalloc_Pre_Fit_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CReqCalloc_Action( ctx );
   CReqCalloc_Post_Status_Check( ctx, ctx->Map.entry.Post_Status );
   CReqCalloc_Post_Errno_Check( ctx, ctx->Map.entry.Post_Errno );
@@ -585,6 +978,7 @@ T_TEST_CASE_FIXTURE( CReqCalloc, &CReqCalloc_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CReqCalloc_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CReqCalloc_Pre_Nmemb_Zero;
@@ -612,12 +1006,23 @@ T_TEST_CASE_FIXTURE( CReqCalloc, &CReqCalloc_Fixture )
             continue;
           }
 
-          CReqCalloc_Prepare( ctx );
-          CReqCalloc_TestVariant( ctx );
+          for (
+            ctx->Map.rep = 0;
+            ctx->Map.rep < CReqCalloc_GetRepresentativeCount( ctx );
+            ++ctx->Map.rep
+          ) {
+            ctx->Map.skip_rep = false;
+            CReqCalloc_Prepare( ctx );
+            CReqCalloc_TestVariant( ctx );
+
+            CReqCalloc_MarkRepresentatives( ctx );
+          }
         }
       }
     }
   }
+
+  CReqCalloc_CheckRepresentatives( ctx );
 }
 
 /** @} */

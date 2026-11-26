@@ -139,6 +139,31 @@ void HeapExhaust( RBHeap_control *heap )
   }
 }
 
+uintptr_t HeapFitAlignment( uintptr_t alignment )
+{
+  if ( alignment == 0 || ( alignment & ( alignment - 1 ) ) != 0 ) {
+    return RBHEAP_ALIGNMENT;
+  }
+
+  return alignment;
+}
+
+void HeapLeaveFreeBlock(
+  RBHeap_control *heap,
+  uintptr_t       size,
+  uintptr_t       alignment
+)
+{
+  void *block;
+
+  block = _RBHeap_Allocate_aligned( heap, size, alignment );
+  HeapExhaust( heap );
+
+  if ( block != NULL ) {
+    T_quiet_true( _RBHeap_Free( heap, block ) );
+  }
+}
+
 size_t HeapExhaustAndRecord(
   RBHeap_control *heap,
   void          **blocks,
