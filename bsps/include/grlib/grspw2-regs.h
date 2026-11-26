@@ -80,16 +80,6 @@ extern "C" {
 #define GRSPW2_DMACTRL_INTNUM( _val ) \
   ( ( ( _val ) << GRSPW2_DMACTRL_INTNUM_SHIFT ) & GRSPW2_DMACTRL_INTNUM_MASK )
 
-#define GRSPW2_DMACTRL_RES_SHIFT 24
-#define GRSPW2_DMACTRL_RES_MASK  0x3000000U
-#define GRSPW2_DMACTRL_RES_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_DMACTRL_RES_MASK ) >> GRSPW2_DMACTRL_RES_SHIFT )
-#define GRSPW2_DMACTRL_RES_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRSPW2_DMACTRL_RES_MASK ) | \
-    ( ( ( _val ) << GRSPW2_DMACTRL_RES_SHIFT ) & GRSPW2_DMACTRL_RES_MASK ) )
-#define GRSPW2_DMACTRL_RES( _val ) \
-  ( ( ( _val ) << GRSPW2_DMACTRL_RES_SHIFT ) & GRSPW2_DMACTRL_RES_MASK )
-
 #define GRSPW2_DMACTRL_EP 0x800000U
 
 #define GRSPW2_DMACTRL_TR 0x400000U
@@ -161,17 +151,6 @@ extern "C" {
   ( ( ( _val ) << GRSPW2_DMAMAXLEN_RXMAXLEN_SHIFT ) & \
     GRSPW2_DMAMAXLEN_RXMAXLEN_MASK )
 
-#define GRSPW2_DMAMAXLEN_RES_SHIFT 0
-#define GRSPW2_DMAMAXLEN_RES_MASK  0x3U
-#define GRSPW2_DMAMAXLEN_RES_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_DMAMAXLEN_RES_MASK ) >> GRSPW2_DMAMAXLEN_RES_SHIFT )
-#define GRSPW2_DMAMAXLEN_RES_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRSPW2_DMAMAXLEN_RES_MASK ) |    \
-    ( ( ( _val ) << GRSPW2_DMAMAXLEN_RES_SHIFT ) & \
-      GRSPW2_DMAMAXLEN_RES_MASK ) )
-#define GRSPW2_DMAMAXLEN_RES( _val ) \
-  ( ( ( _val ) << GRSPW2_DMAMAXLEN_RES_SHIFT ) & GRSPW2_DMAMAXLEN_RES_MASK )
-
 /** @} */
 
 /**
@@ -180,11 +159,15 @@ extern "C" {
  *
  * @brief This group contains register bit definitions.
  *
+ * DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+ * boundary between them is bit 9 plus STS.NTXD. A driver which uses a smaller
+ * table accesses the register as a whole.
+ *
  * @{
  */
 
-#define GRSPW2_DMATXDESC_DESCBASEADDR_SHIFT 0
-#define GRSPW2_DMATXDESC_DESCBASEADDR_MASK  0xffffffffU
+#define GRSPW2_DMATXDESC_DESCBASEADDR_SHIFT 13
+#define GRSPW2_DMATXDESC_DESCBASEADDR_MASK  0xffffe000U
 #define GRSPW2_DMATXDESC_DESCBASEADDR_GET( _reg )        \
   ( ( ( _reg ) & GRSPW2_DMATXDESC_DESCBASEADDR_MASK ) >> \
     GRSPW2_DMATXDESC_DESCBASEADDR_SHIFT )
@@ -197,7 +180,7 @@ extern "C" {
     GRSPW2_DMATXDESC_DESCBASEADDR_MASK )
 
 #define GRSPW2_DMATXDESC_DESCSEL_SHIFT 4
-#define GRSPW2_DMATXDESC_DESCSEL_MASK  0xfffffff0U
+#define GRSPW2_DMATXDESC_DESCSEL_MASK  0x1ff0U
 #define GRSPW2_DMATXDESC_DESCSEL_GET( _reg )        \
   ( ( ( _reg ) & GRSPW2_DMATXDESC_DESCSEL_MASK ) >> \
     GRSPW2_DMATXDESC_DESCSEL_SHIFT )
@@ -217,11 +200,15 @@ extern "C" {
  *
  * @brief This group contains register bit definitions.
  *
+ * DESCBASEADDR and DESCSEL take the form of a descriptor table of 8 KiB. The
+ * boundary between them is bit 9 plus STS.NRXD. A driver which uses a smaller
+ * table accesses the register as a whole.
+ *
  * @{
  */
 
-#define GRSPW2_DMARXDESC_DESCBASEADDR_SHIFT 10
-#define GRSPW2_DMARXDESC_DESCBASEADDR_MASK  0xfffffc00U
+#define GRSPW2_DMARXDESC_DESCBASEADDR_SHIFT 13
+#define GRSPW2_DMARXDESC_DESCBASEADDR_MASK  0xffffe000U
 #define GRSPW2_DMARXDESC_DESCBASEADDR_GET( _reg )        \
   ( ( ( _reg ) & GRSPW2_DMARXDESC_DESCBASEADDR_MASK ) >> \
     GRSPW2_DMARXDESC_DESCBASEADDR_SHIFT )
@@ -234,7 +221,7 @@ extern "C" {
     GRSPW2_DMARXDESC_DESCBASEADDR_MASK )
 
 #define GRSPW2_DMARXDESC_DESCSEL_SHIFT 3
-#define GRSPW2_DMARXDESC_DESCSEL_MASK  0x3f8U
+#define GRSPW2_DMARXDESC_DESCSEL_MASK  0x1ff8U
 #define GRSPW2_DMARXDESC_DESCSEL_GET( _reg )        \
   ( ( ( _reg ) & GRSPW2_DMARXDESC_DESCSEL_MASK ) >> \
     GRSPW2_DMARXDESC_DESCSEL_SHIFT )
@@ -356,8 +343,6 @@ typedef struct grspw2_dma {
 
 #define GRSPW2_CTRL_ID 0x1000000U
 
-#define GRSPW2_CTRL_R 0x800000U
-
 #define GRSPW2_CTRL_LE 0x400000U
 
 #define GRSPW2_CTRL_PS 0x200000U
@@ -380,8 +365,6 @@ typedef struct grspw2_dma {
 
 #define GRSPW2_CTRL_PE 0x8000U
 
-#define GRSPW2_CTRL_R 0x4000U
-
 #define GRSPW2_CTRL_TL 0x2000U
 
 #define GRSPW2_CTRL_TF 0x1000U
@@ -393,8 +376,6 @@ typedef struct grspw2_dma {
 #define GRSPW2_CTRL_LI 0x200U
 
 #define GRSPW2_CTRL_TQ 0x100U
-
-#define GRSPW2_CTRL_R 0x80U
 
 #define GRSPW2_CTRL_RS 0x40U
 
@@ -430,7 +411,15 @@ typedef struct grspw2_dma {
 #define GRSPW2_STS_NRXD( _val ) \
   ( ( ( _val ) << GRSPW2_STS_NRXD_SHIFT ) & GRSPW2_STS_NRXD_MASK )
 
-#define GRSPW2_STS_NTXD 0x2000000U
+#define GRSPW2_STS_NTXD_SHIFT 24
+#define GRSPW2_STS_NTXD_MASK  0x3000000U
+#define GRSPW2_STS_NTXD_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_STS_NTXD_MASK ) >> GRSPW2_STS_NTXD_SHIFT )
+#define GRSPW2_STS_NTXD_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRSPW2_STS_NTXD_MASK ) | \
+    ( ( ( _val ) << GRSPW2_STS_NTXD_SHIFT ) & GRSPW2_STS_NTXD_MASK ) )
+#define GRSPW2_STS_NTXD( _val ) \
+  ( ( ( _val ) << GRSPW2_STS_NTXD_SHIFT ) & GRSPW2_STS_NTXD_MASK )
 
 #define GRSPW2_STS_LS_SHIFT 21
 #define GRSPW2_STS_LS_MASK  0xe00000U
@@ -447,16 +436,6 @@ typedef struct grspw2_dma {
 #define GRSPW2_STS_EE 0x100U
 
 #define GRSPW2_STS_IA 0x80U
-
-#define GRSPW2_STS_RES_SHIFT 5
-#define GRSPW2_STS_RES_MASK  0x60U
-#define GRSPW2_STS_RES_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_STS_RES_MASK ) >> GRSPW2_STS_RES_SHIFT )
-#define GRSPW2_STS_RES_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRSPW2_STS_RES_MASK ) | \
-    ( ( ( _val ) << GRSPW2_STS_RES_SHIFT ) & GRSPW2_STS_RES_MASK ) )
-#define GRSPW2_STS_RES( _val ) \
-  ( ( ( _val ) << GRSPW2_STS_RES_SHIFT ) & GRSPW2_STS_RES_MASK )
 
 #define GRSPW2_STS_PE 0x10U
 
@@ -618,53 +597,32 @@ typedef struct grspw2_dma {
 
 #define GRSPW2_INTCTRL_IA 0x800000U
 
-#define GRSPW2_INTCTRL_RES 0x2U
+#define GRSPW2_INTCTRL_TQ 0x100000U
 
-#define GRSPW2_INTCTRL_TQ_SHIFT 21
-#define GRSPW2_INTCTRL_TQ_MASK  0x600000U
-#define GRSPW2_INTCTRL_TQ_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_INTCTRL_TQ_MASK ) >> GRSPW2_INTCTRL_TQ_SHIFT )
-#define GRSPW2_INTCTRL_TQ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRSPW2_INTCTRL_TQ_MASK ) | \
-    ( ( ( _val ) << GRSPW2_INTCTRL_TQ_SHIFT ) & GRSPW2_INTCTRL_TQ_MASK ) )
-#define GRSPW2_INTCTRL_TQ( _val ) \
-  ( ( ( _val ) << GRSPW2_INTCTRL_TQ_SHIFT ) & GRSPW2_INTCTRL_TQ_MASK )
+#define GRSPW2_INTCTRL_AQ 0x80000U
 
-#define GRSPW2_INTCTRL_AQ 0x100000U
+#define GRSPW2_INTCTRL_IQ 0x40000U
 
-#define GRSPW2_INTCTRL_IQ 0x80000U
+#define GRSPW2_INTCTRL_AA 0x8000U
 
-#define GRSPW2_INTCTRL_RES 0x40000U
+#define GRSPW2_INTCTRL_AT 0x4000U
 
-#define GRSPW2_INTCTRL_AA_SHIFT 16
-#define GRSPW2_INTCTRL_AA_MASK  0x30000U
-#define GRSPW2_INTCTRL_AA_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_INTCTRL_AA_MASK ) >> GRSPW2_INTCTRL_AA_SHIFT )
-#define GRSPW2_INTCTRL_AA_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRSPW2_INTCTRL_AA_MASK ) | \
-    ( ( ( _val ) << GRSPW2_INTCTRL_AA_SHIFT ) & GRSPW2_INTCTRL_AA_MASK ) )
-#define GRSPW2_INTCTRL_AA( _val ) \
-  ( ( ( _val ) << GRSPW2_INTCTRL_AA_SHIFT ) & GRSPW2_INTCTRL_AA_MASK )
+#define GRSPW2_INTCTRL_IT 0x2000U
 
-#define GRSPW2_INTCTRL_AT 0x8000U
+#define GRSPW2_INTCTRL_ID 0x80U
 
-#define GRSPW2_INTCTRL_IT 0x4000U
+#define GRSPW2_INTCTRL_II 0x40U
 
-#define GRSPW2_INTCTRL_RES 0x2000U
-
-#define GRSPW2_INTCTRL_ID_SHIFT 8
-#define GRSPW2_INTCTRL_ID_MASK  0x1f00U
-#define GRSPW2_INTCTRL_ID_GET( _reg ) \
-  ( ( ( _reg ) & GRSPW2_INTCTRL_ID_MASK ) >> GRSPW2_INTCTRL_ID_SHIFT )
-#define GRSPW2_INTCTRL_ID_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRSPW2_INTCTRL_ID_MASK ) | \
-    ( ( ( _val ) << GRSPW2_INTCTRL_ID_SHIFT ) & GRSPW2_INTCTRL_ID_MASK ) )
-#define GRSPW2_INTCTRL_ID( _val ) \
-  ( ( ( _val ) << GRSPW2_INTCTRL_ID_SHIFT ) & GRSPW2_INTCTRL_ID_MASK )
-
-#define GRSPW2_INTCTRL_II 0x80U
-
-#define GRSPW2_INTCTRL_TXINT 0x40U
+#define GRSPW2_INTCTRL_TXINT_SHIFT 0
+#define GRSPW2_INTCTRL_TXINT_MASK  0x3fU
+#define GRSPW2_INTCTRL_TXINT_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_INTCTRL_TXINT_MASK ) >> GRSPW2_INTCTRL_TXINT_SHIFT )
+#define GRSPW2_INTCTRL_TXINT_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRSPW2_INTCTRL_TXINT_MASK ) |    \
+    ( ( ( _val ) << GRSPW2_INTCTRL_TXINT_SHIFT ) & \
+      GRSPW2_INTCTRL_TXINT_MASK ) )
+#define GRSPW2_INTCTRL_TXINT( _val ) \
+  ( ( ( _val ) << GRSPW2_INTCTRL_TXINT_SHIFT ) & GRSPW2_INTCTRL_TXINT_MASK )
 
 /** @} */
 
@@ -685,6 +643,30 @@ typedef struct grspw2_dma {
     ( ( ( _val ) << GRSPW2_INTRX_RXIRQ_SHIFT ) & GRSPW2_INTRX_RXIRQ_MASK ) )
 #define GRSPW2_INTRX_RXIRQ( _val ) \
   ( ( ( _val ) << GRSPW2_INTRX_RXIRQ_SHIFT ) & GRSPW2_INTRX_RXIRQ_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRSPW2ACKRXINTRXEXT \
+ *   Interrupt-acknowledge-code receive / Interrupt receive extended (ACKRX_INTRXEXT)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_SHIFT 0
+#define GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_MASK  0xffffffffU
+#define GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_GET( _reg )        \
+  ( ( ( _reg ) & GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_MASK ) >> \
+    GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_SHIFT )
+#define GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_MASK ) |    \
+    ( ( ( _val ) << GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_SHIFT ) & \
+      GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_MASK ) )
+#define GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT( _val )             \
+  ( ( ( _val ) << GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_SHIFT ) & \
+    GRSPW2_ACKRX_INTRXEXT_RXACK_INTRXEXT_MASK )
 
 /** @} */
 
@@ -900,8 +882,6 @@ typedef struct grspw2_dma {
  * @{
  */
 
-#define GRSPW2_PRESCALER_R 0x80000000U
-
 #define GRSPW2_PRESCALER_RL_SHIFT 0
 #define GRSPW2_PRESCALER_RL_MASK  0x7fffffffU
 #define GRSPW2_PRESCALER_RL_GET( _reg ) \
@@ -1014,6 +994,73 @@ typedef struct grspw2_dma {
       GRSPW2_PNPVEND_PROD_MASK ) )
 #define GRSPW2_PNPVEND_PROD( _val ) \
   ( ( ( _val ) << GRSPW2_PNPVEND_PROD_SHIFT ) & GRSPW2_PNPVEND_PROD_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRSPW2PNPLINFO \
+ *   SpaceWire Plug-and-Play - Link Information (PNPLINFO)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRSPW2_PNPLINFO_OLA_SHIFT 24
+#define GRSPW2_PNPLINFO_OLA_MASK  0xff000000U
+#define GRSPW2_PNPLINFO_OLA_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_PNPLINFO_OLA_MASK ) >> GRSPW2_PNPLINFO_OLA_SHIFT )
+#define GRSPW2_PNPLINFO_OLA_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRSPW2_PNPLINFO_OLA_MASK ) |    \
+    ( ( ( _val ) << GRSPW2_PNPLINFO_OLA_SHIFT ) & \
+      GRSPW2_PNPLINFO_OLA_MASK ) )
+#define GRSPW2_PNPLINFO_OLA( _val ) \
+  ( ( ( _val ) << GRSPW2_PNPLINFO_OLA_SHIFT ) & GRSPW2_PNPLINFO_OLA_MASK )
+
+#define GRSPW2_PNPLINFO_OAL_SHIFT 22
+#define GRSPW2_PNPLINFO_OAL_MASK  0xc00000U
+#define GRSPW2_PNPLINFO_OAL_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_PNPLINFO_OAL_MASK ) >> GRSPW2_PNPLINFO_OAL_SHIFT )
+#define GRSPW2_PNPLINFO_OAL_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRSPW2_PNPLINFO_OAL_MASK ) |    \
+    ( ( ( _val ) << GRSPW2_PNPLINFO_OAL_SHIFT ) & \
+      GRSPW2_PNPLINFO_OAL_MASK ) )
+#define GRSPW2_PNPLINFO_OAL( _val ) \
+  ( ( ( _val ) << GRSPW2_PNPLINFO_OAL_SHIFT ) & GRSPW2_PNPLINFO_OAL_MASK )
+
+#define GRSPW2_PNPLINFO_OL_SHIFT 16
+#define GRSPW2_PNPLINFO_OL_MASK  0x1f0000U
+#define GRSPW2_PNPLINFO_OL_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_PNPLINFO_OL_MASK ) >> GRSPW2_PNPLINFO_OL_SHIFT )
+#define GRSPW2_PNPLINFO_OL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRSPW2_PNPLINFO_OL_MASK ) | \
+    ( ( ( _val ) << GRSPW2_PNPLINFO_OL_SHIFT ) & GRSPW2_PNPLINFO_OL_MASK ) )
+#define GRSPW2_PNPLINFO_OL( _val ) \
+  ( ( ( _val ) << GRSPW2_PNPLINFO_OL_SHIFT ) & GRSPW2_PNPLINFO_OL_MASK )
+
+#define GRSPW2_PNPLINFO_RL_SHIFT 8
+#define GRSPW2_PNPLINFO_RL_MASK  0x1f00U
+#define GRSPW2_PNPLINFO_RL_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_PNPLINFO_RL_MASK ) >> GRSPW2_PNPLINFO_RL_SHIFT )
+#define GRSPW2_PNPLINFO_RL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRSPW2_PNPLINFO_RL_MASK ) | \
+    ( ( ( _val ) << GRSPW2_PNPLINFO_RL_SHIFT ) & GRSPW2_PNPLINFO_RL_MASK ) )
+#define GRSPW2_PNPLINFO_RL( _val ) \
+  ( ( ( _val ) << GRSPW2_PNPLINFO_RL_SHIFT ) & GRSPW2_PNPLINFO_RL_MASK )
+
+#define GRSPW2_PNPLINFO_T 0x80U
+
+#define GRSPW2_PNPLINFO_U 0x40U
+
+#define GRSPW2_PNPLINFO_LC_SHIFT 0
+#define GRSPW2_PNPLINFO_LC_MASK  0x1fU
+#define GRSPW2_PNPLINFO_LC_GET( _reg ) \
+  ( ( ( _reg ) & GRSPW2_PNPLINFO_LC_MASK ) >> GRSPW2_PNPLINFO_LC_SHIFT )
+#define GRSPW2_PNPLINFO_LC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRSPW2_PNPLINFO_LC_MASK ) | \
+    ( ( ( _val ) << GRSPW2_PNPLINFO_LC_SHIFT ) & GRSPW2_PNPLINFO_LC_MASK ) )
+#define GRSPW2_PNPLINFO_LC( _val ) \
+  ( ( ( _val ) << GRSPW2_PNPLINFO_LC_SHIFT ) & GRSPW2_PNPLINFO_LC_MASK )
 
 /** @} */
 
@@ -1207,7 +1254,10 @@ typedef struct grspw2 {
    */
   uint32_t intrx;
 
-  uint32_t reserved_a8_ac;
+  /**
+   * @brief See @ref RTEMSDeviceGRSPW2ACKRXINTRXEXT.
+   */
+  uint32_t ackrx_intrxext;
 
   /**
    * @brief See @ref RTEMSDeviceGRSPW2INTTO.
@@ -1273,7 +1323,10 @@ typedef struct grspw2 {
    */
   uint32_t pnpvend;
 
-  uint32_t reserved_e4_e8;
+  /**
+   * @brief See @ref RTEMSDeviceGRSPW2PNPLINFO.
+   */
+  uint32_t pnplinfo;
 
   /**
    * @brief See @ref RTEMSDeviceGRSPW2PNPOA0.
