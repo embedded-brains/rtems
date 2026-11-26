@@ -108,7 +108,15 @@ static int versal_debug_console_out(int c)
   rtems_termios_device_context *base =
     &versal_uart_instances[BSP_CONSOLE_MINOR].pl011_ctx.base;
 
-  return arm_pl011_output_char_polled(base, c);
+  if ( rtems_output_char_is_drain( c ) ) {
+    return -1;
+  }
+
+  c &= RTEMS_OUTPUT_CHAR_MASK;
+
+  arm_pl011_write_polled(base, c);
+
+  return 0;
 }
 
 static void versal_debug_console_init(void)
