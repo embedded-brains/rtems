@@ -142,16 +142,37 @@ pre-conditions:
     text: |
       While the ${../if/realloc:/params[1]/name} parameter is equal to zero.
   - name: Smaller
-    test-code: |
-      ctx->size = OLD_SIZE / 2;
+    representatives:
+    - name: One
+      test-code: |
+        ctx->size = 1;
+    - name: Half
+      test-code: |
+        ctx->size = OLD_SIZE / 2;
+    - name: Usable
+      test-code: |
+        ctx->size = ( ctx->old_size != 0 ? ctx->old_size : OLD_SIZE );
+    test-code: null
     text: |
       While the ${../if/realloc:/params[1]/name} parameter is not equal to zero,
       while the ${../if/realloc:/params[1]/name} parameter is less than or equal to
       the size of the memory area referenced by the ${../if/realloc:/params[0]/name}
       parameter.
   - name: Larger
-    test-code: |
-      ctx->size = 2 * OLD_SIZE;
+    representatives:
+    - name: UsablePlusOne
+      test-code: |
+        ctx->size = ( ctx->old_size != 0 ? ctx->old_size : OLD_SIZE ) + 1;
+    - name: TwiceOld
+      test-code: |
+        ctx->size = 2 * OLD_SIZE;
+    - name: Slab
+      test-code: |
+        ctx->size = RBHEAP_SLAB_SIZE;
+    - name: SizeMax
+      test-code: |
+        ctx->size = SIZE_MAX;
+    test-code: null
     text: |
       While the ${../if/realloc:/params[1]/name} parameter is greater than the size
       of the memory area referenced by the ${../if/realloc:/params[0]/name}
@@ -182,15 +203,47 @@ pre-conditions:
 - name: Fit
   states:
   - name: 'Yes'
-    test-code: |
-      /* The heap has free blocks */
+    representatives:
+    - name: Free
+      test-code: |
+        if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if (
+          ctx->neighbour == NULL ||
+          ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock( &ctx->heap.heap, ctx->size, RBHEAP_ALIGNMENT );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has a
       ${/score/heap/glossary/free-block:/term} which satisfies a request of the size
       specified by the ${../if/realloc:/params[1]/name} parameter.
   - name: 'No'
-    test-code: |
-      HeapExhaust( &ctx->heap.heap );
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->size - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has no
       ${/score/heap/glossary/free-block:/term} which satisfies a request of the size
@@ -284,12 +337,15 @@ test-description: null
 test-header: null
 test-includes:
 - errno.h
+- stdint.h
 - stdlib.h
 - string.h
 test-local-includes:
 - tx-heap.h
 test-prepare: |
   HeapReset( &ctx->heap );
+  ctx->neighbour = NULL;
+  ctx->old_size = 0;
 test-setup:
   brief: null
   code: |

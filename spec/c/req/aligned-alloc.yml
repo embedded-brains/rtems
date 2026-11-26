@@ -99,19 +99,50 @@ pre-conditions:
     text: |
       While the ${../if/aligned-alloc:/params[0]/name} parameter is equal to zero.
   - name: NotPower2
-    test-code: |
-      ctx->alignment = sizeof( void * ) + 1;
+    representatives:
+    - name: Three
+      test-code: |
+        ctx->alignment = 3;
+    - name: PointerPlusOne
+      test-code: |
+        ctx->alignment = sizeof( void * ) + 1;
+    - name: HeapPlusOne
+      test-code: |
+        ctx->alignment = RBHEAP_ALIGNMENT + 1;
+    - name: TwiceHeapMinusOne
+      test-code: |
+        ctx->alignment = 2 * RBHEAP_ALIGNMENT - 1;
+    - name: SizeMax
+      test-code: |
+        ctx->alignment = SIZE_MAX;
+    test-code: null
     text: |
-      While the ${../if/aligned-alloc:/params[0]/name} parameter is greater than or
-      equal to `sizeof( void * )`, while the ${../if/aligned-alloc:/params[0]/name}
-      parameter is not a power of two.
+      While the ${../if/aligned-alloc:/params[0]/name} parameter is not equal to
+      zero, while the ${../if/aligned-alloc:/params[0]/name} parameter is not a power
+      of two.
   - name: Power2
-    test-code: |
-      ctx->alignment = 128;
+    representatives:
+    - name: One
+      test-code: |
+        ctx->alignment = 1;
+    - name: Two
+      test-code: |
+        ctx->alignment = 2;
+    - name: Pointer
+      test-code: |
+        ctx->alignment = sizeof( void * );
+    - name: Heap
+      test-code: |
+        ctx->alignment = RBHEAP_ALIGNMENT;
+    - name: TwiceHeap
+      test-code: |
+        ctx->alignment = 2 * RBHEAP_ALIGNMENT;
+    - name: Slab
+      test-code: |
+        ctx->alignment = RBHEAP_SLAB_SIZE;
+    test-code: null
     text: |
-      While the ${../if/aligned-alloc:/params[0]/name} parameter is greater than or
-      equal to `sizeof( void * )`, while the ${../if/aligned-alloc:/params[0]/name}
-      parameter is a power of two.
+      While the ${../if/aligned-alloc:/params[0]/name} parameter is a power of two.
   test-epilogue: null
   test-prologue: null
 - name: Size
@@ -122,8 +153,41 @@ pre-conditions:
     text: |
       While the ${../if/aligned-alloc:/params[1]/name} parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->size = sizeof( uint64_t );
+    representatives:
+    - name: One
+      test-code: |
+        ctx->size = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + 1;
+    - name: UnitMinusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT - 1;
+    - name: Unit
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT;
+    - name: UnitPlusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT + 1;
+    - name: Slab
+      test-code: |
+        ctx->size = RBHEAP_SLAB_SIZE;
+    - name: Max
+      test-code: |
+        ctx->size = RBHEAP_MAX_SIZE;
+    - name: AboveMax
+      test-code: |
+        ctx->size = RBHEAP_MAX_SIZE + 1;
+    - name: SizeMax
+      test-code: |
+        ctx->size = SIZE_MAX;
+    test-code: null
     text: |
       While the ${../if/aligned-alloc:/params[1]/name} parameter is not equal to
       zero.
@@ -132,14 +196,47 @@ pre-conditions:
 - name: Fit
   states:
   - name: 'Yes'
-    test-code: |
-      /* The heap is empty */
+    representatives:
+    - name: Empty
+      test-code: |
+        if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if ( ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap ) ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->size,
+            HeapFitAlignment( ctx->alignment )
+          );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has a
       ${/score/heap/glossary/free-block:/term} which satisfies the request.
   - name: 'No'
-    test-code: |
-      HeapExhaust( &ctx->heap.heap );
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->size - RBHEAP_ALIGNMENT,
+            HeapFitAlignment( ctx->alignment )
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has no
       ${/score/heap/glossary/free-block:/term} which satisfies the request.

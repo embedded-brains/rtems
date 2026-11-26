@@ -94,8 +94,20 @@ pre-conditions:
     text: |
       While the ${../if/calloc:/params[0]/name} parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->nmemb = 2;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->nmemb = 2;
+    - name: One
+      test-code: |
+        ctx->nmemb = 1;
+    - name: Large
+      test-code: |
+        ctx->nmemb = 65536;
+    - name: SizeMax
+      test-code: |
+        ctx->nmemb = SIZE_MAX;
+    test-code: null
     text: |
       While the ${../if/calloc:/params[0]/name} parameter is not equal to zero.
   test-epilogue: null
@@ -108,8 +120,26 @@ pre-conditions:
     text: |
       While the ${../if/calloc:/params[1]/name} parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->size = 3;
+    representatives:
+    - name: One
+      test-code: |
+        ctx->size = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + 1;
+    - name: Slab
+      test-code: |
+        ctx->size = RBHEAP_SLAB_SIZE;
+    - name: SizeMax
+      test-code: |
+        ctx->size = SIZE_MAX;
+    test-code: null
     text: |
       While the ${../if/calloc:/params[1]/name} parameter is not equal to zero.
   test-epilogue: null
@@ -117,14 +147,40 @@ pre-conditions:
 - name: Product
   states:
   - name: Valid
-    test-code: |
-      /* The product of the parameters is small */
+    representatives:
+    - name: Given
+      test-code: |
+        if ( ctx->nmemb != 0 && ctx->size > SIZE_MAX / ctx->nmemb ) {
+          ${.:skip}
+        }
+    - name: Limit
+      test-code: |
+        if ( ctx->nmemb == 0 || ctx->size == 0 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX / ctx->nmemb;
+        }
+    test-code: null
     text: |
       While the product of the `nmemb` and the ${../if/calloc:/params[1]/name}
       parameters is less than or equal to ${/c/if/size_max:/name}.
   - name: Overflow
-    test-code: |
-      ctx->size = SIZE_MAX / ctx->nmemb + 1;
+    representatives:
+    - name: JustAbove
+      test-code: |
+        if ( ctx->nmemb < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX / ctx->nmemb + 1;
+        }
+    - name: Max
+      test-code: |
+        if ( ctx->nmemb < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX;
+        }
+    test-code: null
     text: |
       While the product of the `nmemb` and the ${../if/calloc:/params[1]/name}
       parameters is greater than ${/c/if/size_max:/name}.
@@ -133,14 +189,51 @@ pre-conditions:
 - name: Fit
   states:
   - name: 'Yes'
-    test-code: |
-      /* The heap is empty */
+    representatives:
+    - name: Empty
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nmemb * ctx->size,
+            RBHEAP_ALIGNMENT
+          );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has a
       ${/score/heap/glossary/free-block:/term} which satisfies the request.
   - name: 'No'
-    test-code: |
-      HeapExhaust( &ctx->heap.heap );
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->nmemb * ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nmemb * ctx->size - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has no
       ${/score/heap/glossary/free-block:/term} which satisfies the request.

@@ -78,8 +78,20 @@ pre-conditions:
     text: |
       While the `nelem` parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->nelem = 2;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->nelem = 2;
+    - name: One
+      test-code: |
+        ctx->nelem = 1;
+    - name: Large
+      test-code: |
+        ctx->nelem = 65536;
+    - name: SizeMax
+      test-code: |
+        ctx->nelem = SIZE_MAX;
+    test-code: null
     text: |
       While the `nelem` parameter is not equal to zero.
   test-epilogue: null
@@ -92,8 +104,26 @@ pre-conditions:
     text: |
       While the `elsize` parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->elsize = 3;
+    representatives:
+    - name: One
+      test-code: |
+        ctx->elsize = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE + 1;
+    - name: Slab
+      test-code: |
+        ctx->elsize = RBHEAP_SLAB_SIZE;
+    - name: SizeMax
+      test-code: |
+        ctx->elsize = SIZE_MAX;
+    test-code: null
     text: |
       While the `elsize` parameter is not equal to zero.
   test-epilogue: null
@@ -101,14 +131,40 @@ pre-conditions:
 - name: Product
   states:
   - name: Valid
-    test-code: |
-      /* The product of the parameters is small */
+    representatives:
+    - name: Given
+      test-code: |
+        if ( ctx->nelem != 0 && ctx->elsize > SIZE_MAX / ctx->nelem ) {
+          ${.:skip}
+        }
+    - name: Limit
+      test-code: |
+        if ( ctx->nelem == 0 || ctx->elsize == 0 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX / ctx->nelem;
+        }
+    test-code: null
     text: |
       While the product of the `nelem` and the `elsize` parameters is less than or
       equal to ${/c/if/size_max:/name}.
   - name: Overflow
-    test-code: |
-      ctx->elsize = SIZE_MAX / ctx->nelem + 1;
+    representatives:
+    - name: JustAbove
+      test-code: |
+        if ( ctx->nelem < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX / ctx->nelem + 1;
+        }
+    - name: Max
+      test-code: |
+        if ( ctx->nelem < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX;
+        }
+    test-code: null
     text: |
       While the product of the `nelem` and the `elsize` parameters is greater than
       ${/c/if/size_max:/name}.
@@ -117,14 +173,52 @@ pre-conditions:
 - name: Fit
   states:
   - name: 'Yes'
-    test-code: |
-      /* The heap is empty */
+    representatives:
+    - name: Empty
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nelem * ctx->elsize,
+            RBHEAP_ALIGNMENT
+          );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has a
       ${/score/heap/glossary/free-block:/term} which satisfies the request.
   - name: 'No'
-    test-code: |
-      HeapExhaust( &ctx->heap.heap );
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->nelem * ctx->elsize <=
+            HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nelem * ctx->elsize - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/c-program-heap:/term} has no
       ${/score/heap/glossary/free-block:/term} which satisfies the request.

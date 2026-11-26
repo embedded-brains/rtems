@@ -106,8 +106,41 @@ pre-conditions:
     text: |
       While the ${../if/allocate:/params[0]/name} parameter is equal to zero.
   - name: NonZero
-    test-code: |
-      ctx->bytes = 1;
+    representatives:
+    - name: One
+      test-code: |
+        ctx->bytes = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE + 1;
+    - name: UnitMinusOne
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT - 1;
+    - name: Unit
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT;
+    - name: UnitPlusOne
+      test-code: |
+        ctx->bytes = RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT + 1;
+    - name: Slab
+      test-code: |
+        ctx->bytes = RBHEAP_SLAB_SIZE;
+    - name: Max
+      test-code: |
+        ctx->bytes = RBHEAP_MAX_SIZE;
+    - name: AboveMax
+      test-code: |
+        ctx->bytes = RBHEAP_MAX_SIZE + 1;
+    - name: SizeMax
+      test-code: |
+        ctx->bytes = SIZE_MAX;
+    test-code: null
     text: |
       While the ${../if/allocate:/params[0]/name} parameter is not equal to zero.
   test-epilogue: null
@@ -115,14 +148,43 @@ pre-conditions:
 - name: Fit
   states:
   - name: 'Yes'
-    test-code: |
-      /* The heap is empty */
+    representatives:
+    - name: Empty
+      test-code: |
+        if ( ctx->bytes > HeapGetLargestAllocatableSize( &_Workspace_RBHeap ) ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if ( ctx->bytes > HeapGetLargestAllocatableSize( &_Workspace_RBHeap ) ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock( &_Workspace_RBHeap, ctx->bytes, RBHEAP_ALIGNMENT );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/workspace:/term} has a
       ${/score/heap/glossary/free-block:/term} which satisfies the request.
   - name: 'No'
-    test-code: |
-      HeapExhaust( &_Workspace_RBHeap );
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &_Workspace_RBHeap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->bytes >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->bytes <= HeapGetLargestAllocatableSize( &_Workspace_RBHeap )
+        ) {
+          HeapLeaveFreeBlock(
+            &_Workspace_RBHeap,
+            ctx->bytes - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &_Workspace_RBHeap );
+        }
+    test-code: null
     text: |
       While the ${/score/heap/glossary/workspace:/term} has no
       ${/score/heap/glossary/free-block:/term} which satisfies the request.
@@ -190,6 +252,7 @@ test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- stdint.h
 - rtems.h
 - rtems/score/wkspace.h
 test-local-includes:
