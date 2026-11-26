@@ -32,6 +32,16 @@ links:
 - role: build-dependency
   uid: fatal-boot-processor-not-assigned-to-scheduler
 - role: build-dependency
+  uid: fatal-free-double-bin
+- role: build-dependency
+  uid: fatal-free-double-bin-pop
+- role: build-dependency
+  uid: fatal-free-double-bin-remote
+- role: build-dependency
+  uid: fatal-free-double-kept-owner
+- role: build-dependency
+  uid: fatal-free-double-kept-remote
+- role: build-dependency
   uid: fatal-idle-thread-create-failed
 - role: build-dependency
   uid: fatal-idle-thread-stack-too-small
