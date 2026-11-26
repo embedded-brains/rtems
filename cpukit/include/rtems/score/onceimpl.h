@@ -59,9 +59,9 @@ extern "C" {
  *
  * If once_state is ONCE_STATE_INIT, then the once state is set first to
  * ONCE_STATE_RUNNING and after calling the init routine it is set to
- * ONCE_STATE_COMPLETED. If once_state is ONCE_STATE_COMPLETED, nothing
- * happens. If once_state is not either one, this method waits for the
- * Once_Information_Mutex.
+ * ONCE_STATE_COMPLETE. If once_state is ONCE_STATE_COMPLETE, nothing
+ * happens. If once_state is ONCE_STATE_RUNNING, this method waits until
+ * once_state is ONCE_STATE_COMPLETE.
  *
  * @param once_state The once state.
  * @param init_routine The initialization routine called if @a once_state is ONCE_STATE_INIT.
