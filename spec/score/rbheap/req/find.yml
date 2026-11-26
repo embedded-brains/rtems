@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  The fixed count of successors keeps the search time logarithmic in the count of
+  the free blocks. An aligned allocation can therefore fail while a free block
+  exists which holds the block.
+requirement-type: functional
+text: |
+  When the heap allocates a block with an alignment or a boundary, the heap shall
+  test the free block of the best fit and up to four of its successors in the
+  tree of the free blocks before it searches for a free block which holds the
+  block at each begin.
+type: requirement
