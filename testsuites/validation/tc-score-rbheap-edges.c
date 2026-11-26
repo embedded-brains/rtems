@@ -277,10 +277,12 @@ static void RunBoundaryPlace( Context *ctx )
 
   heap = &ctx->heap;
   n = Fill( ctx );
+  T_eq_uptr( _RBHeap_Get_largest_free_size( heap ), 0 );
 
   /* The free block lies between two multiples of the boundary */
   i = FindChunks( ctx, n, 0, 1, 2 * CHUNK_SIZE, CHUNK_SIZE );
   FreeChunks( ctx, i, 1 );
+  T_eq_uptr( _RBHeap_Get_largest_free_size( heap ), CHUNK_SIZE );
   ptr = _RBHeap_Allocate_aligned_with_boundary( heap, 64, 0, 2 * CHUNK_SIZE );
   T_eq_ptr( ptr, ctx->blocks[ i ] );
   T_true( _RBHeap_Free( heap, ptr ) );
@@ -288,6 +290,7 @@ static void RunBoundaryPlace( Context *ctx )
   /* At the begin of the free block, the block would cross a multiple */
   j = FindChunks( ctx, n, i + 1, 3, 2 * CHUNK_SIZE, CHUNK_SIZE );
   FreeChunks( ctx, j, 3 );
+  T_eq_uptr( _RBHeap_Get_largest_free_size( heap ), 3 * CHUNK_SIZE );
   ptr = _RBHeap_Allocate_aligned_with_boundary(
     heap,
     3 * CHUNK_SIZE / 2,
