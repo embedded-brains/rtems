@@ -32,8 +32,8 @@ links:
   uid: gr740-thsens-header
 name: gr740_thsens
 notes: null
-register-block-group: GR740 Temperatur Sensor Controller
-register-block-size: 12
+register-block-group: GR740 Temperature Sensor Controller
+register-block-size: 256
 register-prefix: null
 registers:
 - bits:

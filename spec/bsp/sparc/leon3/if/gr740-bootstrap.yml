@@ -23,7 +23,7 @@ links:
 name: gr740_bootstrap
 notes: null
 register-block-group: GR740 Bootstrap Signals
-register-block-size: 4
+register-block-size: 256
 register-prefix: null
 registers:
 - bits:

@@ -62,8 +62,8 @@ links:
   uid: gr740-iopll-header
 name: gr740_iopll
 notes: null
-register-block-group: GR740 I/0 and PLL Configuration
-register-block-size: 36
+register-block-group: GR740 I/O and PLL Configuration
+register-block-size: 256
 register-prefix: null
 registers:
 - bits:
