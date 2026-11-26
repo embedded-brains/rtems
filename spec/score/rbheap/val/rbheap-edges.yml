@@ -24,6 +24,17 @@ test-actions:
   - role: validation
     uid: ../req/boundary
 - action-brief: |
+    Allocate blocks until the heap carves a slab. Then free and allocate one block
+    several times.
+  action-code: |
+    RunHysteresis( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/release
+  - role: validation
+    uid: ../req/reserve
+- action-brief: |
     Allocate an aligned block while the free block of the best fit does not hold it
     at its alignment and a successor of equal size does.
   action-code: |
@@ -354,6 +365,41 @@ test-support: |
       2 * CHUNK_SIZE
     );
     T_eq_ptr( ptr, ctx->blocks[ j + 1 ] );
+    T_true( _RBHeap_Walk( heap ) );
+  }
+
+  static void RunHysteresis( Context *ctx )
+  {
+    RBHeap_control *heap;
+    uintptr_t       slabs;
+    uintptr_t       capacity;
+    size_t          n;
+    size_t          i;
+
+    heap = &ctx->heap;
+    Init( ctx, 0, AREA_SIZE );
+    slabs = heap->area_slab_count;
+    n = 0;
+
+    while ( heap->area_slab_count == slabs ) {
+      T_quiet_lt_sz( n, BLOCK_COUNT );
+      ctx->blocks[ n ] = _RBHeap_Allocate( heap, 1 );
+      T_quiet_not_null( ctx->blocks[ n ] );
+      ++n;
+    }
+
+    slabs = heap->area_slab_count;
+    capacity = heap->capacity;
+
+    for ( i = 0; i < 8; ++i ) {
+      T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ n - 1 ] ) );
+      T_eq_uptr( heap->area_slab_count, slabs );
+      ctx->blocks[ n - 1 ] = _RBHeap_Allocate( heap, 1 );
+      T_quiet_not_null( ctx->blocks[ n - 1 ] );
+      T_eq_uptr( heap->area_slab_count, slabs );
+      T_eq_uptr( heap->capacity, capacity );
+    }
+
     T_true( _RBHeap_Walk( heap ) );
   }
 

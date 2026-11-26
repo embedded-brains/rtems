@@ -8,10 +8,13 @@ links:
   uid: ../if/group
 rationale: |
   One allocation, free or resize moves at most four descriptors, so the release
-  of a slab spreads over several operations.
+  of a slab spreads over several operations. The descriptors of one more slab
+  keep an allocation and a free at the bound of the reserve from carving and
+  releasing a slab each time.
 requirement-type: functional
 text: |
   When the slabs inside the memory areas of the heap hold more descriptors than
-  the reserve needs, the heap shall move the descriptors in use of the slab with
-  the fewest descriptors in use to other slabs and free that slab.
+  the reserve and one more slab need, the heap shall move the descriptors in use
+  of the slab with the fewest descriptors in use to other slabs and free that
+  slab.
 type: requirement
