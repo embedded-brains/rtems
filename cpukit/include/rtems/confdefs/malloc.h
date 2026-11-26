@@ -71,6 +71,7 @@
 #ifdef _CONFIGURE_MALLOC_PROCESSOR_BLOCKS
 #include <rtems/config.h>
 #include <rtems/sysinit.h>
+#include <rtems/score/interr.h>
 #endif
 
 #ifdef __cplusplus
@@ -103,12 +104,18 @@ RTEMS_STATIC_ASSERT(
 
 static void _Malloc_Initialize_processor_blocks( void )
 {
-  (void) _RBHeap_Initialize_processor_blocks(
+  bool ok;
+
+  ok = _RBHeap_Initialize_processor_blocks(
     RTEMS_Malloc_Heap,
     rtems_configuration_get_maximum_processors(),
     CONFIGURE_MALLOC_CPU_DESCRIPTORS,
     CONFIGURE_MALLOC_CPU_MAX_SIZE
   );
+
+  if ( !ok ) {
+    _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
+  }
 }
 
 RTEMS_SYSINIT_ITEM(
