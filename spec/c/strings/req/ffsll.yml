@@ -60,15 +60,39 @@ pre-conditions:
       While the value of the ${../if/ffsll:/params[0]/name} parameter is equal to
       one.
   - name: Least
-    test-code: |
-      ctx->i = 0x0008010000000001LL;
+    representatives:
+    - name: Least
+      test-code: |
+        ctx->i = 0x0008010000000001LL;
+    - name: LeastNegative
+      test-code: |
+        ctx->i = LLONG_MIN + 1;
+    test-code: null
     text: |
       While the least significant bit of the value of the
       ${../if/ffsll:/params[0]/name} parameter is set, while the value of the
       ${../if/ffsll:/params[0]/name} parameter is neither one nor minus one.
   - name: Middle
-    test-code: |
-      ctx->i = 0x0008010000000000LL;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->i = 2LL;
+    - name: BelowHalf
+      test-code: |
+        ctx->i = 0x0000000080000000LL;
+    - name: AboveHalf
+      test-code: |
+        ctx->i = 0x0000000100000000LL;
+    - name: Inner
+      test-code: |
+        ctx->i = 0x0008010000000000LL;
+    - name: BelowMost
+      test-code: |
+        ctx->i = 0x4000000000000000LL;
+    - name: Negative
+      test-code: |
+        ctx->i = LLONG_MIN | 0x0000000000000100LL;
+    test-code: null
     text: |
       While the least significant bit set in the value of the
       ${../if/ffsll:/params[0]/name} parameter is neither the least significant bit
@@ -91,7 +115,12 @@ rationale: |
   in the value. The Least and Most states hold the two ends of the index range,
   one and the number of bits of type `long long`. The Most state holds the
   minimum value of the type, so the sign bit is set. The Middle state holds every
-  other value.
+  other value. The Least state takes a positive and a negative value. The Middle
+  state takes the index two, an inner index and the index below the most
+  significant bit. It also takes an inner index with the sign bit set. A target
+  with a 32-bit type long splits the value into two words. The BelowHalf and
+  AboveHalf representatives hold the indices 32 and 33 at the boundary between
+  them.
 references: []
 requirement-type: functional
 skip-reasons: {}
