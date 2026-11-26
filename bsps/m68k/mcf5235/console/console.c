@@ -25,16 +25,10 @@
 static ssize_t IntUartPollWrite(int minor, const char *buf, size_t len);
 static ssize_t IntUartInterruptWrite (int minor, const char *buf, size_t len);
 
-static int
-_BSP_null_char( int c )
+static void
+_BSP_null_char( char c )
 {
   int level;
-
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
 
   rtems_interrupt_disable(level);
 
@@ -49,8 +43,6 @@ _BSP_null_char( int c )
   }
 
   rtems_interrupt_enable(level);
-
-  return 0;
 }
 
 BSP_output_char_function_type     BSP_output_char = _BSP_null_char;

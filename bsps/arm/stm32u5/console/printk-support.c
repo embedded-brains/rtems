@@ -46,17 +46,9 @@
 
 #include <stm32u5/hal.h>
 
-static int stm32u5_output_char( int c )
+static void stm32u5_output_char( char c )
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   stm32u5_uart_polled_write( &STM32U5_PRINTK_INSTANCE.device, c );
-
-  return 0;
 }
 
 static void stm32u5_output_char_init( void )
@@ -85,10 +77,10 @@ static void stm32u5_output_char_init( void )
   BSP_output_char = stm32u5_output_char;
 }
 
-static int stm32u5_output_char_init_early( int c )
+static void stm32u5_output_char_init_early( char c )
 {
   stm32u5_output_char_init();
-  return stm32u5_output_char( c );
+  stm32u5_output_char( c );
 }
 
 static int stm32u5_poll_char( void )

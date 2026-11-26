@@ -239,14 +239,12 @@ static int Capture( void *arg, const char *format, va_list ap )
   return _IO_Vprintf( PutCharOfPrinter, arg, format, ap );
 }
 
-static int OutputChar( int c )
+static void OutputChar( char c )
 {
   /* The printk printer outputs a carriage return before each newline */
   if ( c != '\r' ) {
-    PutChar( &printk_output, (char) c );
+    PutChar( &printk_output, c );
   }
-
-  return 0;
 }
 
 static void Append( Output *out, const char *format, ... )

@@ -36,7 +36,6 @@
 
 #include <bsp.h>
 #include <amba.h>
-#include <rtems/bspIo.h>
 #include <rtems/libio.h>
 #include <rtems/sysinit.h>
 #include <stdlib.h>
@@ -110,10 +109,8 @@ RTEMS_SYSINIT_ITEM(
 );
 
 /* putchar/getchar for printk */
-static int bsp_out_char(int c)
+static void bsp_out_char(char c)
 {
-  int rv;
-
   if (grlib_debug_uart == NULL) {
     uint32_t ctrl;
 
@@ -131,18 +128,15 @@ static int bsp_out_char(int c)
     */
   }
 
-  rv = apbuart_output_char_polled(grlib_debug_uart, c);
-
-  if (!rtems_output_char_is_drain(c) && !rtems_output_char_is_try(c)) {
-    apbuart_outbyte_wait(grlib_debug_uart);
-  }
-
-  return rv;
+  apbuart_outbyte_polled(grlib_debug_uart, c);
+  apbuart_outbyte_wait(grlib_debug_uart);
 }
 
 /*
  *  To support printk
  */
+
+#include <rtems/bspIo.h>
 
 BSP_output_char_function_type BSP_output_char = bsp_out_char;
 

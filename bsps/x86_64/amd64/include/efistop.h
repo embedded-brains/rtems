@@ -38,6 +38,6 @@
 void
 efi_init_text_output(int);
 
-int
-efi_text_output_char(int);
+void
+efi_text_output_char(char);
 

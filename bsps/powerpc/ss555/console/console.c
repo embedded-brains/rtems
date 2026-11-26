@@ -78,11 +78,11 @@
 #include <rtems/libio.h>
 #include <bsp.h>                /* Must be before libio.h */
 
-static int _BSP_output_char( int c );
+static void _BSP_output_char( char c );
 static rtems_status_code do_poll_read( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
 static rtems_status_code do_poll_write( rtems_device_major_number major, rtems_device_minor_number minor, void * arg);
 
-static int _BSP_null_char( int c ) {(void) c; return 0;}
+static void _BSP_null_char( char c ) {(void) c; return;}
 
 BSP_output_char_function_type     BSP_output_char = _BSP_null_char;
 BSP_polling_getchar_function_type BSP_poll_char = NULL;
@@ -177,28 +177,18 @@ static rtems_status_code do_poll_write(
  *  Print functions prototyped in bspIo.h
  */
 
-static int _BSP_output_char( int c )
+static void _BSP_output_char( char c )
 {
-  char ch;
   char cr = '\r';
-
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-  ch = (char) c;
 
   /*
    *  Can't rely on console_initialize having been called before this
    *  function is used, so it may fail.
    */
 
-  m5xx_uart_pollWrite( PRINTK_MINOR, &ch, 1 );
+  m5xx_uart_pollWrite( PRINTK_MINOR, &c, 1 );
   if( c == '\n' )
     m5xx_uart_pollWrite( PRINTK_MINOR, &cr, 1 );
-
-  return 0;
 }
 
 /*

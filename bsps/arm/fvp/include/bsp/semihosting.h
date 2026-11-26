@@ -117,7 +117,7 @@ static inline uintptr_t arm_fvp_semihosting_call(
   return op_and_return_reg;
 }
 
-int arm_fvp_console_output( int c );
+void arm_fvp_console_output( char c );
 
 int arm_fvp_console_input( void );
 

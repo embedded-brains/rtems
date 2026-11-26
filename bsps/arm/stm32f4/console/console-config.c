@@ -110,17 +110,9 @@ console_tbl Console_Configuration_Ports [] = {
 
 unsigned long Console_Configuration_Count = PORT_COUNT;
 
-static int stm32f4_output_char(int c)
+static void stm32f4_output_char(char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   stm32f4_usart_fns.deviceWritePolled((int) Console_Port_Minor, c);
-
-  return 0;
 }
 
 static void stm32f4_output_char_init()
@@ -130,10 +122,10 @@ static void stm32f4_output_char_init()
   BSP_output_char = stm32f4_output_char;
 }
 
-static int stm32f4_output_char_init_early(int c)
+static void stm32f4_output_char_init_early(char c)
 {
   stm32f4_output_char_init();
-  return stm32f4_output_char(c);
+  stm32f4_output_char(c);
 }
 
 static int stm32f4_poll_char(void)

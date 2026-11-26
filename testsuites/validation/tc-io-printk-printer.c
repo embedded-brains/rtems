@@ -78,18 +78,16 @@ typedef struct {
 
 static Output *current_output;
 
-static int PutChar( int c )
+static void PutChar( char c )
 {
   Output *output;
 
   output = current_output;
 
   if ( output->size < sizeof( output->buf ) ) {
-    output->buf[ output->size ] = (char) c;
+    output->buf[ output->size ] = c;
     ++output->size;
   }
-
-  return 0;
 }
 
 static int Unused( void *context, const char *format, va_list ap )

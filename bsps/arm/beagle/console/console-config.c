@@ -153,16 +153,8 @@ static void uart_write_polled( char c )
   CONSOLE_THR8 = c;
 }
 
-static int _BSP_put_char( int c ) {
-   if ( rtems_output_char_is_drain( c ) ) {
-     return -1;
-   }
-
-   c &= RTEMS_OUTPUT_CHAR_MASK;
-
+static void _BSP_put_char( char c ) {
    uart_write_polled( c );
-
-   return 0;
 }
 
 static int _BSP_get_char(void)

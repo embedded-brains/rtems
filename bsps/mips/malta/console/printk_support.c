@@ -40,26 +40,19 @@
 
 rtems_device_minor_number         BSPPrintkPort = 0;
 
-int BSP_com_outch(int ch);
+void BSP_com_outch(char ch);
 int BSP_com_inch( void );
 
 /*
  *  Following assume all are ns16650
  */
-int BSP_com_outch(int ch)
+void BSP_com_outch(char ch)
 {
   console_tbl                   *cptr;
 
   cptr = &Console_Configuration_Ports[BSPPrintkPort];
 
-  if ( rtems_output_char_is_drain( ch ) ) {
-    return -1;
-  }
-
-  ch &= RTEMS_OUTPUT_CHAR_MASK;
-
-  ns16550_outch_polled( cptr, ch );
-  return 0;
+  return ns16550_outch_polled( cptr, ch );
 }
 
 int BSP_com_inch( void )

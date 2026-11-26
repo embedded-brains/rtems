@@ -152,17 +152,9 @@ static int imx93_uart_read_polled( rtems_termios_device_context *base )
   }
 }
 
-static int imx93_output_char( int c )
+static void imx93_output_char( char c )
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   imx93_poll_write( &imx93_uart_console->base, c );
-
-  return 0;
 }
 
 static int imx93_poll_char( void )

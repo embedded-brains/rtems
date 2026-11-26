@@ -71,7 +71,7 @@
 
 static KernelPrintflikeControl kernel_printflike_control;
 
-static int Putc( int c )
+static void Putc( char c )
 {
   KernelPrintflikeControl *control;
   size_t                   index;
@@ -80,20 +80,18 @@ static int Putc( int c )
   index = control->buf_index;
 
   if ( index < sizeof( control->buf ) - 2 ) {
-    control->buf[ index ] = (char) c;
+    control->buf[ index ] = c;
     control->buf_index = index + 1;
   }
-
-  return 0;
 }
 
-static int PutcIgnoreCR( int c )
+static void PutcIgnoreCR( char c )
 {
   if ( c == '\r' ) {
-    return 0;
+    return;
   }
 
-  return Putc( c );
+  Putc( c );
 }
 
 static int PrintkNoArg( const char *fmt )

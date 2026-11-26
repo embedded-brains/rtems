@@ -93,18 +93,7 @@ int console_inbyte_nonblocking(
 
 #include <rtems/bspIo.h>
 
-static int simBSP_output_char(int c)
-{
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
-  console_outbyte_polled( 0, c );
-
-  return 0;
-}
+static void simBSP_output_char(char c) { console_outbyte_polled( 0, c ); }
 
 BSP_output_char_function_type           BSP_output_char = simBSP_output_char;
 BSP_polling_getchar_function_type       BSP_poll_char = NULL;

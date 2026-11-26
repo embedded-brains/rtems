@@ -41,13 +41,11 @@
 #include <rtems.h>
 #include <rtems/bspIo.h>
 
-static int BSP_output_char_f(int c)
+static void BSP_output_char_f(char c)
 {
   (void) c;
 
   /* the character just needs to disappear */
-
-  return 0;
 }
 
 BSP_output_char_function_type           BSP_output_char = BSP_output_char_f;

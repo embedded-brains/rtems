@@ -45,7 +45,7 @@ void fbcons_write_polled(
   char c
 );
 
-int output_char_fb(int c);
+void output_char_fb(char c);
 
 typedef struct {
     rtems_termios_device_context base;

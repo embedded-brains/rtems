@@ -93,17 +93,9 @@ int console_inbyte_nonblocking(
 
 #include <rtems/bspIo.h>
 
-static int csb250_output_char(int c)
+static void csb250_output_char(char c)
 {
-    if ( rtems_output_char_is_drain( c ) ) {
-      return -1;
-    }
-
-    c &= RTEMS_OUTPUT_CHAR_MASK;
-
     console_outbyte_polled( 0, c );
-
-    return 0;
 }
 
 static int csb250_get_char(void)

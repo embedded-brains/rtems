@@ -421,17 +421,9 @@ unsigned long Console_Configuration_Count =
 
 #include <rtems/bspIo.h>
 
-static int outputChar(int ch)
+static void outputChar(char ch)
 {
-   if ( rtems_output_char_is_drain( ch ) ) {
-     return -1;
-   }
-
-   ch &= RTEMS_OUTPUT_CHAR_MASK;
-
    xlite_write_char_polled( 0, ch );
-
-   return 0;
 }
 
 static int inputChar(void)

@@ -90,22 +90,14 @@ static int t32_console_read_polled(rtems_termios_device_context *base)
   return c;
 }
 
-static int t32_console_write_char_polled(int c)
+static void t32_console_write_char_polled(char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   while (messagebufferout[0] != 0) {
     /* Wait for ready */
   }
 
   messagebufferout[4] = (unsigned char) c;
   messagebufferout[0] = 1;
-
-  return 0;
 }
 
 static void t32_console_write_polled(

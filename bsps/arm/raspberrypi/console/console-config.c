@@ -56,43 +56,19 @@ ns16550_context mini_uart_context;
 
 rpi_fb_context fb_context;
 
-static int output_char_pl011(int c)
+static void output_char_pl011(char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   arm_pl011_write_polled(&pl011_context.base, c);
-
-  return 0;
 }
 
-static int output_char_mini_uart(int c)
+static void output_char_mini_uart(char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   ns16550_polled_putchar(&mini_uart_context.base, c);
-
-  return 0;
 }
 
-int output_char_fb(int c)
+void output_char_fb(char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   fbcons_write_polled(&fb_context.base, c);
-
-  return 0;
 }
 
 static uint8_t mini_uart_get_reg(uintptr_t port, uint8_t index)
@@ -233,10 +209,10 @@ static void uart_probe(void)
   initialized = true;
 }
 
-static int output_char(int c)
+static void output_char(char c)
 {
   uart_probe();
-  return (*BSP_output_char)(c);
+  (*BSP_output_char)(c);
 }
 
 rtems_status_code console_initialize(

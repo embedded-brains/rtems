@@ -13,7 +13,6 @@
 #include <rtems/termiostypes.h>
 #include <termios.h>
 #include <assert.h>
-#include <rtems/bspIo.h>
 
 /*
  * Basic 16552 driver
@@ -394,18 +393,10 @@ BSP_uart_polled_write(int uart, int val)
   return;
 }
 
-int
-BSP_output_char_via_serial(int val)
+void
+BSP_output_char_via_serial(char val)
 {
-  if ( rtems_output_char_is_drain( val ) ) {
-    return -1;
-  }
-
-  val &= RTEMS_OUTPUT_CHAR_MASK;
-
   BSP_uart_polled_write(BSPConsolePort, val);
-
-  return 0;
 }
 
 /*

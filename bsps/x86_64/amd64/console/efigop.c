@@ -83,18 +83,10 @@ init_fb_from_gop(EFI_GRAPHICS_OUTPUT *gop, struct fb_var_screeninfo* fbvar, stru
 extern void rpi_fb_outch(char);
 extern void rpi_video_init(void);
 
-int
-efi_graphic_output_char(int c)
+void
+efi_graphic_output_char(char c)
 {
-    if ( rtems_output_char_is_drain( c ) ) {
-      return -1;
-    }
-
-    c &= RTEMS_OUTPUT_CHAR_MASK;
-
     rpi_fb_outch(c);
-
-    return 0;
 }
 
 rtems_device_driver

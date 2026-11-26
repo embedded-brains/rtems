@@ -442,17 +442,9 @@ typedef struct console_io {
 
 extern console_io* curIo;
 
-int debug_putc(int c)
+void debug_putc(const char c)
 {
-  if ( rtems_output_char_is_drain( c ) ) {
-    return -1;
-  }
-
-  c &= RTEMS_OUTPUT_CHAR_MASK;
-
   curIo->console_io_putc(c);
-
-  return 0;
 }
 
 /* const char arg to be compatible with BSP_output_char decl. */
