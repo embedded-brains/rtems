@@ -619,6 +619,7 @@ test-support: |
     Heap_Statistics        stats;
     void                  *ptr[ 3 ];
     uintptr_t              size;
+    uintptr_t              used;
     bool                   ok;
 
     ok = _RBHeap_Initialize( &ctx->heap, ctx->area, sizeof( ctx->area ) );
@@ -633,8 +634,15 @@ test-support: |
     T_eq_uptr( info.Free.number, 2 );
     T_eq_uptr( info.Free.total, stats.free_size );
     T_ge_uptr( info.Free.largest, 200 );
+    T_eq_uptr( info.Free.largest, _RBHeap_Get_largest_free_size( &ctx->heap ) );
+    T_eq_uptr( info.Used.largest, 0 );
+    T_true( _RBHeap_Size_of_block( &ctx->heap, ptr[ 0 ], &size ) );
+    T_ge_uptr( size, 100 );
+    used = size;
     T_true( _RBHeap_Size_of_block( &ctx->heap, ptr[ 2 ], &size ) );
     T_ge_uptr( size, 300 );
+    used += size;
+    T_eq_uptr( info.Used.total, used + 2 * RBHEAP_GUARD_SIZE );
     T_false( _RBHeap_Size_of_block( &ctx->heap, ptr[ 1 ], &size ) );
     T_eq_uptr( _RBHeap_Get_releasable_size( &ctx->heap, 0 ), 0 );
     T_eq_uptr( _RBHeap_Get_releasable_size( &ctx->heap, 100 ), 0 );

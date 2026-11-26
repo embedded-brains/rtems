@@ -33,6 +33,9 @@ name: rtems_workspace_get_information
 notes: |
   The directive is deprecated. Use ${get-statistics:/name} instead. The directive
   will be removed after the RTEMS 7 release.
+
+  If ${/acfg/if/workspace-allocator:/name} is ${allocator-red-black-tree:/name},
+  then the size of the largest used block is zero.
 params:
 - description: |
     is the pointer to a ${/score/heap/if/information-block:/name} object. When the
