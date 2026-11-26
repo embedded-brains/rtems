@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,487 +62,729 @@ extern "C" {
  */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanCONF Configuration Register (CanCONF)
+ * @defgroup RTEMSDeviceGRCANCONF Configuration Register (CONF)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANCONF_SCALER_SHIFT 24
-#define GRCAN_CANCONF_SCALER_MASK  0xff000000U
-#define GRCAN_CANCONF_SCALER_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCONF_SCALER_MASK ) >> GRCAN_CANCONF_SCALER_SHIFT )
-#define GRCAN_CANCONF_SCALER_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANCONF_SCALER_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANCONF_SCALER_SHIFT ) & \
-      GRCAN_CANCONF_SCALER_MASK ) )
-#define GRCAN_CANCONF_SCALER( _val ) \
-  ( ( ( _val ) << GRCAN_CANCONF_SCALER_SHIFT ) & GRCAN_CANCONF_SCALER_MASK )
+#define GRCAN_CONF_SCALER_SHIFT 24
+#define GRCAN_CONF_SCALER_MASK  0xff000000U
+#define GRCAN_CONF_SCALER_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_CONF_SCALER_MASK ) >> GRCAN_CONF_SCALER_SHIFT )
+#define GRCAN_CONF_SCALER_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_CONF_SCALER_MASK ) | \
+    ( ( ( _val ) << GRCAN_CONF_SCALER_SHIFT ) & GRCAN_CONF_SCALER_MASK ) )
+#define GRCAN_CONF_SCALER( _val ) \
+  ( ( ( _val ) << GRCAN_CONF_SCALER_SHIFT ) & GRCAN_CONF_SCALER_MASK )
 
-#define GRCAN_CANCONF_PS1_SHIFT 20
-#define GRCAN_CANCONF_PS1_MASK  0xf00000U
-#define GRCAN_CANCONF_PS1_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCONF_PS1_MASK ) >> GRCAN_CANCONF_PS1_SHIFT )
-#define GRCAN_CANCONF_PS1_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANCONF_PS1_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANCONF_PS1_SHIFT ) & GRCAN_CANCONF_PS1_MASK ) )
-#define GRCAN_CANCONF_PS1( _val ) \
-  ( ( ( _val ) << GRCAN_CANCONF_PS1_SHIFT ) & GRCAN_CANCONF_PS1_MASK )
+#define GRCAN_CONF_PS1_SHIFT 20
+#define GRCAN_CONF_PS1_MASK  0xf00000U
+#define GRCAN_CONF_PS1_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_CONF_PS1_MASK ) >> GRCAN_CONF_PS1_SHIFT )
+#define GRCAN_CONF_PS1_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_CONF_PS1_MASK ) | \
+    ( ( ( _val ) << GRCAN_CONF_PS1_SHIFT ) & GRCAN_CONF_PS1_MASK ) )
+#define GRCAN_CONF_PS1( _val ) \
+  ( ( ( _val ) << GRCAN_CONF_PS1_SHIFT ) & GRCAN_CONF_PS1_MASK )
 
-#define GRCAN_CANCONF_PS2_SHIFT 16
-#define GRCAN_CANCONF_PS2_MASK  0xf0000U
-#define GRCAN_CANCONF_PS2_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCONF_PS2_MASK ) >> GRCAN_CANCONF_PS2_SHIFT )
-#define GRCAN_CANCONF_PS2_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANCONF_PS2_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANCONF_PS2_SHIFT ) & GRCAN_CANCONF_PS2_MASK ) )
-#define GRCAN_CANCONF_PS2( _val ) \
-  ( ( ( _val ) << GRCAN_CANCONF_PS2_SHIFT ) & GRCAN_CANCONF_PS2_MASK )
+#define GRCAN_CONF_PS2_SHIFT 16
+#define GRCAN_CONF_PS2_MASK  0xf0000U
+#define GRCAN_CONF_PS2_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_CONF_PS2_MASK ) >> GRCAN_CONF_PS2_SHIFT )
+#define GRCAN_CONF_PS2_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_CONF_PS2_MASK ) | \
+    ( ( ( _val ) << GRCAN_CONF_PS2_SHIFT ) & GRCAN_CONF_PS2_MASK ) )
+#define GRCAN_CONF_PS2( _val ) \
+  ( ( ( _val ) << GRCAN_CONF_PS2_SHIFT ) & GRCAN_CONF_PS2_MASK )
 
-#define GRCAN_CANCONF_RSJ_SHIFT 12
-#define GRCAN_CANCONF_RSJ_MASK  0x7000U
-#define GRCAN_CANCONF_RSJ_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCONF_RSJ_MASK ) >> GRCAN_CANCONF_RSJ_SHIFT )
-#define GRCAN_CANCONF_RSJ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANCONF_RSJ_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANCONF_RSJ_SHIFT ) & GRCAN_CANCONF_RSJ_MASK ) )
-#define GRCAN_CANCONF_RSJ( _val ) \
-  ( ( ( _val ) << GRCAN_CANCONF_RSJ_SHIFT ) & GRCAN_CANCONF_RSJ_MASK )
+#define GRCAN_CONF_RSJ_SHIFT 12
+#define GRCAN_CONF_RSJ_MASK  0x7000U
+#define GRCAN_CONF_RSJ_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_CONF_RSJ_MASK ) >> GRCAN_CONF_RSJ_SHIFT )
+#define GRCAN_CONF_RSJ_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_CONF_RSJ_MASK ) | \
+    ( ( ( _val ) << GRCAN_CONF_RSJ_SHIFT ) & GRCAN_CONF_RSJ_MASK ) )
+#define GRCAN_CONF_RSJ( _val ) \
+  ( ( ( _val ) << GRCAN_CONF_RSJ_SHIFT ) & GRCAN_CONF_RSJ_MASK )
 
-#define GRCAN_CANCONF_BPR_SHIFT 8
-#define GRCAN_CANCONF_BPR_MASK  0x300U
-#define GRCAN_CANCONF_BPR_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCONF_BPR_MASK ) >> GRCAN_CANCONF_BPR_SHIFT )
-#define GRCAN_CANCONF_BPR_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANCONF_BPR_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANCONF_BPR_SHIFT ) & GRCAN_CANCONF_BPR_MASK ) )
-#define GRCAN_CANCONF_BPR( _val ) \
-  ( ( ( _val ) << GRCAN_CANCONF_BPR_SHIFT ) & GRCAN_CANCONF_BPR_MASK )
+#define GRCAN_CONF_BPR_SHIFT 8
+#define GRCAN_CONF_BPR_MASK  0x300U
+#define GRCAN_CONF_BPR_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_CONF_BPR_MASK ) >> GRCAN_CONF_BPR_SHIFT )
+#define GRCAN_CONF_BPR_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_CONF_BPR_MASK ) | \
+    ( ( ( _val ) << GRCAN_CONF_BPR_SHIFT ) & GRCAN_CONF_BPR_MASK ) )
+#define GRCAN_CONF_BPR( _val ) \
+  ( ( ( _val ) << GRCAN_CONF_BPR_SHIFT ) & GRCAN_CONF_BPR_MASK )
 
-#define GRCAN_CANCONF_SAM 0x20U
+#define GRCAN_CONF_SAM 0x20U
 
-#define GRCAN_CANCONF_SILNT 0x10U
+#define GRCAN_CONF_SILENT 0x10U
 
-#define GRCAN_CANCONF_SELECT 0x8U
+#define GRCAN_CONF_SELECT 0x8U
 
-#define GRCAN_CANCONF_ENABLE1 0x4U
+#define GRCAN_CONF_ENABLE1 0x4U
 
-#define GRCAN_CANCONF_ENABLE0 0x2U
+#define GRCAN_CONF_ENABLE0 0x2U
 
-#define GRCAN_CANCONF_ABORT 0x1U
+#define GRCAN_CONF_ABORT 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanSTAT Status Register (CanSTAT)
+ * @defgroup RTEMSDeviceGRCANSTAT Status Register (STAT)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANSTAT_TXCHANNELS_SHIFT 28
-#define GRCAN_CANSTAT_TXCHANNELS_MASK  0xf0000000U
-#define GRCAN_CANSTAT_TXCHANNELS_GET( _reg )        \
-  ( ( ( _reg ) & GRCAN_CANSTAT_TXCHANNELS_MASK ) >> \
-    GRCAN_CANSTAT_TXCHANNELS_SHIFT )
-#define GRCAN_CANSTAT_TXCHANNELS_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANSTAT_TXCHANNELS_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANSTAT_TXCHANNELS_SHIFT ) & \
-      GRCAN_CANSTAT_TXCHANNELS_MASK ) )
-#define GRCAN_CANSTAT_TXCHANNELS( _val )             \
-  ( ( ( _val ) << GRCAN_CANSTAT_TXCHANNELS_SHIFT ) & \
-    GRCAN_CANSTAT_TXCHANNELS_MASK )
+#define GRCAN_STAT_TXCHANNELS_SHIFT 28
+#define GRCAN_STAT_TXCHANNELS_MASK  0xf0000000U
+#define GRCAN_STAT_TXCHANNELS_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_STAT_TXCHANNELS_MASK ) >> GRCAN_STAT_TXCHANNELS_SHIFT )
+#define GRCAN_STAT_TXCHANNELS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_STAT_TXCHANNELS_MASK ) |    \
+    ( ( ( _val ) << GRCAN_STAT_TXCHANNELS_SHIFT ) & \
+      GRCAN_STAT_TXCHANNELS_MASK ) )
+#define GRCAN_STAT_TXCHANNELS( _val ) \
+  ( ( ( _val ) << GRCAN_STAT_TXCHANNELS_SHIFT ) & GRCAN_STAT_TXCHANNELS_MASK )
 
-#define GRCAN_CANSTAT_RXCHANNELS_SHIFT 24
-#define GRCAN_CANSTAT_RXCHANNELS_MASK  0xf000000U
-#define GRCAN_CANSTAT_RXCHANNELS_GET( _reg )        \
-  ( ( ( _reg ) & GRCAN_CANSTAT_RXCHANNELS_MASK ) >> \
-    GRCAN_CANSTAT_RXCHANNELS_SHIFT )
-#define GRCAN_CANSTAT_RXCHANNELS_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANSTAT_RXCHANNELS_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANSTAT_RXCHANNELS_SHIFT ) & \
-      GRCAN_CANSTAT_RXCHANNELS_MASK ) )
-#define GRCAN_CANSTAT_RXCHANNELS( _val )             \
-  ( ( ( _val ) << GRCAN_CANSTAT_RXCHANNELS_SHIFT ) & \
-    GRCAN_CANSTAT_RXCHANNELS_MASK )
+#define GRCAN_STAT_RXCHANNELS_SHIFT 24
+#define GRCAN_STAT_RXCHANNELS_MASK  0xf000000U
+#define GRCAN_STAT_RXCHANNELS_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_STAT_RXCHANNELS_MASK ) >> GRCAN_STAT_RXCHANNELS_SHIFT )
+#define GRCAN_STAT_RXCHANNELS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_STAT_RXCHANNELS_MASK ) |    \
+    ( ( ( _val ) << GRCAN_STAT_RXCHANNELS_SHIFT ) & \
+      GRCAN_STAT_RXCHANNELS_MASK ) )
+#define GRCAN_STAT_RXCHANNELS( _val ) \
+  ( ( ( _val ) << GRCAN_STAT_RXCHANNELS_SHIFT ) & GRCAN_STAT_RXCHANNELS_MASK )
 
-#define GRCAN_CANSTAT_TXERRCNT_SHIFT 16
-#define GRCAN_CANSTAT_TXERRCNT_MASK  0xff0000U
-#define GRCAN_CANSTAT_TXERRCNT_GET( _reg )        \
-  ( ( ( _reg ) & GRCAN_CANSTAT_TXERRCNT_MASK ) >> \
-    GRCAN_CANSTAT_TXERRCNT_SHIFT )
-#define GRCAN_CANSTAT_TXERRCNT_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANSTAT_TXERRCNT_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANSTAT_TXERRCNT_SHIFT ) & \
-      GRCAN_CANSTAT_TXERRCNT_MASK ) )
-#define GRCAN_CANSTAT_TXERRCNT( _val )             \
-  ( ( ( _val ) << GRCAN_CANSTAT_TXERRCNT_SHIFT ) & \
-    GRCAN_CANSTAT_TXERRCNT_MASK )
+#define GRCAN_STAT_TXERRCNTR_SHIFT 16
+#define GRCAN_STAT_TXERRCNTR_MASK  0xff0000U
+#define GRCAN_STAT_TXERRCNTR_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_STAT_TXERRCNTR_MASK ) >> GRCAN_STAT_TXERRCNTR_SHIFT )
+#define GRCAN_STAT_TXERRCNTR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_STAT_TXERRCNTR_MASK ) |    \
+    ( ( ( _val ) << GRCAN_STAT_TXERRCNTR_SHIFT ) & \
+      GRCAN_STAT_TXERRCNTR_MASK ) )
+#define GRCAN_STAT_TXERRCNTR( _val ) \
+  ( ( ( _val ) << GRCAN_STAT_TXERRCNTR_SHIFT ) & GRCAN_STAT_TXERRCNTR_MASK )
 
-#define GRCAN_CANSTAT_RXERRCNT_SHIFT 8
-#define GRCAN_CANSTAT_RXERRCNT_MASK  0xff00U
-#define GRCAN_CANSTAT_RXERRCNT_GET( _reg )        \
-  ( ( ( _reg ) & GRCAN_CANSTAT_RXERRCNT_MASK ) >> \
-    GRCAN_CANSTAT_RXERRCNT_SHIFT )
-#define GRCAN_CANSTAT_RXERRCNT_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANSTAT_RXERRCNT_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANSTAT_RXERRCNT_SHIFT ) & \
-      GRCAN_CANSTAT_RXERRCNT_MASK ) )
-#define GRCAN_CANSTAT_RXERRCNT( _val )             \
-  ( ( ( _val ) << GRCAN_CANSTAT_RXERRCNT_SHIFT ) & \
-    GRCAN_CANSTAT_RXERRCNT_MASK )
+#define GRCAN_STAT_RXERRCNTR_SHIFT 8
+#define GRCAN_STAT_RXERRCNTR_MASK  0xff00U
+#define GRCAN_STAT_RXERRCNTR_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_STAT_RXERRCNTR_MASK ) >> GRCAN_STAT_RXERRCNTR_SHIFT )
+#define GRCAN_STAT_RXERRCNTR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_STAT_RXERRCNTR_MASK ) |    \
+    ( ( ( _val ) << GRCAN_STAT_RXERRCNTR_SHIFT ) & \
+      GRCAN_STAT_RXERRCNTR_MASK ) )
+#define GRCAN_STAT_RXERRCNTR( _val ) \
+  ( ( ( _val ) << GRCAN_STAT_RXERRCNTR_SHIFT ) & GRCAN_STAT_RXERRCNTR_MASK )
 
-#define GRCAN_CANSTAT_ACTIVE 0x10U
+#define GRCAN_STAT_ACTIVE 0x10U
 
-#define GRCAN_CANSTAT_AHBERR 0x8U
+#define GRCAN_STAT_BMERR 0x8U
 
-#define GRCAN_CANSTAT_OR 0x4U
+#define GRCAN_STAT_OR 0x4U
 
-#define GRCAN_CANSTAT_OFF 0x2U
+#define GRCAN_STAT_BUSOFF 0x2U
 
-#define GRCAN_CANSTAT_PASS 0x1U
+#define GRCAN_STAT_ERRPASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanCTRL Control Register (CanCTRL)
+ * @defgroup RTEMSDeviceGRCANCTRL Control Register (CTRL)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANCTRL_RESET 0x2U
+#define GRCAN_CTRL_RESET 0x2U
 
-#define GRCAN_CANCTRL_ENABLE 0x1U
+#define GRCAN_CTRL_ENABLE 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanMASK SYNC Mask Filter Register (CanMASK)
+ * @defgroup RTEMSDeviceGRCANSYNCMASK SYNC Mask Filter Register (SYNCMASK)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANMASK_MASK_SHIFT 0
-#define GRCAN_CANMASK_MASK_MASK  0x1fffffffU
-#define GRCAN_CANMASK_MASK_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANMASK_MASK_MASK ) >> GRCAN_CANMASK_MASK_SHIFT )
-#define GRCAN_CANMASK_MASK_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANMASK_MASK_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANMASK_MASK_SHIFT ) & GRCAN_CANMASK_MASK_MASK ) )
-#define GRCAN_CANMASK_MASK( _val ) \
-  ( ( ( _val ) << GRCAN_CANMASK_MASK_SHIFT ) & GRCAN_CANMASK_MASK_MASK )
+#define GRCAN_SYNCMASK_MASK_SHIFT 0
+#define GRCAN_SYNCMASK_MASK_MASK  0x1fffffffU
+#define GRCAN_SYNCMASK_MASK_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_SYNCMASK_MASK_MASK ) >> GRCAN_SYNCMASK_MASK_SHIFT )
+#define GRCAN_SYNCMASK_MASK_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_SYNCMASK_MASK_MASK ) |    \
+    ( ( ( _val ) << GRCAN_SYNCMASK_MASK_SHIFT ) & \
+      GRCAN_SYNCMASK_MASK_MASK ) )
+#define GRCAN_SYNCMASK_MASK( _val ) \
+  ( ( ( _val ) << GRCAN_SYNCMASK_MASK_SHIFT ) & GRCAN_SYNCMASK_MASK_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanCODE SYNC Code Filter Register (CanCODE)
+ * @defgroup RTEMSDeviceGRCANSYNCCODE SYNC Code Filter Register (SYNCCODE)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANCODE_SYNC_SHIFT 0
-#define GRCAN_CANCODE_SYNC_MASK  0x1fffffffU
-#define GRCAN_CANCODE_SYNC_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANCODE_SYNC_MASK ) >> GRCAN_CANCODE_SYNC_SHIFT )
-#define GRCAN_CANCODE_SYNC_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANCODE_SYNC_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANCODE_SYNC_SHIFT ) & GRCAN_CANCODE_SYNC_MASK ) )
-#define GRCAN_CANCODE_SYNC( _val ) \
-  ( ( ( _val ) << GRCAN_CANCODE_SYNC_SHIFT ) & GRCAN_CANCODE_SYNC_MASK )
+#define GRCAN_SYNCCODE_CODE_SHIFT 0
+#define GRCAN_SYNCCODE_CODE_MASK  0x1fffffffU
+#define GRCAN_SYNCCODE_CODE_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_SYNCCODE_CODE_MASK ) >> GRCAN_SYNCCODE_CODE_SHIFT )
+#define GRCAN_SYNCCODE_CODE_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_SYNCCODE_CODE_MASK ) |    \
+    ( ( ( _val ) << GRCAN_SYNCCODE_CODE_SHIFT ) & \
+      GRCAN_SYNCCODE_CODE_MASK ) )
+#define GRCAN_SYNCCODE_CODE( _val ) \
+  ( ( ( _val ) << GRCAN_SYNCCODE_CODE_SHIFT ) & GRCAN_SYNCCODE_CODE_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxCTRL \
- *   Transmit Channel Control Register (CanTxCTRL)
+ * @defgroup RTEMSDeviceGRCANPIMSR \
+ *   Pending interrupt masked status register (PIMSR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXCTRL_SINGLE 0x4U
+#define GRCAN_PIMSR_TXLOSS 0x10000U
 
-#define GRCAN_CANTXCTRL_ONGOING 0x2U
+#define GRCAN_PIMSR_RXMISS 0x8000U
 
-#define GRCAN_CANTXCTRL_ENABLE 0x1U
+#define GRCAN_PIMSR_TXERRCNTR 0x4000U
+
+#define GRCAN_PIMSR_RXERRCNTR 0x2000U
+
+#define GRCAN_PIMSR_TXSYNC 0x1000U
+
+#define GRCAN_PIMSR_RXSYNC 0x800U
+
+#define GRCAN_PIMSR_TX 0x400U
+
+#define GRCAN_PIMSR_RX 0x200U
+
+#define GRCAN_PIMSR_TXEMPTY 0x100U
+
+#define GRCAN_PIMSR_RXFULL 0x80U
+
+#define GRCAN_PIMSR_TXIRQ 0x40U
+
+#define GRCAN_PIMSR_RXIRQ 0x20U
+
+#define GRCAN_PIMSR_BMRDERR 0x10U
+
+#define GRCAN_PIMSR_BMWRERR 0x8U
+
+#define GRCAN_PIMSR_OR 0x4U
+
+#define GRCAN_PIMSR_OFF 0x2U
+
+#define GRCAN_PIMSR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxADDR \
- *   Transmit Channel Address Register (CanTxADDR)
+ * @defgroup RTEMSDeviceGRCANPIMR Pending interrupt masked register (PIMR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXADDR_ADDR_SHIFT 10
-#define GRCAN_CANTXADDR_ADDR_MASK  0xfffffc00U
-#define GRCAN_CANTXADDR_ADDR_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANTXADDR_ADDR_MASK ) >> GRCAN_CANTXADDR_ADDR_SHIFT )
-#define GRCAN_CANTXADDR_ADDR_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANTXADDR_ADDR_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANTXADDR_ADDR_SHIFT ) & \
-      GRCAN_CANTXADDR_ADDR_MASK ) )
-#define GRCAN_CANTXADDR_ADDR( _val ) \
-  ( ( ( _val ) << GRCAN_CANTXADDR_ADDR_SHIFT ) & GRCAN_CANTXADDR_ADDR_MASK )
+#define GRCAN_PIMR_TXLOSS 0x10000U
+
+#define GRCAN_PIMR_RXMISS 0x8000U
+
+#define GRCAN_PIMR_TXERRCNTR 0x4000U
+
+#define GRCAN_PIMR_RXERRCNTR 0x2000U
+
+#define GRCAN_PIMR_TXSYNC 0x1000U
+
+#define GRCAN_PIMR_RXSYNC 0x800U
+
+#define GRCAN_PIMR_TX 0x400U
+
+#define GRCAN_PIMR_RX 0x200U
+
+#define GRCAN_PIMR_TXEMPTY 0x100U
+
+#define GRCAN_PIMR_RXFULL 0x80U
+
+#define GRCAN_PIMR_TXIRQ 0x40U
+
+#define GRCAN_PIMR_RXIRQ 0x20U
+
+#define GRCAN_PIMR_BMRDERR 0x10U
+
+#define GRCAN_PIMR_BMWRERR 0x8U
+
+#define GRCAN_PIMR_OR 0x4U
+
+#define GRCAN_PIMR_OFF 0x2U
+
+#define GRCAN_PIMR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxSIZE \
- *   Transmit Channel Size Register (CanTxSIZE)
+ * @defgroup RTEMSDeviceGRCANPISR Pending interrupt status register (PISR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXSIZE_SIZE_SHIFT 6
-#define GRCAN_CANTXSIZE_SIZE_MASK  0x1fffc0U
-#define GRCAN_CANTXSIZE_SIZE_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANTXSIZE_SIZE_MASK ) >> GRCAN_CANTXSIZE_SIZE_SHIFT )
-#define GRCAN_CANTXSIZE_SIZE_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANTXSIZE_SIZE_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANTXSIZE_SIZE_SHIFT ) & \
-      GRCAN_CANTXSIZE_SIZE_MASK ) )
-#define GRCAN_CANTXSIZE_SIZE( _val ) \
-  ( ( ( _val ) << GRCAN_CANTXSIZE_SIZE_SHIFT ) & GRCAN_CANTXSIZE_SIZE_MASK )
+#define GRCAN_PISR_TXLOSS 0x10000U
+
+#define GRCAN_PISR_RXMISS 0x8000U
+
+#define GRCAN_PISR_TXERRCNTR 0x4000U
+
+#define GRCAN_PISR_RXERRCNTR 0x2000U
+
+#define GRCAN_PISR_TXSYNC 0x1000U
+
+#define GRCAN_PISR_RXSYNC 0x800U
+
+#define GRCAN_PISR_TX 0x400U
+
+#define GRCAN_PISR_RX 0x200U
+
+#define GRCAN_PISR_TXEMPTY 0x100U
+
+#define GRCAN_PISR_RXFULL 0x80U
+
+#define GRCAN_PISR_TXIRQ 0x40U
+
+#define GRCAN_PISR_RXIRQ 0x20U
+
+#define GRCAN_PISR_BMRDERR 0x10U
+
+#define GRCAN_PISR_BMWRERR 0x8U
+
+#define GRCAN_PISR_OR 0x4U
+
+#define GRCAN_PISR_OFF 0x2U
+
+#define GRCAN_PISR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxWR Transmit Channel Write Register (CanTxWR)
+ * @defgroup RTEMSDeviceGRCANPIR Pending interrupt register (PIR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXWR_WRITE_SHIFT 4
-#define GRCAN_CANTXWR_WRITE_MASK  0xffff0U
-#define GRCAN_CANTXWR_WRITE_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANTXWR_WRITE_MASK ) >> GRCAN_CANTXWR_WRITE_SHIFT )
-#define GRCAN_CANTXWR_WRITE_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANTXWR_WRITE_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANTXWR_WRITE_SHIFT ) & \
-      GRCAN_CANTXWR_WRITE_MASK ) )
-#define GRCAN_CANTXWR_WRITE( _val ) \
-  ( ( ( _val ) << GRCAN_CANTXWR_WRITE_SHIFT ) & GRCAN_CANTXWR_WRITE_MASK )
+#define GRCAN_PIR_TXLOSS 0x10000U
+
+#define GRCAN_PIR_RXMISS 0x8000U
+
+#define GRCAN_PIR_TXERRCNTR 0x4000U
+
+#define GRCAN_PIR_RXERRCNTR 0x2000U
+
+#define GRCAN_PIR_TXSYNC 0x1000U
+
+#define GRCAN_PIR_RXSYNC 0x800U
+
+#define GRCAN_PIR_TX 0x400U
+
+#define GRCAN_PIR_RX 0x200U
+
+#define GRCAN_PIR_TXEMPTY 0x100U
+
+#define GRCAN_PIR_RXFULL 0x80U
+
+#define GRCAN_PIR_TXIRQ 0x40U
+
+#define GRCAN_PIR_RXIRQ 0x20U
+
+#define GRCAN_PIR_BMRDERR 0x10U
+
+#define GRCAN_PIR_BMWRERR 0x8U
+
+#define GRCAN_PIR_OR 0x4U
+
+#define GRCAN_PIR_OFF 0x2U
+
+#define GRCAN_PIR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxRD Transmit Channel Read Register (CanTxRD)
+ * @defgroup RTEMSDeviceGRCANIMR Interrupt mask register (IMR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXRD_READ_SHIFT 4
-#define GRCAN_CANTXRD_READ_MASK  0xffff0U
-#define GRCAN_CANTXRD_READ_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANTXRD_READ_MASK ) >> GRCAN_CANTXRD_READ_SHIFT )
-#define GRCAN_CANTXRD_READ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANTXRD_READ_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANTXRD_READ_SHIFT ) & GRCAN_CANTXRD_READ_MASK ) )
-#define GRCAN_CANTXRD_READ( _val ) \
-  ( ( ( _val ) << GRCAN_CANTXRD_READ_SHIFT ) & GRCAN_CANTXRD_READ_MASK )
+#define GRCAN_IMR_TXLOSS 0x10000U
+
+#define GRCAN_IMR_RXMISS 0x8000U
+
+#define GRCAN_IMR_TXERRCNTR 0x4000U
+
+#define GRCAN_IMR_RXERRCNTR 0x2000U
+
+#define GRCAN_IMR_TXSYNC 0x1000U
+
+#define GRCAN_IMR_RXSYNC 0x800U
+
+#define GRCAN_IMR_TX 0x400U
+
+#define GRCAN_IMR_RX 0x200U
+
+#define GRCAN_IMR_TXEMPTY 0x100U
+
+#define GRCAN_IMR_RXFULL 0x80U
+
+#define GRCAN_IMR_TXIRQ 0x40U
+
+#define GRCAN_IMR_RXIRQ 0x20U
+
+#define GRCAN_IMR_BMRDERR 0x10U
+
+#define GRCAN_IMR_BMWRERR 0x8U
+
+#define GRCAN_IMR_OR 0x4U
+
+#define GRCAN_IMR_OFF 0x2U
+
+#define GRCAN_IMR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanTxIRQ \
- *   Transmit Channel Interrupt Register (CanTxIRQ)
+ * @defgroup RTEMSDeviceGRCANPICR Pending interrupt clear register (PICR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANTXIRQ_IRQ_SHIFT 4
-#define GRCAN_CANTXIRQ_IRQ_MASK  0xffff0U
-#define GRCAN_CANTXIRQ_IRQ_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANTXIRQ_IRQ_MASK ) >> GRCAN_CANTXIRQ_IRQ_SHIFT )
-#define GRCAN_CANTXIRQ_IRQ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANTXIRQ_IRQ_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANTXIRQ_IRQ_SHIFT ) & GRCAN_CANTXIRQ_IRQ_MASK ) )
-#define GRCAN_CANTXIRQ_IRQ( _val ) \
-  ( ( ( _val ) << GRCAN_CANTXIRQ_IRQ_SHIFT ) & GRCAN_CANTXIRQ_IRQ_MASK )
+#define GRCAN_PICR_TXLOSS 0x10000U
+
+#define GRCAN_PICR_RXMISS 0x8000U
+
+#define GRCAN_PICR_TXERRCNTR 0x4000U
+
+#define GRCAN_PICR_RXERRCNTR 0x2000U
+
+#define GRCAN_PICR_TXSYNC 0x1000U
+
+#define GRCAN_PICR_RXSYNC 0x800U
+
+#define GRCAN_PICR_TX 0x400U
+
+#define GRCAN_PICR_RX 0x200U
+
+#define GRCAN_PICR_TXEMPTY 0x100U
+
+#define GRCAN_PICR_RXFULL 0x80U
+
+#define GRCAN_PICR_TXIRQ 0x40U
+
+#define GRCAN_PICR_RXIRQ 0x20U
+
+#define GRCAN_PICR_BMRDERR 0x10U
+
+#define GRCAN_PICR_BMWRERR 0x8U
+
+#define GRCAN_PICR_OR 0x4U
+
+#define GRCAN_PICR_OFF 0x2U
+
+#define GRCAN_PICR_PASS 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxCTRL \
- *   Receive Channel Control Register (CanRxCTRL)
+ * @defgroup RTEMSDeviceGRCANTXCTRL Transmit Channel Control Register (TXCTRL)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXCTRL_ONGOING 0x2U
+#define GRCAN_TXCTRL_SINGLE 0x4U
 
-#define GRCAN_CANRXCTRL_ENABLE 0x1U
+#define GRCAN_TXCTRL_ONGOING 0x2U
+
+#define GRCAN_TXCTRL_ENABLE 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxADDR \
- *   Receive Channel Address Register (CanRxADDR)
+ * @defgroup RTEMSDeviceGRCANTXADDR Transmit Channel Address Register (TXADDR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXADDR_ADDR_SHIFT 10
-#define GRCAN_CANRXADDR_ADDR_MASK  0xfffffc00U
-#define GRCAN_CANRXADDR_ADDR_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXADDR_ADDR_MASK ) >> GRCAN_CANRXADDR_ADDR_SHIFT )
-#define GRCAN_CANRXADDR_ADDR_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANRXADDR_ADDR_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANRXADDR_ADDR_SHIFT ) & \
-      GRCAN_CANRXADDR_ADDR_MASK ) )
-#define GRCAN_CANRXADDR_ADDR( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXADDR_ADDR_SHIFT ) & GRCAN_CANRXADDR_ADDR_MASK )
+#define GRCAN_TXADDR_ADDR_SHIFT 10
+#define GRCAN_TXADDR_ADDR_MASK  0xfffffc00U
+#define GRCAN_TXADDR_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_TXADDR_ADDR_MASK ) >> GRCAN_TXADDR_ADDR_SHIFT )
+#define GRCAN_TXADDR_ADDR_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_TXADDR_ADDR_MASK ) | \
+    ( ( ( _val ) << GRCAN_TXADDR_ADDR_SHIFT ) & GRCAN_TXADDR_ADDR_MASK ) )
+#define GRCAN_TXADDR_ADDR( _val ) \
+  ( ( ( _val ) << GRCAN_TXADDR_ADDR_SHIFT ) & GRCAN_TXADDR_ADDR_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxSIZE \
- *   Receive Channel Size Register (CanRxSIZE)
+ * @defgroup RTEMSDeviceGRCANTXSIZE Transmit Channel Size Register (TXSIZE)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXSIZE_SIZE_SHIFT 6
-#define GRCAN_CANRXSIZE_SIZE_MASK  0x1fffc0U
-#define GRCAN_CANRXSIZE_SIZE_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXSIZE_SIZE_MASK ) >> GRCAN_CANRXSIZE_SIZE_SHIFT )
-#define GRCAN_CANRXSIZE_SIZE_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANRXSIZE_SIZE_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANRXSIZE_SIZE_SHIFT ) & \
-      GRCAN_CANRXSIZE_SIZE_MASK ) )
-#define GRCAN_CANRXSIZE_SIZE( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXSIZE_SIZE_SHIFT ) & GRCAN_CANRXSIZE_SIZE_MASK )
+#define GRCAN_TXSIZE_SIZE_SHIFT 6
+#define GRCAN_TXSIZE_SIZE_MASK  0x1fffc0U
+#define GRCAN_TXSIZE_SIZE_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_TXSIZE_SIZE_MASK ) >> GRCAN_TXSIZE_SIZE_SHIFT )
+#define GRCAN_TXSIZE_SIZE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_TXSIZE_SIZE_MASK ) | \
+    ( ( ( _val ) << GRCAN_TXSIZE_SIZE_SHIFT ) & GRCAN_TXSIZE_SIZE_MASK ) )
+#define GRCAN_TXSIZE_SIZE( _val ) \
+  ( ( ( _val ) << GRCAN_TXSIZE_SIZE_SHIFT ) & GRCAN_TXSIZE_SIZE_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxWR Receive Channel Write Register (CanRxWR)
+ * @defgroup RTEMSDeviceGRCANTXWR Transmit Channel Write Register (TXWR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXWR_WRITE_SHIFT 4
-#define GRCAN_CANRXWR_WRITE_MASK  0xffff0U
-#define GRCAN_CANRXWR_WRITE_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXWR_WRITE_MASK ) >> GRCAN_CANRXWR_WRITE_SHIFT )
-#define GRCAN_CANRXWR_WRITE_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~GRCAN_CANRXWR_WRITE_MASK ) |    \
-    ( ( ( _val ) << GRCAN_CANRXWR_WRITE_SHIFT ) & \
-      GRCAN_CANRXWR_WRITE_MASK ) )
-#define GRCAN_CANRXWR_WRITE( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXWR_WRITE_SHIFT ) & GRCAN_CANRXWR_WRITE_MASK )
+#define GRCAN_TXWR_WRITE_SHIFT 4
+#define GRCAN_TXWR_WRITE_MASK  0xffff0U
+#define GRCAN_TXWR_WRITE_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_TXWR_WRITE_MASK ) >> GRCAN_TXWR_WRITE_SHIFT )
+#define GRCAN_TXWR_WRITE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_TXWR_WRITE_MASK ) | \
+    ( ( ( _val ) << GRCAN_TXWR_WRITE_SHIFT ) & GRCAN_TXWR_WRITE_MASK ) )
+#define GRCAN_TXWR_WRITE( _val ) \
+  ( ( ( _val ) << GRCAN_TXWR_WRITE_SHIFT ) & GRCAN_TXWR_WRITE_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxRD Receive Channel Read Register (CanRxRD)
+ * @defgroup RTEMSDeviceGRCANTXRD Transmit Channel Read Register (TXRD)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXRD_READ_SHIFT 4
-#define GRCAN_CANRXRD_READ_MASK  0xffff0U
-#define GRCAN_CANRXRD_READ_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXRD_READ_MASK ) >> GRCAN_CANRXRD_READ_SHIFT )
-#define GRCAN_CANRXRD_READ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANRXRD_READ_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANRXRD_READ_SHIFT ) & GRCAN_CANRXRD_READ_MASK ) )
-#define GRCAN_CANRXRD_READ( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXRD_READ_SHIFT ) & GRCAN_CANRXRD_READ_MASK )
+#define GRCAN_TXRD_READ_SHIFT 4
+#define GRCAN_TXRD_READ_MASK  0xffff0U
+#define GRCAN_TXRD_READ_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_TXRD_READ_MASK ) >> GRCAN_TXRD_READ_SHIFT )
+#define GRCAN_TXRD_READ_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_TXRD_READ_MASK ) | \
+    ( ( ( _val ) << GRCAN_TXRD_READ_SHIFT ) & GRCAN_TXRD_READ_MASK ) )
+#define GRCAN_TXRD_READ( _val ) \
+  ( ( ( _val ) << GRCAN_TXRD_READ_SHIFT ) & GRCAN_TXRD_READ_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxIRQ \
- *   Receive Channel Interrupt Register (CanRxIRQ)
+ * @defgroup RTEMSDeviceGRCANTXIRQ Transmit Channel Interrupt Register (TXIRQ)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXIRQ_IRQ_SHIFT 4
-#define GRCAN_CANRXIRQ_IRQ_MASK  0xffff0U
-#define GRCAN_CANRXIRQ_IRQ_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXIRQ_IRQ_MASK ) >> GRCAN_CANRXIRQ_IRQ_SHIFT )
-#define GRCAN_CANRXIRQ_IRQ_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANRXIRQ_IRQ_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANRXIRQ_IRQ_SHIFT ) & GRCAN_CANRXIRQ_IRQ_MASK ) )
-#define GRCAN_CANRXIRQ_IRQ( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXIRQ_IRQ_SHIFT ) & GRCAN_CANRXIRQ_IRQ_MASK )
+#define GRCAN_TXIRQ_IRQ_SHIFT 4
+#define GRCAN_TXIRQ_IRQ_MASK  0xffff0U
+#define GRCAN_TXIRQ_IRQ_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_TXIRQ_IRQ_MASK ) >> GRCAN_TXIRQ_IRQ_SHIFT )
+#define GRCAN_TXIRQ_IRQ_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_TXIRQ_IRQ_MASK ) | \
+    ( ( ( _val ) << GRCAN_TXIRQ_IRQ_SHIFT ) & GRCAN_TXIRQ_IRQ_MASK ) )
+#define GRCAN_TXIRQ_IRQ( _val ) \
+  ( ( ( _val ) << GRCAN_TXIRQ_IRQ_SHIFT ) & GRCAN_TXIRQ_IRQ_MASK )
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxMASK \
- *   Receive Channel Mask Register (CanRxMASK)
+ * @defgroup RTEMSDeviceGRCANRXCTRL Receive Channel Control Register (RXCTRL)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXMASK_AM_SHIFT 0
-#define GRCAN_CANRXMASK_AM_MASK  0x1fffffffU
-#define GRCAN_CANRXMASK_AM_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXMASK_AM_MASK ) >> GRCAN_CANRXMASK_AM_SHIFT )
-#define GRCAN_CANRXMASK_AM_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANRXMASK_AM_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANRXMASK_AM_SHIFT ) & GRCAN_CANRXMASK_AM_MASK ) )
-#define GRCAN_CANRXMASK_AM( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXMASK_AM_SHIFT ) & GRCAN_CANRXMASK_AM_MASK )
+#define GRCAN_RXCTRL_ONGOING 0x2U
+
+#define GRCAN_RXCTRL_ENABLE 0x1U
 
 /** @} */
 
 /**
- * @defgroup RTEMSDeviceGRCANCanRxCODE \
- *   Receive Channel Code Register (CanRxCODE)
+ * @defgroup RTEMSDeviceGRCANRXADDR Receive Channel Address Register (RXADDR)
  *
  * @brief This group contains register bit definitions.
  *
  * @{
  */
 
-#define GRCAN_CANRXCODE_AC_SHIFT 0
-#define GRCAN_CANRXCODE_AC_MASK  0x1fffffffU
-#define GRCAN_CANRXCODE_AC_GET( _reg ) \
-  ( ( ( _reg ) & GRCAN_CANRXCODE_AC_MASK ) >> GRCAN_CANRXCODE_AC_SHIFT )
-#define GRCAN_CANRXCODE_AC_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~GRCAN_CANRXCODE_AC_MASK ) | \
-    ( ( ( _val ) << GRCAN_CANRXCODE_AC_SHIFT ) & GRCAN_CANRXCODE_AC_MASK ) )
-#define GRCAN_CANRXCODE_AC( _val ) \
-  ( ( ( _val ) << GRCAN_CANRXCODE_AC_SHIFT ) & GRCAN_CANRXCODE_AC_MASK )
+#define GRCAN_RXADDR_ADDR_SHIFT 10
+#define GRCAN_RXADDR_ADDR_MASK  0xfffffc00U
+#define GRCAN_RXADDR_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXADDR_ADDR_MASK ) >> GRCAN_RXADDR_ADDR_SHIFT )
+#define GRCAN_RXADDR_ADDR_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXADDR_ADDR_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXADDR_ADDR_SHIFT ) & GRCAN_RXADDR_ADDR_MASK ) )
+#define GRCAN_RXADDR_ADDR( _val ) \
+  ( ( ( _val ) << GRCAN_RXADDR_ADDR_SHIFT ) & GRCAN_RXADDR_ADDR_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXSIZE Receive Channel Size Register (RXSIZE)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXSIZE_SIZE_SHIFT 6
+#define GRCAN_RXSIZE_SIZE_MASK  0x1fffc0U
+#define GRCAN_RXSIZE_SIZE_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXSIZE_SIZE_MASK ) >> GRCAN_RXSIZE_SIZE_SHIFT )
+#define GRCAN_RXSIZE_SIZE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXSIZE_SIZE_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXSIZE_SIZE_SHIFT ) & GRCAN_RXSIZE_SIZE_MASK ) )
+#define GRCAN_RXSIZE_SIZE( _val ) \
+  ( ( ( _val ) << GRCAN_RXSIZE_SIZE_SHIFT ) & GRCAN_RXSIZE_SIZE_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXWR Receive Channel Write Register (RXWR)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXWR_WRITE_SHIFT 4
+#define GRCAN_RXWR_WRITE_MASK  0xffff0U
+#define GRCAN_RXWR_WRITE_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXWR_WRITE_MASK ) >> GRCAN_RXWR_WRITE_SHIFT )
+#define GRCAN_RXWR_WRITE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXWR_WRITE_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXWR_WRITE_SHIFT ) & GRCAN_RXWR_WRITE_MASK ) )
+#define GRCAN_RXWR_WRITE( _val ) \
+  ( ( ( _val ) << GRCAN_RXWR_WRITE_SHIFT ) & GRCAN_RXWR_WRITE_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXRD Receive Channel Read Register (RXRD)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXRD_READ_SHIFT 4
+#define GRCAN_RXRD_READ_MASK  0xffff0U
+#define GRCAN_RXRD_READ_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXRD_READ_MASK ) >> GRCAN_RXRD_READ_SHIFT )
+#define GRCAN_RXRD_READ_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXRD_READ_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXRD_READ_SHIFT ) & GRCAN_RXRD_READ_MASK ) )
+#define GRCAN_RXRD_READ( _val ) \
+  ( ( ( _val ) << GRCAN_RXRD_READ_SHIFT ) & GRCAN_RXRD_READ_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXIRQ Receive Channel Interrupt Register (RXIRQ)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXIRQ_IRQ_SHIFT 4
+#define GRCAN_RXIRQ_IRQ_MASK  0xffff0U
+#define GRCAN_RXIRQ_IRQ_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXIRQ_IRQ_MASK ) >> GRCAN_RXIRQ_IRQ_SHIFT )
+#define GRCAN_RXIRQ_IRQ_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXIRQ_IRQ_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXIRQ_IRQ_SHIFT ) & GRCAN_RXIRQ_IRQ_MASK ) )
+#define GRCAN_RXIRQ_IRQ( _val ) \
+  ( ( ( _val ) << GRCAN_RXIRQ_IRQ_SHIFT ) & GRCAN_RXIRQ_IRQ_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXMASK Receive Channel Mask Register (RXMASK)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXMASK_AM_SHIFT 0
+#define GRCAN_RXMASK_AM_MASK  0x1fffffffU
+#define GRCAN_RXMASK_AM_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXMASK_AM_MASK ) >> GRCAN_RXMASK_AM_SHIFT )
+#define GRCAN_RXMASK_AM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXMASK_AM_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXMASK_AM_SHIFT ) & GRCAN_RXMASK_AM_MASK ) )
+#define GRCAN_RXMASK_AM( _val ) \
+  ( ( ( _val ) << GRCAN_RXMASK_AM_SHIFT ) & GRCAN_RXMASK_AM_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANRXCODE Receive Channel Code Register (RXCODE)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_RXCODE_AC_SHIFT 0
+#define GRCAN_RXCODE_AC_MASK  0x1fffffffU
+#define GRCAN_RXCODE_AC_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_RXCODE_AC_MASK ) >> GRCAN_RXCODE_AC_SHIFT )
+#define GRCAN_RXCODE_AC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GRCAN_RXCODE_AC_MASK ) | \
+    ( ( ( _val ) << GRCAN_RXCODE_AC_SHIFT ) & GRCAN_RXCODE_AC_MASK ) )
+#define GRCAN_RXCODE_AC( _val ) \
+  ( ( ( _val ) << GRCAN_RXCODE_AC_SHIFT ) & GRCAN_RXCODE_AC_MASK )
 
 /** @} */
 
@@ -551,108 +793,318 @@ extern "C" {
  */
 typedef struct grcan {
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanCONF.
+   * @brief See @ref RTEMSDeviceGRCANCONF.
    */
-  uint32_t canconf;
+  uint32_t conf;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanSTAT.
+   * @brief See @ref RTEMSDeviceGRCANSTAT.
    */
-  uint32_t canstat;
+  uint32_t stat;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanCTRL.
+   * @brief See @ref RTEMSDeviceGRCANCTRL.
    */
-  uint32_t canctrl;
+  uint32_t ctrl;
 
   uint32_t reserved_c_18[ 3 ];
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanMASK.
+   * @brief See @ref RTEMSDeviceGRCANSYNCMASK.
    */
-  uint32_t canmask;
+  uint32_t syncmask;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanCODE.
+   * @brief See @ref RTEMSDeviceGRCANSYNCCODE.
    */
-  uint32_t cancode;
+  uint32_t synccode;
 
-  uint32_t reserved_20_200[ 120 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxCTRL.
-   */
-  uint32_t cantxctrl;
+  uint32_t reserved_20_100[ 56 ];
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxADDR.
+   * @brief See @ref RTEMSDeviceGRCANPIMSR.
    */
-  uint32_t cantxaddr;
+  uint32_t pimsr;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxSIZE.
+   * @brief See @ref RTEMSDeviceGRCANPIMR.
    */
-  uint32_t cantxsize;
+  uint32_t pimr;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxWR.
+   * @brief See @ref RTEMSDeviceGRCANPISR.
    */
-  uint32_t cantxwr;
+  uint32_t pisr;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxRD.
+   * @brief See @ref RTEMSDeviceGRCANPIR.
    */
-  uint32_t cantxrd;
+  uint32_t pir;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanTxIRQ.
+   * @brief See @ref RTEMSDeviceGRCANIMR.
    */
-  uint32_t cantxirq;
+  uint32_t imr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANPICR.
+   */
+  uint32_t picr;
+
+  uint32_t reserved_118_200[ 58 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXCTRL.
+   */
+  uint32_t txctrl;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXADDR.
+   */
+  uint32_t txaddr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXSIZE.
+   */
+  uint32_t txsize;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXWR.
+   */
+  uint32_t txwr;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXRD.
+   */
+  uint32_t txrd;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANTXIRQ.
+   */
+  uint32_t txirq;
 
   uint32_t reserved_218_300[ 58 ];
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxCTRL.
+   * @brief See @ref RTEMSDeviceGRCANRXCTRL.
    */
-  uint32_t canrxctrl;
+  uint32_t rxctrl;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxADDR.
+   * @brief See @ref RTEMSDeviceGRCANRXADDR.
    */
-  uint32_t canrxaddr;
+  uint32_t rxaddr;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxSIZE.
+   * @brief See @ref RTEMSDeviceGRCANRXSIZE.
    */
-  uint32_t canrxsize;
+  uint32_t rxsize;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxWR.
+   * @brief See @ref RTEMSDeviceGRCANRXWR.
    */
-  uint32_t canrxwr;
+  uint32_t rxwr;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxRD.
+   * @brief See @ref RTEMSDeviceGRCANRXRD.
    */
-  uint32_t canrxrd;
+  uint32_t rxrd;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxIRQ.
+   * @brief See @ref RTEMSDeviceGRCANRXIRQ.
    */
-  uint32_t canrxirq;
+  uint32_t rxirq;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxMASK.
+   * @brief See @ref RTEMSDeviceGRCANRXMASK.
    */
-  uint32_t canrxmask;
+  uint32_t rxmask;
 
   /**
-   * @brief See @ref RTEMSDeviceGRCANCanRxCODE.
+   * @brief See @ref RTEMSDeviceGRCANRXCODE.
    */
-  uint32_t canrxcode;
+  uint32_t rxcode;
 } grcan;
 
 /** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grcan-message */
+
+/**
+ * @defgroup RTEMSDeviceGRCANMessage GRCAN Message
+ *
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This group contains the GRCAN Message interfaces.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup RTEMSDeviceGRCANMessageFLAGS0 Message Identifier Word (FLAGS_0)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_MSG_FLAGS_0_ID_SHIFT 0
+#define GRCAN_MSG_FLAGS_0_ID_MASK  0x1fffffffU
+#define GRCAN_MSG_FLAGS_0_ID_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_MSG_FLAGS_0_ID_MASK ) >> GRCAN_MSG_FLAGS_0_ID_SHIFT )
+#define GRCAN_MSG_FLAGS_0_ID_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_FLAGS_0_ID_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_FLAGS_0_ID_SHIFT ) & \
+      GRCAN_MSG_FLAGS_0_ID_MASK ) )
+#define GRCAN_MSG_FLAGS_0_ID( _val ) \
+  ( ( ( _val ) << GRCAN_MSG_FLAGS_0_ID_SHIFT ) & GRCAN_MSG_FLAGS_0_ID_MASK )
+
+#define GRCAN_MSG_FLAGS_0_RTR 0x40000000U
+
+#define GRCAN_MSG_FLAGS_0_IDE 0x80000000U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANMessageFLAGS1 \
+ *   Message Status and Length Word (FLAGS_1)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_MSG_FLAGS_1_ERRPASS 0x1U
+
+#define GRCAN_MSG_FLAGS_1_BUSOFF 0x2U
+
+#define GRCAN_MSG_FLAGS_1_OR 0x4U
+
+#define GRCAN_MSG_FLAGS_1_BMERR 0x8U
+
+#define GRCAN_MSG_FLAGS_1_RXERRCNTR_SHIFT 8
+#define GRCAN_MSG_FLAGS_1_RXERRCNTR_MASK  0xff00U
+#define GRCAN_MSG_FLAGS_1_RXERRCNTR_GET( _reg )        \
+  ( ( ( _reg ) & GRCAN_MSG_FLAGS_1_RXERRCNTR_MASK ) >> \
+    GRCAN_MSG_FLAGS_1_RXERRCNTR_SHIFT )
+#define GRCAN_MSG_FLAGS_1_RXERRCNTR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_FLAGS_1_RXERRCNTR_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_FLAGS_1_RXERRCNTR_SHIFT ) & \
+      GRCAN_MSG_FLAGS_1_RXERRCNTR_MASK ) )
+#define GRCAN_MSG_FLAGS_1_RXERRCNTR( _val )             \
+  ( ( ( _val ) << GRCAN_MSG_FLAGS_1_RXERRCNTR_SHIFT ) & \
+    GRCAN_MSG_FLAGS_1_RXERRCNTR_MASK )
+
+#define GRCAN_MSG_FLAGS_1_TXERRCNTR_SHIFT 16
+#define GRCAN_MSG_FLAGS_1_TXERRCNTR_MASK  0xff0000U
+#define GRCAN_MSG_FLAGS_1_TXERRCNTR_GET( _reg )        \
+  ( ( ( _reg ) & GRCAN_MSG_FLAGS_1_TXERRCNTR_MASK ) >> \
+    GRCAN_MSG_FLAGS_1_TXERRCNTR_SHIFT )
+#define GRCAN_MSG_FLAGS_1_TXERRCNTR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_FLAGS_1_TXERRCNTR_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_FLAGS_1_TXERRCNTR_SHIFT ) & \
+      GRCAN_MSG_FLAGS_1_TXERRCNTR_MASK ) )
+#define GRCAN_MSG_FLAGS_1_TXERRCNTR( _val )             \
+  ( ( ( _val ) << GRCAN_MSG_FLAGS_1_TXERRCNTR_SHIFT ) & \
+    GRCAN_MSG_FLAGS_1_TXERRCNTR_MASK )
+
+#define GRCAN_MSG_FLAGS_1_DLC_SHIFT 28
+#define GRCAN_MSG_FLAGS_1_DLC_MASK  0xf0000000U
+#define GRCAN_MSG_FLAGS_1_DLC_GET( _reg ) \
+  ( ( ( _reg ) & GRCAN_MSG_FLAGS_1_DLC_MASK ) >> GRCAN_MSG_FLAGS_1_DLC_SHIFT )
+#define GRCAN_MSG_FLAGS_1_DLC_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_FLAGS_1_DLC_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_FLAGS_1_DLC_SHIFT ) & \
+      GRCAN_MSG_FLAGS_1_DLC_MASK ) )
+#define GRCAN_MSG_FLAGS_1_DLC( _val ) \
+  ( ( ( _val ) << GRCAN_MSG_FLAGS_1_DLC_SHIFT ) & GRCAN_MSG_FLAGS_1_DLC_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANMessageDATA0123 \
+ *   Message Data Word for Byte 0 to Byte 3 (DATA_0_1_2_3)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_MSG_DATA_0_1_2_3_DATA_SHIFT 0
+#define GRCAN_MSG_DATA_0_1_2_3_DATA_MASK  0xffffffffU
+#define GRCAN_MSG_DATA_0_1_2_3_DATA_GET( _reg )        \
+  ( ( ( _reg ) & GRCAN_MSG_DATA_0_1_2_3_DATA_MASK ) >> \
+    GRCAN_MSG_DATA_0_1_2_3_DATA_SHIFT )
+#define GRCAN_MSG_DATA_0_1_2_3_DATA_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_DATA_0_1_2_3_DATA_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_DATA_0_1_2_3_DATA_SHIFT ) & \
+      GRCAN_MSG_DATA_0_1_2_3_DATA_MASK ) )
+#define GRCAN_MSG_DATA_0_1_2_3_DATA( _val )             \
+  ( ( ( _val ) << GRCAN_MSG_DATA_0_1_2_3_DATA_SHIFT ) & \
+    GRCAN_MSG_DATA_0_1_2_3_DATA_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRCANMessageDATA4567 \
+ *   Message Data Word for Byte 4 to Byte 7 (DATA_4_5_6_7)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRCAN_MSG_DATA_4_5_6_7_DATA_SHIFT 0
+#define GRCAN_MSG_DATA_4_5_6_7_DATA_MASK  0xffffffffU
+#define GRCAN_MSG_DATA_4_5_6_7_DATA_GET( _reg )        \
+  ( ( ( _reg ) & GRCAN_MSG_DATA_4_5_6_7_DATA_MASK ) >> \
+    GRCAN_MSG_DATA_4_5_6_7_DATA_SHIFT )
+#define GRCAN_MSG_DATA_4_5_6_7_DATA_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRCAN_MSG_DATA_4_5_6_7_DATA_MASK ) |    \
+    ( ( ( _val ) << GRCAN_MSG_DATA_4_5_6_7_DATA_SHIFT ) & \
+      GRCAN_MSG_DATA_4_5_6_7_DATA_MASK ) )
+#define GRCAN_MSG_DATA_4_5_6_7_DATA( _val )             \
+  ( ( ( _val ) << GRCAN_MSG_DATA_4_5_6_7_DATA_SHIFT ) & \
+    GRCAN_MSG_DATA_4_5_6_7_DATA_MASK )
+
+/** @} */
+
+/**
+ * @brief This structure defines the GRCAN Message message memory map.
+ */
+typedef struct grcan_message {
+  /**
+   * @brief See @ref RTEMSDeviceGRCANMessageFLAGS0.
+   */
+  uint32_t flags_0;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANMessageFLAGS1.
+   */
+  uint32_t flags_1;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANMessageDATA0123.
+   */
+  uint32_t data_0_1_2_3;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRCANMessageDATA4567.
+   */
+  uint32_t data_4_5_6_7;
+} grcan_message;
+
+/** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grcan-message-max-count */
+
+/**
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This constant defines the maximum count of GRCAN message buffers used
+ *   by a frame.
+ */
+#define GRCAN_MSG_MAX_COUNT 1
 
 #ifdef __cplusplus
 }
