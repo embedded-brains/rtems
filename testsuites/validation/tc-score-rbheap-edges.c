@@ -68,7 +68,8 @@
  * - Allocate an aligned block while the free block of the best fit does not
  *   hold it at its alignment and a successor of equal size does.
  *
- * - Allocate, resize and free with huge sizes and invalid blocks.
+ * - Allocate, resize and free with huge sizes and invalid blocks. Extend a
+ *   heap by an area of a huge size.
  *
  * - Allocate blocks from a heap whose slab source returns no slab. Initialize
  *   heaps with slabs and invalid memory areas.
@@ -366,6 +367,7 @@ static void RunHuge( Context *ctx )
   RBHeap_control *heap;
   void           *ptr;
   uintptr_t       old_size;
+  uintptr_t       begin;
 
   heap = &ctx->heap;
   Init( ctx, 0, AREA_SIZE );
@@ -389,6 +391,19 @@ static void RunHuge( Context *ctx )
   T_false( _RBHeap_Free( heap, ctx->area ) );
   T_false( _RBHeap_Size_of_block( heap, ctx->area, &old_size ) );
   T_true( _RBHeap_Free( heap, NULL ) );
+  T_true( _RBHeap_Walk( heap ) );
+
+  /*
+   * The heap has spare descriptors, so the extension writes nothing into the
+   * area.  No allocation takes a block of it.
+   */
+  Init( ctx, 0, AREA_SIZE );
+  begin = (uintptr_t) &ctx->area[ AREA_SIZE ] + RBHEAP_SLAB_SIZE;
+  T_true( _RBHeap_Extend( heap, (void *) begin, UINTPTR_MAX ) );
+  T_eq_uptr(
+    heap->area_end,
+    ( begin + RBHEAP_MAX_SIZE ) & ~( (uintptr_t) RBHEAP_ALIGNMENT - 1 )
+  );
   T_true( _RBHeap_Walk( heap ) );
 }
 
@@ -1628,7 +1643,8 @@ static void ScoreRbheapValRbheapEdges_Action_3(
 }
 
 /**
- * @brief Allocate, resize and free with huge sizes and invalid blocks.
+ * @brief Allocate, resize and free with huge sizes and invalid blocks. Extend
+ *   a heap by an area of a huge size.
  */
 static void ScoreRbheapValRbheapEdges_Action_4(
   ScoreRbheapValRbheapEdges_Context *ctx
