@@ -3342,10 +3342,11 @@ static bool _RBHeap_Walk_tree( const RBHeap_descriptor *root )
     left = _RBHeap_Left( node );
     right = _RBHeap_Right( node );
 
-    if (
-      ( left != NULL && _RBHeap_Parent( left ) != node ) ||
-      ( right != NULL && _RBHeap_Parent( right ) != node )
-    ) {
+    /*
+     * The walk reaches a node with a left child only through the parent of the
+     * left child, see _RBTree_Successor().
+     */
+    if ( right != NULL && _RBHeap_Parent( right ) != node ) {
       return false;
     }
 
