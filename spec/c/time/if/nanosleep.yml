@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Suspend execution of the current thread for the time interval referenced by
+  ${.:/params[0]/name} and store the remaining time in the object referenced by
+  ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - const ${/c/if/timespec:/name} *${.:/params[0]/name}
+    - ${/c/if/timespec:/name} *${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- description: |
+    The sleep was interrupted by a signal handler.
+  role: errno
+  uid: /c/errno/if/eintr
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The nanoseconds member of the object referenced by the ${.:/params[0]/name}
+    parameter is less than zero or greater than or equal to one billion.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The seconds member of the object referenced by the ${.:/params[0]/name}
+    parameter is negative.
+  role: errno
+  uid: /c/errno/if/einval
+- role: reference
+  uid: /ref/std/posix-2024/nanosleep
+name: nanosleep
+notes: |
+  See ${/ref/std/posix-2024/nanosleep:/name}.
+params:
+- description: |
+    is the pointer to the timespec object which specifies the time interval.
+  dir: in
+  name: rqtp
+- description: |
+    is the pointer to the timespec object to store the remaining time of the
+    interval, or is ${/c/if/null:/name}, if the remaining time is not needed.
+  dir: out
+  name: rmtp
+return:
+  return: null
+  return-values:
+  - description: |
+      The time interval has elapsed.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
