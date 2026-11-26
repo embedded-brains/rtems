@@ -6,39 +6,24 @@ copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
 definition:
 - default:
-    count: 1
+    count: 32
     name: CVAL
   offset: 0x0
   variants: []
 - default:
-    count: 1
-    name: CVAL
-  offset: 0x3c
-  variants: []
-- default:
-    count: 1
+    count: 32
     name: CCTRL
-  offset: 0x80
-  variants: []
-- default:
-    count: 1
-    name: CCTRL
-  offset: 0xcc
-  variants: []
-- default:
-    count: 1
-    name: CSVAL
   offset: 0x100
   variants: []
 - default:
-    count: 1
+    count: 32
     name: CSVAL
-  offset: 0x13c
+  offset: 0x200
   variants: []
 - default:
     count: 1
     name: TSTAMP
-  offset: 0x180
+  offset: 0x300
   variants: []
 description: null
 enabled-by: true
@@ -53,7 +38,7 @@ links:
 name: l4stat
 notes: null
 register-block-group: L4STAT
-register-block-size: 388
+register-block-size: 772
 register-prefix: null
 registers:
 - bits:
@@ -68,7 +53,7 @@ registers:
       width: 32
     variants: []
   brief: |
-    Counter 0-15 value register
+    Counter 0-31 value register
   description: null
   name: CVAL
   width: 32
@@ -76,18 +61,11 @@ registers:
   - default:
     - brief: null
       description: null
-      name: NCPU
-      properties:
-      - r
-      start: 28
-      width: 4
-    - brief: null
-      description: null
       name: NCNT
       properties:
       - r
       start: 23
-      width: 5
+      width: 9
     - brief: null
       description: null
       name: MC
@@ -181,7 +159,7 @@ registers:
       width: 4
     variants: []
   brief: |
-    Counter 0-15 control register
+    Counter 0-31 control register
   description: null
   name: CCTRL
   width: 32
@@ -197,7 +175,7 @@ registers:
       width: 32
     variants: []
   brief: |
-    Counter 0-15 max/latch register
+    Counter 0-31 max/latch register
   description: null
   name: CSVAL
   width: 32
@@ -208,6 +186,7 @@ registers:
       name: TSTAMP
       properties:
       - r
+      - w
       start: 0
       width: 32
     variants: []
