@@ -7,97 +7,127 @@ copyrights:
 definition:
 - default:
     count: 1
-    name: CanCONF
+    name: CONF
   offset: 0x0
   variants: []
 - default:
     count: 1
-    name: CanSTAT
+    name: STAT
   offset: 0x4
   variants: []
 - default:
     count: 1
-    name: CanCTRL
+    name: CTRL
   offset: 0x8
   variants: []
 - default:
     count: 1
-    name: CanMASK
+    name: SYNCMASK
   offset: 0x18
   variants: []
 - default:
     count: 1
-    name: CanCODE
+    name: SYNCCODE
   offset: 0x1c
   variants: []
 - default:
     count: 1
-    name: CanTxCTRL
+    name: PIMSR
+  offset: 0x100
+  variants: []
+- default:
+    count: 1
+    name: PIMR
+  offset: 0x104
+  variants: []
+- default:
+    count: 1
+    name: PISR
+  offset: 0x108
+  variants: []
+- default:
+    count: 1
+    name: PIR
+  offset: 0x10c
+  variants: []
+- default:
+    count: 1
+    name: IMR
+  offset: 0x110
+  variants: []
+- default:
+    count: 1
+    name: PICR
+  offset: 0x114
+  variants: []
+- default:
+    count: 1
+    name: TXCTRL
   offset: 0x200
   variants: []
 - default:
     count: 1
-    name: CanTxADDR
+    name: TXADDR
   offset: 0x204
   variants: []
 - default:
     count: 1
-    name: CanTxSIZE
+    name: TXSIZE
   offset: 0x208
   variants: []
 - default:
     count: 1
-    name: CanTxWR
+    name: TXWR
   offset: 0x20c
   variants: []
 - default:
     count: 1
-    name: CanTxRD
+    name: TXRD
   offset: 0x210
   variants: []
 - default:
     count: 1
-    name: CanTxIRQ
+    name: TXIRQ
   offset: 0x214
   variants: []
 - default:
     count: 1
-    name: CanRxCTRL
+    name: RXCTRL
   offset: 0x300
   variants: []
 - default:
     count: 1
-    name: CanRxADDR
+    name: RXADDR
   offset: 0x304
   variants: []
 - default:
     count: 1
-    name: CanRxSIZE
+    name: RXSIZE
   offset: 0x308
   variants: []
 - default:
     count: 1
-    name: CanRxWR
+    name: RXWR
   offset: 0x30c
   variants: []
 - default:
     count: 1
-    name: CanRxRD
+    name: RXRD
   offset: 0x310
   variants: []
 - default:
     count: 1
-    name: CanRxIRQ
+    name: RXIRQ
   offset: 0x314
   variants: []
 - default:
     count: 1
-    name: CanRxMASK
+    name: RXMASK
   offset: 0x318
   variants: []
 - default:
     count: 1
-    name: CanRxCODE
+    name: RXCODE
   offset: 0x31c
   variants: []
 description: null
@@ -168,7 +198,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: SILNT
+      name: SILENT
       properties:
       - r
       - w
@@ -210,7 +240,7 @@ registers:
   brief: |
     Configuration Register
   description: null
-  name: CanCONF
+  name: CONF
   width: 32
 - bits:
   - default:
@@ -230,14 +260,14 @@ registers:
       width: 4
     - brief: null
       description: null
-      name: TXERRCNT
+      name: TXERRCNTR
       properties:
       - r
       start: 16
       width: 8
     - brief: null
       description: null
-      name: RXERRCNT
+      name: RXERRCNTR
       properties:
       - r
       start: 8
@@ -251,7 +281,190 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: AHBERR
+      name: BMERR
+      properties:
+      - r
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - r
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: BUSOFF
+      properties:
+      - r
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: ERRPASS
+      properties:
+      - r
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Status Register
+  description: null
+  name: STAT
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: RESET
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: ENABLE
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Control Register
+  description: null
+  name: CTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MASK
+      properties:
+      - r
+      - w
+      start: 0
+      width: 29
+    variants: []
+  brief: |
+    SYNC Mask Filter Register
+  description: null
+  name: SYNCMASK
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: CODE
+      properties:
+      - r
+      - w
+      start: 0
+      width: 29
+    variants: []
+  brief: |
+    SYNC Code Filter Register
+  description: null
+  name: SYNCCODE
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TXLOSS
+      properties:
+      - r
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - r
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - r
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - r
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - r
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - r
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - r
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - r
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - r
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
       properties:
       - r
       start: 3
@@ -279,15 +492,389 @@ registers:
       width: 1
     variants: []
   brief: |
-    Status Register
+    Pending interrupt masked status register
   description: null
-  name: CanSTAT
+  name: PIMSR
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: RESET
+      name: TXLOSS
+      properties:
+      - r
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - r
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - r
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - r
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - r
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - r
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - r
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - r
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - r
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
+      properties:
+      - r
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - r
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: 'OFF'
+      properties:
+      - r
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: PASS
+      properties:
+      - r
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Pending interrupt masked register
+  description: null
+  name: PIMR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TXLOSS
+      properties:
+      - r
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - r
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - r
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - r
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - r
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - r
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - r
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - r
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - r
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
+      properties:
+      - r
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - r
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: 'OFF'
+      properties:
+      - r
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: PASS
+      properties:
+      - r
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Pending interrupt status register
+  description: null
+  name: PISR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TXLOSS
+      properties:
+      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - r
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - r
+      - w
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - r
+      - w
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      - w
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - r
+      - w
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - r
+      - w
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: 'OFF'
       properties:
       - r
       - w
@@ -295,7 +882,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: ENABLE
+      name: PASS
       properties:
       - r
       - w
@@ -303,41 +890,280 @@ registers:
       width: 1
     variants: []
   brief: |
-    Control Register
+    Pending interrupt register
   description: null
-  name: CanCTRL
+  name: PIR
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: MASK
+      name: TXLOSS
+      properties:
+      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - r
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - r
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - r
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - r
+      - w
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - r
+      - w
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - r
+      - w
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - r
+      - w
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - r
+      - w
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - r
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: 'OFF'
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: PASS
       properties:
       - r
       - w
       start: 0
-      width: 29
+      width: 1
     variants: []
   brief: |
-    SYNC Mask Filter Register
+    Interrupt mask register
   description: null
-  name: CanMASK
+  name: IMR
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: SYNC
+      name: TXLOSS
       properties:
-      - r
+      - w
+      start: 16
+      width: 1
+    - brief: null
+      description: null
+      name: RXMISS
+      properties:
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: TXERRCNTR
+      properties:
+      - w
+      start: 14
+      width: 1
+    - brief: null
+      description: null
+      name: RXERRCNTR
+      properties:
+      - w
+      start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: TXSYNC
+      properties:
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: RXSYNC
+      properties:
+      - w
+      start: 11
+      width: 1
+    - brief: null
+      description: null
+      name: TX
+      properties:
+      - w
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: RX
+      properties:
+      - w
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: TXEMPTY
+      properties:
+      - w
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: RXFULL
+      properties:
+      - w
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: TXIRQ
+      properties:
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: RXIRQ
+      properties:
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: BMRDERR
+      properties:
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: BMWRERR
+      properties:
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: OR
+      properties:
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: 'OFF'
+      properties:
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: PASS
+      properties:
       - w
       start: 0
-      width: 29
+      width: 1
     variants: []
   brief: |
-    SYNC Code Filter Register
+    Pending interrupt clear register
   description: null
-  name: CanCODE
+  name: PICR
   width: 32
 - bits:
   - default:
@@ -369,7 +1195,7 @@ registers:
   brief: |
     Transmit Channel Control Register
   description: null
-  name: CanTxCTRL
+  name: TXCTRL
   width: 32
 - bits:
   - default:
@@ -385,7 +1211,7 @@ registers:
   brief: |
     Transmit Channel Address Register
   description: null
-  name: CanTxADDR
+  name: TXADDR
   width: 32
 - bits:
   - default:
@@ -401,7 +1227,7 @@ registers:
   brief: |
     Transmit Channel Size Register
   description: null
-  name: CanTxSIZE
+  name: TXSIZE
   width: 32
 - bits:
   - default:
@@ -417,7 +1243,7 @@ registers:
   brief: |
     Transmit Channel Write Register
   description: null
-  name: CanTxWR
+  name: TXWR
   width: 32
 - bits:
   - default:
@@ -433,7 +1259,7 @@ registers:
   brief: |
     Transmit Channel Read Register
   description: null
-  name: CanTxRD
+  name: TXRD
   width: 32
 - bits:
   - default:
@@ -449,7 +1275,7 @@ registers:
   brief: |
     Transmit Channel Interrupt Register
   description: null
-  name: CanTxIRQ
+  name: TXIRQ
   width: 32
 - bits:
   - default:
@@ -472,7 +1298,7 @@ registers:
   brief: |
     Receive Channel Control Register
   description: null
-  name: CanRxCTRL
+  name: RXCTRL
   width: 32
 - bits:
   - default:
@@ -488,7 +1314,7 @@ registers:
   brief: |
     Receive Channel Address Register
   description: null
-  name: CanRxADDR
+  name: RXADDR
   width: 32
 - bits:
   - default:
@@ -504,7 +1330,7 @@ registers:
   brief: |
     Receive Channel Size Register
   description: null
-  name: CanRxSIZE
+  name: RXSIZE
   width: 32
 - bits:
   - default:
@@ -520,7 +1346,7 @@ registers:
   brief: |
     Receive Channel Write Register
   description: null
-  name: CanRxWR
+  name: RXWR
   width: 32
 - bits:
   - default:
@@ -536,7 +1362,7 @@ registers:
   brief: |
     Receive Channel Read Register
   description: null
-  name: CanRxRD
+  name: RXRD
   width: 32
 - bits:
   - default:
@@ -552,7 +1378,7 @@ registers:
   brief: |
     Receive Channel Interrupt Register
   description: null
-  name: CanRxIRQ
+  name: RXIRQ
   width: 32
 - bits:
   - default:
@@ -568,7 +1394,7 @@ registers:
   brief: |
     Receive Channel Mask Register
   description: null
-  name: CanRxMASK
+  name: RXMASK
   width: 32
 - bits:
   - default:
@@ -584,6 +1410,6 @@ registers:
   brief: |
     Receive Channel Code Register
   description: null
-  name: CanRxCODE
+  name: RXCODE
   width: 32
 type: interface

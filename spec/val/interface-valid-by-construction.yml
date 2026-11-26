@@ -28,6 +28,10 @@ links:
 - role: validation
   uid: /dev/grlib/if/grcan
 - role: validation
+  uid: /dev/grlib/if/grcan-message
+- role: validation
+  uid: /dev/grlib/if/grcan-message-max-count
+- role: validation
   uid: /dev/grlib/if/grclkgate
 - role: validation
   uid: /dev/grlib/if/grethgbit
@@ -325,10 +329,10 @@ links:
   uid: /rtems/userext/if/task-terminate
 method: by-analysis
 text: |
-  This interface is a data type definition. The data type definition is placed in
-  a tool generated ${/glossary/clanguage:/term} header file. When the tool
-  produces correct outputs and the interface specification is correct, then the
-  generated data type definition is correct also. In addition, the generated
-  header files are integrated in the RTEMS mainline repository and have to pass
-  the patch review process of the RTEMS Project.
+  This interface is a data type definition or a constant. The definition is
+  placed in a tool generated ${/glossary/clanguage:/term} header file. When the
+  tool produces correct outputs and the interface specification is correct, then
+  the generated definition is correct also. In addition, the generated header
+  files are integrated in the RTEMS mainline repository and have to pass the
+  patch review process of the RTEMS Project.
 type: validation

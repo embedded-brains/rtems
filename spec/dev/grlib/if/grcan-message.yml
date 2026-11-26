@@ -1,0 +1,194 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This structure defines the ${.:/register-block-group} message memory map.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+- default:
+    count: 1
+    name: FLAGS_0
+  offset: 0x0
+  variants: []
+- default:
+    count: 1
+    name: FLAGS_1
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
+    name: DATA_0_1_2_3
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
+    name: DATA_4_5_6_7
+  offset: 0xc
+  variants: []
+description: null
+enabled-by: true
+identifier: RTEMSDeviceGRCANMessage
+index-entries: []
+interface-type: register-block
+links:
+- role: interface-ingroup
+  uid: group
+- role: interface-placement
+  uid: grcan-header
+- role: reference
+  uid: /ref/ip/gaisler/grip-2026-3
+name: grcan_message
+notes: null
+register-block-group: GRCAN Message
+register-block-size: 16
+register-domain: memory
+register-prefix: grcan_msg
+registers:
+- bits:
+  - default:
+    - brief: null
+      description: null
+      kind: uint
+      name: ID
+      properties:
+      - r
+      - w
+      start: 0
+      width: 29
+    - brief: null
+      description: null
+      kind: bool
+      name: RTR
+      properties:
+      - r
+      - w
+      start: 30
+      width: 1
+    - brief: null
+      description: null
+      kind: bool
+      name: IDE
+      properties:
+      - r
+      - w
+      start: 31
+      width: 1
+    variants: []
+  brief: |
+    Message Identifier Word
+  description: null
+  locator: table 628, page 581
+  name: FLAGS_0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      kind: bool
+      name: ERRPASS
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    - brief: null
+      description: null
+      kind: bool
+      name: BUSOFF
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      kind: bool
+      name: OR
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      kind: bool
+      name: BMERR
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      kind: uint
+      name: RXERRCNTR
+      properties:
+      - r
+      - w
+      start: 8
+      width: 8
+    - brief: null
+      description: null
+      kind: uint
+      name: TXERRCNTR
+      properties:
+      - r
+      - w
+      start: 16
+      width: 8
+    - brief: null
+      description: null
+      kind: uint
+      name: DLC
+      properties:
+      - r
+      - w
+      range:
+      - 0
+      - 8
+      start: 28
+      unit: bytes
+      width: 4
+    variants: []
+  brief: |
+    Message Status and Length Word
+  description: null
+  locator: table 628, page 581
+  name: FLAGS_1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      kind: uint
+      name: DATA
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Message Data Word for Byte 0 to Byte 3
+  description: null
+  locator: table 628, page 581
+  name: DATA_0_1_2_3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      kind: uint
+      name: DATA
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Message Data Word for Byte 4 to Byte 7
+  description: null
+  locator: table 628, page 581
+  name: DATA_4_5_6_7
+  width: 32
+type: interface
