@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2019 embedded brains GmbH & Co. KG
+ * Copyright (C) 2019, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 2019 Sebastian Huber
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@
 #endif
 
 #include <rtems/score/onceimpl.h>
+#include <rtems/score/atomic.h>
 #include <rtems/score/threadimpl.h>
 #include <rtems/thread.h>
 
@@ -75,34 +76,59 @@ static void _Once_Unlock( Thread_Life_state thread_life_state )
   _Thread_Set_life_protection( thread_life_state );
 }
 
+RTEMS_STATIC_ASSERT(
+  sizeof( Atomic_Uchar ) == sizeof( unsigned char ),
+  ONCE_ATOMIC_UCHAR_SIZE
+);
+
+RTEMS_STATIC_ASSERT(
+  RTEMS_ALIGNOF( Atomic_Uchar ) == RTEMS_ALIGNOF( unsigned char ),
+  ONCE_ATOMIC_UCHAR_ALIGNMENT
+);
+
 int _Once( unsigned char *once_state, void ( *init_routine )( void ) )
 {
-  _Atomic_Fence( ATOMIC_ORDER_ACQUIRE );
+  Atomic_Uchar     *state;
+  Thread_Life_state thread_life_state;
 
-  if ( RTEMS_PREDICT_FALSE( *once_state != ONCE_STATE_COMPLETE ) ) {
-    Thread_Life_state thread_life_state;
+  state = (Atomic_Uchar *) once_state;
 
-    thread_life_state = _Once_Lock();
-
-    if ( *once_state == ONCE_STATE_INIT ) {
-      *once_state = ONCE_STATE_RUNNING;
-      _Once_Unlock( THREAD_LIFE_PROTECTED );
-      ( *init_routine )();
-      _Once_Lock();
-      _Atomic_Fence( ATOMIC_ORDER_RELEASE );
-      *once_state = ONCE_STATE_COMPLETE;
-      rtems_condition_variable_broadcast( &_Once_Information.State );
-    } else {
-      while ( *once_state != ONCE_STATE_COMPLETE ) {
-        rtems_condition_variable_wait(
-          &_Once_Information.State,
-          &_Once_Information.Mutex
-        );
-      }
-    }
-
-    _Once_Unlock( thread_life_state );
+  if (
+    RTEMS_PREDICT_TRUE(
+      _Atomic_Load_uchar( state, ATOMIC_ORDER_RELAXED ) == ONCE_STATE_COMPLETE
+    )
+  ) {
+    /*
+     * The fence synchronizes with the release fence before the store of
+     * ONCE_STATE_COMPLETE.  The caller then observes the effects of the
+     * initialization routine.
+     */
+    _Atomic_Fence( ATOMIC_ORDER_ACQUIRE );
+    return 0;
   }
+
+  thread_life_state = _Once_Lock();
+
+  if ( _Atomic_Load_uchar( state, ATOMIC_ORDER_RELAXED ) == ONCE_STATE_INIT ) {
+    _Atomic_Store_uchar( state, ONCE_STATE_RUNNING, ATOMIC_ORDER_RELAXED );
+    _Once_Unlock( THREAD_LIFE_PROTECTED );
+    ( *init_routine )();
+    _Once_Lock();
+    _Atomic_Fence( ATOMIC_ORDER_RELEASE );
+    _Atomic_Store_uchar( state, ONCE_STATE_COMPLETE, ATOMIC_ORDER_RELAXED );
+    rtems_condition_variable_broadcast( &_Once_Information.State );
+  } else {
+    while (
+      _Atomic_Load_uchar( state, ATOMIC_ORDER_RELAXED ) != ONCE_STATE_COMPLETE
+    ) {
+      rtems_condition_variable_wait(
+        &_Once_Information.State,
+        &_Once_Information.Mutex
+      );
+    }
+  }
+
+  _Once_Unlock( thread_life_state );
 
   return 0;
 }
