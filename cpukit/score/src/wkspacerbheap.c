@@ -41,7 +41,6 @@
 #include <rtems/score/rbheap.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/score/assert.h>
-#include <rtems/score/interr.h>
 
 RBHeap_control _Workspace_RBHeap;
 
@@ -65,15 +64,17 @@ void _Workspace_RBHeap_initialize( void )
     _Assert( ok );
     _Assert( _Workspace_RBHeap.free_size == _Workspace_Storage_size );
 
-    if (
-      ok && _Workspace_Descriptor_size > RBHEAP_SLAB_SIZE &&
-      !_RBHeap_Add_descriptors(
+    /*
+     * The application configuration gives the descriptor area whole slabs
+     * which begin at a slab boundary and lie apart from the storage area.
+     */
+    if ( _Workspace_Descriptor_size > RBHEAP_SLAB_SIZE ) {
+      ok = _RBHeap_Add_descriptors(
         &_Workspace_RBHeap,
         (char *) _Workspace_Descriptor_begin + RBHEAP_SLAB_SIZE,
         _Workspace_Descriptor_size - RBHEAP_SLAB_SIZE
-      )
-    ) {
-      _Internal_error( INTERNAL_ERROR_TOO_LITTLE_WORKSPACE );
+      );
+      _Assert( ok );
     }
   } else {
     ok = _RBHeap_Initialize(
