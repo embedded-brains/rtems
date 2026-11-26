@@ -43,6 +43,7 @@
 #include <rtems.h>
 #include <rtems/malloc.h>
 #include <rtems/score/atomic.h>
+#include <rtems/score/interr.h>
 #include <rtems/score/rbheap.h>
 #include <rtems/sysinit.h>
 
@@ -172,7 +173,10 @@ static void cache_coherent_initialize( void )
     const Cache_coherent_Area *area;
 
     area = &_Cache_coherent_Pending_areas[ i ];
-    (void) add_area( area->begin, area->size );
+
+    if ( add_area( area->begin, area->size ) != RTEMS_SUCCESSFUL ) {
+      _Internal_error( INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
+    }
   }
 
   _Cache_coherent_Add_area_handler = add_area;
