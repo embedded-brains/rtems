@@ -42,12 +42,25 @@
 
 #include <rtems.h>
 #include <rtems/malloc.h>
+#include <rtems/score/atomic.h>
 #include <rtems/score/rbheap.h>
 #include <rtems/sysinit.h>
 
 static RBHeap_control cache_coherent_heap_instance;
 
-static RBHeap_control *cache_coherent_heap;
+/*
+ * The reference is NULL until the first area starts the heap.  The release
+ * store which sets it publishes the initialized heap control.
+ */
+static Atomic_Uintptr cache_coherent_heap;
+
+static RBHeap_control *cache_coherent_get_heap( Atomic_Order order )
+{
+  uintptr_t heap;
+
+  heap = _Atomic_Load_uintptr( &cache_coherent_heap, order );
+  return (RBHeap_control *) heap;
+}
 
 /*
  * The descriptors of the heap lie in cached memory.  A BSP may map the area of
@@ -79,7 +92,7 @@ void *rtems_cache_coherent_allocate(
   RBHeap_control *heap;
 
 
-  heap = cache_coherent_heap;
+  heap = cache_coherent_get_heap( ATOMIC_ORDER_ACQUIRE );
   if ( heap == NULL ) {
     heap = RTEMS_Malloc_Heap;
   }
@@ -100,7 +113,7 @@ void rtems_cache_coherent_free( void *ptr )
   RBHeap_control *heap;
 
 
-  heap = cache_coherent_heap;
+  heap = cache_coherent_get_heap( ATOMIC_ORDER_ACQUIRE );
   if ( heap != NULL ) {
     if ( _RBHeap_Free( heap, ptr ) ) {
       heap = NULL;
@@ -119,7 +132,10 @@ void rtems_cache_coherent_free( void *ptr )
 
 static rtems_status_code add_area( void *area_begin, uintptr_t area_size )
 {
-  RBHeap_control *heap = cache_coherent_heap;
+  RBHeap_control *heap;
+
+  /* The callers of add_area() are serialized */
+  heap = cache_coherent_get_heap( ATOMIC_ORDER_RELAXED );
 
   if ( heap == NULL ) {
     heap = &cache_coherent_heap_instance;
@@ -135,7 +151,11 @@ static rtems_status_code add_area( void *area_begin, uintptr_t area_size )
     ) {
       return RTEMS_UNSATISFIED;
     }
-    cache_coherent_heap = heap;
+    _Atomic_Store_uintptr(
+      &cache_coherent_heap,
+      (uintptr_t) heap,
+      ATOMIC_ORDER_RELEASE
+    );
   } else {
     if ( !_RBHeap_Extend( heap, area_begin, area_size ) ) {
       return RTEMS_UNSATISFIED;
