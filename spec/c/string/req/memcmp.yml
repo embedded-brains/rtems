@@ -75,37 +75,36 @@ pre-conditions:
       ctx->n = 1;
     text: |
       While the size specified by ${../if/memcmp:/params[2]/name} is equal to one.
-  - name: Short
-    test-code: |
-      ctx->n = 2;
+  - name: More
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->n = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->n = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->n = sizeof( long ) - 1;
+    - name: Word
+      test-code: |
+        ctx->n = sizeof( long );
+    - name: WordPlusOne
+      test-code: |
+        ctx->n = sizeof( long ) + 1;
+    - name: WordPlusTwo
+      test-code: |
+        ctx->n = sizeof( long ) + 2;
+    - name: FiveWords
+      test-code: |
+        ctx->n = 5 * sizeof( long ) + 1;
+    - name: Max
+      test-code: |
+        ctx->n = 13 * sizeof( long );
+    test-code: null
     text: |
       While the size specified by ${../if/memcmp:/params[2]/name} is greater than
-      one, while the size specified by ${../if/memcmp:/params[2]/name} is less than
-      the size of type long minus one.
-  - name: BelowWord
-    test-code: |
-      ctx->n = sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memcmp:/params[2]/name} is equal to the
-      size of type long minus one.
-  - name: Word
-    test-code: |
-      ctx->n = sizeof( long );
-    text: |
-      While the size specified by ${../if/memcmp:/params[2]/name} is equal to the
-      size of type long.
-  - name: AboveWord
-    test-code: |
-      ctx->n = sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memcmp:/params[2]/name} is equal to the
-      size of type long plus one.
-  - name: Long
-    test-code: |
-      ctx->n = 5 * sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memcmp:/params[2]/name} is greater than the
-      size of type long plus one.
+      one.
   test-epilogue: null
   test-prologue: null
 - name: S1Alignment
@@ -116,29 +115,24 @@ pre-conditions:
     text: |
       While the memory area referenced by the ${../if/memcmp:/params[0]/name}
       parameter starts at an address which is aligned to the size of type long.
-  - name: AboveAligned
-    test-code: |
-      ctx->s1_misalign = 1;
+  - name: Unaligned
+    representatives:
+    - name: One
+      test-code: |
+        ctx->s1_misalign = 1;
+    - name: Two
+      test-code: |
+        ctx->s1_misalign = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->s1_misalign = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->s1_misalign = sizeof( long ) - 1;
+    test-code: null
     text: |
       While the memory area referenced by the ${../if/memcmp:/params[0]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
-  - name: Between
-    test-code: |
-      ctx->s1_misalign = 2;
-    text: |
-      While the memory area referenced by the ${../if/memcmp:/params[0]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
-  - name: BelowAligned
-    test-code: |
-      ctx->s1_misalign = sizeof( long ) - 1;
-    text: |
-      While the memory area referenced by the ${../if/memcmp:/params[0]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      parameter starts at an address which is not aligned to the size of type long.
   test-epilogue: null
   test-prologue: null
 - name: S2Alignment
@@ -149,29 +143,24 @@ pre-conditions:
     text: |
       While the memory area referenced by the ${../if/memcmp:/params[1]/name}
       parameter starts at an address which is aligned to the size of type long.
-  - name: AboveAligned
-    test-code: |
-      ctx->s2_misalign = 1;
+  - name: Unaligned
+    representatives:
+    - name: One
+      test-code: |
+        ctx->s2_misalign = 1;
+    - name: Two
+      test-code: |
+        ctx->s2_misalign = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->s2_misalign = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->s2_misalign = sizeof( long ) - 1;
+    test-code: null
     text: |
       While the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
-  - name: Between
-    test-code: |
-      ctx->s2_misalign = 2;
-    text: |
-      While the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memcmp:/params[1]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
-  - name: BelowAligned
-    test-code: |
-      ctx->s2_misalign = sizeof( long ) - 1;
-    text: |
-      While the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      parameter starts at an address which is not aligned to the size of type long.
   test-epilogue: |
     ctx->s1 = &ctx->buf1[ sizeof( long ) + ctx->s1_misalign ];
     ctx->s2 = &ctx->buf2[ sizeof( long ) + ctx->s2_misalign ];
@@ -179,8 +168,14 @@ pre-conditions:
 - name: Position
   states:
   - name: Before
-    test-code: |
-      ctx->pos = 0;
+    representatives:
+    - name: First
+      test-code: |
+        ctx->pos = 0;
+    - name: Late
+      test-code: |
+        ctx->pos = ctx->n - 2;
+    test-code: null
     text: |
       While a byte which precedes the last byte of the first
       ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
@@ -210,9 +205,16 @@ pre-conditions:
       equal to the byte at the same position of the memory area referenced by the
       ${../if/memcmp:/params[1]/name} parameter.
   - name: Less
-    test-code: |
-      ctx->s1[ ctx->pos ] = LOW;
-      ctx->s2[ ctx->pos ] = HIGH;
+    representatives:
+    - name: Wide
+      test-code: |
+        ctx->s1[ ctx->pos ] = LOW;
+        ctx->s2[ ctx->pos ] = HIGH;
+    - name: Adjacent
+      test-code: |
+        ctx->s1[ ctx->pos ] = HIGH - 1;
+        ctx->s2[ ctx->pos ] = HIGH;
+    test-code: null
     text: |
       While the value as `unsigned char` of the first byte of the first
       ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
@@ -221,9 +223,16 @@ pre-conditions:
       ${../if/memcmp:/params[1]/name} parameter is less than the value as
       `unsigned char` of that byte.
   - name: Greater
-    test-code: |
-      ctx->s1[ ctx->pos ] = HIGH;
-      ctx->s2[ ctx->pos ] = LOW;
+    representatives:
+    - name: Wide
+      test-code: |
+        ctx->s1[ ctx->pos ] = HIGH;
+        ctx->s2[ ctx->pos ] = LOW;
+    - name: Adjacent
+      test-code: |
+        ctx->s1[ ctx->pos ] = HIGH;
+        ctx->s2[ ctx->pos ] = HIGH - 1;
+    test-code: null
     text: |
       While the value as `unsigned char` of the first byte of the first
       ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
@@ -257,33 +266,36 @@ pre-conditions:
   test-epilogue: null
   test-prologue: null
 rationale: |
-  Dimension N covers the size, 7 states. ${/ref/std/c23/memcmp:/name} compares
-  the bytes of the two memory areas. A size of zero leaves no byte to compare.
-  The implementation of the pre-qualified library compares the size against zero
-  and the size of type long. The states Zero and One hold the boundary zero and
-  the value above it. The other boundary has a state for the value below it, at
-  it and above it. The states Short and Long hold the values between and after
-  these states.
+  Dimension N covers the size, 3 states. ${/ref/std/c23/memcmp:/name} compares
+  the bytes of the two memory areas. A size of zero leaves no byte to compare,
+  and a size of one leaves no byte before the last byte. The implementation of
+  the pre-qualified library compares the size against zero and the size of type
+  long. The More state takes the size two and the size of type long. It also
+  takes the sizes one and two below and above the size of type long. Five times
+  this size plus one and thirteen times this size follow. The last size is the
+  largest which the buffers hold.
 
   Dimension S1Alignment covers the start address of the memory area referenced by
-  the ${../if/memcmp:/params[0]/name} parameter, 4 states. Dimension S2Alignment
+  the ${../if/memcmp:/params[0]/name} parameter, 2 states. Dimension S2Alignment
   covers the start address of the memory area referenced by the
-  ${../if/memcmp:/params[1]/name} parameter, 4 states. The block loop of the
+  ${../if/memcmp:/params[1]/name} parameter, 2 states. The block loop of the
   implementation needs two aligned start addresses. Otherwise the byte loop
   compares all bytes. The offset of the start address to the preceding aligned
-  address ranges from zero to the size of type long minus one. The states Aligned
-  and AboveAligned hold the boundary zero and the value above it. The state
-  BelowAligned holds the largest offset. The state Between holds the offsets
-  between them.
+  address ranges from zero to the size of type long minus one. The Unaligned
+  states take the offsets one and two and the offsets two and one below the size
+  of type long.
 
   Dimension Position covers the bytes which precede the last byte, 2 states. A
   pair of them differs, or all pairs are equal. A first differing pair at the
-  last byte follows a byte loop, or a block loop over equal blocks.
+  last byte follows a byte loop, or a block loop over equal blocks. The Before
+  state places the first differing pair at the first byte and two bytes before
+  the end.
 
   Dimension Diff covers the first pair of differing bytes, 3 states.
   ${/ref/std/c23/memcmp:/name} takes the sign of the result from this pair. It
   reads both bytes as `unsigned char`. The pair is absent, or its first byte is
-  less or greater than its second byte.
+  less or greater than its second byte. The Less and Greater states take a pair
+  of bytes which differ in the sign bit and a pair of adjacent bytes.
 
   Dimension Rest covers the bytes after the first pair of differing bytes, 2
   states. ${/ref/std/c23/memcmp:/name} ignores them. These bytes are equal, or a
@@ -449,11 +461,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - Short
-    - BelowWord
-    - Word
-    - AboveWord
-    - Long
+    - More
     S1Alignment: all
     S2Alignment: all
     Position:
@@ -470,11 +478,7 @@ transition-map:
   pre-conditions:
     N:
     - One
-    - Short
-    - BelowWord
-    - Word
-    - AboveWord
-    - Long
+    - More
     S1Alignment: all
     S2Alignment: all
     Position:
@@ -491,11 +495,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     N:
-    - Short
-    - BelowWord
-    - Word
-    - AboveWord
-    - Long
+    - More
     S1Alignment: all
     S2Alignment: all
     Position:
@@ -512,11 +512,7 @@ transition-map:
   pre-conditions:
     N:
     - One
-    - Short
-    - BelowWord
-    - Word
-    - AboveWord
-    - Long
+    - More
     S1Alignment: all
     S2Alignment: all
     Position:
@@ -555,11 +551,7 @@ transition-map:
   pre-conditions:
     N:
     - One
-    - Short
-    - BelowWord
-    - Word
-    - AboveWord
-    - Long
+    - More
     S1Alignment: all
     S2Alignment: all
     Position:
