@@ -26,6 +26,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: PNPLINFO
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
     name: PNPOA0
   offset: 0x5
   variants: []
@@ -71,10 +76,48 @@ definition:
   variants: []
 - default:
     count: 1
+    name: PNPPID1
+  offset: 0x8001
+  variants: []
+- default:
+    count: 1
+    name: PNPPID2
+  offset: 0x8002
+  variants: []
+- default:
+    count: 1
     name: PNPACNT
   offset: 0xc000
   variants: []
-description: null
+- default:
+    count: 1
+    name: PNPTCC
+  offset: 0x80000
+  variants: []
+- default:
+    count: 1
+    name: PNPLSTS
+  offset: 0x84008
+  variants: []
+- default:
+    count: 1
+    name: PNPLCTRL
+  offset: 0x84009
+  variants: []
+- default:
+    count: 1
+    name: PNPMWLEN
+  offset: 0x100000
+  variants: []
+- default:
+    count: 1
+    name: PNPMRLEN
+  offset: 0x100001
+  variants: []
+description: |
+  The offsets are the word addresses which an RMAP command of the SpaceWire
+  Plug-and-Play protocol carries. The registers are not mapped into a memory
+  address space, so the block defines the offsets and no structure.
 enabled-by: true
 identifier: RTEMSDeviceGRLIBSPWPNP
 index-entries: []
@@ -87,7 +130,7 @@ links:
 name: spwpnp
 notes: null
 register-block-group: SpaceWire Plug-and-Play
-register-block-size: 49156
+register-block-size: null
 register-prefix: null
 registers:
 - bits:
@@ -163,13 +206,72 @@ registers:
       name: ACTIVE
       properties:
       - r
-      start: 1
-      width: 31
+      start: 0
+      width: 32
     variants: []
   brief: |
     SpaceWire Plug-and-Play - Active Links
-  description: null
+  description: |
+    Bit 0 of ACTIVE is reserved. ACTIVE includes it, so that bit n of ACTIVE
+    corresponds to port n.
   name: PNPACTLNK
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: OLA
+      properties:
+      - r
+      start: 24
+      width: 8
+    - brief: null
+      description: null
+      name: OAL
+      properties:
+      - r
+      start: 22
+      width: 2
+    - brief: null
+      description: null
+      name: OL
+      properties:
+      - r
+      start: 16
+      width: 5
+    - brief: null
+      description: null
+      name: RL
+      properties:
+      - r
+      start: 8
+      width: 5
+    - brief: null
+      description: null
+      name: T
+      properties:
+      - r
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: U
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: LC
+      properties:
+      - r
+      start: 0
+      width: 5
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Link Information
+  description: null
+  name: PNPLINFO
   width: 32
 - bits:
   - default:
@@ -319,6 +421,36 @@ registers:
   - default:
     - brief: null
       description: null
+      name: PID1
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Protocol Identification 1
+  description: null
+  name: PNPPID1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: PID2
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Protocol Identification 2
+  description: null
+  name: PNPPID2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: AC
       properties:
       - r
@@ -329,5 +461,160 @@ registers:
     SpaceWire Plug-and-Play - Application Count
   description: null
   name: PNPACNT
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TC
+      properties:
+      - r
+      - w
+      start: 0
+      width: 6
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Time-Code Counter
+  description: null
+  name: PNPTCC
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ND
+      properties:
+      - r
+      start: 31
+      width: 1
+    - brief: null
+      description: null
+      name: LT
+      properties:
+      - r
+      start: 30
+      width: 1
+    - brief: null
+      description: null
+      name: LS
+      properties:
+      - r
+      start: 16
+      width: 3
+    - brief: null
+      description: null
+      name: CE
+      properties:
+      - r
+      - w
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: ER
+      properties:
+      - r
+      - w
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: PE
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: DE
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: IA
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Link Status
+  description: null
+  name: PNPLSTS
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TT
+      properties:
+      - r
+      - w
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: LD
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: LS
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: AS
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Link Control
+  description: null
+  name: PNPLCTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LEN
+      properties:
+      - r
+      start: 0
+      width: 15
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Maximum Write Length
+  description: null
+  name: PNPMWLEN
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LEN
+      properties:
+      - r
+      start: 0
+      width: 15
+    variants: []
+  brief: |
+    SpaceWire Plug-and-Play - Maximum Read Length
+  description: null
+  name: PNPMRLEN
   width: 32
 type: interface
