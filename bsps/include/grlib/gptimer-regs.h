@@ -125,6 +125,19 @@ extern "C" {
  * @{
  */
 
+#define GPTIMER_TCTRL_WDOGWINC_SHIFT 16
+#define GPTIMER_TCTRL_WDOGWINC_MASK  0xffff0000U
+#define GPTIMER_TCTRL_WDOGWINC_GET( _reg )        \
+  ( ( ( _reg ) & GPTIMER_TCTRL_WDOGWINC_MASK ) >> \
+    GPTIMER_TCTRL_WDOGWINC_SHIFT )
+#define GPTIMER_TCTRL_WDOGWINC_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GPTIMER_TCTRL_WDOGWINC_MASK ) |    \
+    ( ( ( _val ) << GPTIMER_TCTRL_WDOGWINC_SHIFT ) & \
+      GPTIMER_TCTRL_WDOGWINC_MASK ) )
+#define GPTIMER_TCTRL_WDOGWINC( _val )             \
+  ( ( ( _val ) << GPTIMER_TCTRL_WDOGWINC_SHIFT ) & \
+    GPTIMER_TCTRL_WDOGWINC_MASK )
+
 #define GPTIMER_TCTRL_WS 0x100U
 
 #define GPTIMER_TCTRL_WN 0x80U
@@ -214,7 +227,7 @@ typedef struct gptimer_timer {
  */
 
 #define GPTIMER_SCALER_SCALER_SHIFT 0
-#define GPTIMER_SCALER_SCALER_MASK  0xffffU
+#define GPTIMER_SCALER_SCALER_MASK  0xffffffffU
 #define GPTIMER_SCALER_SCALER_GET( _reg ) \
   ( ( ( _reg ) & GPTIMER_SCALER_SCALER_MASK ) >> GPTIMER_SCALER_SCALER_SHIFT )
 #define GPTIMER_SCALER_SCALER_SET( _reg, _val )     \
@@ -236,7 +249,7 @@ typedef struct gptimer_timer {
  */
 
 #define GPTIMER_SRELOAD_SRELOAD_SHIFT 0
-#define GPTIMER_SRELOAD_SRELOAD_MASK  0xffffU
+#define GPTIMER_SRELOAD_SRELOAD_MASK  0xffffffffU
 #define GPTIMER_SRELOAD_SRELOAD_GET( _reg )        \
   ( ( ( _reg ) & GPTIMER_SRELOAD_SRELOAD_MASK ) >> \
     GPTIMER_SRELOAD_SRELOAD_SHIFT )
@@ -257,6 +270,19 @@ typedef struct gptimer_timer {
  *
  * @{
  */
+
+#define GPTIMER_CONFIG_TIMEREN_SHIFT 16
+#define GPTIMER_CONFIG_TIMEREN_MASK  0x7f0000U
+#define GPTIMER_CONFIG_TIMEREN_GET( _reg )        \
+  ( ( ( _reg ) & GPTIMER_CONFIG_TIMEREN_MASK ) >> \
+    GPTIMER_CONFIG_TIMEREN_SHIFT )
+#define GPTIMER_CONFIG_TIMEREN_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GPTIMER_CONFIG_TIMEREN_MASK ) |    \
+    ( ( ( _val ) << GPTIMER_CONFIG_TIMEREN_SHIFT ) & \
+      GPTIMER_CONFIG_TIMEREN_MASK ) )
+#define GPTIMER_CONFIG_TIMEREN( _val )             \
+  ( ( ( _val ) << GPTIMER_CONFIG_TIMEREN_SHIFT ) & \
+    GPTIMER_CONFIG_TIMEREN_MASK )
 
 #define GPTIMER_CONFIG_EV 0x2000U
 
@@ -344,7 +370,9 @@ typedef struct gptimer {
   /**
    * @brief See @ref RTEMSDeviceGRLIBGPTIMERTimer.
    */
-  gptimer_timer timer[ 15 ];
+  gptimer_timer timer[ 7 ];
+
+  uint32_t reserved_80_100[ 32 ];
 } gptimer;
 
 /** @} */
