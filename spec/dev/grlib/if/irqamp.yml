@@ -108,23 +108,25 @@ registers:
   - default:
     - brief: null
       description: null
-      name: IL_15_1
+      name: IL
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Interrupt level register
-  description: null
+  description: |
+    Bit 0 of IL is reserved. IL includes it, so that bit n of IL corresponds to
+    interrupt n.
   name: ILEVEL
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: EIP_31_16
+      name: EIP
       properties:
       - r
       - w
@@ -132,54 +134,60 @@ registers:
       width: 16
     - brief: null
       description: null
-      name: IP_15_1
+      name: IP
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Interrupt pending register
-  description: null
+  description: |
+    Bit 0 of IP is reserved. IP includes it, so that bit n of IP corresponds to
+    interrupt n.
   name: IPEND
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: IF_15_1
+      name: IF
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Interrupt force register for processor 0
-  description: null
+  description: |
+    Bit 0 of IF is reserved. IF includes it, so that bit n of IF corresponds to
+    interrupt n.
   name: IFORCE0
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: EIC_31_16
+      name: EIC
       properties:
       - w
       start: 16
       width: 16
     - brief: null
       description: null
-      name: IC_15_1
+      name: IC
       properties:
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Interrupt clear register
-  description: null
+  description: |
+    Bit 0 of IC is reserved. IC includes it, so that bit n of IC corresponds to
+    interrupt n.
   name: ICLEAR
   width: 32
 - bits:
@@ -230,28 +238,30 @@ registers:
   - default:
     - brief: null
       description: null
-      name: BM15_1
+      name: BM
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Broadcast register
-  description: null
+  description: |
+    Bit 0 of BM is reserved. BM includes it, so that bit n of BM corresponds to
+    interrupt n.
   name: BRDCST
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: ERRMODE_3_0
+      name: ERRMODE
       properties:
       - r
       - w
       start: 0
-      width: 4
+      width: 16
     variants: []
   brief: |
     Error Mode Status Register
@@ -282,7 +292,7 @@ registers:
       - r
       - w
       start: 0
-      width: 4
+      width: 16
     variants: []
   brief: |
     Watchdog control register
@@ -354,6 +364,38 @@ registers:
       - w
       start: 16
       width: 4
+    - brief: null
+      description: null
+      name: ICSEL4
+      properties:
+      - r
+      - w
+      start: 12
+      width: 4
+    - brief: null
+      description: null
+      name: ICSEL5
+      properties:
+      - r
+      - w
+      start: 8
+      width: 4
+    - brief: null
+      description: null
+      name: ICSEL6
+      properties:
+      - r
+      - w
+      start: 4
+      width: 4
+    - brief: null
+      description: null
+      name: ICSEL7
+      properties:
+      - r
+      - w
+      start: 0
+      width: 4
     variants: []
   brief: |
     Interrupt controller select register
@@ -364,7 +406,7 @@ registers:
   - default:
     - brief: null
       description: null
-      name: EIM_31_16
+      name: EIM
       properties:
       - r
       - w
@@ -372,47 +414,52 @@ registers:
       width: 16
     - brief: null
       description: null
-      name: IM15_1
+      name: IM
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Processor n interrupt mask register
-  description: null
+  description: |
+    Bit 0 of IM is reserved. IM includes it, so that bit n of IM corresponds to
+    interrupt n.
   name: PIMASK
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: FC_15_1
+      name: IFC
       properties:
       - r
       - w1c
-      start: 17
-      width: 15
+      start: 16
+      width: 16
     - brief: null
       description: null
-      name: IF15_1
+      name: IF
       properties:
       - r
       - w
-      start: 1
-      width: 15
+      start: 0
+      width: 16
     variants: []
   brief: |
     Processor n interrupt force register
-  description: null
+  description: |
+    Bit 0 of IF is reserved. IF includes it, so that bit n of IF corresponds to
+    interrupt n. Bit 16 of the register is reserved. IFC includes it, so that bit n
+    of IFC corresponds to interrupt n.
   name: PIFORCE
   width: 32
 - bits:
   - default:
     - brief: null
       description: null
-      name: EID_4_0
+      name: EID
       properties:
       - r
       start: 0
