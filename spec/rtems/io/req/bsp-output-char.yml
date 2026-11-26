@@ -1,6 +1,7 @@
 SPDX-License-Identifier: CC-BY-SA-4.0
 copyrights:
 - Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: function
 links:
@@ -9,7 +10,9 @@ links:
 rationale: null
 requirement-type: functional
 text: |
-  When the function referenced by ${../if/bsp-output-char:/name} is called, it
-  shall output the character specified by the parameter to the kernel character
-  output device.
+  When the function referenced by ${../if/bsp-output-char:/name} is called with a
+  parameter in which ${../if/output-char-drain:/name} and
+  ${../if/output-char-try:/name} are cleared, the function shall output the
+  character specified by the parameter to the kernel character output device and
+  return zero.
 type: requirement

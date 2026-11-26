@@ -1,0 +1,42 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Checks if the parameter of ${bsp-output-char:/name} sets
+  ${output-char-drain:/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: |
+      return ${.:/params[0]/name} >= 0 &&
+             ( ${.:/params[0]/name} & ${output-char-drain:/name} ) != 0;
+    params:
+    - int ${.:/params[0]/name}
+    return: ${/c/if/bool:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header-3
+- role: interface-ingroup
+  uid: group-3
+name: rtems_output_char_is_drain
+notes: null
+params:
+- description: |
+    is the parameter of ${bsp-output-char:/name}.
+  dir: null
+  name: c
+return:
+  return: null
+  return-values:
+  - description: |
+      The parameter is non-negative and sets ${output-char-drain:/name}.
+    value: ${/c/if/true:/name}
+  - description: |
+      Otherwise.
+    value: ${/c/if/false:/name}
+type: interface

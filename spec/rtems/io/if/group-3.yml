@@ -24,6 +24,16 @@ links:
 - role: placement-order
   uid: bsp-output-char-function-type
 - role: placement-order
+  uid: output-char-mask
+- role: placement-order
+  uid: output-char-drain
+- role: placement-order
+  uid: output-char-try
+- role: placement-order
+  uid: output-char-is-drain
+- role: placement-order
+  uid: output-char-is-try
+- role: placement-order
   uid: bsp-output-char
 - role: placement-order
   uid: putc

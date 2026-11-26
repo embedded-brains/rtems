@@ -1,20 +1,80 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 links: []
 test-actions:
 - action-brief: |
-    Call the function referenced by ${../if/bsp-output-char:/name}.
+    Call the function referenced by ${../if/bsp-output-char:/name} with characters
+    and no flag.
   action-code: |
+    int rv_x;
+    int rv_nl;
+
     T_report_hash_sha256_update( 'X' );
-    ( *BSP_output_char )( 'X' );
+    rv_x = ( *BSP_output_char )( 'X' );
     T_report_hash_sha256_update( '\n' );
-    ( *BSP_output_char )( '\n' );
-  checks: []
-  links:
-  - role: validation
-    uid: ../req/bsp-output-char
+    rv_nl = ( *BSP_output_char )( '\n' );
+  checks:
+  - brief: |
+      Check that the function returned zero for each call.
+    code: |
+      T_step_eq_int( ${.:/step}, rv_x, 0 );
+      T_step_eq_int( ${.:/step}, rv_nl, 0 );
+    links:
+    - role: validation
+      uid: ../req/bsp-output-char
+  links: []
+- action-brief: |
+    Check the values of the flags and the mask of ${../if/bsp-output-char:/name}.
+  action-code: |
+    /* No action */
+  checks:
+  - brief: |
+      Check that ${../if/output-char-mask:/name} selects the bits of an unsigned
+      character.
+    code: |
+      T_step_eq_int( ${.:/step}, RTEMS_OUTPUT_CHAR_MASK, 0xff );
+    links:
+    - role: validation
+      uid: ../if/output-char-mask
+  - brief: |
+      Check that ${../if/output-char-drain:/name} and ${../if/output-char-try:/name}
+      are distinct bits outside of ${../if/output-char-mask:/name}.
+    code: |
+      T_step_eq_int( ${.:/step}, RTEMS_OUTPUT_CHAR_DRAIN, 0x100 );
+      T_step_eq_int( ${.:/step}, RTEMS_OUTPUT_CHAR_TRY, 0x200 );
+    links:
+    - role: validation
+      uid: ../if/output-char-drain
+    - role: validation
+      uid: ../if/output-char-try
+  links: []
+- action-brief: |
+    Call the function referenced by ${../if/bsp-output-char:/name} with
+    ${../if/output-char-drain:/name}. Then call it with
+    ${../if/output-char-drain:/name} and ${../if/output-char-try:/name}.
+  action-code: |
+    int rv_drain;
+    int rv_drain_try;
+
+    rv_drain = ( *BSP_output_char )( RTEMS_OUTPUT_CHAR_DRAIN | 'D' );
+    rv_drain_try = ( *BSP_output_char )(
+      RTEMS_OUTPUT_CHAR_DRAIN | RTEMS_OUTPUT_CHAR_TRY | 'T'
+    );
+  checks:
+  - brief: |
+      Check that the drain request returned zero or minus one.
+    code: |
+      T_step_true( ${.:/step}, rv_drain == 0 || rv_drain == -1 );
+    links: []
+  - brief: |
+      Check that the drain request with ${../if/output-char-try:/name} returned zero
+      if the drain request returned zero, otherwise minus one.
+    code: |
+      T_step_eq_int( ${.:/step}, rv_drain_try, rv_drain );
+    links: []
+  links: []
 - action-brief: |
     If ${../if/bsp-poll-char:/name} references a function, then call it.
   action-code: |

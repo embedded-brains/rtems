@@ -1,0 +1,260 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/apbuart-output-char-polled
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char-try-ready
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char-try-busy
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char-drain
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char-drain-try-empty
+- role: requirement-refinement
+  uid: /rtems/io/req/bsp-output-char-drain-try-busy
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/apbuart-output-char-polled:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The return value of ${../if/apbuart-output-char-polled:/name} shall be minus
+      one.
+  test-epilogue: null
+  test-prologue: null
+- name: Action
+  states:
+  - name: Store
+    test-code: |
+      T_eq_int( ctx->io_relax_counter, 0 );
+      T_eq_u32( ctx->regs.data, ctx->expected );
+    text: |
+      The ${../if/apbuart-output-char-polled:/name} function shall store the
+      character specified by ${../if/apbuart-output-char-polled:/params[1]/name} to
+      the data register without a wait.
+  - name: WaitStore
+    test-code: |
+      T_eq_int( ctx->io_relax_counter, 1 );
+      T_eq_u32( ctx->regs.data, ctx->expected );
+    text: |
+      The ${../if/apbuart-output-char-polled:/name} function shall wait until the
+      transmitter FIFO is empty and then store the character specified by
+      ${../if/apbuart-output-char-polled:/params[1]/name} to the data register.
+  - name: Wait
+    test-code: |
+      T_eq_int( ctx->io_relax_counter, 1 );
+      T_eq_u32( ctx->regs.data, 0 );
+    text: |
+      The ${../if/apbuart-output-char-polled:/name} function shall wait until the
+      transmitter FIFO and the transmitter shift register are empty and store no
+      character.
+  - name: None
+    test-code: |
+      T_eq_int( ctx->io_relax_counter, 0 );
+      T_eq_u32( ctx->regs.data, 0 );
+    text: |
+      The ${../if/apbuart-output-char-polled:/name} function shall neither wait nor
+      store a character.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Request
+  states:
+  - name: Char
+    test-code: |
+      ctx->c = 'c';
+      ctx->expected = 'c';
+    text: |
+      While the second parameter specifies a character and no flag.
+  - name: Negative
+    test-code: |
+      ctx->c = (signed char) 0xe9;
+      ctx->expected = 0xe9;
+    text: |
+      While the second parameter is a negative value.
+  - name: Try
+    test-code: |
+      ctx->c = RTEMS_OUTPUT_CHAR_TRY | 'c';
+      ctx->expected = 'c';
+    text: |
+      While the second parameter specifies a character and
+      ${/rtems/io/if/output-char-try:/name}.
+  - name: Drain
+    test-code: |
+      ctx->c = RTEMS_OUTPUT_CHAR_DRAIN | 'c';
+      ctx->expected = 0;
+    text: |
+      While the second parameter specifies ${/rtems/io/if/output-char-drain:/name}
+      and not ${/rtems/io/if/output-char-try:/name}.
+  - name: DrainTry
+    test-code: |
+      ctx->c = RTEMS_OUTPUT_CHAR_DRAIN | RTEMS_OUTPUT_CHAR_TRY | 'c';
+      ctx->expected = 0;
+    text: |
+      While the second parameter specifies ${/rtems/io/if/output-char-drain:/name}
+      and ${/rtems/io/if/output-char-try:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: FifoEmpty
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->regs.status |= APBUART_STATUS_TE;
+    text: |
+      While the transmitter FIFO is empty.
+  - name: 'No'
+    test-code: |
+      ctx->regs.status &= ~APBUART_STATUS_TE;
+    text: |
+      While the transmitter FIFO is not empty.
+  test-epilogue: null
+  test-prologue: null
+- name: ShiftEmpty
+  states:
+  - name: 'Yes'
+    test-code: |
+      ctx->regs.status |= APBUART_STATUS_TS;
+    text: |
+      While the transmitter shift register is empty.
+  - name: 'No'
+    test-code: |
+      ctx->regs.status &= ~APBUART_STATUS_TS;
+    text: |
+      While the transmitter shift register is not empty.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->status = apbuart_output_char_polled( &ctx->regs, ctx->c );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the APBUART register block.
+  description: null
+  member: |
+    apbuart regs
+- brief: |
+    This member contains the count of \_IO_Relax() calls.
+  description: null
+  member: |
+    uint32_t io_relax_counter
+- brief: |
+    This member specifies the second parameter of the action.
+  description: null
+  member: |
+    int c
+- brief: |
+    This member contains the expected value of the data register.
+  description: null
+  member: |
+    uint32_t expected
+- brief: |
+    This member contains the return value of the action.
+  description: null
+  member: |
+    int status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- grlib/apbuart.h
+- rtems/bspIo.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->io_relax_counter = 0;
+  memset( &ctx->regs, 0, sizeof( ctx->regs ) );
+test-setup:
+  brief: null
+  code: |
+    SetIORelaxHandler( IORelaxHandler, ctx );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void IORelaxHandler( void *arg )
+  {
+    Context *ctx;
+
+    ctx = arg;
+    ++ctx->io_relax_counter;
+    ctx->regs.status = APBUART_STATUS_TE | APBUART_STATUS_TS;
+  }
+test-target: testsuites/validation/tc-dev-grlib-apbuart-output-char-polled.c
+test-teardown:
+  brief: null
+  code: |
+    SetIORelaxHandler( NULL, NULL );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          FifoEmpty: 'No'
+          Request: DrainTry
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Request: DrainTry
+          ShiftEmpty: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          FifoEmpty: 'No'
+          Request: Try
+      then: MinusOne
+    - else: Zero
+    Action:
+    - if:
+        pre-conditions:
+          FifoEmpty: 'No'
+          Request:
+          - Char
+          - Negative
+      then: WaitStore
+    - if:
+        pre-conditions:
+          FifoEmpty: 'Yes'
+          Request:
+          - Char
+          - Negative
+          - Try
+      then: Store
+    - if:
+        pre-conditions:
+          FifoEmpty: 'No'
+          Request: Drain
+      then: Wait
+    - if:
+        pre-conditions:
+          Request: Drain
+          ShiftEmpty: 'No'
+      then: Wait
+    - else: None
+  pre-conditions:
+    Request: all
+    FifoEmpty: all
+    ShiftEmpty: all
+type: requirement

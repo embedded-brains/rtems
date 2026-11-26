@@ -1,0 +1,47 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Outputs the character or drains the transmitter as requested by the flags of
+  the parameter.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${apbuart:/name} *${.:/params[0]/name}
+    - int ${.:/params[1]/name}
+    return: int
+  variants: []
+description: |
+  The parameter ${.:/params[1]/name} and the return value have the form which
+  ${/rtems/io/if/bsp-output-char-function-type:/name} defines.
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: apbuart-header-2
+- role: interface-ingroup
+  uid: apbuart
+name: apbuart_output_char_polled
+notes: null
+params:
+- description: |
+    is the pointer to the APBUART register block.
+  dir: null
+  name: regs
+- description: |
+    is the character to output and the flags of the request.
+  dir: null
+  name: c
+return:
+  return: null
+  return-values:
+  - description: |
+      The function performed the request.
+    value: 0
+  - description: |
+      The function performed nothing.
+    value: -1
+type: interface

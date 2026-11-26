@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  This mask selects the bits of the parameter of ${bsp-output-char:/name} which
+  specify the character to output.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default: '0x000000ff'
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: define
+links:
+- role: interface-placement
+  uid: header-3
+- role: interface-ingroup
+  uid: group-3
+name: RTEMS_OUTPUT_CHAR_MASK
+notes: null
+type: interface

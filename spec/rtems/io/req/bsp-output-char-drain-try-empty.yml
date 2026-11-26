@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/bsp-output-char
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  Where the ${/glossary/bsp:/term} supports ${../if/output-char-drain:/name},
+  while the kernel character output device is drained, when the function
+  referenced by ${../if/bsp-output-char:/name} is called with a parameter in
+  which ${../if/output-char-drain:/name} and ${../if/output-char-try:/name} are
+  set, the function shall return zero without an output of a character.
+type: requirement

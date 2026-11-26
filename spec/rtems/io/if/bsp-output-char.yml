@@ -9,10 +9,30 @@ definition:
   variants: []
 description: |
   This function pointer shall never be ${/c/if/null:/name}. It shall be provided
-  by the ${/glossary/bsp:/term} and statically initialized. The referenced
-  function shall output exactly the character specified by the parameter. In
-  particular, it shall not perform character translations, for example `NL` to
-  `CR` followed by `NR`. The function shall not block.
+  by the ${/glossary/bsp:/term} and statically initialized.
+
+  The parameter specifies the character to output in the bits of
+  ${output-char-mask:/name}. The other bits of the parameter specify the flags
+  ${output-char-drain:/name} and ${output-char-try:/name}. All other bits of a
+  non-negative parameter shall be zero. A negative parameter is a sign-extended
+  character. It specifies the character to output in the bits of
+  ${output-char-mask:/name} and sets no flag.
+
+  For a request without ${output-char-drain:/name}, the referenced function shall
+  output exactly the character specified by the parameter. In particular, it
+  shall not perform character translations, for example `NL` to `CR` followed by
+  `NR`. For a request with ${output-char-drain:/name}, the referenced function
+  shall ignore the bits of ${output-char-mask:/name}. The referenced function
+  shall not block the calling thread.
+
+  The referenced function returns zero if it performed the request. It returns
+  minus one if it performed nothing. A ${/glossary/bsp:/term} without a kernel
+  character output device returns zero for each request.
+
+  A ${/glossary/bsp:/term} which does not support ${output-char-try:/name}
+  outputs the character as if the flag was cleared. A ${/glossary/bsp:/term}
+  which does not support ${output-char-drain:/name} returns minus one for each
+  call with this flag set.
 enabled-by: true
 index-entries: []
 interface-type: variable
