@@ -1654,6 +1654,11 @@ static bool _RBHeap_Do_extend(
   bool               merge_above;
 
   begin = (uintptr_t) area_begin;
+
+  if ( area_size > RBHEAP_MAX_SIZE ) {
+    area_size = RBHEAP_MAX_SIZE;
+  }
+
   end = ( begin + area_size ) & ~( RBHEAP_ALIGNMENT - 1 );
   begin = ( begin + RBHEAP_ALIGNMENT - 1 ) & ~( RBHEAP_ALIGNMENT - 1 );
 
