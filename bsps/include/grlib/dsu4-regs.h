@@ -123,25 +123,25 @@ extern "C" {
  * @{
  */
 
-#define DSU4_BRSS_SS_3_0_SHIFT 16
-#define DSU4_BRSS_SS_3_0_MASK  0xf0000U
-#define DSU4_BRSS_SS_3_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_BRSS_SS_3_0_MASK ) >> DSU4_BRSS_SS_3_0_SHIFT )
-#define DSU4_BRSS_SS_3_0_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_BRSS_SS_3_0_MASK ) | \
-    ( ( ( _val ) << DSU4_BRSS_SS_3_0_SHIFT ) & DSU4_BRSS_SS_3_0_MASK ) )
-#define DSU4_BRSS_SS_3_0( _val ) \
-  ( ( ( _val ) << DSU4_BRSS_SS_3_0_SHIFT ) & DSU4_BRSS_SS_3_0_MASK )
+#define DSU4_BRSS_SS_SHIFT 16
+#define DSU4_BRSS_SS_MASK  0xffff0000U
+#define DSU4_BRSS_SS_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_BRSS_SS_MASK ) >> DSU4_BRSS_SS_SHIFT )
+#define DSU4_BRSS_SS_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_BRSS_SS_MASK ) | \
+    ( ( ( _val ) << DSU4_BRSS_SS_SHIFT ) & DSU4_BRSS_SS_MASK ) )
+#define DSU4_BRSS_SS( _val ) \
+  ( ( ( _val ) << DSU4_BRSS_SS_SHIFT ) & DSU4_BRSS_SS_MASK )
 
-#define DSU4_BRSS_BN_3_0_SHIFT 0
-#define DSU4_BRSS_BN_3_0_MASK  0xfU
-#define DSU4_BRSS_BN_3_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_BRSS_BN_3_0_MASK ) >> DSU4_BRSS_BN_3_0_SHIFT )
-#define DSU4_BRSS_BN_3_0_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_BRSS_BN_3_0_MASK ) | \
-    ( ( ( _val ) << DSU4_BRSS_BN_3_0_SHIFT ) & DSU4_BRSS_BN_3_0_MASK ) )
-#define DSU4_BRSS_BN_3_0( _val ) \
-  ( ( ( _val ) << DSU4_BRSS_BN_3_0_SHIFT ) & DSU4_BRSS_BN_3_0_MASK )
+#define DSU4_BRSS_BN_SHIFT 0
+#define DSU4_BRSS_BN_MASK  0xffffU
+#define DSU4_BRSS_BN_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_BRSS_BN_MASK ) >> DSU4_BRSS_BN_SHIFT )
+#define DSU4_BRSS_BN_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_BRSS_BN_MASK ) | \
+    ( ( ( _val ) << DSU4_BRSS_BN_SHIFT ) & DSU4_BRSS_BN_MASK ) )
+#define DSU4_BRSS_BN( _val ) \
+  ( ( ( _val ) << DSU4_BRSS_BN_SHIFT ) & DSU4_BRSS_BN_MASK )
 
 /** @} */
 
@@ -153,67 +153,25 @@ extern "C" {
  * @{
  */
 
-#define DSU4_DBGM_DM_3_0_SHIFT 16
-#define DSU4_DBGM_DM_3_0_MASK  0xf0000U
-#define DSU4_DBGM_DM_3_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_DBGM_DM_3_0_MASK ) >> DSU4_DBGM_DM_3_0_SHIFT )
-#define DSU4_DBGM_DM_3_0_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_DBGM_DM_3_0_MASK ) | \
-    ( ( ( _val ) << DSU4_DBGM_DM_3_0_SHIFT ) & DSU4_DBGM_DM_3_0_MASK ) )
-#define DSU4_DBGM_DM_3_0( _val ) \
-  ( ( ( _val ) << DSU4_DBGM_DM_3_0_SHIFT ) & DSU4_DBGM_DM_3_0_MASK )
+#define DSU4_DBGM_DM_SHIFT 16
+#define DSU4_DBGM_DM_MASK  0xffff0000U
+#define DSU4_DBGM_DM_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_DBGM_DM_MASK ) >> DSU4_DBGM_DM_SHIFT )
+#define DSU4_DBGM_DM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_DBGM_DM_MASK ) | \
+    ( ( ( _val ) << DSU4_DBGM_DM_SHIFT ) & DSU4_DBGM_DM_MASK ) )
+#define DSU4_DBGM_DM( _val ) \
+  ( ( ( _val ) << DSU4_DBGM_DM_SHIFT ) & DSU4_DBGM_DM_MASK )
 
-#define DSU4_DBGM_ED_3_0_SHIFT 0
-#define DSU4_DBGM_ED_3_0_MASK  0xfU
-#define DSU4_DBGM_ED_3_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_DBGM_ED_3_0_MASK ) >> DSU4_DBGM_ED_3_0_SHIFT )
-#define DSU4_DBGM_ED_3_0_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_DBGM_ED_3_0_MASK ) | \
-    ( ( ( _val ) << DSU4_DBGM_ED_3_0_SHIFT ) & DSU4_DBGM_ED_3_0_MASK ) )
-#define DSU4_DBGM_ED_3_0( _val ) \
-  ( ( ( _val ) << DSU4_DBGM_ED_3_0_SHIFT ) & DSU4_DBGM_ED_3_0_MASK )
-
-/** @} */
-
-/**
- * @defgroup RTEMSDeviceGRLIBDSU4DTR DSU trap register (DTR)
- *
- * @brief This group contains register bit definitions.
- *
- * @{
- */
-
-#define DSU4_DTR_EM 0x1000U
-
-#define DSU4_DTR_TRAPTYPE_SHIFT 4
-#define DSU4_DTR_TRAPTYPE_MASK  0xff0U
-#define DSU4_DTR_TRAPTYPE_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_DTR_TRAPTYPE_MASK ) >> DSU4_DTR_TRAPTYPE_SHIFT )
-#define DSU4_DTR_TRAPTYPE_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_DTR_TRAPTYPE_MASK ) | \
-    ( ( ( _val ) << DSU4_DTR_TRAPTYPE_SHIFT ) & DSU4_DTR_TRAPTYPE_MASK ) )
-#define DSU4_DTR_TRAPTYPE( _val ) \
-  ( ( ( _val ) << DSU4_DTR_TRAPTYPE_SHIFT ) & DSU4_DTR_TRAPTYPE_MASK )
-
-/** @} */
-
-/**
- * @defgroup RTEMSDeviceGRLIBDSU4DASI DSU ASI diagnostic access register (DASI)
- *
- * @brief This group contains register bit definitions.
- *
- * @{
- */
-
-#define DSU4_DASI_ASI_SHIFT 0
-#define DSU4_DASI_ASI_MASK  0xffU
-#define DSU4_DASI_ASI_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_DASI_ASI_MASK ) >> DSU4_DASI_ASI_SHIFT )
-#define DSU4_DASI_ASI_SET( _reg, _val )  \
-  ( ( ( _reg ) & ~DSU4_DASI_ASI_MASK ) | \
-    ( ( ( _val ) << DSU4_DASI_ASI_SHIFT ) & DSU4_DASI_ASI_MASK ) )
-#define DSU4_DASI_ASI( _val ) \
-  ( ( ( _val ) << DSU4_DASI_ASI_SHIFT ) & DSU4_DASI_ASI_MASK )
+#define DSU4_DBGM_ED_SHIFT 0
+#define DSU4_DBGM_ED_MASK  0xffffU
+#define DSU4_DBGM_ED_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_DBGM_ED_MASK ) >> DSU4_DBGM_ED_SHIFT )
+#define DSU4_DBGM_ED_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_DBGM_ED_MASK ) | \
+    ( ( ( _val ) << DSU4_DBGM_ED_SHIFT ) & DSU4_DBGM_ED_MASK ) )
+#define DSU4_DBGM_ED( _val ) \
+  ( ( ( _val ) << DSU4_DBGM_ED_SHIFT ) & DSU4_DBGM_ED_MASK )
 
 /** @} */
 
@@ -226,7 +184,7 @@ extern "C" {
  */
 
 #define DSU4_ATBC_DCNT_SHIFT 16
-#define DSU4_ATBC_DCNT_MASK  0xff0000U
+#define DSU4_ATBC_DCNT_MASK  0xffff0000U
 #define DSU4_ATBC_DCNT_GET( _reg ) \
   ( ( ( _reg ) & DSU4_ATBC_DCNT_MASK ) >> DSU4_ATBC_DCNT_SHIFT )
 #define DSU4_ATBC_DCNT_SET( _reg, _val )  \
@@ -270,7 +228,7 @@ extern "C" {
  */
 
 #define DSU4_ATBI_INDEX_SHIFT 4
-#define DSU4_ATBI_INDEX_MASK  0xff0U
+#define DSU4_ATBI_INDEX_MASK  0xfffffff0U
 #define DSU4_ATBI_INDEX_GET( _reg ) \
   ( ( ( _reg ) & DSU4_ATBI_INDEX_MASK ) >> DSU4_ATBI_INDEX_SHIFT )
 #define DSU4_ATBI_INDEX_SET( _reg, _val )  \
@@ -329,27 +287,25 @@ extern "C" {
  * @{
  */
 
-#define DSU4_ATBFM_SMASK_15_0_SHIFT 16
-#define DSU4_ATBFM_SMASK_15_0_MASK  0xffff0000U
-#define DSU4_ATBFM_SMASK_15_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_ATBFM_SMASK_15_0_MASK ) >> DSU4_ATBFM_SMASK_15_0_SHIFT )
-#define DSU4_ATBFM_SMASK_15_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~DSU4_ATBFM_SMASK_15_0_MASK ) |    \
-    ( ( ( _val ) << DSU4_ATBFM_SMASK_15_0_SHIFT ) & \
-      DSU4_ATBFM_SMASK_15_0_MASK ) )
-#define DSU4_ATBFM_SMASK_15_0( _val ) \
-  ( ( ( _val ) << DSU4_ATBFM_SMASK_15_0_SHIFT ) & DSU4_ATBFM_SMASK_15_0_MASK )
+#define DSU4_ATBFM_SMASK_SHIFT 16
+#define DSU4_ATBFM_SMASK_MASK  0xffff0000U
+#define DSU4_ATBFM_SMASK_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ATBFM_SMASK_MASK ) >> DSU4_ATBFM_SMASK_SHIFT )
+#define DSU4_ATBFM_SMASK_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ATBFM_SMASK_MASK ) | \
+    ( ( ( _val ) << DSU4_ATBFM_SMASK_SHIFT ) & DSU4_ATBFM_SMASK_MASK ) )
+#define DSU4_ATBFM_SMASK( _val ) \
+  ( ( ( _val ) << DSU4_ATBFM_SMASK_SHIFT ) & DSU4_ATBFM_SMASK_MASK )
 
-#define DSU4_ATBFM_MMASK_15_0_SHIFT 0
-#define DSU4_ATBFM_MMASK_15_0_MASK  0xffffU
-#define DSU4_ATBFM_MMASK_15_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_ATBFM_MMASK_15_0_MASK ) >> DSU4_ATBFM_MMASK_15_0_SHIFT )
-#define DSU4_ATBFM_MMASK_15_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~DSU4_ATBFM_MMASK_15_0_MASK ) |    \
-    ( ( ( _val ) << DSU4_ATBFM_MMASK_15_0_SHIFT ) & \
-      DSU4_ATBFM_MMASK_15_0_MASK ) )
-#define DSU4_ATBFM_MMASK_15_0( _val ) \
-  ( ( ( _val ) << DSU4_ATBFM_MMASK_15_0_SHIFT ) & DSU4_ATBFM_MMASK_15_0_MASK )
+#define DSU4_ATBFM_MMASK_SHIFT 0
+#define DSU4_ATBFM_MMASK_MASK  0xffffU
+#define DSU4_ATBFM_MMASK_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ATBFM_MMASK_MASK ) >> DSU4_ATBFM_MMASK_SHIFT )
+#define DSU4_ATBFM_MMASK_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ATBFM_MMASK_MASK ) | \
+    ( ( ( _val ) << DSU4_ATBFM_MMASK_SHIFT ) & DSU4_ATBFM_MMASK_MASK ) )
+#define DSU4_ATBFM_MMASK( _val ) \
+  ( ( ( _val ) << DSU4_ATBFM_MMASK_SHIFT ) & DSU4_ATBFM_MMASK_MASK )
 
 /** @} */
 
@@ -415,16 +371,15 @@ extern "C" {
 
 #define DSU4_ICNT_PE 0x20000000U
 
-#define DSU4_ICNT_ICOUNT_28_0_SHIFT 0
-#define DSU4_ICNT_ICOUNT_28_0_MASK  0x1fffffffU
-#define DSU4_ICNT_ICOUNT_28_0_GET( _reg ) \
-  ( ( ( _reg ) & DSU4_ICNT_ICOUNT_28_0_MASK ) >> DSU4_ICNT_ICOUNT_28_0_SHIFT )
-#define DSU4_ICNT_ICOUNT_28_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~DSU4_ICNT_ICOUNT_28_0_MASK ) |    \
-    ( ( ( _val ) << DSU4_ICNT_ICOUNT_28_0_SHIFT ) & \
-      DSU4_ICNT_ICOUNT_28_0_MASK ) )
-#define DSU4_ICNT_ICOUNT_28_0( _val ) \
-  ( ( ( _val ) << DSU4_ICNT_ICOUNT_28_0_SHIFT ) & DSU4_ICNT_ICOUNT_28_0_MASK )
+#define DSU4_ICNT_ICOUNT_SHIFT 0
+#define DSU4_ICNT_ICOUNT_MASK  0x1fffffffU
+#define DSU4_ICNT_ICOUNT_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ICNT_ICOUNT_MASK ) >> DSU4_ICNT_ICOUNT_SHIFT )
+#define DSU4_ICNT_ICOUNT_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ICNT_ICOUNT_MASK ) | \
+    ( ( ( _val ) << DSU4_ICNT_ICOUNT_SHIFT ) & DSU4_ICNT_ICOUNT_MASK ) )
+#define DSU4_ICNT_ICOUNT( _val ) \
+  ( ( ( _val ) << DSU4_ICNT_ICOUNT_SHIFT ) & DSU4_ICNT_ICOUNT_MASK )
 
 /** @} */
 
@@ -437,17 +392,17 @@ extern "C" {
  * @{
  */
 
-#define DSU4_AHBWPC_IN 0x40U
+#define DSU4_AHBWPC_IN2 0x40U
 
-#define DSU4_AHBWPC_CP 0x20U
+#define DSU4_AHBWPC_CP2 0x20U
 
-#define DSU4_AHBWPC_EN 0x10U
+#define DSU4_AHBWPC_EN2 0x10U
 
-#define DSU4_AHBWPC_IN 0x4U
+#define DSU4_AHBWPC_IN1 0x4U
 
-#define DSU4_AHBWPC_CP 0x2U
+#define DSU4_AHBWPC_CP1 0x2U
 
-#define DSU4_AHBWPC_EN 0x1U
+#define DSU4_AHBWPC_EN1 0x1U
 
 /** @} */
 
@@ -492,6 +447,26 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBDSU4ITBUF Instruction trace buffer area (ITBUF)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define DSU4_ITBUF_ITBUF_SHIFT 0
+#define DSU4_ITBUF_ITBUF_MASK  0xffffffffU
+#define DSU4_ITBUF_ITBUF_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ITBUF_ITBUF_MASK ) >> DSU4_ITBUF_ITBUF_SHIFT )
+#define DSU4_ITBUF_ITBUF_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ITBUF_ITBUF_MASK ) | \
+    ( ( ( _val ) << DSU4_ITBUF_ITBUF_SHIFT ) & DSU4_ITBUF_ITBUF_MASK ) )
+#define DSU4_ITBUF_ITBUF( _val ) \
+  ( ( ( _val ) << DSU4_ITBUF_ITBUF_SHIFT ) & DSU4_ITBUF_ITBUF_MASK )
+
+/** @} */
+
+/**
  * @defgroup RTEMSDeviceGRLIBDSU4ITBC0 \
  *   Instruction trace buffer control register 0 (ITBC0)
  *
@@ -532,6 +507,16 @@ extern "C" {
  * @{
  */
 
+#define DSU4_ITBC1_ITBAF_SHIFT 28
+#define DSU4_ITBC1_ITBAF_MASK  0xf0000000U
+#define DSU4_ITBC1_ITBAF_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ITBC1_ITBAF_MASK ) >> DSU4_ITBC1_ITBAF_SHIFT )
+#define DSU4_ITBC1_ITBAF_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ITBC1_ITBAF_MASK ) | \
+    ( ( ( _val ) << DSU4_ITBC1_ITBAF_SHIFT ) & DSU4_ITBC1_ITBAF_MASK ) )
+#define DSU4_ITBC1_ITBAF( _val ) \
+  ( ( ( _val ) << DSU4_ITBC1_ITBAF_SHIFT ) & DSU4_ITBC1_ITBAF_MASK )
+
 #define DSU4_ITBC1_WO 0x8000000U
 
 #define DSU4_ITBC1_TLIM_SHIFT 24
@@ -545,6 +530,69 @@ extern "C" {
   ( ( ( _val ) << DSU4_ITBC1_TLIM_SHIFT ) & DSU4_ITBC1_TLIM_MASK )
 
 #define DSU4_ITBC1_TOV 0x800000U
+
+#define DSU4_ITBC1_ITBAFO_SHIFT 16
+#define DSU4_ITBC1_ITBAFO_MASK  0xf0000U
+#define DSU4_ITBC1_ITBAFO_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ITBC1_ITBAFO_MASK ) >> DSU4_ITBC1_ITBAFO_SHIFT )
+#define DSU4_ITBC1_ITBAFO_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_ITBC1_ITBAFO_MASK ) | \
+    ( ( ( _val ) << DSU4_ITBC1_ITBAFO_SHIFT ) & DSU4_ITBC1_ITBAFO_MASK ) )
+#define DSU4_ITBC1_ITBAFO( _val ) \
+  ( ( ( _val ) << DSU4_ITBC1_ITBAFO_SHIFT ) & DSU4_ITBC1_ITBAFO_MASK )
+
+#define DSU4_ITBC1_ASIFMASK_SHIFT 0
+#define DSU4_ITBC1_ASIFMASK_MASK  0xffffU
+#define DSU4_ITBC1_ASIFMASK_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_ITBC1_ASIFMASK_MASK ) >> DSU4_ITBC1_ASIFMASK_SHIFT )
+#define DSU4_ITBC1_ASIFMASK_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~DSU4_ITBC1_ASIFMASK_MASK ) |    \
+    ( ( ( _val ) << DSU4_ITBC1_ASIFMASK_SHIFT ) & \
+      DSU4_ITBC1_ASIFMASK_MASK ) )
+#define DSU4_ITBC1_ASIFMASK( _val ) \
+  ( ( ( _val ) << DSU4_ITBC1_ASIFMASK_SHIFT ) & DSU4_ITBC1_ASIFMASK_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBDSU4DTR DSU trap register (DTR)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define DSU4_DTR_EM 0x1000U
+
+#define DSU4_DTR_TRAPTYPE_SHIFT 4
+#define DSU4_DTR_TRAPTYPE_MASK  0xff0U
+#define DSU4_DTR_TRAPTYPE_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_DTR_TRAPTYPE_MASK ) >> DSU4_DTR_TRAPTYPE_SHIFT )
+#define DSU4_DTR_TRAPTYPE_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_DTR_TRAPTYPE_MASK ) | \
+    ( ( ( _val ) << DSU4_DTR_TRAPTYPE_SHIFT ) & DSU4_DTR_TRAPTYPE_MASK ) )
+#define DSU4_DTR_TRAPTYPE( _val ) \
+  ( ( ( _val ) << DSU4_DTR_TRAPTYPE_SHIFT ) & DSU4_DTR_TRAPTYPE_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBDSU4DASI DSU ASI diagnostic access register (DASI)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define DSU4_DASI_ASI_SHIFT 0
+#define DSU4_DASI_ASI_MASK  0xffU
+#define DSU4_DASI_ASI_GET( _reg ) \
+  ( ( ( _reg ) & DSU4_DASI_ASI_MASK ) >> DSU4_DASI_ASI_SHIFT )
+#define DSU4_DASI_ASI_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~DSU4_DASI_ASI_MASK ) | \
+    ( ( ( _val ) << DSU4_DASI_ASI_SHIFT ) & DSU4_DASI_ASI_MASK ) )
+#define DSU4_DASI_ASI( _val ) \
+  ( ( ( _val ) << DSU4_DASI_ASI_SHIFT ) & DSU4_DASI_ASI_MASK )
 
 /** @} */
 
@@ -637,52 +685,29 @@ typedef struct dsu4 {
   /**
    * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPD.
    */
-  uint32_t ahbwpd_0;
+  uint32_t ahbwpd_0[ 4 ];
 
-  uint32_t reserved_94_9c[ 2 ];
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPM.
+   */
+  uint32_t ahbwpm_0[ 4 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPD.
    */
-  uint32_t ahbwpd_1;
+  uint32_t ahbwpd_1[ 4 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPM.
    */
-  uint32_t ahbwpm_0;
+  uint32_t ahbwpm_1[ 4 ];
 
-  uint32_t reserved_a4_ac[ 2 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPM.
-   */
-  uint32_t ahbwpm_1;
+  uint32_t reserved_d0_100000[ 262092 ];
 
   /**
-   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPD.
+   * @brief See @ref RTEMSDeviceGRLIBDSU4ITBUF.
    */
-  uint32_t ahbwpd_2;
-
-  uint32_t reserved_b4_bc[ 2 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPD.
-   */
-  uint32_t ahbwpd_3;
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPM.
-   */
-  uint32_t ahbwpm_2;
-
-  uint32_t reserved_c4_cc[ 2 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRLIBDSU4AHBWPM.
-   */
-  uint32_t ahbwpm_3;
-
-  uint32_t reserved_d0_110000[ 278476 ];
+  uint32_t itbuf[ 16384 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBDSU4ITBC0.
