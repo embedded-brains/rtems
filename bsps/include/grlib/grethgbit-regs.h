@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -86,6 +86,10 @@ extern "C" {
 #define GRETHGBIT_CR_MA 0x4000000U
 
 #define GRETHGBIT_CR_MC 0x2000000U
+
+#define GRETHGBIT_CR_TC 0x800000U
+
+#define GRETHGBIT_CR_TS 0x8000U
 
 #define GRETHGBIT_CR_ED 0x4000U
 
@@ -319,6 +323,75 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRETHGBITEDCLIP GRETH_GBIT EDCL IP register (EDCLIP)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_SHIFT 0
+#define GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_MASK  0xffffffffU
+#define GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_MASK ) >> \
+    GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_SHIFT )
+#define GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_SHIFT ) & \
+      GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_MASK ) )
+#define GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS( _val )             \
+  ( ( ( _val ) << GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_SHIFT ) & \
+    GRETHGBIT_EDCLIP_EDCL_IP_ADDRESS_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITHMSB GRETH Hash table MSB register (HMSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_HMSB_HASH_TABLE_MSB_SHIFT 0
+#define GRETHGBIT_HMSB_HASH_TABLE_MSB_MASK  0xffffffffU
+#define GRETHGBIT_HMSB_HASH_TABLE_MSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_HMSB_HASH_TABLE_MSB_MASK ) >> \
+    GRETHGBIT_HMSB_HASH_TABLE_MSB_SHIFT )
+#define GRETHGBIT_HMSB_HASH_TABLE_MSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_HMSB_HASH_TABLE_MSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_HMSB_HASH_TABLE_MSB_SHIFT ) & \
+      GRETHGBIT_HMSB_HASH_TABLE_MSB_MASK ) )
+#define GRETHGBIT_HMSB_HASH_TABLE_MSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_HMSB_HASH_TABLE_MSB_SHIFT ) & \
+    GRETHGBIT_HMSB_HASH_TABLE_MSB_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITHLSB GRETH Hash table LSB register (HLSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_HLSB_HASH_TABLE_LSB_SHIFT 0
+#define GRETHGBIT_HLSB_HASH_TABLE_LSB_MASK  0xffffffffU
+#define GRETHGBIT_HLSB_HASH_TABLE_LSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_HLSB_HASH_TABLE_LSB_MASK ) >> \
+    GRETHGBIT_HLSB_HASH_TABLE_LSB_SHIFT )
+#define GRETHGBIT_HLSB_HASH_TABLE_LSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_HLSB_HASH_TABLE_LSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_HLSB_HASH_TABLE_LSB_SHIFT ) & \
+      GRETHGBIT_HLSB_HASH_TABLE_LSB_MASK ) )
+#define GRETHGBIT_HLSB_HASH_TABLE_LSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_HLSB_HASH_TABLE_LSB_SHIFT ) & \
+    GRETHGBIT_HLSB_HASH_TABLE_LSB_MASK )
+
+/** @} */
+
+/**
  * @defgroup RTEMSDeviceGRETHGBITEDCLMACMSB EDCL MAC address MSB. (EDCLMACMSB)
  *
  * @brief This group contains register bit definitions.
@@ -365,6 +438,71 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRETHGBITTXRAM Transmitter RAM debug area (TXRAM)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_TXRAM_TXRAM_SHIFT 0
+#define GRETHGBIT_TXRAM_TXRAM_MASK  0xffffffffU
+#define GRETHGBIT_TXRAM_TXRAM_GET( _reg ) \
+  ( ( ( _reg ) & GRETHGBIT_TXRAM_TXRAM_MASK ) >> GRETHGBIT_TXRAM_TXRAM_SHIFT )
+#define GRETHGBIT_TXRAM_TXRAM_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_TXRAM_TXRAM_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_TXRAM_TXRAM_SHIFT ) & \
+      GRETHGBIT_TXRAM_TXRAM_MASK ) )
+#define GRETHGBIT_TXRAM_TXRAM( _val ) \
+  ( ( ( _val ) << GRETHGBIT_TXRAM_TXRAM_SHIFT ) & GRETHGBIT_TXRAM_TXRAM_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITRXRAM Receiver RAM debug area (RXRAM)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_RXRAM_RXRAM_SHIFT 0
+#define GRETHGBIT_RXRAM_RXRAM_MASK  0xffffffffU
+#define GRETHGBIT_RXRAM_RXRAM_GET( _reg ) \
+  ( ( ( _reg ) & GRETHGBIT_RXRAM_RXRAM_MASK ) >> GRETHGBIT_RXRAM_RXRAM_SHIFT )
+#define GRETHGBIT_RXRAM_RXRAM_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_RXRAM_RXRAM_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_RXRAM_RXRAM_SHIFT ) & \
+      GRETHGBIT_RXRAM_RXRAM_MASK ) )
+#define GRETHGBIT_RXRAM_RXRAM( _val ) \
+  ( ( ( _val ) << GRETHGBIT_RXRAM_RXRAM_SHIFT ) & GRETHGBIT_RXRAM_RXRAM_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITEDCLBUF EDCL buffer RAM debug area (EDCLBUF)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_EDCLBUF_EDCLBUF_SHIFT 0
+#define GRETHGBIT_EDCLBUF_EDCLBUF_MASK  0xffffffffU
+#define GRETHGBIT_EDCLBUF_EDCLBUF_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_EDCLBUF_EDCLBUF_MASK ) >> \
+    GRETHGBIT_EDCLBUF_EDCLBUF_SHIFT )
+#define GRETHGBIT_EDCLBUF_EDCLBUF_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_EDCLBUF_EDCLBUF_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_EDCLBUF_EDCLBUF_SHIFT ) & \
+      GRETHGBIT_EDCLBUF_EDCLBUF_MASK ) )
+#define GRETHGBIT_EDCLBUF_EDCLBUF( _val )             \
+  ( ( ( _val ) << GRETHGBIT_EDCLBUF_EDCLBUF_SHIFT ) & \
+    GRETHGBIT_EDCLBUF_EDCLBUF_MASK )
+
+/** @} */
+
+/**
  * @brief This structure defines the GRETH_GBIT register block memory map.
  */
 typedef struct grethgbit {
@@ -403,7 +541,20 @@ typedef struct grethgbit {
    */
   uint32_t rdtba;
 
-  uint32_t reserved_1c_28[ 3 ];
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITEDCLIP.
+   */
+  uint32_t edclip;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITHMSB.
+   */
+  uint32_t hmsb;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITHLSB.
+   */
+  uint32_t hlsb;
 
   /**
    * @brief See @ref RTEMSDeviceGRETHGBITEDCLMACMSB.
@@ -414,7 +565,444 @@ typedef struct grethgbit {
    * @brief See @ref RTEMSDeviceGRETHGBITEDCLMACLSB.
    */
   uint32_t edclmaclsb;
+
+  uint32_t reserved_30_10000[ 16372 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTXRAM.
+   */
+  uint32_t txram[ 512 ];
+
+  uint32_t reserved_10800_20000[ 15872 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITRXRAM.
+   */
+  uint32_t rxram[ 512 ];
+
+  uint32_t reserved_20800_30000[ 15872 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITEDCLBUF.
+   */
+  uint32_t edclbuf[ 16384 ];
 } grethgbit;
+
+/** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-desc-alignment */
+
+/**
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This constant defines the required alignment in bytes of the
+ *   GRETH_GBIT DMA descriptor table base address.
+ */
+#define GRETHGBIT_DMA_DESC_ALIGNMENT 1024
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-desc-max-count */
+
+/**
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This constant defines the maximum count of GRETH_GBIT DMA descriptors
+ *   in a descriptor table.
+ */
+#define GRETHGBIT_DMA_DESC_MAX_COUNT 128
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-rxdesc */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveDescriptor GRETH_GBIT RX descriptor
+ *
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This group contains the GRETH_GBIT RX descriptor interfaces.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveDescriptorCTRL \
+ *   Receive descriptor word 0 (CTRL)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_RX_CTRL_LENGTH_SHIFT 0
+#define GRETHGBIT_RX_CTRL_LENGTH_MASK  0x7ffU
+#define GRETHGBIT_RX_CTRL_LENGTH_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_RX_CTRL_LENGTH_MASK ) >> \
+    GRETHGBIT_RX_CTRL_LENGTH_SHIFT )
+#define GRETHGBIT_RX_CTRL_LENGTH_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_RX_CTRL_LENGTH_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_RX_CTRL_LENGTH_SHIFT ) & \
+      GRETHGBIT_RX_CTRL_LENGTH_MASK ) )
+#define GRETHGBIT_RX_CTRL_LENGTH( _val )             \
+  ( ( ( _val ) << GRETHGBIT_RX_CTRL_LENGTH_SHIFT ) & \
+    GRETHGBIT_RX_CTRL_LENGTH_MASK )
+
+#define GRETHGBIT_RX_CTRL_EN 0x800U
+
+#define GRETHGBIT_RX_CTRL_WR 0x1000U
+
+#define GRETHGBIT_RX_CTRL_IE 0x2000U
+
+#define GRETHGBIT_RX_CTRL_AE 0x4000U
+
+#define GRETHGBIT_RX_CTRL_FT 0x8000U
+
+#define GRETHGBIT_RX_CTRL_CE 0x10000U
+
+#define GRETHGBIT_RX_CTRL_OE 0x20000U
+
+#define GRETHGBIT_RX_CTRL_LE 0x40000U
+
+#define GRETHGBIT_RX_CTRL_ID 0x80000U
+
+#define GRETHGBIT_RX_CTRL_IR 0x100000U
+
+#define GRETHGBIT_RX_CTRL_UD 0x200000U
+
+#define GRETHGBIT_RX_CTRL_UR 0x400000U
+
+#define GRETHGBIT_RX_CTRL_TD 0x800000U
+
+#define GRETHGBIT_RX_CTRL_TR 0x1000000U
+
+#define GRETHGBIT_RX_CTRL_IF 0x2000000U
+
+#define GRETHGBIT_RX_CTRL_MC 0x4000000U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveDescriptorADDR \
+ *   Receive descriptor word 1 (ADDR)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_RX_ADDR_ADDRESS_SHIFT 0
+#define GRETHGBIT_RX_ADDR_ADDRESS_MASK  0xffffffffU
+#define GRETHGBIT_RX_ADDR_ADDRESS_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_RX_ADDR_ADDRESS_MASK ) >> \
+    GRETHGBIT_RX_ADDR_ADDRESS_SHIFT )
+#define GRETHGBIT_RX_ADDR_ADDRESS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_RX_ADDR_ADDRESS_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_RX_ADDR_ADDRESS_SHIFT ) & \
+      GRETHGBIT_RX_ADDR_ADDRESS_MASK ) )
+#define GRETHGBIT_RX_ADDR_ADDRESS( _val )             \
+  ( ( ( _val ) << GRETHGBIT_RX_ADDR_ADDRESS_SHIFT ) & \
+    GRETHGBIT_RX_ADDR_ADDRESS_MASK )
+
+/** @} */
+
+/**
+ * @brief This structure defines the GRETH_GBIT RX descriptor memory map.
+ */
+typedef struct grethgbit_rx_desc {
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITReceiveDescriptorCTRL.
+   */
+  uint32_t ctrl;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITReceiveDescriptorADDR.
+   */
+  uint32_t addr;
+} grethgbit_rx_desc;
+
+/** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-rxdesc-ts */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveTimestampDescriptor \
+ *   GRETH_GBIT RX timestamp descriptor
+ *
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This group contains the GRETH_GBIT RX timestamp descriptor
+ *   interfaces.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveTimestampDescriptorTIMESTAMPMSB \
+ *   Receive descriptor word 2 (TIMESTAMP_MSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_SHIFT 0
+#define GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_MASK  0xffffffffU
+#define GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_MASK ) >> \
+    GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_SHIFT )
+#define GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_SHIFT ) & \
+      GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_MASK ) )
+#define GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_SHIFT ) & \
+    GRETHGBIT_RX_TS_TIMESTAMP_MSB_MSB_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITReceiveTimestampDescriptorTIMESTAMPLSB \
+ *   Receive descriptor word 3 (TIMESTAMP_LSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_SHIFT 0
+#define GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_MASK  0xffffffffU
+#define GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_MASK ) >> \
+    GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_SHIFT )
+#define GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_SHIFT ) & \
+      GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_MASK ) )
+#define GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_SHIFT ) & \
+    GRETHGBIT_RX_TS_TIMESTAMP_LSB_LSB_MASK )
+
+/** @} */
+
+/**
+ * @brief This structure defines the GRETH_GBIT RX timestamp descriptor memory
+ *   map.
+ *
+ * The descriptor is expanded by the two timestamp words if the core was built
+ * with timestamping support and the feature is enabled by the timestamp enable
+ * bit of the control register. The count of descriptors in a table is halved
+ * to #GRETHGBIT_DMA_TS_DESC_MAX_COUNT since the descriptor size is doubled.
+ */
+typedef struct grethgbit_rx_ts_desc {
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITReceiveDescriptor.
+   */
+  grethgbit_rx_desc desc;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITReceiveTimestampDescriptorTIMESTAMPMSB.
+   */
+  uint32_t timestamp_msb;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITReceiveTimestampDescriptorTIMESTAMPLSB.
+   */
+  uint32_t timestamp_lsb;
+} grethgbit_rx_ts_desc;
+
+/** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-ts-desc-max-count */
+
+/**
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This constant defines the maximum count of GRETH_GBIT DMA descriptors
+ *   in a descriptor table if timestamping is enabled.
+ */
+#define GRETHGBIT_DMA_TS_DESC_MAX_COUNT 64
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-txdesc */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitDescriptor GRETH_GBIT TX descriptor
+ *
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This group contains the GRETH_GBIT TX descriptor interfaces.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitDescriptorCTRL \
+ *   Transmit descriptor word 0 (CTRL)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_TX_CTRL_LENGTH_SHIFT 0
+#define GRETHGBIT_TX_CTRL_LENGTH_MASK  0x7ffU
+#define GRETHGBIT_TX_CTRL_LENGTH_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_TX_CTRL_LENGTH_MASK ) >> \
+    GRETHGBIT_TX_CTRL_LENGTH_SHIFT )
+#define GRETHGBIT_TX_CTRL_LENGTH_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_TX_CTRL_LENGTH_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_TX_CTRL_LENGTH_SHIFT ) & \
+      GRETHGBIT_TX_CTRL_LENGTH_MASK ) )
+#define GRETHGBIT_TX_CTRL_LENGTH( _val )             \
+  ( ( ( _val ) << GRETHGBIT_TX_CTRL_LENGTH_SHIFT ) & \
+    GRETHGBIT_TX_CTRL_LENGTH_MASK )
+
+#define GRETHGBIT_TX_CTRL_EN 0x800U
+
+#define GRETHGBIT_TX_CTRL_WR 0x1000U
+
+#define GRETHGBIT_TX_CTRL_IE 0x2000U
+
+#define GRETHGBIT_TX_CTRL_UE 0x4000U
+
+#define GRETHGBIT_TX_CTRL_AL 0x8000U
+
+#define GRETHGBIT_TX_CTRL_LC 0x10000U
+
+#define GRETHGBIT_TX_CTRL_MO 0x20000U
+
+#define GRETHGBIT_TX_CTRL_IC 0x40000U
+
+#define GRETHGBIT_TX_CTRL_TC 0x80000U
+
+#define GRETHGBIT_TX_CTRL_UC 0x100000U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitDescriptorADDR \
+ *   Transmit descriptor word 1 (ADDR)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_TX_ADDR_ADDRESS_SHIFT 0
+#define GRETHGBIT_TX_ADDR_ADDRESS_MASK  0xffffffffU
+#define GRETHGBIT_TX_ADDR_ADDRESS_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_TX_ADDR_ADDRESS_MASK ) >> \
+    GRETHGBIT_TX_ADDR_ADDRESS_SHIFT )
+#define GRETHGBIT_TX_ADDR_ADDRESS_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_TX_ADDR_ADDRESS_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_TX_ADDR_ADDRESS_SHIFT ) & \
+      GRETHGBIT_TX_ADDR_ADDRESS_MASK ) )
+#define GRETHGBIT_TX_ADDR_ADDRESS( _val )             \
+  ( ( ( _val ) << GRETHGBIT_TX_ADDR_ADDRESS_SHIFT ) & \
+    GRETHGBIT_TX_ADDR_ADDRESS_MASK )
+
+/** @} */
+
+/**
+ * @brief This structure defines the GRETH_GBIT TX descriptor memory map.
+ */
+typedef struct grethgbit_tx_desc {
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTransmitDescriptorCTRL.
+   */
+  uint32_t ctrl;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTransmitDescriptorADDR.
+   */
+  uint32_t addr;
+} grethgbit_tx_desc;
+
+/** @} */
+
+/* Find related documentation with spec:/dev/grlib/if/grethgbit-txdesc-ts */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitTimestampDescriptor \
+ *   GRETH_GBIT TX timestamp descriptor
+ *
+ * @ingroup RTEMSDeviceGRLIB
+ *
+ * @brief This group contains the GRETH_GBIT TX timestamp descriptor
+ *   interfaces.
+ *
+ * @{
+ */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitTimestampDescriptorTIMESTAMPMSB \
+ *   Transmit descriptor word 2 (TIMESTAMP_MSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_SHIFT 0
+#define GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_MASK  0xffffffffU
+#define GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_MASK ) >> \
+    GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_SHIFT )
+#define GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_SHIFT ) & \
+      GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_MASK ) )
+#define GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_SHIFT ) & \
+    GRETHGBIT_TX_TS_TIMESTAMP_MSB_MSB_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRETHGBITTransmitTimestampDescriptorTIMESTAMPLSB \
+ *   Transmit descriptor word 3 (TIMESTAMP_LSB)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_SHIFT 0
+#define GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_MASK  0xffffffffU
+#define GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_GET( _reg )        \
+  ( ( ( _reg ) & GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_MASK ) >> \
+    GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_SHIFT )
+#define GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_MASK ) |    \
+    ( ( ( _val ) << GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_SHIFT ) & \
+      GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_MASK ) )
+#define GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB( _val )             \
+  ( ( ( _val ) << GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_SHIFT ) & \
+    GRETHGBIT_TX_TS_TIMESTAMP_LSB_LSB_MASK )
+
+/** @} */
+
+/**
+ * @brief This structure defines the GRETH_GBIT TX timestamp descriptor memory
+ *   map.
+ *
+ * The descriptor is expanded by the two timestamp words if the core was built
+ * with timestamping support and the feature is enabled by the timestamp enable
+ * bit of the control register. The count of descriptors in a table is halved
+ * to #GRETHGBIT_DMA_TS_DESC_MAX_COUNT since the descriptor size is doubled.
+ */
+typedef struct grethgbit_tx_ts_desc {
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTransmitDescriptor.
+   */
+  grethgbit_tx_desc desc;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTransmitTimestampDescriptorTIMESTAMPMSB.
+   */
+  uint32_t timestamp_msb;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRETHGBITTransmitTimestampDescriptorTIMESTAMPLSB.
+   */
+  uint32_t timestamp_lsb;
+} grethgbit_tx_ts_desc;
 
 /** @} */
 
