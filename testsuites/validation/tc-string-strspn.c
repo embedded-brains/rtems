@@ -60,8 +60,7 @@
 
 typedef enum {
   CStringReqStrspn_Pre_Accept_Empty,
-  CStringReqStrspn_Pre_Accept_One,
-  CStringReqStrspn_Pre_Accept_Several,
+  CStringReqStrspn_Pre_Accept_NonEmpty,
   CStringReqStrspn_Pre_Accept_NA
 } CStringReqStrspn_Pre_Accept;
 
@@ -136,6 +135,12 @@ typedef struct {
   bool high;
 
   /**
+   * @brief This member specifies the first character of the string referenced
+   *   by the `s2` parameter, if the member high is true.
+   */
+  unsigned char high_byte;
+
+  /**
    * @brief This member specifies the maximum initial segment.
    */
   Segment segment;
@@ -192,6 +197,22 @@ typedef struct {
     size_t pcs[ 3 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 15 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -217,10 +238,10 @@ typedef struct {
 static CStringReqStrspn_Context CStringReqStrspn_Instance;
 
 static const char *const CStringReqStrspn_PreDesc_Accept[] =
-  { "Empty", "One", "Several", "NA" };
+  { "Empty", "NonEmptyOne", "NonEmptyTwo", "NonEmptyThree", "NA" };
 
 static const char *const CStringReqStrspn_PreDesc_HighByte[] =
-  { "Yes", "No", "NA" };
+  { "YesMin", "YesMid", "YesMax", "No", "NA" };
 
 static const char *const CStringReqStrspn_PreDesc_Segment[] =
   { "Empty", "None", "Part", "Whole", "NA" };
@@ -231,6 +252,175 @@ static const char *const *const CStringReqStrspn_PreDesc[] = {
   CStringReqStrspn_PreDesc_Segment,
   NULL
 };
+
+typedef enum {
+  CStringReqStrspn_Pre_Accept_NonEmpty_One,
+  CStringReqStrspn_Pre_Accept_NonEmpty_Two,
+  CStringReqStrspn_Pre_Accept_NonEmpty_Three
+} CStringReqStrspn_Pre_Accept_NonEmpty_Rep;
+
+typedef enum {
+  CStringReqStrspn_Pre_HighByte_Yes_Min,
+  CStringReqStrspn_Pre_HighByte_Yes_Mid,
+  CStringReqStrspn_Pre_HighByte_Yes_Max
+} CStringReqStrspn_Pre_HighByte_Yes_Rep;
+
+static const uint8_t CStringReqStrspn_PreRepOffset_Accept[] = { 0, 1, 4, 5 };
+
+static const uint8_t CStringReqStrspn_PreRepOffset_HighByte[] = { 0, 3, 4, 5 };
+
+static const uint8_t CStringReqStrspn_PreRepOffset_Segment[] =
+  { 0, 1, 2, 3, 4, 5 };
+
+static const uint8_t *const CStringReqStrspn_PreRepOffset[] = {
+  CStringReqStrspn_PreRepOffset_Accept,
+  CStringReqStrspn_PreRepOffset_HighByte,
+  CStringReqStrspn_PreRepOffset_Segment
+};
+
+static size_t CStringReqStrspn_GetRepresentativeCountOf(
+  const CStringReqStrspn_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqStrspn_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqStrspn_GetRepresentative(
+  const CStringReqStrspn_Context *ctx,
+  size_t                          index
+)
+{
+  size_t count;
+
+  count = CStringReqStrspn_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqStrspn_GetRepresentativeCount(
+  const CStringReqStrspn_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqStrspn_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringReqStrspn_Pre_Accept_NonEmpty_Rep
+CStringReqStrspn_Pre_Accept_NonEmpty_GetRepresentative(
+  const CStringReqStrspn_Context *ctx
+)
+{
+  return (
+    CStringReqStrspn_Pre_Accept_NonEmpty_Rep
+  ) CStringReqStrspn_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqStrspn_Pre_HighByte_Yes_Rep
+CStringReqStrspn_Pre_HighByte_Yes_GetRepresentative(
+  const CStringReqStrspn_Context *ctx
+)
+{
+  return (
+    CStringReqStrspn_Pre_HighByte_Yes_Rep
+  ) CStringReqStrspn_GetRepresentative( ctx, 1 );
+}
+
+static const uint8_t CStringReqStrspn_PreRepBase[] = { 0, 5, 10 };
+
+static const uint8_t CStringReqStrspn_PreRepStates[] = { 2, 2, 4 };
+
+static void CStringReqStrspn_ResetRepresentatives(
+  CStringReqStrspn_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 15; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqStrspn_MarkRepresentatives(
+  CStringReqStrspn_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t rep;
+
+    rep = CStringReqStrspn_PreRepBase[ i ] +
+          CStringReqStrspn_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqStrspn_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqStrspn_CheckRepresentatives(
+  const CStringReqStrspn_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 3; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqStrspn_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqStrspn_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqStrspn_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqStrspn_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 typedef CStringReqStrspn_Context Context;
 
@@ -256,12 +446,15 @@ static void CheckUnchanged(
 static void Build( Context *ctx )
 {
   const unsigned char *members;
+  unsigned char        high[ ACCEPT_MAX ];
   unsigned char        reject;
   size_t               i;
   size_t               n;
 
   if ( ctx->high ) {
-    members = accept_high;
+    memcpy( high, accept_high, sizeof( high ) );
+    high[ 0 ] = ctx->high_byte;
+    members = high;
     reject = 0x62;
   } else {
     members = accept_low;
@@ -322,21 +515,29 @@ static void CStringReqStrspn_Pre_Accept_Prepare(
       break;
     }
 
-    case CStringReqStrspn_Pre_Accept_One: {
+    case CStringReqStrspn_Pre_Accept_NonEmpty: {
       /*
        * While the length of the string referenced by the `s2` parameter is
-       * equal to one.
+       * greater than zero.
        */
-      ctx->accept_length = 1;
-      break;
-    }
+      switch (
+        CStringReqStrspn_Pre_Accept_NonEmpty_GetRepresentative( ctx )
+      ) {
+        case CStringReqStrspn_Pre_Accept_NonEmpty_One: {
+          ctx->accept_length = 1;
+          break;
+        }
 
-    case CStringReqStrspn_Pre_Accept_Several: {
-      /*
-       * While the length of the string referenced by the `s2` parameter is
-       * greater than one.
-       */
-      ctx->accept_length = ACCEPT_MAX;
+        case CStringReqStrspn_Pre_Accept_NonEmpty_Two: {
+          ctx->accept_length = 2;
+          break;
+        }
+
+        case CStringReqStrspn_Pre_Accept_NonEmpty_Three: {
+          ctx->accept_length = ACCEPT_MAX;
+          break;
+        }
+      }
       break;
     }
 
@@ -357,6 +558,23 @@ static void CStringReqStrspn_Pre_HighByte_Prepare(
        * with a value greater than 127, where the value is interpreted as type
        * `unsigned char`.
        */
+      switch ( CStringReqStrspn_Pre_HighByte_Yes_GetRepresentative( ctx ) ) {
+        case CStringReqStrspn_Pre_HighByte_Yes_Min: {
+          ctx->high_byte = 0x80;
+          break;
+        }
+
+        case CStringReqStrspn_Pre_HighByte_Yes_Mid: {
+          ctx->high_byte = 0xe2;
+          break;
+        }
+
+        case CStringReqStrspn_Pre_HighByte_Yes_Max: {
+          ctx->high_byte = 0xff;
+          break;
+        }
+      }
+
       ctx->high = true;
       break;
     }
@@ -552,11 +770,11 @@ static void CStringReqStrspn_Action( CStringReqStrspn_Context *ctx )
 
 static const CStringReqStrspn_Entry
 CStringReqStrspn_Entries[] = {
+  { 1, 0, 0, 0, CStringReqStrspn_Post_Result_NA, CStringReqStrspn_Post_S1_NA,
+    CStringReqStrspn_Post_S2_NA, CStringReqStrspn_Post_Errno_NA },
   { 0, 0, 0, 0, CStringReqStrspn_Post_Result_Zero,
     CStringReqStrspn_Post_S1_Nop, CStringReqStrspn_Post_S2_Nop,
     CStringReqStrspn_Post_Errno_Nop },
-  { 1, 0, 0, 0, CStringReqStrspn_Post_Result_NA, CStringReqStrspn_Post_S1_NA,
-    CStringReqStrspn_Post_S2_NA, CStringReqStrspn_Post_Errno_NA },
   { 0, 0, 0, 0, CStringReqStrspn_Post_Result_Index,
     CStringReqStrspn_Post_S1_Nop, CStringReqStrspn_Post_S2_Nop,
     CStringReqStrspn_Post_Errno_Nop },
@@ -567,7 +785,7 @@ CStringReqStrspn_Entries[] = {
 
 static const uint8_t
 CStringReqStrspn_Map[] = {
-  1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 2, 3, 0, 0, 2, 3, 0, 0, 2, 3, 0, 0, 2, 3
+  0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 2, 3, 1, 1, 2, 3
 };
 
 /* clang-format on */
@@ -579,7 +797,15 @@ static size_t CStringReqStrspn_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqStrspn_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 3 ];
+    size_t i;
+
+    for ( i = 0; i < 3; ++i ) {
+      pcd[ i ] = CStringReqStrspn_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqStrspn_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqStrspn_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -609,6 +835,11 @@ static void CStringReqStrspn_TestVariant( CStringReqStrspn_Context *ctx )
   CStringReqStrspn_Pre_Accept_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CStringReqStrspn_Pre_HighByte_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringReqStrspn_Pre_Segment_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqStrspn_Action( ctx );
   CStringReqStrspn_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqStrspn_Post_S1_Check( ctx, ctx->Map.entry.Post_S1 );
@@ -626,6 +857,7 @@ T_TEST_CASE_FIXTURE( CStringReqStrspn, &CStringReqStrspn_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqStrspn_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqStrspn_Pre_Accept_Empty;
@@ -648,11 +880,22 @@ T_TEST_CASE_FIXTURE( CStringReqStrspn, &CStringReqStrspn_Fixture )
           continue;
         }
 
-        CStringReqStrspn_Prepare( ctx );
-        CStringReqStrspn_TestVariant( ctx );
+        for (
+          ctx->Map.rep = 0;
+          ctx->Map.rep < CStringReqStrspn_GetRepresentativeCount( ctx );
+          ++ctx->Map.rep
+        ) {
+          ctx->Map.skip_rep = false;
+          CStringReqStrspn_Prepare( ctx );
+          CStringReqStrspn_TestVariant( ctx );
+
+          CStringReqStrspn_MarkRepresentatives( ctx );
+        }
       }
     }
   }
+
+  CStringReqStrspn_CheckRepresentatives( ctx );
 }
 
 /** @} */
