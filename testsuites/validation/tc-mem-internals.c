@@ -76,6 +76,8 @@
  * - Free a block without a processor block while each descriptor of this
  *   processor has a used block.
  *
+ * - Free a NULL pointer while the C Program Heap does not exist.
+ *
  * - Get the information of the RTEMS Workspace.
  *
  * @{
@@ -578,9 +580,29 @@ static void RtemsMallocValInternals_Action_6(
 }
 
 /**
+ * @brief Free a NULL pointer while the C Program Heap does not exist.
+ */
+static void RtemsMallocValInternals_Action_7(
+  RtemsMallocValInternals_Context *ctx
+)
+{
+  RBHeap_control *heap;
+
+  (void) ctx;
+  heap = RTEMS_Malloc_Heap;
+  RTEMS_Malloc_Heap = NULL;
+  free( NULL );
+  T_true( _RBHeap_Free( NULL, NULL ) );
+  #if defined( RTEMS_SMP )
+  T_true( _RBHeap_Free_to_processor( NULL, NULL ) );
+  #endif
+  RTEMS_Malloc_Heap = heap;
+}
+
+/**
  * @brief Get the information of the RTEMS Workspace.
  */
-static void RtemsMallocValInternals_Action_7( void )
+static void RtemsMallocValInternals_Action_8( void )
 {
   Heap_Information_block info;
 
@@ -610,7 +632,8 @@ T_TEST_CASE_FIXTURE(
   RtemsMallocValInternals_Action_4( ctx );
   RtemsMallocValInternals_Action_5( ctx );
   RtemsMallocValInternals_Action_6( ctx );
-  RtemsMallocValInternals_Action_7();
+  RtemsMallocValInternals_Action_7( ctx );
+  RtemsMallocValInternals_Action_8();
 }
 
 /** @} */
