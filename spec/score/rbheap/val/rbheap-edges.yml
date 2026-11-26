@@ -49,6 +49,18 @@ test-actions:
   - role: validation
     uid: ../req/reserve
 - action-brief: |
+    Extend heaps without a spare descriptor by areas which hold no slab: right
+    after the areas, right below the areas, at the top of the address space, and
+    with a slab source.
+  action-code: |
+    RunExtendShort( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/extend
+  - role: validation
+    uid: ../req/slab
+- action-brief: |
     Allocate an aligned block while the free block of the best fit does not hold it
     at its alignment and a successor of equal size does.
   action-code: |
@@ -979,6 +991,143 @@ test-support: |
     T_quiet_true( _RBHeap_Free_to_processor( &ctx->heap, ctx->remote ) );
   }
   #endif
+
+  #define SHORT_BEGIN ( 16 * RBHEAP_SLAB_SIZE )
+
+  #define SHORT_SIZE ( 4 * RBHEAP_SLAB_SIZE )
+
+  typedef enum {
+    SHORT_BELOW,
+    SHORT_ABOVE
+  } ShortSide;
+
+  /*
+   * Prepares a heap at SHORT_BEGIN without a spare descriptor.  Used blocks lie
+   * at both ends of its area.  One free block of a slab begins at a multiple of
+   * the slab size.  The extensions which use up the spare descriptors lie on
+   * the side.
+   */
+  static void PrepareShort( Context *ctx, ShortSide side, bool source )
+  {
+    RBHeap_control *heap;
+    void           *small;
+    void           *slab_block;
+    void           *ptr;
+    uintptr_t       next;
+    uintptr_t       last;
+    uintptr_t       old_size;
+    bool            ok;
+
+    heap = &ctx->heap;
+
+    if ( source ) {
+      source_context = ctx;
+      source_enabled = true;
+      source_next = 1;
+      ok = _RBHeap_Initialize_with_slab(
+        heap,
+        &ctx->area[ SHORT_BEGIN ],
+        SHORT_SIZE,
+        ctx->slabs[ 0 ],
+        ControlledSource
+      );
+      T_quiet_true( ok );
+    } else {
+      Init( ctx, SHORT_BEGIN, SHORT_SIZE );
+    }
+
+    /* The small block lies between used blocks */
+    small = _RBHeap_Allocate( heap, 64 - RBHEAP_GUARD_SIZE );
+    T_quiet_not_null( small );
+    ptr = _RBHeap_Allocate(
+      heap,
+      ( RBHEAP_SLAB_SIZE - (uintptr_t) small % RBHEAP_SLAB_SIZE ) - 64 -
+        RBHEAP_GUARD_SIZE
+    );
+    T_quiet_not_null( ptr );
+    slab_block = _RBHeap_Allocate_aligned(
+      heap,
+      RBHEAP_SLAB_SIZE - RBHEAP_GUARD_SIZE,
+      RBHEAP_SLAB_SIZE
+    );
+    T_quiet_not_null( slab_block );
+
+    while ( _RBHeap_Allocate( heap, RBHEAP_SLAB_SIZE - RBHEAP_GUARD_SIZE ) ) {
+      /* Use the area up to its end */
+    }
+
+    T_quiet_true( _RBHeap_Free( heap, slab_block ) );
+
+    if ( side == SHORT_BELOW ) {
+      next = 0;
+      last = SHORT_BEGIN - 2 * 128;
+    } else {
+      next = SHORT_BEGIN + SHORT_SIZE + 2 * 128;
+      last = AREA_SIZE - 128;
+    }
+
+    while ( heap->spare >= 2 && next <= last ) {
+      T_quiet_true( _RBHeap_Extend( heap, &ctx->area[ next ], 64 ) );
+      next += 128;
+    }
+
+    /* The free rest of the shrunk block takes the last spare descriptor */
+    if ( heap->spare == 1 ) {
+      T_quiet_eq_int(
+        _RBHeap_Resize( heap, small, RBHEAP_MIN_SIZE, &old_size ),
+        RBHEAP_RESIZE_SUCCESSFUL
+      );
+    }
+
+    T_quiet_eq_uptr( heap->spare, 0 );
+    T_quiet_true( _RBHeap_Walk( heap ) );
+  }
+
+  static void RunExtendShort( Context *ctx )
+  {
+    RBHeap_control *heap;
+    uintptr_t       top;
+    uintptr_t       capacity;
+
+    heap = &ctx->heap;
+
+    /* The area merges below, the free block of the slab provides the slab */
+    PrepareShort( ctx, SHORT_BELOW, false );
+    capacity = heap->capacity;
+    T_true(
+      _RBHeap_Extend( heap, &ctx->area[ SHORT_BEGIN + SHORT_SIZE ], 64 )
+    );
+    T_eq_uptr( heap->capacity, capacity + RBHEAP_SLAB_SLOTS - 1 );
+    T_true( _RBHeap_Walk( heap ) );
+
+    /* The area merges above */
+    PrepareShort( ctx, SHORT_ABOVE, false );
+    capacity = heap->capacity;
+    T_true( _RBHeap_Extend( heap, &ctx->area[ SHORT_BEGIN - 64 ], 64 ) );
+    T_eq_uptr( heap->capacity, capacity + RBHEAP_SLAB_SLOTS - 1 );
+    T_true( _RBHeap_Walk( heap ) );
+
+    /* The slab source provides the slab */
+    PrepareShort( ctx, SHORT_BELOW, true );
+    T_true(
+      _RBHeap_Extend( heap, &ctx->area[ SHORT_BEGIN + SHORT_SIZE ], 64 )
+    );
+    T_eq_sz( source_next, 2 );
+    T_true( _RBHeap_Walk( heap ) );
+    source_enabled = false;
+
+    /*
+     * At the top of the address space, the begin of a slab wraps.  The heap
+     * writes nothing into the area.
+     */
+    PrepareShort( ctx, SHORT_BELOW, false );
+    top = ~(uintptr_t) 127;
+    capacity = heap->capacity;
+    T_true( _RBHeap_Extend( heap, (void *) top, 64 ) );
+    T_eq_uptr( heap->capacity, capacity + RBHEAP_SLAB_SLOTS - 1 );
+    T_eq_uptr( heap->area_end, top + 64 );
+    T_true( _RBHeap_Walk( heap ) );
+  }
 
   static void RunSourceSpare( Context *ctx )
   {
