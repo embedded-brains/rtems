@@ -59,6 +59,12 @@
  * - Allocate blocks with a boundary and with invalid alignments and
  *   boundaries.
  *
+ * - Allocate blocks with a boundary from free blocks which begin between two
+ *   multiples of the boundary.
+ *
+ * - Allocate an aligned block while the free block of the best fit does not
+ *   hold it at its alignment and a successor of equal size does.
+ *
  * - Allocate, resize and free with huge sizes and invalid blocks.
  *
  * - Allocate blocks from a heap whose slab source returns no slab. Initialize
@@ -160,10 +166,157 @@ static void RunBoundary( Context *ctx )
   T_null( _RBHeap_Allocate_aligned_with_boundary( heap, 128, 8, 64 ) );
   ptr = _RBHeap_Allocate_aligned_with_boundary( heap, 32, 16, 64 );
   T_not_null( ptr );
-  T_eq_uptr( (uintptr_t) ptr % 64, 0 );
+  T_eq_uptr( (uintptr_t) ptr % 16, 0 );
+  T_le_uptr( (uintptr_t) ptr % 64 + 32, 64 );
   ptr = _RBHeap_Allocate_aligned_with_boundary( heap, 32, 16, 0 );
   T_not_null( ptr );
   T_eq_uptr( (uintptr_t) ptr % 16, 0 );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
+#define CHUNK_SIZE 512
+
+/*
+ * Fills the heap with blocks of CHUNK_SIZE bytes and then with smaller blocks
+ * until the heap has no free block.  Returns the count of chunks.
+ */
+static size_t Fill( Context *ctx )
+{
+  RBHeap_control *heap;
+  uintptr_t       size;
+  size_t          n;
+
+  heap = &ctx->heap;
+  Init( ctx, 0, AREA_SIZE );
+  n = 0;
+
+  while ( n < BLOCK_COUNT ) {
+    ctx->blocks[ n ] = _RBHeap_Allocate(
+      heap,
+      CHUNK_SIZE - RBHEAP_GUARD_SIZE
+    );
+
+    if ( ctx->blocks[ n ] == NULL ) {
+      break;
+    }
+
+    ++n;
+  }
+
+  for ( size = CHUNK_SIZE / 2; size >= RBHEAP_ALIGNMENT; size /= 2 ) {
+    while ( _RBHeap_Allocate( heap, size - RBHEAP_GUARD_SIZE ) != NULL ) {
+      /* Use the rest of the free memory */
+    }
+  }
+
+  return n;
+}
+
+/*
+ * Returns the index of the first chunk after the start index which begins at
+ * the remainder modulo the modulus.  The chunk and the count minus one chunks
+ * after it are adjacent, and their neighbours stay used.
+ */
+static size_t FindChunks(
+  const Context *ctx,
+  size_t         n,
+  size_t         start,
+  size_t         count,
+  uintptr_t      modulus,
+  uintptr_t      remainder
+)
+{
+  size_t i;
+
+  for ( i = start + 1; i + count < n; ++i ) {
+    uintptr_t begin;
+    size_t    j;
+    bool      adjacent;
+
+    begin = (uintptr_t) ctx->blocks[ i ];
+
+    if ( begin % modulus != remainder ) {
+      continue;
+    }
+
+    adjacent = (uintptr_t) ctx->blocks[ i - 1 ] + CHUNK_SIZE == begin;
+
+    for ( j = 1; j <= count; ++j ) {
+      adjacent = adjacent &&
+                 (uintptr_t) ctx->blocks[ i + j ] == begin + j * CHUNK_SIZE;
+    }
+
+    if ( adjacent ) {
+      return i;
+    }
+  }
+
+  T_quiet_true( false );
+  return 0;
+}
+
+static void FreeChunks( Context *ctx, size_t i, size_t count )
+{
+  size_t j;
+
+  for ( j = 0; j < count; ++j ) {
+    T_quiet_true( _RBHeap_Free( &ctx->heap, ctx->blocks[ i + j ] ) );
+  }
+}
+
+static void RunBoundaryPlace( Context *ctx )
+{
+  RBHeap_control *heap;
+  size_t          n;
+  size_t          i;
+  size_t          j;
+  void           *ptr;
+
+  heap = &ctx->heap;
+  n = Fill( ctx );
+
+  /* The free block lies between two multiples of the boundary */
+  i = FindChunks( ctx, n, 0, 1, 2 * CHUNK_SIZE, CHUNK_SIZE );
+  FreeChunks( ctx, i, 1 );
+  ptr = _RBHeap_Allocate_aligned_with_boundary( heap, 64, 0, 2 * CHUNK_SIZE );
+  T_eq_ptr( ptr, ctx->blocks[ i ] );
+  T_true( _RBHeap_Free( heap, ptr ) );
+
+  /* At the begin of the free block, the block would cross a multiple */
+  j = FindChunks( ctx, n, i + 1, 3, 2 * CHUNK_SIZE, CHUNK_SIZE );
+  FreeChunks( ctx, j, 3 );
+  ptr = _RBHeap_Allocate_aligned_with_boundary(
+    heap,
+    3 * CHUNK_SIZE / 2,
+    0,
+    2 * CHUNK_SIZE
+  );
+  T_eq_ptr( ptr, ctx->blocks[ j + 1 ] );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
+static void RunAlignedSuccessor( Context *ctx )
+{
+  RBHeap_control *heap;
+  size_t          n;
+  size_t          i;
+  size_t          j;
+  void           *ptr;
+
+  heap = &ctx->heap;
+  n = Fill( ctx );
+
+  /* The free block of the best fit has the lower begin */
+  i = FindChunks( ctx, n, 0, 2, 2 * CHUNK_SIZE, CHUNK_SIZE );
+  j = FindChunks( ctx, n, i + 2, 2, 2 * CHUNK_SIZE, 0 );
+  FreeChunks( ctx, i, 2 );
+  FreeChunks( ctx, j, 2 );
+  ptr = _RBHeap_Allocate_aligned(
+    heap,
+    2 * CHUNK_SIZE - RBHEAP_GUARD_SIZE,
+    2 * CHUNK_SIZE
+  );
+  T_eq_ptr( ptr, ctx->blocks[ j ] );
   T_true( _RBHeap_Walk( heap ) );
 }
 
@@ -1401,9 +1554,31 @@ static void ScoreRbheapValRbheapEdges_Action_0(
 }
 
 /**
- * @brief Allocate, resize and free with huge sizes and invalid blocks.
+ * @brief Allocate blocks with a boundary from free blocks which begin between
+ *   two multiples of the boundary.
  */
 static void ScoreRbheapValRbheapEdges_Action_1(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunBoundaryPlace( ctx );
+}
+
+/**
+ * @brief Allocate an aligned block while the free block of the best fit does
+ *   not hold it at its alignment and a successor of equal size does.
+ */
+static void ScoreRbheapValRbheapEdges_Action_2(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunAlignedSuccessor( ctx );
+}
+
+/**
+ * @brief Allocate, resize and free with huge sizes and invalid blocks.
+ */
+static void ScoreRbheapValRbheapEdges_Action_3(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1414,7 +1589,7 @@ static void ScoreRbheapValRbheapEdges_Action_1(
  * @brief Allocate blocks from a heap whose slab source returns no slab.
  *   Initialize heaps with slabs and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_2(
+static void ScoreRbheapValRbheapEdges_Action_4(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1424,7 +1599,7 @@ static void ScoreRbheapValRbheapEdges_Action_2(
 /**
  * @brief Add descriptors to heaps with valid and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_3(
+static void ScoreRbheapValRbheapEdges_Action_5(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1435,7 +1610,7 @@ static void ScoreRbheapValRbheapEdges_Action_3(
  * @brief Extend a heap by areas which fill parts of its holes, by areas next
  *   to its areas and by invalid areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_4(
+static void ScoreRbheapValRbheapEdges_Action_6(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1446,7 +1621,7 @@ static void ScoreRbheapValRbheapEdges_Action_4(
  * @brief Free blocks until the heap releases a slab and allocate blocks while
  *   the heap drains the slab.
  */
-static void ScoreRbheapValRbheapEdges_Action_5(
+static void ScoreRbheapValRbheapEdges_Action_7(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1457,7 +1632,7 @@ static void ScoreRbheapValRbheapEdges_Action_5(
  * @brief Extend a heap by many small areas with gaps between them until the
  *   heap has no spare descriptor.
  */
-static void ScoreRbheapValRbheapEdges_Action_6(
+static void ScoreRbheapValRbheapEdges_Action_8(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1468,7 +1643,7 @@ static void ScoreRbheapValRbheapEdges_Action_6(
  * @brief Extend and add descriptors to heaps at the ends of their areas, near
  *   the top of the address space, over used blocks and over holes.
  */
-static void ScoreRbheapValRbheapEdges_Action_7(
+static void ScoreRbheapValRbheapEdges_Action_9(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1481,7 +1656,7 @@ static void ScoreRbheapValRbheapEdges_Action_7(
  *   processor block on another processor, and free a processor block for a
  *   full bin.
  */
-static void ScoreRbheapValRbheapEdges_Action_8(
+static void ScoreRbheapValRbheapEdges_Action_10(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1493,7 +1668,7 @@ static void ScoreRbheapValRbheapEdges_Action_8(
  *   information of a heap with holes and extend heaps below their used blocks
  *   and below their added descriptors.
  */
-static void ScoreRbheapValRbheapEdges_Action_9(
+static void ScoreRbheapValRbheapEdges_Action_11(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1504,7 +1679,7 @@ static void ScoreRbheapValRbheapEdges_Action_9(
 /**
  * @brief Walk heaps with descriptors which form invalid trees.
  */
-static void ScoreRbheapValRbheapEdges_Action_10(
+static void ScoreRbheapValRbheapEdges_Action_12(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1516,7 +1691,7 @@ static void ScoreRbheapValRbheapEdges_Action_10(
  *   Extend the heap by areas with a gap until the heap has less than two spare
  *   descriptors. Grow a block into the free block after it.
  */
-static void ScoreRbheapValRbheapEdges_Action_11(
+static void ScoreRbheapValRbheapEdges_Action_13(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1527,7 +1702,7 @@ static void ScoreRbheapValRbheapEdges_Action_11(
  * @brief Corrupt the descriptors and the counters of a heap one after the
  *   other and walk the heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_12(
+static void ScoreRbheapValRbheapEdges_Action_14(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1539,7 +1714,7 @@ static void ScoreRbheapValRbheapEdges_Action_12(
  *   the descriptors of a heap with a drain one after the other and walk the
  *   heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_13(
+static void ScoreRbheapValRbheapEdges_Action_15(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1572,6 +1747,8 @@ T_TEST_CASE_FIXTURE(
   ScoreRbheapValRbheapEdges_Action_11( ctx );
   ScoreRbheapValRbheapEdges_Action_12( ctx );
   ScoreRbheapValRbheapEdges_Action_13( ctx );
+  ScoreRbheapValRbheapEdges_Action_14( ctx );
+  ScoreRbheapValRbheapEdges_Action_15( ctx );
 }
 
 /** @} */

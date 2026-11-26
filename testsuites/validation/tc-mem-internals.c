@@ -140,7 +140,8 @@ static void RunBoundary( Context *ctx )
   free( ptr );
   ptr = rtems_heap_allocate_aligned_with_boundary( 32, 16, 64 );
   T_not_null( ptr );
-  T_eq_uptr( (uintptr_t) ptr % 64, 0 );
+  T_eq_uptr( (uintptr_t) ptr % 16, 0 );
+  T_le_uptr( (uintptr_t) ptr % 64 + 32, 64 );
   free( ptr );
   T_null( rtems_heap_allocate_aligned_with_boundary( 32, 16, 24 ) );
   ptr = rtems_heap_allocate_aligned_with_boundary( 32, 0, 64 );
