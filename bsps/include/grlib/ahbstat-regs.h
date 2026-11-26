@@ -141,6 +141,16 @@ typedef struct ahbstat {
    * @brief See @ref RTEMSDeviceGRLIBAHBSTATAHBFAR.
    */
   uint32_t ahbfar;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBAHBSTATAHBS.
+   */
+  uint32_t ahbs2;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBAHBSTATAHBFAR.
+   */
+  uint32_t ahbfar2;
 } ahbstat;
 
 /** @} */
