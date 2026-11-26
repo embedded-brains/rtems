@@ -1,0 +1,55 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: validation
+test-brief: |
+  This validation test suite contains test cases for an RTEMS Workspace with the
+  default count of statically allocated descriptors and 49 threads which allocate
+  their stacks from the RTEMS Workspace.
+test-code: |
+  const char rtems_test_name[] = "${.:/test-suite-name}";
+
+  #define CONFIGURE_IDLE_TASK_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
+
+  #define CONFIGURE_IDLE_TASK_INITIALIZES_APPLICATION
+
+  void *IdleBody( uintptr_t ignored )
+  {
+    (void) ignored;
+    RunTestSuite();
+  }
+
+  #define CONFIGURE_IDLE_TASK_BODY IdleBody
+
+  #define CONFIGURE_MAXIMUM_TASKS 49
+
+  static void *AllocateStack( size_t size )
+  {
+    return _Workspace_Allocate( size );
+  }
+
+  static void FreeStack( void *stack )
+  {
+    _Workspace_Free( stack );
+  }
+
+  #define CONFIGURE_TASK_STACK_ALLOCATOR AllocateStack
+
+  #define CONFIGURE_TASK_STACK_DEALLOCATOR FreeStack
+
+  #define CONFIGURE_WORKSPACE_ALLOCATOR RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE
+
+  #define CONFIGURE_INIT
+
+  #include <rtems/confdefs.h>
+test-description: null
+test-includes:
+- rtems/score/wkspace.h
+test-local-includes:
+- ts-acfg.h
+- tx-support.h
+test-target: testsuites/validation/ts-validation-heap-2.c
+type: test-suite

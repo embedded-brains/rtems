@@ -1,0 +1,100 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Create a task for each block for which the RTEMS Workspace reserves memory.
+  action-code: |
+    size_t i;
+
+    for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->tasks ); ++i ) {
+      ctx->status[ i ] = rtems_task_create(
+        rtems_build_name( 'T', 'A', 'S', 'K' ),
+        1,
+        RTEMS_MINIMUM_STACK_SIZE,
+        RTEMS_DEFAULT_MODES,
+        RTEMS_DEFAULT_ATTRIBUTES,
+        &ctx->tasks[ i ]
+      );
+    }
+  checks:
+  - brief: |
+      Check that the RTEMS Workspace reserves memory for 49 blocks.
+    code: |
+      T_eq_sz( _Workspace_TLS_area_count, RTEMS_ARRAY_SIZE( ctx->tasks ) );
+    links:
+    - role: validation
+      uid: /acfg/if/workspace-descriptor-count
+  - brief: |
+      Check that the default value of ${../if/workspace-descriptor-count:/name} gives
+      two slabs of statically allocated descriptors for 49 blocks.
+    code: |
+      T_eq_uptr( _Workspace_Descriptor_size, 2 * RBHEAP_SLAB_SIZE );
+    links:
+    - role: validation
+      uid: /acfg/if/workspace-descriptor-count
+    - role: validation
+      uid: ../req/workspace-descriptor-count
+  - brief: |
+      Check that the creation of each task was successful.
+    code: |
+      for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->tasks ); ++i ) {
+        T_rsc_success( ctx->status[ i ] );
+      }
+
+      T_true( _RBHeap_Walk( &_Workspace_RBHeap ) );
+    links:
+    - role: validation
+      uid: /acfg/if/workspace-descriptor-count
+    - role: validation
+      uid: ../req/workspace-allocator
+  - brief: |
+      Check that the statically allocated descriptors hold the descriptors of all
+      blocks, so that the RTEMS Workspace has no slab in its storage area.
+    code: |
+      T_eq_uptr( _Workspace_RBHeap.area_slab_count, 0 );
+    links:
+    - role: validation
+      uid: /acfg/if/workspace-descriptor-count
+  - brief: |
+      Delete the tasks.
+    code: |
+      for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->tasks ); ++i ) {
+        if ( ctx->status[ i ] == RTEMS_SUCCESSFUL ) {
+          DeleteTask( ctx->tasks[ i ] );
+        }
+      }
+    links: []
+  links: []
+test-brief: |
+  Tests the default count of statically allocated descriptors of the RTEMS
+  Workspace.
+test-context:
+- brief: |
+    This member contains the identifiers of the created tasks.
+  description: null
+  member: |
+    rtems_id tasks[ 49 ]
+- brief: |
+    This member contains the status of each task creation.
+  description: null
+  member: |
+    rtems_status_code status[ 49 ]
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/score/rbheap.h
+- rtems/score/wkspace.h
+- rtems/score/wkspacedata.h
+test-local-includes:
+- tx-support.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-acfg-heap-default-descriptors.c
+test-teardown: null
+type: test-case
