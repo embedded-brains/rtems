@@ -56,6 +56,7 @@
 #include <rtems/score/atomic.h>
 #include <rtems/score/percpu.h>
 #include <rtems/score/smp.h>
+#include <rtems/score/sysstate.h>
 #include <rtems/score/threadimpl.h>
 
 /*
@@ -85,12 +86,11 @@ static const uint32_t
  * NOTE: This uses a GCC specific method.
  */
 static inline bool Stack_check_Frame_pointer_in_range(
-  const Thread_Control *the_thread
+  const Stack_Control *the_stack
 )
 {
   #if defined( __GNUC__ )
-  void                *sp = __builtin_frame_address( 0 );
-  const Stack_Control *the_stack = &the_thread->Start.Initial_stack;
+  void *sp = __builtin_frame_address( 0 );
 
   if ( sp < the_stack->area ) {
     return false;
@@ -291,7 +291,7 @@ void rtems_stack_checker_switch_extension(
    *  Check for an out of bounds stack pointer or an overwrite
    */
 #if defined( RTEMS_SMP )
-  sp_ok = Stack_check_Frame_pointer_in_range( heir );
+  sp_ok = Stack_check_Frame_pointer_in_range( &heir->Start.Initial_stack );
 
   if ( !sp_ok ) {
     pattern_ok = Stack_check_Is_sanity_pattern_valid(
@@ -308,7 +308,7 @@ void rtems_stack_checker_switch_extension(
     Stack_checker_Reporter( running, pattern_ok );
   }
 #else
-  sp_ok = Stack_check_Frame_pointer_in_range( running );
+  sp_ok = Stack_check_Frame_pointer_in_range( &running->Start.Initial_stack );
 
   pattern_ok = Stack_check_Is_sanity_pattern_valid(
     &running->Start.Initial_stack
@@ -330,14 +330,40 @@ void rtems_stack_checker_switch_extension(
 }
 
 /*
- *  Check if blown
+ * Before the multitasking starts, the system initialization runs on the
+ * interrupt stack of the current processor.
  */
+static void Stack_check_Initialization_stack( void )
+{
+  const Per_CPU_Control *cpu_self;
+  Stack_Control          stack;
+
+  cpu_self = _Per_CPU_Get();
+  stack.area = cpu_self->interrupt_stack_low;
+  stack.size = (size_t) ( (char *) cpu_self->interrupt_stack_high -
+                          (char *) cpu_self->interrupt_stack_low );
+
+  if (
+    !Stack_check_Frame_pointer_in_range( &stack ) ||
+    !Stack_check_Is_sanity_pattern_valid( &stack )
+  ) {
+    rtems_fatal(
+      RTEMS_FATAL_SOURCE_STACK_CHECKER,
+      rtems_build_name( 'I', 'N', 'T', 'R' )
+    );
+  }
+}
+
 bool rtems_stack_checker_is_blown( void )
 {
-  Thread_Control *executing;
+  if ( _System_state_Is_before_multitasking( _System_state_Get() ) ) {
+    Stack_check_Initialization_stack();
+  } else {
+    Thread_Control *executing;
 
-  executing = _Thread_Get_executing();
-  rtems_stack_checker_switch_extension( executing, executing );
+    executing = _Thread_Get_executing();
+    rtems_stack_checker_switch_extension( executing, executing );
+  }
 
   /*
    * The Stack Pointer and the Pattern Area are OK so return false.
