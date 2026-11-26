@@ -214,19 +214,21 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IL is reserved. IL includes it, so that bit n of IL corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_ILEVEL_IL_15_1_SHIFT 1
-#define IRQAMP_ILEVEL_IL_15_1_MASK  0xfffeU
-#define IRQAMP_ILEVEL_IL_15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_ILEVEL_IL_15_1_MASK ) >> IRQAMP_ILEVEL_IL_15_1_SHIFT )
-#define IRQAMP_ILEVEL_IL_15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_ILEVEL_IL_15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_ILEVEL_IL_15_1_SHIFT ) & \
-      IRQAMP_ILEVEL_IL_15_1_MASK ) )
-#define IRQAMP_ILEVEL_IL_15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_ILEVEL_IL_15_1_SHIFT ) & IRQAMP_ILEVEL_IL_15_1_MASK )
+#define IRQAMP_ILEVEL_IL_SHIFT 0
+#define IRQAMP_ILEVEL_IL_MASK  0xffffU
+#define IRQAMP_ILEVEL_IL_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ILEVEL_IL_MASK ) >> IRQAMP_ILEVEL_IL_SHIFT )
+#define IRQAMP_ILEVEL_IL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_ILEVEL_IL_MASK ) | \
+    ( ( ( _val ) << IRQAMP_ILEVEL_IL_SHIFT ) & IRQAMP_ILEVEL_IL_MASK ) )
+#define IRQAMP_ILEVEL_IL( _val ) \
+  ( ( ( _val ) << IRQAMP_ILEVEL_IL_SHIFT ) & IRQAMP_ILEVEL_IL_MASK )
 
 /** @} */
 
@@ -235,32 +237,31 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IP is reserved. IP includes it, so that bit n of IP corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_IPEND_EIP_31_16_SHIFT 16
-#define IRQAMP_IPEND_EIP_31_16_MASK  0xffff0000U
-#define IRQAMP_IPEND_EIP_31_16_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_IPEND_EIP_31_16_MASK ) >> \
-    IRQAMP_IPEND_EIP_31_16_SHIFT )
-#define IRQAMP_IPEND_EIP_31_16_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_IPEND_EIP_31_16_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_IPEND_EIP_31_16_SHIFT ) & \
-      IRQAMP_IPEND_EIP_31_16_MASK ) )
-#define IRQAMP_IPEND_EIP_31_16( _val )             \
-  ( ( ( _val ) << IRQAMP_IPEND_EIP_31_16_SHIFT ) & \
-    IRQAMP_IPEND_EIP_31_16_MASK )
+#define IRQAMP_IPEND_EIP_SHIFT 16
+#define IRQAMP_IPEND_EIP_MASK  0xffff0000U
+#define IRQAMP_IPEND_EIP_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_IPEND_EIP_MASK ) >> IRQAMP_IPEND_EIP_SHIFT )
+#define IRQAMP_IPEND_EIP_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_IPEND_EIP_MASK ) | \
+    ( ( ( _val ) << IRQAMP_IPEND_EIP_SHIFT ) & IRQAMP_IPEND_EIP_MASK ) )
+#define IRQAMP_IPEND_EIP( _val ) \
+  ( ( ( _val ) << IRQAMP_IPEND_EIP_SHIFT ) & IRQAMP_IPEND_EIP_MASK )
 
-#define IRQAMP_IPEND_IP_15_1_SHIFT 1
-#define IRQAMP_IPEND_IP_15_1_MASK  0xfffeU
-#define IRQAMP_IPEND_IP_15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_IPEND_IP_15_1_MASK ) >> IRQAMP_IPEND_IP_15_1_SHIFT )
-#define IRQAMP_IPEND_IP_15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_IPEND_IP_15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_IPEND_IP_15_1_SHIFT ) & \
-      IRQAMP_IPEND_IP_15_1_MASK ) )
-#define IRQAMP_IPEND_IP_15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_IPEND_IP_15_1_SHIFT ) & IRQAMP_IPEND_IP_15_1_MASK )
+#define IRQAMP_IPEND_IP_SHIFT 0
+#define IRQAMP_IPEND_IP_MASK  0xffffU
+#define IRQAMP_IPEND_IP_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_IPEND_IP_MASK ) >> IRQAMP_IPEND_IP_SHIFT )
+#define IRQAMP_IPEND_IP_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_IPEND_IP_MASK ) | \
+    ( ( ( _val ) << IRQAMP_IPEND_IP_SHIFT ) & IRQAMP_IPEND_IP_MASK ) )
+#define IRQAMP_IPEND_IP( _val ) \
+  ( ( ( _val ) << IRQAMP_IPEND_IP_SHIFT ) & IRQAMP_IPEND_IP_MASK )
 
 /** @} */
 
@@ -270,21 +271,21 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IF is reserved. IF includes it, so that bit n of IF corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_IFORCE0_IF_15_1_SHIFT 1
-#define IRQAMP_IFORCE0_IF_15_1_MASK  0xfffeU
-#define IRQAMP_IFORCE0_IF_15_1_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_IFORCE0_IF_15_1_MASK ) >> \
-    IRQAMP_IFORCE0_IF_15_1_SHIFT )
-#define IRQAMP_IFORCE0_IF_15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_IFORCE0_IF_15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_IFORCE0_IF_15_1_SHIFT ) & \
-      IRQAMP_IFORCE0_IF_15_1_MASK ) )
-#define IRQAMP_IFORCE0_IF_15_1( _val )             \
-  ( ( ( _val ) << IRQAMP_IFORCE0_IF_15_1_SHIFT ) & \
-    IRQAMP_IFORCE0_IF_15_1_MASK )
+#define IRQAMP_IFORCE0_IF_SHIFT 0
+#define IRQAMP_IFORCE0_IF_MASK  0xffffU
+#define IRQAMP_IFORCE0_IF_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_IFORCE0_IF_MASK ) >> IRQAMP_IFORCE0_IF_SHIFT )
+#define IRQAMP_IFORCE0_IF_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_IFORCE0_IF_MASK ) | \
+    ( ( ( _val ) << IRQAMP_IFORCE0_IF_SHIFT ) & IRQAMP_IFORCE0_IF_MASK ) )
+#define IRQAMP_IFORCE0_IF( _val ) \
+  ( ( ( _val ) << IRQAMP_IFORCE0_IF_SHIFT ) & IRQAMP_IFORCE0_IF_MASK )
 
 /** @} */
 
@@ -293,32 +294,31 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IC is reserved. IC includes it, so that bit n of IC corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_ICLEAR_EIC_31_16_SHIFT 16
-#define IRQAMP_ICLEAR_EIC_31_16_MASK  0xffff0000U
-#define IRQAMP_ICLEAR_EIC_31_16_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_ICLEAR_EIC_31_16_MASK ) >> \
-    IRQAMP_ICLEAR_EIC_31_16_SHIFT )
-#define IRQAMP_ICLEAR_EIC_31_16_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_ICLEAR_EIC_31_16_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_ICLEAR_EIC_31_16_SHIFT ) & \
-      IRQAMP_ICLEAR_EIC_31_16_MASK ) )
-#define IRQAMP_ICLEAR_EIC_31_16( _val )             \
-  ( ( ( _val ) << IRQAMP_ICLEAR_EIC_31_16_SHIFT ) & \
-    IRQAMP_ICLEAR_EIC_31_16_MASK )
+#define IRQAMP_ICLEAR_EIC_SHIFT 16
+#define IRQAMP_ICLEAR_EIC_MASK  0xffff0000U
+#define IRQAMP_ICLEAR_EIC_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICLEAR_EIC_MASK ) >> IRQAMP_ICLEAR_EIC_SHIFT )
+#define IRQAMP_ICLEAR_EIC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_ICLEAR_EIC_MASK ) | \
+    ( ( ( _val ) << IRQAMP_ICLEAR_EIC_SHIFT ) & IRQAMP_ICLEAR_EIC_MASK ) )
+#define IRQAMP_ICLEAR_EIC( _val ) \
+  ( ( ( _val ) << IRQAMP_ICLEAR_EIC_SHIFT ) & IRQAMP_ICLEAR_EIC_MASK )
 
-#define IRQAMP_ICLEAR_IC_15_1_SHIFT 1
-#define IRQAMP_ICLEAR_IC_15_1_MASK  0xfffeU
-#define IRQAMP_ICLEAR_IC_15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_ICLEAR_IC_15_1_MASK ) >> IRQAMP_ICLEAR_IC_15_1_SHIFT )
-#define IRQAMP_ICLEAR_IC_15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_ICLEAR_IC_15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_ICLEAR_IC_15_1_SHIFT ) & \
-      IRQAMP_ICLEAR_IC_15_1_MASK ) )
-#define IRQAMP_ICLEAR_IC_15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_ICLEAR_IC_15_1_SHIFT ) & IRQAMP_ICLEAR_IC_15_1_MASK )
+#define IRQAMP_ICLEAR_IC_SHIFT 0
+#define IRQAMP_ICLEAR_IC_MASK  0xffffU
+#define IRQAMP_ICLEAR_IC_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICLEAR_IC_MASK ) >> IRQAMP_ICLEAR_IC_SHIFT )
+#define IRQAMP_ICLEAR_IC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_ICLEAR_IC_MASK ) | \
+    ( ( ( _val ) << IRQAMP_ICLEAR_IC_SHIFT ) & IRQAMP_ICLEAR_IC_MASK ) )
+#define IRQAMP_ICLEAR_IC( _val ) \
+  ( ( ( _val ) << IRQAMP_ICLEAR_IC_SHIFT ) & IRQAMP_ICLEAR_IC_MASK )
 
 /** @} */
 
@@ -373,19 +373,21 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of BM is reserved. BM includes it, so that bit n of BM corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_BRDCST_BM15_1_SHIFT 1
-#define IRQAMP_BRDCST_BM15_1_MASK  0xfffeU
-#define IRQAMP_BRDCST_BM15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_BRDCST_BM15_1_MASK ) >> IRQAMP_BRDCST_BM15_1_SHIFT )
-#define IRQAMP_BRDCST_BM15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_BRDCST_BM15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_BRDCST_BM15_1_SHIFT ) & \
-      IRQAMP_BRDCST_BM15_1_MASK ) )
-#define IRQAMP_BRDCST_BM15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_BRDCST_BM15_1_SHIFT ) & IRQAMP_BRDCST_BM15_1_MASK )
+#define IRQAMP_BRDCST_BM_SHIFT 0
+#define IRQAMP_BRDCST_BM_MASK  0xffffU
+#define IRQAMP_BRDCST_BM_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_BRDCST_BM_MASK ) >> IRQAMP_BRDCST_BM_SHIFT )
+#define IRQAMP_BRDCST_BM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_BRDCST_BM_MASK ) | \
+    ( ( ( _val ) << IRQAMP_BRDCST_BM_SHIFT ) & IRQAMP_BRDCST_BM_MASK ) )
+#define IRQAMP_BRDCST_BM( _val ) \
+  ( ( ( _val ) << IRQAMP_BRDCST_BM_SHIFT ) & IRQAMP_BRDCST_BM_MASK )
 
 /** @} */
 
@@ -397,18 +399,18 @@ typedef struct irqamp_timestamp {
  * @{
  */
 
-#define IRQAMP_ERRSTAT_ERRMODE_3_0_SHIFT 0
-#define IRQAMP_ERRSTAT_ERRMODE_3_0_MASK  0xfU
-#define IRQAMP_ERRSTAT_ERRMODE_3_0_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_ERRSTAT_ERRMODE_3_0_MASK ) >> \
-    IRQAMP_ERRSTAT_ERRMODE_3_0_SHIFT )
-#define IRQAMP_ERRSTAT_ERRMODE_3_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_ERRSTAT_ERRMODE_3_0_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_ERRSTAT_ERRMODE_3_0_SHIFT ) & \
-      IRQAMP_ERRSTAT_ERRMODE_3_0_MASK ) )
-#define IRQAMP_ERRSTAT_ERRMODE_3_0( _val )             \
-  ( ( ( _val ) << IRQAMP_ERRSTAT_ERRMODE_3_0_SHIFT ) & \
-    IRQAMP_ERRSTAT_ERRMODE_3_0_MASK )
+#define IRQAMP_ERRSTAT_ERRMODE_SHIFT 0
+#define IRQAMP_ERRSTAT_ERRMODE_MASK  0xffffU
+#define IRQAMP_ERRSTAT_ERRMODE_GET( _reg )        \
+  ( ( ( _reg ) & IRQAMP_ERRSTAT_ERRMODE_MASK ) >> \
+    IRQAMP_ERRSTAT_ERRMODE_SHIFT )
+#define IRQAMP_ERRSTAT_ERRMODE_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~IRQAMP_ERRSTAT_ERRMODE_MASK ) |    \
+    ( ( ( _val ) << IRQAMP_ERRSTAT_ERRMODE_SHIFT ) & \
+      IRQAMP_ERRSTAT_ERRMODE_MASK ) )
+#define IRQAMP_ERRSTAT_ERRMODE( _val )             \
+  ( ( ( _val ) << IRQAMP_ERRSTAT_ERRMODE_SHIFT ) & \
+    IRQAMP_ERRSTAT_ERRMODE_MASK )
 
 /** @} */
 
@@ -446,7 +448,7 @@ typedef struct irqamp_timestamp {
     IRQAMP_WDOGCTRL_WDOGIRQ_MASK )
 
 #define IRQAMP_WDOGCTRL_WDOGMSK_SHIFT 0
-#define IRQAMP_WDOGCTRL_WDOGMSK_MASK  0xfU
+#define IRQAMP_WDOGCTRL_WDOGMSK_MASK  0xffffU
 #define IRQAMP_WDOGCTRL_WDOGMSK_GET( _reg )        \
   ( ( ( _reg ) & IRQAMP_WDOGCTRL_WDOGMSK_MASK ) >> \
     IRQAMP_WDOGCTRL_WDOGMSK_SHIFT )
@@ -539,6 +541,50 @@ typedef struct irqamp_timestamp {
 #define IRQAMP_ICSELR_ICSEL3( _val ) \
   ( ( ( _val ) << IRQAMP_ICSELR_ICSEL3_SHIFT ) & IRQAMP_ICSELR_ICSEL3_MASK )
 
+#define IRQAMP_ICSELR_ICSEL4_SHIFT 12
+#define IRQAMP_ICSELR_ICSEL4_MASK  0xf000U
+#define IRQAMP_ICSELR_ICSEL4_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICSELR_ICSEL4_MASK ) >> IRQAMP_ICSELR_ICSEL4_SHIFT )
+#define IRQAMP_ICSELR_ICSEL4_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~IRQAMP_ICSELR_ICSEL4_MASK ) |    \
+    ( ( ( _val ) << IRQAMP_ICSELR_ICSEL4_SHIFT ) & \
+      IRQAMP_ICSELR_ICSEL4_MASK ) )
+#define IRQAMP_ICSELR_ICSEL4( _val ) \
+  ( ( ( _val ) << IRQAMP_ICSELR_ICSEL4_SHIFT ) & IRQAMP_ICSELR_ICSEL4_MASK )
+
+#define IRQAMP_ICSELR_ICSEL5_SHIFT 8
+#define IRQAMP_ICSELR_ICSEL5_MASK  0xf00U
+#define IRQAMP_ICSELR_ICSEL5_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICSELR_ICSEL5_MASK ) >> IRQAMP_ICSELR_ICSEL5_SHIFT )
+#define IRQAMP_ICSELR_ICSEL5_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~IRQAMP_ICSELR_ICSEL5_MASK ) |    \
+    ( ( ( _val ) << IRQAMP_ICSELR_ICSEL5_SHIFT ) & \
+      IRQAMP_ICSELR_ICSEL5_MASK ) )
+#define IRQAMP_ICSELR_ICSEL5( _val ) \
+  ( ( ( _val ) << IRQAMP_ICSELR_ICSEL5_SHIFT ) & IRQAMP_ICSELR_ICSEL5_MASK )
+
+#define IRQAMP_ICSELR_ICSEL6_SHIFT 4
+#define IRQAMP_ICSELR_ICSEL6_MASK  0xf0U
+#define IRQAMP_ICSELR_ICSEL6_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICSELR_ICSEL6_MASK ) >> IRQAMP_ICSELR_ICSEL6_SHIFT )
+#define IRQAMP_ICSELR_ICSEL6_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~IRQAMP_ICSELR_ICSEL6_MASK ) |    \
+    ( ( ( _val ) << IRQAMP_ICSELR_ICSEL6_SHIFT ) & \
+      IRQAMP_ICSELR_ICSEL6_MASK ) )
+#define IRQAMP_ICSELR_ICSEL6( _val ) \
+  ( ( ( _val ) << IRQAMP_ICSELR_ICSEL6_SHIFT ) & IRQAMP_ICSELR_ICSEL6_MASK )
+
+#define IRQAMP_ICSELR_ICSEL7_SHIFT 0
+#define IRQAMP_ICSELR_ICSEL7_MASK  0xfU
+#define IRQAMP_ICSELR_ICSEL7_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_ICSELR_ICSEL7_MASK ) >> IRQAMP_ICSELR_ICSEL7_SHIFT )
+#define IRQAMP_ICSELR_ICSEL7_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~IRQAMP_ICSELR_ICSEL7_MASK ) |    \
+    ( ( ( _val ) << IRQAMP_ICSELR_ICSEL7_SHIFT ) & \
+      IRQAMP_ICSELR_ICSEL7_MASK ) )
+#define IRQAMP_ICSELR_ICSEL7( _val ) \
+  ( ( ( _val ) << IRQAMP_ICSELR_ICSEL7_SHIFT ) & IRQAMP_ICSELR_ICSEL7_MASK )
+
 /** @} */
 
 /**
@@ -547,32 +593,31 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IM is reserved. IM includes it, so that bit n of IM corresponds to
+ * interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_PIMASK_EIM_31_16_SHIFT 16
-#define IRQAMP_PIMASK_EIM_31_16_MASK  0xffff0000U
-#define IRQAMP_PIMASK_EIM_31_16_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_PIMASK_EIM_31_16_MASK ) >> \
-    IRQAMP_PIMASK_EIM_31_16_SHIFT )
-#define IRQAMP_PIMASK_EIM_31_16_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_PIMASK_EIM_31_16_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_PIMASK_EIM_31_16_SHIFT ) & \
-      IRQAMP_PIMASK_EIM_31_16_MASK ) )
-#define IRQAMP_PIMASK_EIM_31_16( _val )             \
-  ( ( ( _val ) << IRQAMP_PIMASK_EIM_31_16_SHIFT ) & \
-    IRQAMP_PIMASK_EIM_31_16_MASK )
+#define IRQAMP_PIMASK_EIM_SHIFT 16
+#define IRQAMP_PIMASK_EIM_MASK  0xffff0000U
+#define IRQAMP_PIMASK_EIM_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_PIMASK_EIM_MASK ) >> IRQAMP_PIMASK_EIM_SHIFT )
+#define IRQAMP_PIMASK_EIM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_PIMASK_EIM_MASK ) | \
+    ( ( ( _val ) << IRQAMP_PIMASK_EIM_SHIFT ) & IRQAMP_PIMASK_EIM_MASK ) )
+#define IRQAMP_PIMASK_EIM( _val ) \
+  ( ( ( _val ) << IRQAMP_PIMASK_EIM_SHIFT ) & IRQAMP_PIMASK_EIM_MASK )
 
-#define IRQAMP_PIMASK_IM15_1_SHIFT 1
-#define IRQAMP_PIMASK_IM15_1_MASK  0xfffeU
-#define IRQAMP_PIMASK_IM15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_PIMASK_IM15_1_MASK ) >> IRQAMP_PIMASK_IM15_1_SHIFT )
-#define IRQAMP_PIMASK_IM15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_PIMASK_IM15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_PIMASK_IM15_1_SHIFT ) & \
-      IRQAMP_PIMASK_IM15_1_MASK ) )
-#define IRQAMP_PIMASK_IM15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_PIMASK_IM15_1_SHIFT ) & IRQAMP_PIMASK_IM15_1_MASK )
+#define IRQAMP_PIMASK_IM_SHIFT 0
+#define IRQAMP_PIMASK_IM_MASK  0xffffU
+#define IRQAMP_PIMASK_IM_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_PIMASK_IM_MASK ) >> IRQAMP_PIMASK_IM_SHIFT )
+#define IRQAMP_PIMASK_IM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_PIMASK_IM_MASK ) | \
+    ( ( ( _val ) << IRQAMP_PIMASK_IM_SHIFT ) & IRQAMP_PIMASK_IM_MASK ) )
+#define IRQAMP_PIMASK_IM( _val ) \
+  ( ( ( _val ) << IRQAMP_PIMASK_IM_SHIFT ) & IRQAMP_PIMASK_IM_MASK )
 
 /** @} */
 
@@ -582,32 +627,32 @@ typedef struct irqamp_timestamp {
  *
  * @brief This group contains register bit definitions.
  *
+ * Bit 0 of IF is reserved. IF includes it, so that bit n of IF corresponds to
+ * interrupt n. Bit 16 of the register is reserved. IFC includes it, so that
+ * bit n of IFC corresponds to interrupt n.
+ *
  * @{
  */
 
-#define IRQAMP_PIFORCE_FC_15_1_SHIFT 17
-#define IRQAMP_PIFORCE_FC_15_1_MASK  0xfffe0000U
-#define IRQAMP_PIFORCE_FC_15_1_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_PIFORCE_FC_15_1_MASK ) >> \
-    IRQAMP_PIFORCE_FC_15_1_SHIFT )
-#define IRQAMP_PIFORCE_FC_15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_PIFORCE_FC_15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_PIFORCE_FC_15_1_SHIFT ) & \
-      IRQAMP_PIFORCE_FC_15_1_MASK ) )
-#define IRQAMP_PIFORCE_FC_15_1( _val )             \
-  ( ( ( _val ) << IRQAMP_PIFORCE_FC_15_1_SHIFT ) & \
-    IRQAMP_PIFORCE_FC_15_1_MASK )
+#define IRQAMP_PIFORCE_IFC_SHIFT 16
+#define IRQAMP_PIFORCE_IFC_MASK  0xffff0000U
+#define IRQAMP_PIFORCE_IFC_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_PIFORCE_IFC_MASK ) >> IRQAMP_PIFORCE_IFC_SHIFT )
+#define IRQAMP_PIFORCE_IFC_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_PIFORCE_IFC_MASK ) | \
+    ( ( ( _val ) << IRQAMP_PIFORCE_IFC_SHIFT ) & IRQAMP_PIFORCE_IFC_MASK ) )
+#define IRQAMP_PIFORCE_IFC( _val ) \
+  ( ( ( _val ) << IRQAMP_PIFORCE_IFC_SHIFT ) & IRQAMP_PIFORCE_IFC_MASK )
 
-#define IRQAMP_PIFORCE_IF15_1_SHIFT 1
-#define IRQAMP_PIFORCE_IF15_1_MASK  0xfffeU
-#define IRQAMP_PIFORCE_IF15_1_GET( _reg ) \
-  ( ( ( _reg ) & IRQAMP_PIFORCE_IF15_1_MASK ) >> IRQAMP_PIFORCE_IF15_1_SHIFT )
-#define IRQAMP_PIFORCE_IF15_1_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_PIFORCE_IF15_1_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_PIFORCE_IF15_1_SHIFT ) & \
-      IRQAMP_PIFORCE_IF15_1_MASK ) )
-#define IRQAMP_PIFORCE_IF15_1( _val ) \
-  ( ( ( _val ) << IRQAMP_PIFORCE_IF15_1_SHIFT ) & IRQAMP_PIFORCE_IF15_1_MASK )
+#define IRQAMP_PIFORCE_IF_SHIFT 0
+#define IRQAMP_PIFORCE_IF_MASK  0xffffU
+#define IRQAMP_PIFORCE_IF_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_PIFORCE_IF_MASK ) >> IRQAMP_PIFORCE_IF_SHIFT )
+#define IRQAMP_PIFORCE_IF_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_PIFORCE_IF_MASK ) | \
+    ( ( ( _val ) << IRQAMP_PIFORCE_IF_SHIFT ) & IRQAMP_PIFORCE_IF_MASK ) )
+#define IRQAMP_PIFORCE_IF( _val ) \
+  ( ( ( _val ) << IRQAMP_PIFORCE_IF_SHIFT ) & IRQAMP_PIFORCE_IF_MASK )
 
 /** @} */
 
@@ -620,18 +665,15 @@ typedef struct irqamp_timestamp {
  * @{
  */
 
-#define IRQAMP_PEXTACK_EID_4_0_SHIFT 0
-#define IRQAMP_PEXTACK_EID_4_0_MASK  0x1fU
-#define IRQAMP_PEXTACK_EID_4_0_GET( _reg )        \
-  ( ( ( _reg ) & IRQAMP_PEXTACK_EID_4_0_MASK ) >> \
-    IRQAMP_PEXTACK_EID_4_0_SHIFT )
-#define IRQAMP_PEXTACK_EID_4_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~IRQAMP_PEXTACK_EID_4_0_MASK ) |    \
-    ( ( ( _val ) << IRQAMP_PEXTACK_EID_4_0_SHIFT ) & \
-      IRQAMP_PEXTACK_EID_4_0_MASK ) )
-#define IRQAMP_PEXTACK_EID_4_0( _val )             \
-  ( ( ( _val ) << IRQAMP_PEXTACK_EID_4_0_SHIFT ) & \
-    IRQAMP_PEXTACK_EID_4_0_MASK )
+#define IRQAMP_PEXTACK_EID_SHIFT 0
+#define IRQAMP_PEXTACK_EID_MASK  0x1fU
+#define IRQAMP_PEXTACK_EID_GET( _reg ) \
+  ( ( ( _reg ) & IRQAMP_PEXTACK_EID_MASK ) >> IRQAMP_PEXTACK_EID_SHIFT )
+#define IRQAMP_PEXTACK_EID_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~IRQAMP_PEXTACK_EID_MASK ) | \
+    ( ( ( _val ) << IRQAMP_PEXTACK_EID_SHIFT ) & IRQAMP_PEXTACK_EID_MASK ) )
+#define IRQAMP_PEXTACK_EID( _val ) \
+  ( ( ( _val ) << IRQAMP_PEXTACK_EID_SHIFT ) & IRQAMP_PEXTACK_EID_MASK )
 
 /** @} */
 

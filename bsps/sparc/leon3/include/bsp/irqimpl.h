@@ -147,7 +147,7 @@ static inline uint32_t bsp_irq_fixup( uint32_t irq )
 
   cpu_self = _LEON3_Get_current_processor();
   eirq = grlib_load_32( &LEON3_IrqCtrl_Regs->pextack[ cpu_self ] );
-  eirq = IRQAMP_PEXTACK_EID_4_0_GET( eirq );
+  eirq = IRQAMP_PEXTACK_EID_GET( eirq );
 
   if ( eirq < 16 ) {
     return irq;
