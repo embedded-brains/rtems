@@ -57,27 +57,19 @@
 typedef enum {
   CStringReqMemcmp_Pre_N_Zero,
   CStringReqMemcmp_Pre_N_One,
-  CStringReqMemcmp_Pre_N_Short,
-  CStringReqMemcmp_Pre_N_BelowWord,
-  CStringReqMemcmp_Pre_N_Word,
-  CStringReqMemcmp_Pre_N_AboveWord,
-  CStringReqMemcmp_Pre_N_Long,
+  CStringReqMemcmp_Pre_N_More,
   CStringReqMemcmp_Pre_N_NA
 } CStringReqMemcmp_Pre_N;
 
 typedef enum {
   CStringReqMemcmp_Pre_S1Alignment_Aligned,
-  CStringReqMemcmp_Pre_S1Alignment_AboveAligned,
-  CStringReqMemcmp_Pre_S1Alignment_Between,
-  CStringReqMemcmp_Pre_S1Alignment_BelowAligned,
+  CStringReqMemcmp_Pre_S1Alignment_Unaligned,
   CStringReqMemcmp_Pre_S1Alignment_NA
 } CStringReqMemcmp_Pre_S1Alignment;
 
 typedef enum {
   CStringReqMemcmp_Pre_S2Alignment_Aligned,
-  CStringReqMemcmp_Pre_S2Alignment_AboveAligned,
-  CStringReqMemcmp_Pre_S2Alignment_Between,
-  CStringReqMemcmp_Pre_S2Alignment_BelowAligned,
+  CStringReqMemcmp_Pre_S2Alignment_Unaligned,
   CStringReqMemcmp_Pre_S2Alignment_NA
 } CStringReqMemcmp_Pre_S2Alignment;
 
@@ -211,6 +203,22 @@ typedef struct {
     size_t pcs[ 6 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 36 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -235,20 +243,49 @@ typedef struct {
 
 static CStringReqMemcmp_Context CStringReqMemcmp_Instance;
 
-static const char *const CStringReqMemcmp_PreDesc_N[] =
-  { "Zero", "One", "Short", "BelowWord", "Word", "AboveWord", "Long", "NA" };
+static const char *const CStringReqMemcmp_PreDesc_N[] = {
+  "Zero",
+  "One",
+  "MoreTwo",
+  "MoreWordMinusTwo",
+  "MoreWordMinusOne",
+  "MoreWord",
+  "MoreWordPlusOne",
+  "MoreWordPlusTwo",
+  "MoreFiveWords",
+  "MoreMax",
+  "NA"
+};
 
-static const char *const CStringReqMemcmp_PreDesc_S1Alignment[] =
-  { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
+static const char *const CStringReqMemcmp_PreDesc_S1Alignment[] = {
+  "Aligned",
+  "UnalignedOne",
+  "UnalignedTwo",
+  "UnalignedWordMinusTwo",
+  "UnalignedWordMinusOne",
+  "NA"
+};
 
-static const char *const CStringReqMemcmp_PreDesc_S2Alignment[] =
-  { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
+static const char *const CStringReqMemcmp_PreDesc_S2Alignment[] = {
+  "Aligned",
+  "UnalignedOne",
+  "UnalignedTwo",
+  "UnalignedWordMinusTwo",
+  "UnalignedWordMinusOne",
+  "NA"
+};
 
 static const char *const CStringReqMemcmp_PreDesc_Position[] =
-  { "Before", "Last", "NA" };
+  { "BeforeFirst", "BeforeLate", "Last", "NA" };
 
-static const char *const CStringReqMemcmp_PreDesc_Diff[] =
-  { "Equal", "Less", "Greater", "NA" };
+static const char *const CStringReqMemcmp_PreDesc_Diff[] = {
+  "Equal",
+  "LessWide",
+  "LessAdjacent",
+  "GreaterWide",
+  "GreaterAdjacent",
+  "NA"
+};
 
 static const char *const CStringReqMemcmp_PreDesc_Rest[] =
   { "Equal", "Differs", "NA" };
@@ -262,6 +299,253 @@ static const char *const *const CStringReqMemcmp_PreDesc[] = {
   CStringReqMemcmp_PreDesc_Rest,
   NULL
 };
+
+typedef enum {
+  CStringReqMemcmp_Pre_N_More_Two,
+  CStringReqMemcmp_Pre_N_More_WordMinusTwo,
+  CStringReqMemcmp_Pre_N_More_WordMinusOne,
+  CStringReqMemcmp_Pre_N_More_Word,
+  CStringReqMemcmp_Pre_N_More_WordPlusOne,
+  CStringReqMemcmp_Pre_N_More_WordPlusTwo,
+  CStringReqMemcmp_Pre_N_More_FiveWords,
+  CStringReqMemcmp_Pre_N_More_Max
+} CStringReqMemcmp_Pre_N_More_Rep;
+
+typedef enum {
+  CStringReqMemcmp_Pre_S1Alignment_Unaligned_One,
+  CStringReqMemcmp_Pre_S1Alignment_Unaligned_Two,
+  CStringReqMemcmp_Pre_S1Alignment_Unaligned_WordMinusTwo,
+  CStringReqMemcmp_Pre_S1Alignment_Unaligned_WordMinusOne
+} CStringReqMemcmp_Pre_S1Alignment_Unaligned_Rep;
+
+typedef enum {
+  CStringReqMemcmp_Pre_S2Alignment_Unaligned_One,
+  CStringReqMemcmp_Pre_S2Alignment_Unaligned_Two,
+  CStringReqMemcmp_Pre_S2Alignment_Unaligned_WordMinusTwo,
+  CStringReqMemcmp_Pre_S2Alignment_Unaligned_WordMinusOne
+} CStringReqMemcmp_Pre_S2Alignment_Unaligned_Rep;
+
+typedef enum {
+  CStringReqMemcmp_Pre_Position_Before_First,
+  CStringReqMemcmp_Pre_Position_Before_Late
+} CStringReqMemcmp_Pre_Position_Before_Rep;
+
+typedef enum {
+  CStringReqMemcmp_Pre_Diff_Less_Wide,
+  CStringReqMemcmp_Pre_Diff_Less_Adjacent
+} CStringReqMemcmp_Pre_Diff_Less_Rep;
+
+typedef enum {
+  CStringReqMemcmp_Pre_Diff_Greater_Wide,
+  CStringReqMemcmp_Pre_Diff_Greater_Adjacent
+} CStringReqMemcmp_Pre_Diff_Greater_Rep;
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_N[] = { 0, 1, 2, 10, 11 };
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_S1Alignment[] =
+  { 0, 1, 5, 6 };
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_S2Alignment[] =
+  { 0, 1, 5, 6 };
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_Position[] = { 0, 2, 3, 4 };
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_Diff[] = { 0, 1, 3, 5, 6 };
+
+static const uint8_t CStringReqMemcmp_PreRepOffset_Rest[] = { 0, 1, 2, 3 };
+
+static const uint8_t *const CStringReqMemcmp_PreRepOffset[] = {
+  CStringReqMemcmp_PreRepOffset_N,
+  CStringReqMemcmp_PreRepOffset_S1Alignment,
+  CStringReqMemcmp_PreRepOffset_S2Alignment,
+  CStringReqMemcmp_PreRepOffset_Position,
+  CStringReqMemcmp_PreRepOffset_Diff,
+  CStringReqMemcmp_PreRepOffset_Rest
+};
+
+static size_t CStringReqMemcmp_GetRepresentativeCountOf(
+  const CStringReqMemcmp_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqMemcmp_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqMemcmp_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx,
+  size_t                          index
+)
+{
+  size_t count;
+
+  count = CStringReqMemcmp_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqMemcmp_GetRepresentativeCount(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 6; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqMemcmp_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringReqMemcmp_Pre_N_More_Rep
+CStringReqMemcmp_Pre_N_More_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_N_More_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqMemcmp_Pre_S1Alignment_Unaligned_Rep
+CStringReqMemcmp_Pre_S1Alignment_Unaligned_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_S1Alignment_Unaligned_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 1 );
+}
+
+static CStringReqMemcmp_Pre_S2Alignment_Unaligned_Rep
+CStringReqMemcmp_Pre_S2Alignment_Unaligned_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_S2Alignment_Unaligned_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 2 );
+}
+
+static CStringReqMemcmp_Pre_Position_Before_Rep
+CStringReqMemcmp_Pre_Position_Before_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_Position_Before_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 3 );
+}
+
+static CStringReqMemcmp_Pre_Diff_Less_Rep
+CStringReqMemcmp_Pre_Diff_Less_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_Diff_Less_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 4 );
+}
+
+static CStringReqMemcmp_Pre_Diff_Greater_Rep
+CStringReqMemcmp_Pre_Diff_Greater_GetRepresentative(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  return (
+    CStringReqMemcmp_Pre_Diff_Greater_Rep
+  ) CStringReqMemcmp_GetRepresentative( ctx, 4 );
+}
+
+static const uint8_t CStringReqMemcmp_PreRepBase[] = { 0, 11, 17, 23, 27, 33 };
+
+static const uint8_t CStringReqMemcmp_PreRepStates[] = { 3, 2, 2, 2, 3, 2 };
+
+static void CStringReqMemcmp_ResetRepresentatives(
+  CStringReqMemcmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 36; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqMemcmp_MarkRepresentatives(
+  CStringReqMemcmp_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 6; ++i ) {
+    size_t rep;
+
+    rep = CStringReqMemcmp_PreRepBase[ i ] +
+          CStringReqMemcmp_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqMemcmp_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqMemcmp_CheckRepresentatives(
+  const CStringReqMemcmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 6; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqMemcmp_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqMemcmp_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqMemcmp_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqMemcmp_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 #define FILL 0x5a
 
@@ -304,47 +588,51 @@ static void CStringReqMemcmp_Pre_N_Prepare(
       break;
     }
 
-    case CStringReqMemcmp_Pre_N_Short: {
+    case CStringReqMemcmp_Pre_N_More: {
       /*
-       * While the size specified by `n` is greater than one, while the size
-       * specified by `n` is less than the size of type long minus one.
+       * While the size specified by `n` is greater than one.
        */
-      ctx->n = 2;
-      break;
-    }
+      switch ( CStringReqMemcmp_Pre_N_More_GetRepresentative( ctx ) ) {
+        case CStringReqMemcmp_Pre_N_More_Two: {
+          ctx->n = 2;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_N_BelowWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long
-       * minus one.
-       */
-      ctx->n = sizeof( long ) - 1;
-      break;
-    }
+        case CStringReqMemcmp_Pre_N_More_WordMinusTwo: {
+          ctx->n = sizeof( long ) - 2;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_N_Word: {
-      /*
-       * While the size specified by `n` is equal to the size of type long.
-       */
-      ctx->n = sizeof( long );
-      break;
-    }
+        case CStringReqMemcmp_Pre_N_More_WordMinusOne: {
+          ctx->n = sizeof( long ) - 1;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_N_AboveWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long plus
-       * one.
-       */
-      ctx->n = sizeof( long ) + 1;
-      break;
-    }
+        case CStringReqMemcmp_Pre_N_More_Word: {
+          ctx->n = sizeof( long );
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_N_Long: {
-      /*
-       * While the size specified by `n` is greater than the size of type long
-       * plus one.
-       */
-      ctx->n = 5 * sizeof( long ) + 1;
+        case CStringReqMemcmp_Pre_N_More_WordPlusOne: {
+          ctx->n = sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_N_More_WordPlusTwo: {
+          ctx->n = sizeof( long ) + 2;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_N_More_FiveWords: {
+          ctx->n = 5 * sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_N_More_Max: {
+          ctx->n = 13 * sizeof( long );
+          break;
+        }
+      }
       break;
     }
 
@@ -368,33 +656,34 @@ static void CStringReqMemcmp_Pre_S1Alignment_Prepare(
       break;
     }
 
-    case CStringReqMemcmp_Pre_S1Alignment_AboveAligned: {
+    case CStringReqMemcmp_Pre_S1Alignment_Unaligned: {
       /*
-       * While the memory area referenced by the `s1` parameter starts one byte
-       * above an address which is aligned to the size of type long.
+       * While the memory area referenced by the `s1` parameter starts at an
+       * address which is not aligned to the size of type long.
        */
-      ctx->s1_misalign = 1;
-      break;
-    }
+      switch (
+        CStringReqMemcmp_Pre_S1Alignment_Unaligned_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemcmp_Pre_S1Alignment_Unaligned_One: {
+          ctx->s1_misalign = 1;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_S1Alignment_Between: {
-      /*
-       * While the memory area referenced by the `s1` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `s1` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
-       */
-      ctx->s1_misalign = 2;
-      break;
-    }
+        case CStringReqMemcmp_Pre_S1Alignment_Unaligned_Two: {
+          ctx->s1_misalign = 2;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_S1Alignment_BelowAligned: {
-      /*
-       * While the memory area referenced by the `s1` parameter starts one byte
-       * below an address which is aligned to the size of type long.
-       */
-      ctx->s1_misalign = sizeof( long ) - 1;
+        case CStringReqMemcmp_Pre_S1Alignment_Unaligned_WordMinusTwo: {
+          ctx->s1_misalign = sizeof( long ) - 2;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_S1Alignment_Unaligned_WordMinusOne: {
+          ctx->s1_misalign = sizeof( long ) - 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -418,33 +707,34 @@ static void CStringReqMemcmp_Pre_S2Alignment_Prepare(
       break;
     }
 
-    case CStringReqMemcmp_Pre_S2Alignment_AboveAligned: {
+    case CStringReqMemcmp_Pre_S2Alignment_Unaligned: {
       /*
-       * While the memory area referenced by the `s2` parameter starts one byte
-       * above an address which is aligned to the size of type long.
+       * While the memory area referenced by the `s2` parameter starts at an
+       * address which is not aligned to the size of type long.
        */
-      ctx->s2_misalign = 1;
-      break;
-    }
+      switch (
+        CStringReqMemcmp_Pre_S2Alignment_Unaligned_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemcmp_Pre_S2Alignment_Unaligned_One: {
+          ctx->s2_misalign = 1;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_S2Alignment_Between: {
-      /*
-       * While the memory area referenced by the `s2` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `s2` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
-       */
-      ctx->s2_misalign = 2;
-      break;
-    }
+        case CStringReqMemcmp_Pre_S2Alignment_Unaligned_Two: {
+          ctx->s2_misalign = 2;
+          break;
+        }
 
-    case CStringReqMemcmp_Pre_S2Alignment_BelowAligned: {
-      /*
-       * While the memory area referenced by the `s2` parameter starts one byte
-       * below an address which is aligned to the size of type long.
-       */
-      ctx->s2_misalign = sizeof( long ) - 1;
+        case CStringReqMemcmp_Pre_S2Alignment_Unaligned_WordMinusTwo: {
+          ctx->s2_misalign = sizeof( long ) - 2;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_S2Alignment_Unaligned_WordMinusOne: {
+          ctx->s2_misalign = sizeof( long ) - 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -469,7 +759,19 @@ static void CStringReqMemcmp_Pre_Position_Prepare(
        * at the same position of the memory area referenced by the `s2`
        * parameter.
        */
-      ctx->pos = 0;
+      switch (
+        CStringReqMemcmp_Pre_Position_Before_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemcmp_Pre_Position_Before_First: {
+          ctx->pos = 0;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_Position_Before_Late: {
+          ctx->pos = ctx->n - 2;
+          break;
+        }
+      }
       break;
     }
 
@@ -514,8 +816,19 @@ static void CStringReqMemcmp_Pre_Diff_Prepare(
        * referenced by the `s2` parameter is less than the value as `unsigned
        * char` of that byte.
        */
-      ctx->s1[ ctx->pos ] = LOW;
-      ctx->s2[ ctx->pos ] = HIGH;
+      switch ( CStringReqMemcmp_Pre_Diff_Less_GetRepresentative( ctx ) ) {
+        case CStringReqMemcmp_Pre_Diff_Less_Wide: {
+          ctx->s1[ ctx->pos ] = LOW;
+          ctx->s2[ ctx->pos ] = HIGH;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_Diff_Less_Adjacent: {
+          ctx->s1[ ctx->pos ] = HIGH - 1;
+          ctx->s2[ ctx->pos ] = HIGH;
+          break;
+        }
+      }
       break;
     }
 
@@ -527,8 +840,19 @@ static void CStringReqMemcmp_Pre_Diff_Prepare(
        * referenced by the `s2` parameter is greater than the value as
        * `unsigned char` of that byte.
        */
-      ctx->s1[ ctx->pos ] = HIGH;
-      ctx->s2[ ctx->pos ] = LOW;
+      switch ( CStringReqMemcmp_Pre_Diff_Greater_GetRepresentative( ctx ) ) {
+        case CStringReqMemcmp_Pre_Diff_Greater_Wide: {
+          ctx->s1[ ctx->pos ] = HIGH;
+          ctx->s2[ ctx->pos ] = LOW;
+          break;
+        }
+
+        case CStringReqMemcmp_Pre_Diff_Greater_Adjacent: {
+          ctx->s1[ ctx->pos ] = HIGH;
+          ctx->s2[ ctx->pos ] = HIGH - 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -691,80 +1015,34 @@ CStringReqMemcmp_Entries[] = {
   { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
     CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
     CStringReqMemcmp_Post_Errno_NA },
+  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
+    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
+    CStringReqMemcmp_Post_Errno_NA },
+  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
+    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
+    CStringReqMemcmp_Post_Errno_NA },
   { 0, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_Negative,
     CStringReqMemcmp_Post_S1_Nop, CStringReqMemcmp_Post_S2_Nop,
     CStringReqMemcmp_Post_Errno_Nop },
+  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
+    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
+    CStringReqMemcmp_Post_Errno_NA },
   { 0, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_Positive,
     CStringReqMemcmp_Post_S1_Nop, CStringReqMemcmp_Post_S2_Nop,
     CStringReqMemcmp_Post_Errno_Nop },
-  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
-    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
-    CStringReqMemcmp_Post_Errno_NA },
-  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
-    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
-    CStringReqMemcmp_Post_Errno_NA },
   { 0, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_Zero,
     CStringReqMemcmp_Post_S1_Nop, CStringReqMemcmp_Post_S2_Nop,
-    CStringReqMemcmp_Post_Errno_Nop },
-  { 1, 0, 0, 0, 0, 0, 0, CStringReqMemcmp_Post_Result_NA,
-    CStringReqMemcmp_Post_S1_NA, CStringReqMemcmp_Post_S2_NA,
-    CStringReqMemcmp_Post_Errno_NA }
+    CStringReqMemcmp_Post_Errno_Nop }
 };
 
 static const uint8_t
 CStringReqMemcmp_Map[] = {
-  0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0,
-  4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4,
-  4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4,
-  5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0,
-  4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4,
-  4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4,
-  0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0,
-  4, 4, 4, 4, 5, 0, 4, 4, 4, 4, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6,
-  6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6,
-  5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0,
-  1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3,
-  2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3,
-  0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0,
-  6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6,
-  6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 6, 6, 6, 6, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0,
-  1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3,
-  2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3,
-  0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0,
-  1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1,
-  2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2,
-  5, 0, 1, 3, 2, 3, 0, 0, 1, 1, 2, 2, 5, 0, 1, 3, 2, 3
+  0, 0, 1, 1, 1, 1, 6, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 6, 0, 1, 1, 1, 1, 0, 0,
+  1, 1, 1, 1, 6, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 6, 0, 1, 1, 1, 1, 0, 0, 2, 2,
+  2, 2, 6, 0, 3, 4, 5, 4, 0, 0, 2, 2, 2, 2, 6, 0, 3, 4, 5, 4, 0, 0, 2, 2, 2, 2,
+  6, 0, 3, 4, 5, 4, 0, 0, 2, 2, 2, 2, 6, 0, 3, 4, 5, 4, 0, 0, 3, 3, 5, 5, 6, 0,
+  3, 4, 5, 4, 0, 0, 3, 3, 5, 5, 6, 0, 3, 4, 5, 4, 0, 0, 3, 3, 5, 5, 6, 0, 3, 4,
+  5, 4, 0, 0, 3, 3, 5, 5, 6, 0, 3, 4, 5, 4
 };
 
 /* clang-format on */
@@ -776,7 +1054,15 @@ static size_t CStringReqMemcmp_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqMemcmp_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 6 ];
+    size_t i;
+
+    for ( i = 0; i < 6; ++i ) {
+      pcd[ i ] = CStringReqMemcmp_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqMemcmp_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqMemcmp_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -809,6 +1095,11 @@ static void CStringReqMemcmp_TestVariant( CStringReqMemcmp_Context *ctx )
   CStringReqMemcmp_Pre_Position_Prepare( ctx, ctx->Map.pcs[ 3 ] );
   CStringReqMemcmp_Pre_Diff_Prepare( ctx, ctx->Map.pcs[ 4 ] );
   CStringReqMemcmp_Pre_Rest_Prepare( ctx, ctx->Map.pcs[ 5 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqMemcmp_Action( ctx );
   CStringReqMemcmp_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqMemcmp_Post_S1_Check( ctx, ctx->Map.entry.Post_S1 );
@@ -826,6 +1117,7 @@ T_TEST_CASE_FIXTURE( CStringReqMemcmp, &CStringReqMemcmp_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqMemcmp_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqMemcmp_Pre_N_Zero;
@@ -863,14 +1155,25 @@ T_TEST_CASE_FIXTURE( CStringReqMemcmp, &CStringReqMemcmp_Fixture )
                 continue;
               }
 
-              CStringReqMemcmp_Prepare( ctx );
-              CStringReqMemcmp_TestVariant( ctx );
+              for (
+                ctx->Map.rep = 0;
+                ctx->Map.rep < CStringReqMemcmp_GetRepresentativeCount( ctx );
+                ++ctx->Map.rep
+              ) {
+                ctx->Map.skip_rep = false;
+                CStringReqMemcmp_Prepare( ctx );
+                CStringReqMemcmp_TestVariant( ctx );
+
+                CStringReqMemcmp_MarkRepresentatives( ctx );
+              }
             }
           }
         }
       }
     }
   }
+
+  CStringReqMemcmp_CheckRepresentatives( ctx );
 }
 
 /** @} */
