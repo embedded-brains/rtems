@@ -59,15 +59,33 @@ pre-conditions:
     text: |
       While the value of the ${../if/ffsl:/params[0]/name} parameter is equal to one.
   - name: Least
-    test-code: |
-      ctx->i = 0x00080101L;
+    representatives:
+    - name: Least
+      test-code: |
+        ctx->i = 0x00080101L;
+    - name: LeastNegative
+      test-code: |
+        ctx->i = LONG_MIN + 1;
+    test-code: null
     text: |
       While the least significant bit of the value of the
       ${../if/ffsl:/params[0]/name} parameter is set, while the value of the
       ${../if/ffsl:/params[0]/name} parameter is neither one nor minus one.
   - name: Middle
-    test-code: |
-      ctx->i = (long) ( 0x00080100UL << ( sizeof( long ) * CHAR_BIT - 32 ) );
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->i = 2L;
+    - name: Inner
+      test-code: |
+        ctx->i = (long) ( 0x00080100UL << ( sizeof( long ) * CHAR_BIT - 32 ) );
+    - name: BelowMost
+      test-code: |
+        ctx->i = (long) ( 1UL << ( sizeof( long ) * CHAR_BIT - 2 ) );
+    - name: Negative
+      test-code: |
+        ctx->i = LONG_MIN | 0x00000100L;
+    test-code: null
     text: |
       While the least significant bit set in the value of the
       ${../if/ffsl:/params[0]/name} parameter is neither the least significant bit
@@ -91,7 +109,9 @@ rationale: |
   one and the number of bits of type `long`. The Most state holds the minimum
   value of the type, so the sign bit is set. The Middle state holds every other
   value. Its value lies in the upper 32 bits where type `long` has more than 32
-  bits.
+  bits. The Least state takes a positive and a negative value. The Middle state
+  takes the index two, an inner index and the index below the most significant
+  bit. It also takes an inner index with the sign bit set.
 references: []
 requirement-type: functional
 skip-reasons: {}
