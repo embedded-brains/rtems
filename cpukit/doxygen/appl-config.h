@@ -3284,7 +3284,15 @@
  *
  * A free block in the bins of one processor is not available to the
  * allocations on other processors. An allocation which fails in the C Program
- * Heap takes no block from the bins.
+ * Heap takes no block from the bins. A block which another processor frees
+ * stays in the kept list of its owner until the owner misses a bin. Each
+ * processor therefore holds up to half the value of this option times @ref
+ * CONFIGURE_MALLOC_CPU_MAX_SIZE bytes.
+ *
+ * The owner of a block detects a double free of the block on another processor
+ * only when it takes the block from its bin or from its kept list. The system
+ * then terminates with the fatal source #RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE
+ * in the context of an unrelated allocation.
  *
  * This configuration option is only evaluated in SMP configurations of RTEMS.
  * In all other configurations, it has no effect.
