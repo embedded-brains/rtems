@@ -76,44 +76,29 @@ definition:
   offset: 0x80
   variants: []
 - default:
-    count: 1
+    count: 4
     name: AHBWPD
   offset: 0x90
   variants: []
 - default:
-    count: 1
-    name: AHBWPD
-  offset: 0x9c
-  variants: []
-- default:
-    count: 1
+    count: 4
     name: AHBWPM
   offset: 0xa0
   variants: []
 - default:
-    count: 1
-    name: AHBWPM
-  offset: 0xac
-  variants: []
-- default:
-    count: 1
+    count: 4
     name: AHBWPD
   offset: 0xb0
   variants: []
 - default:
-    count: 1
-    name: AHBWPD
-  offset: 0xbc
-  variants: []
-- default:
-    count: 1
+    count: 4
     name: AHBWPM
   offset: 0xc0
   variants: []
 - default:
-    count: 1
-    name: AHBWPM
-  offset: 0xcc
+    count: 16384
+    name: ITBUF
+  offset: 0x100000
   variants: []
 - default:
     count: 1
@@ -271,20 +256,20 @@ registers:
   - default:
     - brief: null
       description: null
-      name: SS_3_0
+      name: SS
       properties:
       - r
       - w
       start: 16
-      width: 4
+      width: 16
     - brief: null
       description: null
-      name: BN_3_0
+      name: BN
       properties:
       - r
       - w
       start: 0
-      width: 4
+      width: 16
     variants: []
   brief: |
     DSU break and single step register
@@ -295,20 +280,20 @@ registers:
   - default:
     - brief: null
       description: null
-      name: DM_3_0
+      name: DM
       properties:
       - r
       - w
       start: 16
-      width: 4
+      width: 16
     - brief: null
       description: null
-      name: ED_3_0
+      name: ED
       properties:
       - r
       - w
       start: 0
-      width: 4
+      width: 16
     variants: []
   brief: |
     DSU debug mode mask register
@@ -319,50 +304,12 @@ registers:
   - default:
     - brief: null
       description: null
-      name: EM
-      properties:
-      - r
-      start: 12
-      width: 1
-    - brief: null
-      description: null
-      name: TRAPTYPE
-      properties:
-      - r
-      start: 4
-      width: 8
-    variants: []
-  brief: |
-    DSU trap register
-  description: null
-  name: DTR
-  width: 32
-- bits:
-  - default:
-    - brief: null
-      description: null
-      name: ASI
-      properties:
-      - r
-      - w
-      start: 0
-      width: 8
-    variants: []
-  brief: |
-    DSU ASI diagnostic access register
-  description: null
-  name: DASI
-  width: 32
-- bits:
-  - default:
-    - brief: null
-      description: null
       name: DCNT
       properties:
       - r
       - w
       start: 16
-      width: 8
+      width: 16
     - brief: null
       description: null
       name: DF
@@ -441,7 +388,7 @@ registers:
       - r
       - w
       start: 4
-      width: 8
+      width: 28
     variants: []
   brief: |
     AHB trace buffer index register
@@ -508,7 +455,7 @@ registers:
   - default:
     - brief: null
       description: null
-      name: SMASK_15_0
+      name: SMASK
       properties:
       - r
       - w
@@ -516,7 +463,7 @@ registers:
       width: 16
     - brief: null
       description: null
-      name: MMASK_15_0
+      name: MMASK
       properties:
       - r
       - w
@@ -604,7 +551,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: ICOUNT_28_0
+      name: ICOUNT
       properties:
       - r
       - w
@@ -620,7 +567,7 @@ registers:
   - default:
     - brief: null
       description: null
-      name: IN
+      name: IN2
       properties:
       - r
       - w
@@ -628,7 +575,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: CP
+      name: CP2
       properties:
       - r
       - w
@@ -636,7 +583,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: EN
+      name: EN2
       properties:
       - r
       - w
@@ -644,7 +591,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: IN
+      name: IN1
       properties:
       - r
       - w
@@ -652,7 +599,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: CP
+      name: CP1
       properties:
       - r
       - w
@@ -660,7 +607,7 @@ registers:
       width: 1
     - brief: null
       description: null
-      name: EN
+      name: EN1
       properties:
       - r
       - w
@@ -708,6 +655,22 @@ registers:
   - default:
     - brief: null
       description: null
+      name: ITBUF
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Instruction trace buffer area
+  description: null
+  name: ITBUF
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: TFILT
       properties:
       - r
@@ -732,6 +695,14 @@ registers:
   - default:
     - brief: null
       description: null
+      name: ITBAF
+      properties:
+      - r
+      - w
+      start: 28
+      width: 4
+    - brief: null
+      description: null
       name: WO
       properties:
       - r
@@ -754,10 +725,64 @@ registers:
       - w
       start: 23
       width: 1
+    - brief: null
+      description: null
+      name: ITBAFO
+      properties:
+      - r
+      - w
+      start: 16
+      width: 4
+    - brief: null
+      description: null
+      name: ASIFMASK
+      properties:
+      - r
+      - w
+      start: 0
+      width: 16
     variants: []
   brief: |
     Instruction trace buffer control register 1
   description: null
   name: ITBC1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EM
+      properties:
+      - r
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: TRAPTYPE
+      properties:
+      - r
+      start: 4
+      width: 8
+    variants: []
+  brief: |
+    DSU trap register
+  description: null
+  name: DTR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ASI
+      properties:
+      - r
+      - w
+      start: 0
+      width: 8
+    variants: []
+  brief: |
+    DSU ASI diagnostic access register
+  description: null
+  name: DASI
   width: 32
 type: interface
