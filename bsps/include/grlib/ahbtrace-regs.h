@@ -70,7 +70,7 @@ extern "C" {
  */
 
 #define AHBTRACE_CTRL_DCNT_SHIFT 16
-#define AHBTRACE_CTRL_DCNT_MASK  0x7f0000U
+#define AHBTRACE_CTRL_DCNT_MASK  0xffff0000U
 #define AHBTRACE_CTRL_DCNT_GET( _reg ) \
   ( ( ( _reg ) & AHBTRACE_CTRL_DCNT_MASK ) >> AHBTRACE_CTRL_DCNT_SHIFT )
 #define AHBTRACE_CTRL_DCNT_SET( _reg, _val )  \
@@ -78,6 +78,20 @@ extern "C" {
     ( ( ( _val ) << AHBTRACE_CTRL_DCNT_SHIFT ) & AHBTRACE_CTRL_DCNT_MASK ) )
 #define AHBTRACE_CTRL_DCNT( _val ) \
   ( ( ( _val ) << AHBTRACE_CTRL_DCNT_SHIFT ) & AHBTRACE_CTRL_DCNT_MASK )
+
+#define AHBTRACE_CTRL_BA 0x8000U
+
+#define AHBTRACE_CTRL_BSEL_SHIFT 12
+#define AHBTRACE_CTRL_BSEL_MASK  0x7000U
+#define AHBTRACE_CTRL_BSEL_GET( _reg ) \
+  ( ( ( _reg ) & AHBTRACE_CTRL_BSEL_MASK ) >> AHBTRACE_CTRL_BSEL_SHIFT )
+#define AHBTRACE_CTRL_BSEL_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~AHBTRACE_CTRL_BSEL_MASK ) | \
+    ( ( ( _val ) << AHBTRACE_CTRL_BSEL_SHIFT ) & AHBTRACE_CTRL_BSEL_MASK ) )
+#define AHBTRACE_CTRL_BSEL( _val ) \
+  ( ( ( _val ) << AHBTRACE_CTRL_BSEL_SHIFT ) & AHBTRACE_CTRL_BSEL_MASK )
+
+#define AHBTRACE_CTRL_EF 0x200U
 
 #define AHBTRACE_CTRL_PF 0x100U
 
@@ -114,7 +128,7 @@ extern "C" {
  */
 
 #define AHBTRACE_INDEX_INDEX_SHIFT 4
-#define AHBTRACE_INDEX_INDEX_MASK  0x7f0U
+#define AHBTRACE_INDEX_INDEX_MASK  0xfffffff0U
 #define AHBTRACE_INDEX_INDEX_GET( _reg ) \
   ( ( ( _reg ) & AHBTRACE_INDEX_INDEX_MASK ) >> AHBTRACE_INDEX_INDEX_SHIFT )
 #define AHBTRACE_INDEX_INDEX_SET( _reg, _val )     \
@@ -159,31 +173,27 @@ extern "C" {
  * @{
  */
 
-#define AHBTRACE_MSFILT_SMASK_15_0_SHIFT 16
-#define AHBTRACE_MSFILT_SMASK_15_0_MASK  0xffff0000U
-#define AHBTRACE_MSFILT_SMASK_15_0_GET( _reg )        \
-  ( ( ( _reg ) & AHBTRACE_MSFILT_SMASK_15_0_MASK ) >> \
-    AHBTRACE_MSFILT_SMASK_15_0_SHIFT )
-#define AHBTRACE_MSFILT_SMASK_15_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~AHBTRACE_MSFILT_SMASK_15_0_MASK ) |    \
-    ( ( ( _val ) << AHBTRACE_MSFILT_SMASK_15_0_SHIFT ) & \
-      AHBTRACE_MSFILT_SMASK_15_0_MASK ) )
-#define AHBTRACE_MSFILT_SMASK_15_0( _val )             \
-  ( ( ( _val ) << AHBTRACE_MSFILT_SMASK_15_0_SHIFT ) & \
-    AHBTRACE_MSFILT_SMASK_15_0_MASK )
+#define AHBTRACE_MSFILT_SMASK_SHIFT 16
+#define AHBTRACE_MSFILT_SMASK_MASK  0xffff0000U
+#define AHBTRACE_MSFILT_SMASK_GET( _reg ) \
+  ( ( ( _reg ) & AHBTRACE_MSFILT_SMASK_MASK ) >> AHBTRACE_MSFILT_SMASK_SHIFT )
+#define AHBTRACE_MSFILT_SMASK_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~AHBTRACE_MSFILT_SMASK_MASK ) |    \
+    ( ( ( _val ) << AHBTRACE_MSFILT_SMASK_SHIFT ) & \
+      AHBTRACE_MSFILT_SMASK_MASK ) )
+#define AHBTRACE_MSFILT_SMASK( _val ) \
+  ( ( ( _val ) << AHBTRACE_MSFILT_SMASK_SHIFT ) & AHBTRACE_MSFILT_SMASK_MASK )
 
-#define AHBTRACE_MSFILT_MMASK_15_0_SHIFT 0
-#define AHBTRACE_MSFILT_MMASK_15_0_MASK  0xffffU
-#define AHBTRACE_MSFILT_MMASK_15_0_GET( _reg )        \
-  ( ( ( _reg ) & AHBTRACE_MSFILT_MMASK_15_0_MASK ) >> \
-    AHBTRACE_MSFILT_MMASK_15_0_SHIFT )
-#define AHBTRACE_MSFILT_MMASK_15_0_SET( _reg, _val )     \
-  ( ( ( _reg ) & ~AHBTRACE_MSFILT_MMASK_15_0_MASK ) |    \
-    ( ( ( _val ) << AHBTRACE_MSFILT_MMASK_15_0_SHIFT ) & \
-      AHBTRACE_MSFILT_MMASK_15_0_MASK ) )
-#define AHBTRACE_MSFILT_MMASK_15_0( _val )             \
-  ( ( ( _val ) << AHBTRACE_MSFILT_MMASK_15_0_SHIFT ) & \
-    AHBTRACE_MSFILT_MMASK_15_0_MASK )
+#define AHBTRACE_MSFILT_MMASK_SHIFT 0
+#define AHBTRACE_MSFILT_MMASK_MASK  0xffffU
+#define AHBTRACE_MSFILT_MMASK_GET( _reg ) \
+  ( ( ( _reg ) & AHBTRACE_MSFILT_MMASK_MASK ) >> AHBTRACE_MSFILT_MMASK_SHIFT )
+#define AHBTRACE_MSFILT_MMASK_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~AHBTRACE_MSFILT_MMASK_MASK ) |    \
+    ( ( ( _val ) << AHBTRACE_MSFILT_MMASK_SHIFT ) & \
+      AHBTRACE_MSFILT_MMASK_MASK ) )
+#define AHBTRACE_MSFILT_MMASK( _val ) \
+  ( ( ( _val ) << AHBTRACE_MSFILT_MMASK_SHIFT ) & AHBTRACE_MSFILT_MMASK_MASK )
 
 /** @} */
 
@@ -240,6 +250,26 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBAHBTRACETBUF Trace buffer area (TBUF)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define AHBTRACE_TBUF_TBUF_SHIFT 0
+#define AHBTRACE_TBUF_TBUF_MASK  0xffffffffU
+#define AHBTRACE_TBUF_TBUF_GET( _reg ) \
+  ( ( ( _reg ) & AHBTRACE_TBUF_TBUF_MASK ) >> AHBTRACE_TBUF_TBUF_SHIFT )
+#define AHBTRACE_TBUF_TBUF_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~AHBTRACE_TBUF_TBUF_MASK ) | \
+    ( ( ( _val ) << AHBTRACE_TBUF_TBUF_SHIFT ) & AHBTRACE_TBUF_TBUF_MASK ) )
+#define AHBTRACE_TBUF_TBUF( _val ) \
+  ( ( ( _val ) << AHBTRACE_TBUF_TBUF_SHIFT ) & AHBTRACE_TBUF_TBUF_MASK )
+
+/** @} */
+
+/**
  * @brief This structure defines the AHBTRACE register block memory map.
  */
 typedef struct ahbtrace {
@@ -282,6 +312,13 @@ typedef struct ahbtrace {
    * @brief See @ref RTEMSDeviceGRLIBAHBTRACETBBM.
    */
   uint32_t tbbm_1;
+
+  uint32_t reserved_20_10000[ 16376 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBAHBTRACETBUF.
+   */
+  uint32_t tbuf[ 16384 ];
 } ahbtrace;
 
 /** @} */
