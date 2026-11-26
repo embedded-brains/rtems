@@ -73,6 +73,13 @@
  *   after the areas, right below the areas, at the top of the address space,
  *   and with a slab source.
  *
+ * - Let the heap carve two slabs at the begin of a free block, each right
+ *   after a used block. Free the blocks until the heap releases one of the
+ *   slabs.
+ *
+ * - Let a heap with its slab outside of its area carve a slab inside the area.
+ *   Free all blocks and add descriptors to the heap.
+ *
  * - Allocate an aligned block while the free block of the best fit does not
  *   hold it at its alignment and a successor of equal size does.
  *
@@ -1776,6 +1783,122 @@ static void RunCorruptWalk( Context *ctx )
   T_true( _RBHeap_Walk( heap ) );
 }
 
+/* Returns the begin of the largest free block. */
+static uintptr_t LargestFreeBegin( const RBHeap_control *heap )
+{
+  return Node( _RBTree_Maximum( &heap->free_root ) )->begin;
+}
+
+/*
+ * Allocates small blocks until the next allocation needs a new slab.  Frees
+ * a block between used blocks, so that a later allocation takes its place.
+ * Allocates a filler block which ends at a multiple of the slab size.  Then
+ * the next allocation lets the heap carve a slab at the begin of the free
+ * block after the filler, and takes the place of the freed block.
+ */
+static size_t CarveSlabNext( Context *ctx, size_t n )
+{
+  RBHeap_control *heap;
+  uintptr_t       begin;
+  uintptr_t       filler;
+  uintptr_t       slabs;
+  size_t          hole;
+
+  heap = &ctx->heap;
+
+  while ( heap->capacity >= 2 * ( heap->entries + 1 ) + 3 ) {
+    T_quiet_lt_sz( n, BLOCK_COUNT );
+    ctx->blocks[ n ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+    T_quiet_not_null( ctx->blocks[ n ] );
+    ++n;
+  }
+
+  hole = n - 2;
+  T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ hole ] ) );
+  ctx->blocks[ hole ] = NULL;
+
+  begin = LargestFreeBegin( heap );
+  filler = RTEMS_ALIGN_UP( begin, RBHEAP_SLAB_SIZE ) - begin;
+
+  if ( filler < 4 * RBHEAP_SLAB_SLOTS ) {
+    filler += RBHEAP_SLAB_SIZE;
+  }
+
+  ctx->blocks[ n ] = _RBHeap_Allocate( heap, filler - RBHEAP_GUARD_SIZE );
+  T_quiet_eq_uptr( (uintptr_t) ctx->blocks[ n ], begin );
+  ++n;
+
+  slabs = heap->area_slab_count;
+  ctx->blocks[ hole ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+  T_quiet_not_null( ctx->blocks[ hole ] );
+  T_eq_uptr( heap->area_slab_count, slabs + 1 );
+  T_eq_uptr( LargestFreeBegin( heap ), begin + filler + RBHEAP_SLAB_SIZE );
+  return n;
+}
+
+static void RunSlabNext( Context *ctx )
+{
+  RBHeap_control *heap;
+  size_t          n;
+  size_t          i;
+
+  heap = &ctx->heap;
+  Init( ctx, 0, AREA_SIZE );
+  n = CarveSlabNext( ctx, 0 );
+  n = CarveSlabNext( ctx, n );
+  T_eq_uptr( heap->area_slab_count, 2 );
+
+  for ( i = 0; i < n; ++i ) {
+    T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ i ] ) );
+  }
+
+  T_eq_uptr( heap->area_slab_count, 1 );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
+/*
+ * The slab of the heap lies outside of its area, so the slab inside the area
+ * is no home slab.  After all frees, this slab is the only entry of the
+ * heap, and the addition of descriptors clears the heap.
+ */
+static void RunClearAreaSlab( Context *ctx )
+{
+  RBHeap_control *heap;
+  size_t          n;
+  size_t          i;
+  bool            ok;
+
+  heap = &ctx->heap;
+  ok = _RBHeap_Initialize_with_slab(
+    heap,
+    ctx->area,
+    AREA_SIZE,
+    ctx->slabs[ 0 ],
+    NULL
+  );
+  T_assert_true( ok );
+  n = 0;
+
+  while ( heap->area_slab_count == 0 ) {
+    T_quiet_lt_sz( n, BLOCK_COUNT );
+    ctx->blocks[ n ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+    T_quiet_not_null( ctx->blocks[ n ] );
+    ++n;
+  }
+
+  for ( i = 0; i < n; ++i ) {
+    T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ i ] ) );
+  }
+
+  T_eq_uptr( heap->area_slab_count, 1 );
+  T_eq_uptr( heap->entries, 1 );
+  T_true( _RBHeap_Add_descriptors( heap, ctx->slabs[ 1 ], RBHEAP_SLAB_SIZE ) );
+  T_eq_uptr( heap->area_slab_count, 0 );
+  T_eq_uptr( heap->entries, 0 );
+  T_eq_uptr( heap->free_size, heap->area_end - heap->area_begin );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
 static T_fixture ScoreRbheapValRbheapEdges_Fixture = {
   .setup = NULL,
   .stop = NULL,
@@ -1842,10 +1965,33 @@ static void ScoreRbheapValRbheapEdges_Action_4(
 }
 
 /**
+ * @brief Let the heap carve two slabs at the begin of a free block, each right
+ *   after a used block. Free the blocks until the heap releases one of the
+ *   slabs.
+ */
+static void ScoreRbheapValRbheapEdges_Action_5(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunSlabNext( ctx );
+}
+
+/**
+ * @brief Let a heap with its slab outside of its area carve a slab inside the
+ *   area. Free all blocks and add descriptors to the heap.
+ */
+static void ScoreRbheapValRbheapEdges_Action_6(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunClearAreaSlab( ctx );
+}
+
+/**
  * @brief Allocate an aligned block while the free block of the best fit does
  *   not hold it at its alignment and a successor of equal size does.
  */
-static void ScoreRbheapValRbheapEdges_Action_5(
+static void ScoreRbheapValRbheapEdges_Action_7(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1856,7 +2002,7 @@ static void ScoreRbheapValRbheapEdges_Action_5(
  * @brief Allocate, resize and free with huge sizes and invalid blocks. Extend
  *   a heap by an area of a huge size.
  */
-static void ScoreRbheapValRbheapEdges_Action_6(
+static void ScoreRbheapValRbheapEdges_Action_8(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1867,7 +2013,7 @@ static void ScoreRbheapValRbheapEdges_Action_6(
  * @brief Allocate blocks from a heap whose slab source returns no slab.
  *   Initialize heaps with slabs and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_7(
+static void ScoreRbheapValRbheapEdges_Action_9(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1877,7 +2023,7 @@ static void ScoreRbheapValRbheapEdges_Action_7(
 /**
  * @brief Add descriptors to heaps with valid and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_8(
+static void ScoreRbheapValRbheapEdges_Action_10(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1888,7 +2034,7 @@ static void ScoreRbheapValRbheapEdges_Action_8(
  * @brief Extend a heap by areas which fill parts of its holes, by areas next
  *   to its areas and by invalid areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_9(
+static void ScoreRbheapValRbheapEdges_Action_11(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1899,7 +2045,7 @@ static void ScoreRbheapValRbheapEdges_Action_9(
  * @brief Free blocks until the heap releases a slab and allocate blocks while
  *   the heap drains the slab.
  */
-static void ScoreRbheapValRbheapEdges_Action_10(
+static void ScoreRbheapValRbheapEdges_Action_12(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1910,7 +2056,7 @@ static void ScoreRbheapValRbheapEdges_Action_10(
  * @brief Extend a heap by many small areas with gaps between them until the
  *   heap has no spare descriptor.
  */
-static void ScoreRbheapValRbheapEdges_Action_11(
+static void ScoreRbheapValRbheapEdges_Action_13(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1921,7 +2067,7 @@ static void ScoreRbheapValRbheapEdges_Action_11(
  * @brief Extend and add descriptors to heaps at the ends of their areas, near
  *   the top of the address space, over used blocks and over holes.
  */
-static void ScoreRbheapValRbheapEdges_Action_12(
+static void ScoreRbheapValRbheapEdges_Action_14(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1934,7 +2080,7 @@ static void ScoreRbheapValRbheapEdges_Action_12(
  *   processor block on another processor, and free a processor block for a
  *   full bin.
  */
-static void ScoreRbheapValRbheapEdges_Action_13(
+static void ScoreRbheapValRbheapEdges_Action_15(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1946,7 +2092,7 @@ static void ScoreRbheapValRbheapEdges_Action_13(
  *   information of a heap with holes and extend heaps below their used blocks
  *   and below their added descriptors.
  */
-static void ScoreRbheapValRbheapEdges_Action_14(
+static void ScoreRbheapValRbheapEdges_Action_16(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1957,7 +2103,7 @@ static void ScoreRbheapValRbheapEdges_Action_14(
 /**
  * @brief Walk heaps with descriptors which form invalid trees.
  */
-static void ScoreRbheapValRbheapEdges_Action_15(
+static void ScoreRbheapValRbheapEdges_Action_17(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1969,7 +2115,7 @@ static void ScoreRbheapValRbheapEdges_Action_15(
  *   Extend the heap by areas with a gap until the heap has less than two spare
  *   descriptors. Grow a block into the free block after it.
  */
-static void ScoreRbheapValRbheapEdges_Action_16(
+static void ScoreRbheapValRbheapEdges_Action_18(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1980,7 +2126,7 @@ static void ScoreRbheapValRbheapEdges_Action_16(
  * @brief Corrupt the descriptors and the counters of a heap one after the
  *   other and walk the heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_17(
+static void ScoreRbheapValRbheapEdges_Action_19(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -1992,7 +2138,7 @@ static void ScoreRbheapValRbheapEdges_Action_17(
  *   the descriptors of a heap with a drain one after the other and walk the
  *   heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_18(
+static void ScoreRbheapValRbheapEdges_Action_20(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2030,6 +2176,8 @@ T_TEST_CASE_FIXTURE(
   ScoreRbheapValRbheapEdges_Action_16( ctx );
   ScoreRbheapValRbheapEdges_Action_17( ctx );
   ScoreRbheapValRbheapEdges_Action_18( ctx );
+  ScoreRbheapValRbheapEdges_Action_19( ctx );
+  ScoreRbheapValRbheapEdges_Action_20( ctx );
 }
 
 /** @} */
