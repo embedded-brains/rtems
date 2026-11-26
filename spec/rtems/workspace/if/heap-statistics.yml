@@ -43,7 +43,9 @@ definition:
     brief: |
       This member contains the size in bytes of the largest free block of the heap.
     definition: ${/c/if/size_t:/name} ${.:name}
-    description: null
+    description: |
+      The size of a block in the processor bins of the C Program Heap does not count
+      for this member.
     kind: member
     name: largest_free_size
   variants: []

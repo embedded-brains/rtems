@@ -38,6 +38,10 @@ post-conditions:
       T_eq_u64( ctx->stats.lifetime_freed, stats.lifetime_freed );
       T_eq_sz( ctx->stats.size, stats.size );
       T_eq_sz( ctx->stats.free_size, stats.free_size );
+      T_eq_sz(
+        ctx->stats.largest_free_size,
+        _RBHeap_Get_largest_free_size( &ctx->heap.heap )
+      );
       T_eq_sz( ctx->stats.min_free_size, stats.min_free_size );
       T_eq_u32( ctx->stats.free_blocks, stats.free_blocks );
       T_eq_u32( ctx->stats.max_free_blocks, stats.max_free_blocks );
