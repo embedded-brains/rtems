@@ -34,6 +34,7 @@ source:
 - testsuites/validation/tc-pthread-mutexattr-getprioceiling.c
 - testsuites/validation/tc-pthread-mutexattr-init.c
 - testsuites/validation/tc-pthread-mutexattr-setpshared.c
+- testsuites/validation/tc-pthread-once.c
 - testsuites/validation/tc-pthread-setname-np.c
 - testsuites/validation/tc-pthread-spin.c
 - testsuites/validation/tc-sched-yield.c
