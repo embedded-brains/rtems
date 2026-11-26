@@ -62,7 +62,6 @@ typedef enum {
   CStringsReqStrncasecmp_Pre_Index_Before,
   CStringsReqStrncasecmp_Pre_Index_Last,
   CStringsReqStrncasecmp_Pre_Index_At,
-  CStringsReqStrncasecmp_Pre_Index_Next,
   CStringsReqStrncasecmp_Pre_Index_Beyond,
   CStringsReqStrncasecmp_Pre_Index_NA
 } CStringsReqStrncasecmp_Pre_Index;
@@ -160,38 +159,54 @@ typedef struct {
   size_t stop;
 
   /**
-   * @brief This member references the pairs of bytes at the stop index, one
-   *   pair for each number of letters.
+   * @brief This member references the pairs of bytes at the stop index, three
+   *   pairs for each number of letters, one pair for each representative.
    */
-  const unsigned char ( *pairs )[ 2 ];
+  const unsigned char ( *pairs )[ 3 ][ 2 ];
 
   /**
    * @brief This member provides the array referenced by the `s1` parameter.
    */
-  char s1_buf[ 8 ];
+  char s1_buf[ 32 ];
 
   /**
    * @brief This member provides the array referenced by the `s2` parameter.
    */
-  char s2_buf[ 8 ];
+  char s2_buf[ 32 ];
 
   /**
    * @brief This member contains the content of the array referenced by the
    *   `s1` parameter before the strncasecmp() call.
    */
-  char s1_before[ 8 ];
+  char s1_before[ 32 ];
 
   /**
    * @brief This member contains the content of the array referenced by the
    *   `s2` parameter before the strncasecmp() call.
    */
-  char s2_before[ 8 ];
+  char s2_before[ 32 ];
 
   struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
     size_t pcs[ 5 ];
+
+    /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 31 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -218,17 +233,32 @@ typedef struct {
 
 static CStringsReqStrncasecmp_Context CStringsReqStrncasecmp_Instance;
 
-static const char *const CStringsReqStrncasecmp_PreDesc_N[] =
-  { "Zero", "One", "Between", "Max", "NA" };
+static const char *const CStringsReqStrncasecmp_PreDesc_N[] = {
+  "Zero",
+  "One",
+  "BetweenThree",
+  "BetweenFour",
+  "BetweenLarge",
+  "Max",
+  "NA"
+};
 
 static const char *const CStringsReqStrncasecmp_PreDesc_Index[] =
-  { "Before", "Last", "At", "Next", "Beyond", "NA" };
+  { "BeforeOne", "BeforeLate", "Last", "At", "BeyondNext", "BeyondFar", "NA" };
 
 static const char *const CStringsReqStrncasecmp_PreDesc_Stop[] =
   { "BothEnd", "S1Ends", "S2Ends", "Less", "Greater", "NA" };
 
-static const char *const CStringsReqStrncasecmp_PreDesc_Letters[] =
-  { "None", "One", "Both", "NA" };
+static const char *const CStringsReqStrncasecmp_PreDesc_Letters[] = {
+  "NoneWide",
+  "NoneBelow",
+  "NoneAbove",
+  "OneLow",
+  "OneHigh",
+  "BothLow",
+  "BothHigh",
+  "NA"
+};
 
 static const char *const CStringsReqStrncasecmp_PreDesc_CaseDiffers[] =
   { "Yes", "No", "NA" };
@@ -242,22 +272,282 @@ static const char *const *const CStringsReqStrncasecmp_PreDesc[] = {
   NULL
 };
 
+typedef enum {
+  CStringsReqStrncasecmp_Pre_N_Between_Three,
+  CStringsReqStrncasecmp_Pre_N_Between_Four,
+  CStringsReqStrncasecmp_Pre_N_Between_Large
+} CStringsReqStrncasecmp_Pre_N_Between_Rep;
+
+typedef enum {
+  CStringsReqStrncasecmp_Pre_Index_Before_One,
+  CStringsReqStrncasecmp_Pre_Index_Before_Late
+} CStringsReqStrncasecmp_Pre_Index_Before_Rep;
+
+typedef enum {
+  CStringsReqStrncasecmp_Pre_Index_Beyond_Next,
+  CStringsReqStrncasecmp_Pre_Index_Beyond_Far
+} CStringsReqStrncasecmp_Pre_Index_Beyond_Rep;
+
+typedef enum {
+  CStringsReqStrncasecmp_Pre_Letters_None_Wide,
+  CStringsReqStrncasecmp_Pre_Letters_None_Below,
+  CStringsReqStrncasecmp_Pre_Letters_None_Above
+} CStringsReqStrncasecmp_Pre_Letters_None_Rep;
+
+typedef enum {
+  CStringsReqStrncasecmp_Pre_Letters_One_Low,
+  CStringsReqStrncasecmp_Pre_Letters_One_High
+} CStringsReqStrncasecmp_Pre_Letters_One_Rep;
+
+typedef enum {
+  CStringsReqStrncasecmp_Pre_Letters_Both_Low,
+  CStringsReqStrncasecmp_Pre_Letters_Both_High
+} CStringsReqStrncasecmp_Pre_Letters_Both_Rep;
+
+static const uint8_t CStringsReqStrncasecmp_PreRepOffset_N[] =
+  { 0, 1, 2, 5, 6, 7 };
+
+static const uint8_t CStringsReqStrncasecmp_PreRepOffset_Index[] =
+  { 0, 2, 3, 4, 6, 7 };
+
+static const uint8_t CStringsReqStrncasecmp_PreRepOffset_Stop[] =
+  { 0, 1, 2, 3, 4, 5, 6 };
+
+static const uint8_t CStringsReqStrncasecmp_PreRepOffset_Letters[] =
+  { 0, 3, 5, 7, 8 };
+
+static const uint8_t CStringsReqStrncasecmp_PreRepOffset_CaseDiffers[] =
+  { 0, 1, 2, 3 };
+
+static const uint8_t *const CStringsReqStrncasecmp_PreRepOffset[] = {
+  CStringsReqStrncasecmp_PreRepOffset_N,
+  CStringsReqStrncasecmp_PreRepOffset_Index,
+  CStringsReqStrncasecmp_PreRepOffset_Stop,
+  CStringsReqStrncasecmp_PreRepOffset_Letters,
+  CStringsReqStrncasecmp_PreRepOffset_CaseDiffers
+};
+
+static size_t CStringsReqStrncasecmp_GetRepresentativeCountOf(
+  const CStringsReqStrncasecmp_Context *ctx,
+  size_t                                index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringsReqStrncasecmp_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringsReqStrncasecmp_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx,
+  size_t                                index
+)
+{
+  size_t count;
+
+  count = CStringsReqStrncasecmp_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringsReqStrncasecmp_GetRepresentativeCount(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 5; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringsReqStrncasecmp_GetRepresentativeCountOf(
+      ctx,
+      i
+    );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringsReqStrncasecmp_Pre_N_Between_Rep
+CStringsReqStrncasecmp_Pre_N_Between_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_N_Between_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 0 );
+}
+
+static CStringsReqStrncasecmp_Pre_Index_Before_Rep
+CStringsReqStrncasecmp_Pre_Index_Before_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_Index_Before_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 1 );
+}
+
+static CStringsReqStrncasecmp_Pre_Index_Beyond_Rep
+CStringsReqStrncasecmp_Pre_Index_Beyond_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_Index_Beyond_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 1 );
+}
+
+static CStringsReqStrncasecmp_Pre_Letters_None_Rep
+CStringsReqStrncasecmp_Pre_Letters_None_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_Letters_None_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 3 );
+}
+
+static CStringsReqStrncasecmp_Pre_Letters_One_Rep
+CStringsReqStrncasecmp_Pre_Letters_One_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_Letters_One_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 3 );
+}
+
+static CStringsReqStrncasecmp_Pre_Letters_Both_Rep
+CStringsReqStrncasecmp_Pre_Letters_Both_GetRepresentative(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrncasecmp_Pre_Letters_Both_Rep
+  ) CStringsReqStrncasecmp_GetRepresentative( ctx, 3 );
+}
+
+static const uint8_t CStringsReqStrncasecmp_PreRepBase[] =
+  { 0, 7, 14, 20, 28 };
+
+static const uint8_t CStringsReqStrncasecmp_PreRepStates[] = { 4, 4, 5, 3, 2 };
+
+static void CStringsReqStrncasecmp_ResetRepresentatives(
+  CStringsReqStrncasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 31; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringsReqStrncasecmp_MarkRepresentatives(
+  CStringsReqStrncasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 5; ++i ) {
+    size_t rep;
+
+    rep = CStringsReqStrncasecmp_PreRepBase[ i ] +
+          CStringsReqStrncasecmp_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringsReqStrncasecmp_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringsReqStrncasecmp_CheckRepresentatives(
+  const CStringsReqStrncasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 5; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringsReqStrncasecmp_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringsReqStrncasecmp_PreRepBase[ i ] ];
+
+    for (
+      state = 0; state < CStringsReqStrncasecmp_PreRepStates[ i ]; ++state
+    ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringsReqStrncasecmp_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
+
 typedef CStringsReqStrncasecmp_Context Context;
 
-static const unsigned char both_end_pairs[ 3 ][ 2 ] =
-  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } };
+static const unsigned char both_end_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char s1_ends_pairs[ 3 ][ 2 ] =
-  { { '\0', 0xff }, { '\0', 'a' }, { '\0', '\0' } };
+static const unsigned char s1_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '\0', 0xff }, { '\0', '@' }, { '\0', '[' } },
+  { { '\0', 'a' }, { '\0', 'Z' }, { '\0', 'Z' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char s2_ends_pairs[ 3 ][ 2 ] =
-  { { 0xff, '\0' }, { 'a', '\0' }, { '\0', '\0' } };
+static const unsigned char s2_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { 0xff, '\0' }, { '@', '\0' }, { '[', '\0' } },
+  { { 'a', '\0' }, { 'Z', '\0' }, { 'Z', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char less_pairs[ 3 ][ 2 ] =
-  { { '!', 0x80 }, { '_', 'A' }, { 'a', 'B' } };
+static const unsigned char less_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '!', 0x80 }, { '@', '[' }, { '[', '`' } },
+  { { '_', 'A' }, { '_', 'Z' }, { '_', 'Z' } },
+  { { 'a', 'B' }, { 'y', 'Z' }, { 'y', 'Z' } }
+};
 
-static const unsigned char greater_pairs[ 3 ][ 2 ] =
-  { { 0x80, '!' }, { 'A', '_' }, { 'B', 'a' } };
+static const unsigned char greater_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { 0x80, '!' }, { '[', '@' }, { '`', '[' } },
+  { { 'A', '_' }, { 'Z', '_' }, { 'Z', '_' } },
+  { { 'B', 'a' }, { 'Z', 'y' }, { 'Z', 'y' } }
+};
 
 static void SetPair( Context *ctx, const unsigned char *pair )
 {
@@ -294,7 +584,24 @@ static void CStringsReqStrncasecmp_Pre_N_Prepare(
        * While the `n` parameter is greater than one, while the `n` parameter
        * is less than SIZE_MAX.
        */
-      ctx->n = 4;
+      switch (
+        CStringsReqStrncasecmp_Pre_N_Between_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_N_Between_Three: {
+          ctx->n = 3;
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_N_Between_Four: {
+          ctx->n = 4;
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_N_Between_Large: {
+          ctx->n = 24;
+          break;
+        }
+      }
       break;
     }
 
@@ -323,10 +630,22 @@ static void CStringsReqStrncasecmp_Pre_Index_Prepare(
        * and the `s2` parameter is less than the value of the `n` parameter
        * minus one.
        */
-      if ( ctx->n == SIZE_MAX ) {
-        ctx->stop = 3;
-      } else {
-        ctx->stop = ctx->n - 2;
+      switch (
+        CStringsReqStrncasecmp_Pre_Index_Before_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_Index_Before_One: {
+          ctx->stop = 1;
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Index_Before_Late: {
+          if ( ctx->n == SIZE_MAX ) {
+            ctx->stop = 3;
+          } else {
+            ctx->stop = ctx->n - 2;
+          }
+          break;
+        }
       }
       break;
     }
@@ -350,23 +669,24 @@ static void CStringsReqStrncasecmp_Pre_Index_Prepare(
       break;
     }
 
-    case CStringsReqStrncasecmp_Pre_Index_Next: {
-      /*
-       * While the stop index of the arrays referenced by the `s1` parameter
-       * and the `s2` parameter is equal to the value of the `n` parameter plus
-       * one.
-       */
-      ctx->stop = ctx->n + 1;
-      break;
-    }
-
     case CStringsReqStrncasecmp_Pre_Index_Beyond: {
       /*
        * While the stop index of the arrays referenced by the `s1` parameter
-       * and the `s2` parameter is greater than the value of the `n` parameter
-       * plus one.
+       * and the `s2` parameter is greater than the value of the `n` parameter.
        */
-      ctx->stop = ctx->n + 2;
+      switch (
+        CStringsReqStrncasecmp_Pre_Index_Beyond_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_Index_Beyond_Next: {
+          ctx->stop = ctx->n + 1;
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Index_Beyond_Far: {
+          ctx->stop = ctx->n + 2;
+          break;
+        }
+      }
       break;
     }
 
@@ -451,7 +771,24 @@ static void CStringsReqStrncasecmp_Pre_Letters_Prepare(
        * While no byte of the arrays at the stop index is an uppercase letter
        * or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 0 ] );
+      switch (
+        CStringsReqStrncasecmp_Pre_Letters_None_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_Letters_None_Wide: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Letters_None_Below: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 1 ] );
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Letters_None_Above: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 2 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -460,7 +797,19 @@ static void CStringsReqStrncasecmp_Pre_Letters_Prepare(
        * While exactly one byte of the arrays at the stop index is an uppercase
        * letter or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 1 ] );
+      switch (
+        CStringsReqStrncasecmp_Pre_Letters_One_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_Letters_One_Low: {
+          SetPair( ctx, ctx->pairs[ 1 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Letters_One_High: {
+          SetPair( ctx, ctx->pairs[ 1 ][ 1 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -469,7 +818,19 @@ static void CStringsReqStrncasecmp_Pre_Letters_Prepare(
        * While each byte of the arrays at the stop index is an uppercase letter
        * or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 2 ] );
+      switch (
+        CStringsReqStrncasecmp_Pre_Letters_Both_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrncasecmp_Pre_Letters_Both_Low: {
+          SetPair( ctx, ctx->pairs[ 2 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrncasecmp_Pre_Letters_Both_High: {
+          SetPair( ctx, ctx->pairs[ 2 ][ 1 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -630,12 +991,12 @@ static void CStringsReqStrncasecmp_Action(
 
 static const CStringsReqStrncasecmp_Entry
 CStringsReqStrncasecmp_Entries[] = {
-  { 0, 0, 0, 0, 0, 0, CStringsReqStrncasecmp_Post_Result_Equal,
-    CStringsReqStrncasecmp_Post_S1_Nop, CStringsReqStrncasecmp_Post_S2_Nop,
-    CStringsReqStrncasecmp_Post_Errno_Nop },
   { 1, 0, 0, 0, 0, 0, CStringsReqStrncasecmp_Post_Result_NA,
     CStringsReqStrncasecmp_Post_S1_NA, CStringsReqStrncasecmp_Post_S2_NA,
     CStringsReqStrncasecmp_Post_Errno_NA },
+  { 0, 0, 0, 0, 0, 0, CStringsReqStrncasecmp_Post_Result_Equal,
+    CStringsReqStrncasecmp_Post_S1_Nop, CStringsReqStrncasecmp_Post_S2_Nop,
+    CStringsReqStrncasecmp_Post_Errno_Nop },
   { 1, 0, 0, 0, 0, 0, CStringsReqStrncasecmp_Post_Result_NA,
     CStringsReqStrncasecmp_Post_S1_NA, CStringsReqStrncasecmp_Post_S2_NA,
     CStringsReqStrncasecmp_Post_Errno_NA },
@@ -655,30 +1016,25 @@ CStringsReqStrncasecmp_Entries[] = {
 
 static const uint8_t
 CStringsReqStrncasecmp_Map[] = {
-  3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3,
-  3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3,
-  3, 3, 3, 3, 3, 3, 3, 3, 6, 0, 1, 1, 1, 1, 6, 0, 6, 0, 1, 1, 6, 0, 6, 0, 1, 1,
-  6, 0, 6, 0, 6, 0, 6, 0, 6, 0, 6, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0,
-  0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-  1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 1, 1, 1, 1,
-  3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6, 0,
-  1, 1, 1, 1, 6, 4, 6, 4, 1, 1, 6, 5, 6, 5, 1, 1, 6, 4, 6, 4, 6, 4, 6, 5, 6, 5,
-  6, 5, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
-  1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 4, 4, 4, 4, 1, 1,
-  5, 5, 5, 5, 1, 1, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 0, 0, 1, 1, 1, 1, 4, 4,
-  4, 4, 1, 1, 5, 5, 5, 5, 1, 1, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 0, 0, 1, 1,
-  1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 4, 4, 4, 4, 1, 1, 5, 5, 5, 5, 1, 1,
-  4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2,
-  2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2,
-  1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1,
-  2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-  1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-  2, 2
+  2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2,
+  2, 2, 2, 2, 2, 2, 2, 2, 6, 1, 0, 0, 0, 0, 6, 1, 6, 1, 0, 0, 6, 1, 6, 1, 0, 0,
+  6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1,
+  1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2,
+  0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 6, 1, 0, 0, 0, 0,
+  6, 4, 6, 4, 0, 0, 6, 5, 6, 5, 0, 0, 6, 4, 6, 4, 6, 4, 6, 5, 6, 5, 6, 5, 1, 1,
+  0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 5, 5, 5, 5, 0, 0, 4, 4,
+  4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 1, 1, 0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 5, 5, 5, 5,
+  0, 0, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0,
+  1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
+  1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+  0, 0, 4, 4, 4, 4, 0, 0, 5, 5, 5, 5, 0, 0, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5,
+  3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 0, 0,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3
 };
 
 /* clang-format on */
@@ -690,7 +1046,16 @@ static size_t CStringsReqStrncasecmp_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringsReqStrncasecmp_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 5 ];
+    size_t i;
+
+    for ( i = 0; i < 5; ++i ) {
+      pcd[ i ] = CStringsReqStrncasecmp_PreRepOffset[ i ]
+                                                    [ ctx->Map.pcs[ i ] ] +
+                 CStringsReqStrncasecmp_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringsReqStrncasecmp_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -724,6 +1089,11 @@ static void CStringsReqStrncasecmp_TestVariant(
   CStringsReqStrncasecmp_Pre_Stop_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CStringsReqStrncasecmp_Pre_Letters_Prepare( ctx, ctx->Map.pcs[ 3 ] );
   CStringsReqStrncasecmp_Pre_CaseDiffers_Prepare( ctx, ctx->Map.pcs[ 4 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringsReqStrncasecmp_Action( ctx );
   CStringsReqStrncasecmp_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringsReqStrncasecmp_Post_S1_Check( ctx, ctx->Map.entry.Post_S1 );
@@ -741,6 +1111,7 @@ T_TEST_CASE_FIXTURE( CStringsReqStrncasecmp, &CStringsReqStrncasecmp_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringsReqStrncasecmp_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringsReqStrncasecmp_Pre_N_Zero;
@@ -773,13 +1144,25 @@ T_TEST_CASE_FIXTURE( CStringsReqStrncasecmp, &CStringsReqStrncasecmp_Fixture )
               continue;
             }
 
-            CStringsReqStrncasecmp_Prepare( ctx );
-            CStringsReqStrncasecmp_TestVariant( ctx );
+            for (
+              ctx->Map.rep = 0;
+              ctx->Map.rep <
+              CStringsReqStrncasecmp_GetRepresentativeCount( ctx );
+              ++ctx->Map.rep
+            ) {
+              ctx->Map.skip_rep = false;
+              CStringsReqStrncasecmp_Prepare( ctx );
+              CStringsReqStrncasecmp_TestVariant( ctx );
+
+              CStringsReqStrncasecmp_MarkRepresentatives( ctx );
+            }
           }
         }
       }
     }
   }
+
+  CStringsReqStrncasecmp_CheckRepresentatives( ctx );
 }
 
 /** @} */
