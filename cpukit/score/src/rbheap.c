@@ -1038,11 +1038,12 @@ static bool _RBHeap_New_slab( RBHeap_control *control )
 }
 
 /*
- * Returns true if the capacity holds one more entry of the tree of the used
- * blocks.  With E entries, at most E + 1 free blocks exist, so 2 * E + 1
- * descriptors hold each block.  The heap keeps this capacity for one more
- * entry after each operation.  _RBHeap_Release_slab() uses the same bound, so
- * the count of slabs in the areas depends only on the count of entries.
+ * Returns true if the capacity holds one more entry of the used tree.  With E
+ * entries, at most E + 1 free blocks exist, so 2 * E + 1 descriptors hold each
+ * block.  The heap keeps this capacity for one more entry after each
+ * operation.  _RBHeap_Release_slab() keeps the slots of one more slab.  An
+ * allocation and a free at this bound therefore do not carve and release a
+ * slab each time.
  */
 static bool _RBHeap_Holds_entry( uintptr_t capacity, uintptr_t entries )
 {
@@ -1305,10 +1306,11 @@ static bool _RBHeap_Drain( RBHeap_control *control, RBHeap_slab *slab )
 }
 
 /*
- * Empties and frees the slabs in the areas which the capacity for one more
- * entry does not need, see _RBHeap_Holds_entry().  The slab with the fewest
- * descriptors in use goes first.  One call moves up to RBHEAP_RELEASE_MOVES of
- * its descriptors in use to other slabs.  The home slab stays.
+ * Empties and frees the slabs in the areas which the heap does not need, see
+ * _RBHeap_Holds_entry().  The heap needs the capacity for one more entry and
+ * the slots of one more slab.  The slab with the fewest descriptors in use
+ * goes first.  One call moves up to RBHEAP_RELEASE_MOVES of its descriptors in
+ * use to other slabs.  The home slab stays.
  */
 static void _RBHeap_Release_slab( RBHeap_control *control )
 {
@@ -1321,9 +1323,10 @@ static void _RBHeap_Release_slab( RBHeap_control *control )
 
     /* Each slab in an area is an entry, so the capacity holds its slots. */
     if (
-      control->entries == 0 || control->capacity < RBHEAP_SLAB_SLOTS - 1 ||
+      control->entries == 0 ||
+      control->capacity < 2 * ( RBHEAP_SLAB_SLOTS - 1 ) ||
       !_RBHeap_Holds_entry(
-        control->capacity - ( RBHEAP_SLAB_SLOTS - 1 ),
+        control->capacity - 2 * ( RBHEAP_SLAB_SLOTS - 1 ),
         control->entries - 1
       )
     ) {
@@ -3185,9 +3188,10 @@ uintptr_t _RBHeap_Get_releasable_size(
 
   /*
    * Each release takes the slots of one slab from the capacity and one entry
-   * from the tree, see _RBHeap_Release_slab().
+   * from the tree.  The capacity keeps the slots of one more slab, see
+   * _RBHeap_Release_slab().
    */
-  need = 2 * remaining + 3;
+  need = 2 * remaining + 3 + RBHEAP_SLAB_SLOTS - 1;
 
   if ( control->capacity > need ) {
     count = ( control->capacity - need ) / ( RBHEAP_SLAB_SLOTS - 3 );

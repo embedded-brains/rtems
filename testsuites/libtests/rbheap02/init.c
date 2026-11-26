@@ -298,53 +298,47 @@ T_TEST_CASE( RBHeapOutsideDescriptors )
   T_eq_uptr( used_count(), 0 );
 }
 
-static uintptr_t largest_free( void )
-{
-  Heap_Information_block info;
-
-  _RBHeap_Get_information( &heap, &info );
-  return info.Free.largest;
-}
-
-#define DRAIN_BLOCK_COUNT 200
-
 /*
- * The heap carves its slabs out of its area.  A load of small blocks needs
- * slabs besides the home slab.  The frees in order start a drain which needs
- * more than one release call.  An allocation which needs more capacity cancels
- * the drain and carves no new slab.  After all frees, the home slab is the
- * only slab, and the free space equals the start.
+ * The heap carves its slabs out of its area.  A load of small blocks fills the
+ * area and needs slabs besides the home slab.  The first pass frees every
+ * second block and merges no free blocks.  The second pass merges free blocks,
+ * so that the descriptors in use spread over the slabs and a drain needs more
+ * than one release call.  An allocation which needs more capacity cancels the
+ * drain and carves no new slab.  After all frees, the heap keeps the slots of
+ * one slab besides the home slab for its next load.
  */
 T_TEST_CASE( RBHeapDrain )
 {
   uintptr_t free_size;
-  uintptr_t largest;
   uintptr_t capacity;
   uintptr_t used;
   size_t    count;
+  size_t    pass;
   size_t    i;
   size_t    j;
 
   T_true( _RBHeap_Initialize( &heap, at( 0 ), UNIT_COUNT * UNIT ) );
   T_eq_ptr( heap.home, at( 0 ) );
   free_size = heap.free_size;
-  largest = largest_free();
   capacity = heap.capacity;
   used = used_count();
   T_eq_uptr( capacity, RBHEAP_SLAB_SLOTS - 1 );
 
-  count = allocate_blocks( DRAIN_BLOCK_COUNT, RBHEAP_MIN_SIZE );
-  T_eq_sz( count, DRAIN_BLOCK_COUNT );
+  count = allocate_blocks( BLOCK_COUNT, RBHEAP_MIN_SIZE );
+  T_lt_sz( count, BLOCK_COUNT );
+  T_gt_sz( count, 2 * RBHEAP_SLAB_SLOTS );
   T_gt_uptr( heap.capacity, capacity );
   T_true( _RBHeap_Walk( &heap ) );
 
-  /* Free the blocks in order until a drain needs another release call */
-  for ( i = 0; i < count; ++i ) {
-    T_true( _RBHeap_Free( &heap, blocks[ i ] ) );
-    blocks[ i ] = NULL;
+  /* Free blocks until a drain needs another release call */
+  for ( pass = 0; pass < 2 && heap.draining == NULL; ++pass ) {
+    for ( i = 1 - pass; i < count; i += 2 ) {
+      T_true( _RBHeap_Free( &heap, blocks[ i ] ) );
+      blocks[ i ] = NULL;
 
-    if ( heap.draining != NULL ) {
-      break;
+      if ( heap.draining != NULL ) {
+        break;
+      }
     }
   }
 
@@ -355,7 +349,7 @@ T_TEST_CASE( RBHeapDrain )
   /* Allocate until the reserve needs more capacity */
   capacity = heap.capacity;
 
-  for ( j = 0; j <= i && heap.capacity == capacity; ++j ) {
+  for ( j = count; j < BLOCK_COUNT && heap.capacity == capacity; ++j ) {
     blocks[ j ] = _RBHeap_Allocate( &heap, RBHEAP_MIN_SIZE );
     T_not_null( blocks[ j ] );
   }
@@ -364,7 +358,7 @@ T_TEST_CASE( RBHeapDrain )
   T_eq_uptr( heap.capacity, capacity + RBHEAP_SLAB_SLOTS - 1 );
   T_true( _RBHeap_Walk( &heap ) );
 
-  for ( i = 0; i < count; ++i ) {
+  for ( i = 0; i < j; ++i ) {
     if ( blocks[ i ] != NULL ) {
       T_true( _RBHeap_Free( &heap, blocks[ i ] ) );
     }
@@ -372,9 +366,8 @@ T_TEST_CASE( RBHeapDrain )
 
   T_true( _RBHeap_Walk( &heap ) );
   T_null( heap.draining );
-  T_eq_uptr( heap.capacity, RBHEAP_SLAB_SLOTS - 1 );
-  T_eq_uptr( heap.free_size, free_size );
-  T_eq_uptr( largest_free(), largest );
+  T_eq_uptr( heap.capacity, 2 * ( RBHEAP_SLAB_SLOTS - 1 ) );
+  T_eq_uptr( heap.free_size, free_size - RBHEAP_SLAB_SIZE );
   T_eq_uptr( used_count(), used );
 }
 
