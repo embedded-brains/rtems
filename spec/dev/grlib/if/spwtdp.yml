@@ -12,8 +12,28 @@ definition:
   variants: []
 - default:
     count: 1
+    name: CONF1
+  offset: 0x4
+  variants: []
+- default:
+    count: 1
+    name: CONF2
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
     name: CONF3
   offset: 0xc
+  variants: []
+- default:
+    count: 1
+    name: STAT0
+  offset: 0x10
+  variants: []
+- default:
+    count: 1
+    name: STAT1
+  offset: 0x14
   variants: []
 - default:
     count: 1
@@ -142,8 +162,38 @@ definition:
   variants: []
 - default:
     count: 1
+    name: LE0
+  offset: 0xa4
+  variants: []
+- default:
+    count: 1
+    name: LE1
+  offset: 0xa8
+  variants: []
+- default:
+    count: 1
+    name: LE2
+  offset: 0xac
+  variants: []
+- default:
+    count: 1
+    name: LE3
+  offset: 0xb0
+  variants: []
+- default:
+    count: 1
+    name: LE4
+  offset: 0xb4
+  variants: []
+- default:
+    count: 1
     name: IE
   offset: 0xc0
+  variants: []
+- default:
+    count: 1
+    name: IS
+  offset: 0xc4
   variants: []
 - default:
     count: 1
@@ -159,6 +209,21 @@ definition:
     count: 1
     name: EDM0
   offset: 0x100
+  variants: []
+- default:
+    count: 1
+    name: EDM1
+  offset: 0x104
+  variants: []
+- default:
+    count: 1
+    name: EDM2
+  offset: 0x108
+  variants: []
+- default:
+    count: 1
+    name: EDM3
+  offset: 0x10c
   variants: []
 - default:
     count: 1
@@ -190,6 +255,101 @@ definition:
     name: ED0ET4
   offset: 0x124
   variants: []
+- default:
+    count: 1
+    name: EDPF1
+  offset: 0x130
+  variants: []
+- default:
+    count: 1
+    name: ED1ET0
+  offset: 0x134
+  variants: []
+- default:
+    count: 1
+    name: ED1ET1
+  offset: 0x138
+  variants: []
+- default:
+    count: 1
+    name: ED1ET2
+  offset: 0x13c
+  variants: []
+- default:
+    count: 1
+    name: ED1ET3
+  offset: 0x140
+  variants: []
+- default:
+    count: 1
+    name: ED1ET4
+  offset: 0x144
+  variants: []
+- default:
+    count: 1
+    name: EDPF2
+  offset: 0x150
+  variants: []
+- default:
+    count: 1
+    name: ED2ET0
+  offset: 0x154
+  variants: []
+- default:
+    count: 1
+    name: ED2ET1
+  offset: 0x158
+  variants: []
+- default:
+    count: 1
+    name: ED2ET2
+  offset: 0x15c
+  variants: []
+- default:
+    count: 1
+    name: ED2ET3
+  offset: 0x160
+  variants: []
+- default:
+    count: 1
+    name: ED2ET4
+  offset: 0x164
+  variants: []
+- default:
+    count: 1
+    name: EDPF3
+  offset: 0x170
+  variants: []
+- default:
+    count: 1
+    name: ED3ET0
+  offset: 0x174
+  variants: []
+- default:
+    count: 1
+    name: ED3ET1
+  offset: 0x178
+  variants: []
+- default:
+    count: 1
+    name: ED3ET2
+  offset: 0x17c
+  variants: []
+- default:
+    count: 1
+    name: ED3ET3
+  offset: 0x180
+  variants: []
+- default:
+    count: 1
+    name: ED3ET4
+  offset: 0x184
+  variants: []
+- default:
+    count: 8
+    name: PDR
+  offset: 0x1a0
+  variants: []
 description: null
 enabled-by: true
 identifier: RTEMSDeviceGRLIBSPWTDP
@@ -203,7 +363,7 @@ links:
 name: spwtdp
 notes: null
 register-block-group: SPWTDP
-register-block-size: 296
+register-block-size: 448
 register-prefix: null
 registers:
 - bits:
@@ -346,6 +506,62 @@ registers:
   - default:
     - brief: null
       description: null
+      name: FSINC
+      properties:
+      - r
+      - w
+      start: 0
+      width: 30
+    variants: []
+  brief: |
+    Configuration 1
+  description: null
+  name: CONF1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: CV
+      properties:
+      - r
+      - w
+      start: 8
+      width: 24
+    - brief: null
+      description: null
+      name: ETINC
+      properties:
+      - r
+      - w
+      start: 0
+      width: 8
+    variants: []
+  brief: |
+    Configuration 2
+  description: null
+  name: CONF2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: OUTPORT
+      properties:
+      - r
+      - w
+      start: 28
+      width: 4
+    - brief: null
+      description: null
+      name: INPORT
+      properties:
+      - r
+      - w
+      start: 24
+      width: 4
+    - brief: null
+      description: null
       name: STM
       properties:
       - r
@@ -405,6 +621,93 @@ registers:
     Configuration 3
   description: null
   name: CONF3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: MA
+      properties:
+      - r
+      start: 31
+      width: 1
+    - brief: null
+      description: null
+      name: RP
+      properties:
+      - r
+      start: 29
+      width: 2
+    - brief: null
+      description: null
+      name: EDS
+      properties:
+      - r
+      start: 24
+      width: 4
+    - brief: null
+      description: null
+      name: FW
+      properties:
+      - r
+      start: 16
+      width: 7
+    - brief: null
+      description: null
+      name: CW
+      properties:
+      - r
+      start: 8
+      width: 6
+    - brief: null
+      description: null
+      name: ARM
+      properties:
+      - r
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: LC
+      properties:
+      - r
+      - w1c
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: TCQ
+      properties:
+      - r
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: INSYNC
+      properties:
+      - r
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Status Register 0
+  description: null
+  name: STAT0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: IV
+      properties:
+      - r
+      start: 0
+      width: 30
+    variants: []
+  brief: |
+    Status Register 1
+  description: null
+  name: STAT1
   width: 32
 - bits:
   - default:
@@ -823,12 +1126,100 @@ registers:
   - default:
     - brief: null
       description: null
+      name: LE0
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Latency Elapsed Time 0
+  description: null
+  name: LE0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LE1
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Latency Elapsed Time 1
+  description: null
+  name: LE1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LE2
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Latency Elapsed Time 2
+  description: null
+  name: LE2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LE3
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Latency Elapsed Time 3
+  description: null
+  name: LE3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: LE4
+      properties:
+      - r
+      - w
+      start: 24
+      width: 8
+    variants: []
+  brief: |
+    Latency Elapsed Time 4
+  description: null
+  name: LE4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: NCTCE
       properties:
       - r
       - w
       start: 19
       width: 1
+    - brief: null
+      description: null
+      name: PE
+      properties:
+      - r
+      - w
+      start: 11
+      width: 8
     - brief: null
       description: null
       name: SETE
@@ -927,10 +1318,121 @@ registers:
   - default:
     - brief: null
       description: null
+      name: NCTC
+      properties:
+      - r
+      - w1c
+      start: 19
+      width: 1
+    - brief: null
+      description: null
+      name: P
+      properties:
+      - r
+      - w1c
+      start: 11
+      width: 8
+    - brief: null
+      description: null
+      name: SET
+      properties:
+      - r
+      - w1c
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: EDI3
+      properties:
+      - r
+      - w1c
+      start: 9
+      width: 1
+    - brief: null
+      description: null
+      name: EDI2
+      properties:
+      - r
+      - w1c
+      start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: EDI1
+      properties:
+      - r
+      - w1c
+      start: 7
+      width: 1
+    - brief: null
+      description: null
+      name: EDI0
+      properties:
+      - r
+      - w1c
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: DIT
+      properties:
+      - r
+      - w1c
+      start: 5
+      width: 1
+    - brief: null
+      description: null
+      name: DIR
+      properties:
+      - r
+      - w1c
+      start: 4
+      width: 1
+    - brief: null
+      description: null
+      name: TT
+      properties:
+      - r
+      - w1c
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: TM
+      properties:
+      - r
+      - w1c
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: TR
+      properties:
+      - r
+      - w1c
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: S
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Interrupt Status
+  description: null
+  name: IS
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: DC
       properties:
       - r
-      - w
       start: 0
       width: 15
     variants: []
@@ -978,6 +1480,54 @@ registers:
     External Datation 0 Mask
   description: null
   name: EDM0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDM1
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 1 Mask
+  description: null
+  name: EDM1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDM2
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 2 Mask
+  description: null
+  name: EDM2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDM3
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 3 Mask
+  description: null
+  name: EDM3
   width: 32
 - bits:
   - default:
@@ -1068,5 +1618,315 @@ registers:
     External Datation 0 Elapsed Time 4
   description: null
   name: ED0ET4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDPF1
+      properties:
+      - r
+      start: 0
+      width: 16
+    variants: []
+  brief: |
+    External Datation 1 Preamble Field
+  description: null
+  name: EDPF1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED1ET0
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 1 Elapsed Time 0
+  description: null
+  name: ED1ET0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED1ET1
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 1 Elapsed Time 1
+  description: null
+  name: ED1ET1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED1ET2
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 1 Elapsed Time 2
+  description: null
+  name: ED1ET2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED1ET3
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 1 Elapsed Time 3
+  description: null
+  name: ED1ET3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED1ET4
+      properties:
+      - r
+      start: 24
+      width: 8
+    variants: []
+  brief: |
+    External Datation 1 Elapsed Time 4
+  description: null
+  name: ED1ET4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDPF2
+      properties:
+      - r
+      start: 0
+      width: 16
+    variants: []
+  brief: |
+    External Datation 2 Preamble Field
+  description: null
+  name: EDPF2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED2ET0
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 2 Elapsed Time 0
+  description: null
+  name: ED2ET0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED2ET1
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 2 Elapsed Time 1
+  description: null
+  name: ED2ET1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED2ET2
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 2 Elapsed Time 2
+  description: null
+  name: ED2ET2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED2ET3
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 2 Elapsed Time 3
+  description: null
+  name: ED2ET3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED2ET4
+      properties:
+      - r
+      start: 24
+      width: 8
+    variants: []
+  brief: |
+    External Datation 2 Elapsed Time 4
+  description: null
+  name: ED2ET4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: EDPF3
+      properties:
+      - r
+      start: 0
+      width: 16
+    variants: []
+  brief: |
+    External Datation 3 Preamble Field
+  description: null
+  name: EDPF3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED3ET0
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 3 Elapsed Time 0
+  description: null
+  name: ED3ET0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED3ET1
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 3 Elapsed Time 1
+  description: null
+  name: ED3ET1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED3ET2
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 3 Elapsed Time 2
+  description: null
+  name: ED3ET2
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED3ET3
+      properties:
+      - r
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    External Datation 3 Elapsed Time 3
+  description: null
+  name: ED3ET3
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ED3ET4
+      properties:
+      - r
+      start: 24
+      width: 8
+    variants: []
+  brief: |
+    External Datation 3 Elapsed Time 4
+  description: null
+  name: ED3ET4
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: PP
+      properties:
+      - r
+      - w
+      start: 20
+      width: 4
+    - brief: null
+      description: null
+      name: PW
+      properties:
+      - r
+      - w
+      start: 16
+      width: 4
+    - brief: null
+      description: null
+      name: PL
+      properties:
+      - r
+      - w
+      start: 10
+      width: 1
+    - brief: null
+      description: null
+      name: PE
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    variants: []
+  brief: |
+    Pulse Definition Register 0 to 7
+  description: null
+  name: PDR
   width: 32
 type: interface
