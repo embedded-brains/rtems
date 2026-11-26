@@ -72,6 +72,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: LOR:LOR_IPEN
+  offset: 0x50
+  variants: []
+- default:
+    count: 1
     name: LOR:LOR_OUTPUT
   offset: 0x54
   variants: []
@@ -84,6 +89,11 @@ definition:
     count: 1
     name: LOR:LOR_IMASK
   offset: 0x5c
+  variants: []
+- default:
+    count: 1
+    name: LAND:LAND_IPEN
+  offset: 0x60
   variants: []
 - default:
     count: 1
@@ -102,6 +112,11 @@ definition:
   variants: []
 - default:
     count: 1
+    name: LXOR:LXOR_IPEN
+  offset: 0x70
+  variants: []
+- default:
+    count: 1
     name: LXOR:LXOR_OUTPUT
   offset: 0x74
   variants: []
@@ -114,6 +129,46 @@ definition:
     count: 1
     name: LXOR:LXOR_IMASK
   offset: 0x7c
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_IPEN_SET
+  offset: 0x80
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_IPEN_CLR
+  offset: 0x84
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_OUTPUT_SET
+  offset: 0x88
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_OUTPUT_CLR
+  offset: 0x8c
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_DIRECTION_SET
+  offset: 0x90
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_DIRECTION_CLR
+  offset: 0x94
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_IMASK_SET
+  offset: 0x98
+  variants: []
+- default:
+    count: 1
+    name: LSR:LSR_IMASK_CLR
+  offset: 0x9c
   variants: []
 description: null
 enabled-by: true
@@ -128,7 +183,7 @@ links:
 name: grgpio
 notes: null
 register-block-group: GRGPIO
-register-block-size: 128
+register-block-size: 160
 register-prefix: null
 registers:
 - bits:
@@ -432,5 +487,24 @@ registers:
     Logical-XOR registers
   description: null
   name: LXOR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: VALUE
+      properties:
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Logical-Set&Clear registers
+  description: |
+    Each register pair updates one register by two consecutive writes. The first
+    write goes to the lower address of the pair and sets bits. The second write
+    goes to the higher address and clears bits. An access to the core between the
+    two writes cancels the update.
+  name: LSR
   width: 32
 type: interface
