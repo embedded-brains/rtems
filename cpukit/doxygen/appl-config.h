@@ -4032,7 +4032,7 @@
  *
  * @par Default Value
  * The default value is two times the count of blocks for which the RTEMS
- * Workspace reserves memory, plus one.
+ * Workspace reserves memory, plus three.
  *
  * @par Constraints
  * The value of the configuration option shall be greater than or equal to
@@ -4058,7 +4058,8 @@
  * A Classic message queue counts only if @ref CONFIGURE_MESSAGE_BUFFER_MEMORY
  * is not zero, since a message queue which rtems_message_queue_construct()
  * constructs takes no block. At most one free block lies before each used
- * block and after the last used block. The default value therefore holds a
+ * block and after the last used block. The RTEMS Workspace keeps two more
+ * descriptors for the next allocation. The default value therefore holds a
  * descriptor for each block which the configuration reserves.
  *
  * An application which allocates further blocks from the RTEMS Workspace

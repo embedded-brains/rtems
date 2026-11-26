@@ -317,7 +317,8 @@
 
 /*
  * At most one free block lies before each used block and after the last used
- * block, since adjacent free blocks merge.
+ * block, since adjacent free blocks merge.  The heap keeps a capacity of two
+ * descriptors per used block plus three, see _RBHeap_Holds_entry().
  */
 #ifdef CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
   #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT \
@@ -329,7 +330,7 @@
   #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT 0
 #else
   #define _CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT \
-  ( 2 * _CONFIGURE_WORKSPACE_BLOCK_COUNT + 1 )
+  ( 2 * _CONFIGURE_WORKSPACE_BLOCK_COUNT + 3 )
   #define _CONFIGURE_WORKSPACE_DESCRIPTORS
 #endif
 

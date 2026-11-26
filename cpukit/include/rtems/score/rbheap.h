@@ -371,9 +371,9 @@ typedef struct RBHeap_control {
    *
    * The used blocks, the holes, and the slabs inside the areas are the
    * entries.  At most one free block lies between two entries, so the free
-   * blocks are at most one more than the entries.  An allocation ensures a
-   * capacity of at least two descriptors per entry plus one, so that each
-   * split of a free block finds its descriptors.
+   * blocks are at most one more than the entries.  The heap keeps a capacity
+   * of at least two descriptors per entry plus three, so that the next
+   * allocation finds its descriptors.
    */
   uintptr_t entries;
 
