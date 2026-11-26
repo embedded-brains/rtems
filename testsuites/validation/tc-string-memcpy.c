@@ -56,32 +56,19 @@
 
 typedef enum {
   CStringReqMemcpy_Pre_N_Zero,
-  CStringReqMemcpy_Pre_N_One,
-  CStringReqMemcpy_Pre_N_Short,
-  CStringReqMemcpy_Pre_N_BelowWord,
-  CStringReqMemcpy_Pre_N_Word,
-  CStringReqMemcpy_Pre_N_AboveWord,
-  CStringReqMemcpy_Pre_N_Medium,
-  CStringReqMemcpy_Pre_N_BelowBlock,
-  CStringReqMemcpy_Pre_N_Block,
-  CStringReqMemcpy_Pre_N_AboveBlock,
-  CStringReqMemcpy_Pre_N_Long,
+  CStringReqMemcpy_Pre_N_Positive,
   CStringReqMemcpy_Pre_N_NA
 } CStringReqMemcpy_Pre_N;
 
 typedef enum {
   CStringReqMemcpy_Pre_DestAlignment_Aligned,
-  CStringReqMemcpy_Pre_DestAlignment_AboveAligned,
-  CStringReqMemcpy_Pre_DestAlignment_Between,
-  CStringReqMemcpy_Pre_DestAlignment_BelowAligned,
+  CStringReqMemcpy_Pre_DestAlignment_Unaligned,
   CStringReqMemcpy_Pre_DestAlignment_NA
 } CStringReqMemcpy_Pre_DestAlignment;
 
 typedef enum {
   CStringReqMemcpy_Pre_SrcAlignment_Aligned,
-  CStringReqMemcpy_Pre_SrcAlignment_AboveAligned,
-  CStringReqMemcpy_Pre_SrcAlignment_Between,
-  CStringReqMemcpy_Pre_SrcAlignment_BelowAligned,
+  CStringReqMemcpy_Pre_SrcAlignment_Unaligned,
   CStringReqMemcpy_Pre_SrcAlignment_NA
 } CStringReqMemcpy_Pre_SrcAlignment;
 
@@ -195,6 +182,22 @@ typedef struct {
     size_t pcs[ 3 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 28 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -221,24 +224,40 @@ static CStringReqMemcpy_Context CStringReqMemcpy_Instance;
 
 static const char *const CStringReqMemcpy_PreDesc_N[] = {
   "Zero",
-  "One",
-  "Short",
-  "BelowWord",
-  "Word",
-  "AboveWord",
-  "Medium",
-  "BelowBlock",
-  "Block",
-  "AboveBlock",
-  "Long",
+  "PositiveOne",
+  "PositiveTwo",
+  "PositiveWordMinusTwo",
+  "PositiveWordMinusOne",
+  "PositiveWord",
+  "PositiveWordPlusOne",
+  "PositiveWordPlusTwo",
+  "PositiveBlockMinusTwo",
+  "PositiveBlockMinusOne",
+  "PositiveBlock",
+  "PositiveBlockPlusOne",
+  "PositiveBlockPlusTwo",
+  "PositiveTwoBlocks",
+  "PositiveMax",
   "NA"
 };
 
-static const char *const CStringReqMemcpy_PreDesc_DestAlignment[] =
-  { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
+static const char *const CStringReqMemcpy_PreDesc_DestAlignment[] = {
+  "Aligned",
+  "UnalignedOne",
+  "UnalignedTwo",
+  "UnalignedWordMinusTwo",
+  "UnalignedWordMinusOne",
+  "NA"
+};
 
-static const char *const CStringReqMemcpy_PreDesc_SrcAlignment[] =
-  { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
+static const char *const CStringReqMemcpy_PreDesc_SrcAlignment[] = {
+  "Aligned",
+  "UnalignedOne",
+  "UnalignedTwo",
+  "UnalignedWordMinusTwo",
+  "UnalignedWordMinusOne",
+  "NA"
+};
 
 static const char *const *const CStringReqMemcpy_PreDesc[] = {
   CStringReqMemcpy_PreDesc_N,
@@ -246,6 +265,255 @@ static const char *const *const CStringReqMemcpy_PreDesc[] = {
   CStringReqMemcpy_PreDesc_SrcAlignment,
   NULL
 };
+
+typedef enum {
+  CStringReqMemcpy_Pre_N_Positive_One,
+  CStringReqMemcpy_Pre_N_Positive_Two,
+  CStringReqMemcpy_Pre_N_Positive_WordMinusTwo,
+  CStringReqMemcpy_Pre_N_Positive_WordMinusOne,
+  CStringReqMemcpy_Pre_N_Positive_Word,
+  CStringReqMemcpy_Pre_N_Positive_WordPlusOne,
+  CStringReqMemcpy_Pre_N_Positive_WordPlusTwo,
+  CStringReqMemcpy_Pre_N_Positive_BlockMinusTwo,
+  CStringReqMemcpy_Pre_N_Positive_BlockMinusOne,
+  CStringReqMemcpy_Pre_N_Positive_Block,
+  CStringReqMemcpy_Pre_N_Positive_BlockPlusOne,
+  CStringReqMemcpy_Pre_N_Positive_BlockPlusTwo,
+  CStringReqMemcpy_Pre_N_Positive_TwoBlocks,
+  CStringReqMemcpy_Pre_N_Positive_Max
+} CStringReqMemcpy_Pre_N_Positive_Rep;
+
+typedef enum {
+  CStringReqMemcpy_Pre_DestAlignment_Unaligned_One,
+  CStringReqMemcpy_Pre_DestAlignment_Unaligned_Two,
+  CStringReqMemcpy_Pre_DestAlignment_Unaligned_WordMinusTwo,
+  CStringReqMemcpy_Pre_DestAlignment_Unaligned_WordMinusOne
+} CStringReqMemcpy_Pre_DestAlignment_Unaligned_Rep;
+
+typedef enum {
+  CStringReqMemcpy_Pre_SrcAlignment_Unaligned_One,
+  CStringReqMemcpy_Pre_SrcAlignment_Unaligned_Two,
+  CStringReqMemcpy_Pre_SrcAlignment_Unaligned_WordMinusTwo,
+  CStringReqMemcpy_Pre_SrcAlignment_Unaligned_WordMinusOne
+} CStringReqMemcpy_Pre_SrcAlignment_Unaligned_Rep;
+
+static const uint8_t CStringReqMemcpy_PreRepOffset_N[] = { 0, 1, 15, 16 };
+
+static const uint8_t CStringReqMemcpy_PreRepOffset_DestAlignment[] =
+  { 0, 1, 5, 6 };
+
+static const uint8_t CStringReqMemcpy_PreRepOffset_SrcAlignment[] =
+  { 0, 1, 5, 6 };
+
+static const uint8_t *const CStringReqMemcpy_PreRepOffset[] = {
+  CStringReqMemcpy_PreRepOffset_N,
+  CStringReqMemcpy_PreRepOffset_DestAlignment,
+  CStringReqMemcpy_PreRepOffset_SrcAlignment
+};
+
+static size_t CStringReqMemcpy_GetRepresentativeCountOf(
+  const CStringReqMemcpy_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqMemcpy_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqMemcpy_GetProductCount_0(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  return CStringReqMemcpy_GetRepresentativeCountOf( ctx, 0 ) *
+         CStringReqMemcpy_GetRepresentativeCountOf( ctx, 1 ) *
+         CStringReqMemcpy_GetRepresentativeCountOf( ctx, 2 );
+}
+
+static size_t CStringReqMemcpy_GetRepresentative(
+  const CStringReqMemcpy_Context *ctx,
+  size_t                          index
+)
+{
+  size_t rep;
+  size_t count;
+
+  rep = ctx->Map.rep;
+
+  switch ( index ) {
+    case 0:
+      count = CStringReqMemcpy_GetProductCount_0( ctx );
+
+      if ( rep >= count ) {
+        rep = count - 1;
+      }
+
+      return rep / ( CStringReqMemcpy_GetRepresentativeCountOf( ctx, 1 ) *
+                     CStringReqMemcpy_GetRepresentativeCountOf( ctx, 2 ) );
+
+    case 1:
+      count = CStringReqMemcpy_GetProductCount_0( ctx );
+
+      if ( rep >= count ) {
+        rep = count - 1;
+      }
+
+      return ( rep / CStringReqMemcpy_GetRepresentativeCountOf( ctx, 2 ) ) %
+             CStringReqMemcpy_GetRepresentativeCountOf( ctx, 1 );
+
+    case 2:
+      count = CStringReqMemcpy_GetProductCount_0( ctx );
+
+      if ( rep >= count ) {
+        rep = count - 1;
+      }
+
+      return rep % CStringReqMemcpy_GetRepresentativeCountOf( ctx, 2 );
+
+    default:
+      break;
+  }
+
+  count = CStringReqMemcpy_GetRepresentativeCountOf( ctx, index );
+
+  if ( rep < count ) {
+    return rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqMemcpy_GetRepresentativeCount(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqMemcpy_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  if ( CStringReqMemcpy_GetProductCount_0( ctx ) > count ) {
+    count = CStringReqMemcpy_GetProductCount_0( ctx );
+  }
+
+  return count;
+}
+
+static CStringReqMemcpy_Pre_N_Positive_Rep
+CStringReqMemcpy_Pre_N_Positive_GetRepresentative(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  return (
+    CStringReqMemcpy_Pre_N_Positive_Rep
+  ) CStringReqMemcpy_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqMemcpy_Pre_DestAlignment_Unaligned_Rep
+CStringReqMemcpy_Pre_DestAlignment_Unaligned_GetRepresentative(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  return (
+    CStringReqMemcpy_Pre_DestAlignment_Unaligned_Rep
+  ) CStringReqMemcpy_GetRepresentative( ctx, 1 );
+}
+
+static CStringReqMemcpy_Pre_SrcAlignment_Unaligned_Rep
+CStringReqMemcpy_Pre_SrcAlignment_Unaligned_GetRepresentative(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  return (
+    CStringReqMemcpy_Pre_SrcAlignment_Unaligned_Rep
+  ) CStringReqMemcpy_GetRepresentative( ctx, 2 );
+}
+
+static const uint8_t CStringReqMemcpy_PreRepBase[] = { 0, 16, 22 };
+
+static const uint8_t CStringReqMemcpy_PreRepStates[] = { 2, 2, 2 };
+
+static void CStringReqMemcpy_ResetRepresentatives(
+  CStringReqMemcpy_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 28; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqMemcpy_MarkRepresentatives(
+  CStringReqMemcpy_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 3; ++i ) {
+    size_t rep;
+
+    rep = CStringReqMemcpy_PreRepBase[ i ] +
+          CStringReqMemcpy_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqMemcpy_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqMemcpy_CheckRepresentatives(
+  const CStringReqMemcpy_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 3; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqMemcpy_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqMemcpy_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqMemcpy_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqMemcpy_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 typedef CStringReqMemcpy_Context Context;
 
@@ -301,92 +569,81 @@ static void CStringReqMemcpy_Pre_N_Prepare(
       break;
     }
 
-    case CStringReqMemcpy_Pre_N_One: {
+    case CStringReqMemcpy_Pre_N_Positive: {
       /*
-       * While the size specified by `n` is equal to one.
+       * While the size specified by `n` is greater than zero.
        */
-      ctx->n = 1;
-      break;
-    }
+      switch ( CStringReqMemcpy_Pre_N_Positive_GetRepresentative( ctx ) ) {
+        case CStringReqMemcpy_Pre_N_Positive_One: {
+          ctx->n = 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_Short: {
-      /*
-       * While the size specified by `n` is greater than one, while the size
-       * specified by `n` is less than the size of type long minus one.
-       */
-      ctx->n = 2;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_Two: {
+          ctx->n = 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_BelowWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long
-       * minus one.
-       */
-      ctx->n = sizeof( long ) - 1;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_WordMinusTwo: {
+          ctx->n = sizeof( long ) - 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_Word: {
-      /*
-       * While the size specified by `n` is equal to the size of type long.
-       */
-      ctx->n = sizeof( long );
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_WordMinusOne: {
+          ctx->n = sizeof( long ) - 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_AboveWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long plus
-       * one.
-       */
-      ctx->n = sizeof( long ) + 1;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_Word: {
+          ctx->n = sizeof( long );
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_Medium: {
-      /*
-       * While the size specified by `n` is greater than the size of type long
-       * plus one, while the size specified by `n` is less than four times the
-       * size of type long minus one.
-       */
-      ctx->n = sizeof( long ) + 2;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_WordPlusOne: {
+          ctx->n = sizeof( long ) + 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_BelowBlock: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long minus one.
-       */
-      ctx->n = 4 * sizeof( long ) - 1;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_WordPlusTwo: {
+          ctx->n = sizeof( long ) + 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_Block: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long.
-       */
-      ctx->n = 4 * sizeof( long );
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_BlockMinusTwo: {
+          ctx->n = 4 * sizeof( long ) - 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_AboveBlock: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long plus one.
-       */
-      ctx->n = 4 * sizeof( long ) + 1;
-      break;
-    }
+        case CStringReqMemcpy_Pre_N_Positive_BlockMinusOne: {
+          ctx->n = 4 * sizeof( long ) - 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_N_Long: {
-      /*
-       * While the size specified by `n` is greater than four times the size of
-       * type long plus one.
-       */
-      ctx->n = 9 * sizeof( long ) + 1;
+        case CStringReqMemcpy_Pre_N_Positive_Block: {
+          ctx->n = 4 * sizeof( long );
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_N_Positive_BlockPlusOne: {
+          ctx->n = 4 * sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_N_Positive_BlockPlusTwo: {
+          ctx->n = 4 * sizeof( long ) + 2;
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_N_Positive_TwoBlocks: {
+          ctx->n = 9 * sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_N_Positive_Max: {
+          ctx->n = 12 * sizeof( long );
+          break;
+        }
+      }
       break;
     }
 
@@ -410,33 +667,34 @@ static void CStringReqMemcpy_Pre_DestAlignment_Prepare(
       break;
     }
 
-    case CStringReqMemcpy_Pre_DestAlignment_AboveAligned: {
+    case CStringReqMemcpy_Pre_DestAlignment_Unaligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the memory area referenced by the `dest` parameter starts at an
+       * address which is not aligned to the size of type long.
        */
-      ctx->dest_offset = 1;
-      break;
-    }
+      switch (
+        CStringReqMemcpy_Pre_DestAlignment_Unaligned_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemcpy_Pre_DestAlignment_Unaligned_One: {
+          ctx->dest_offset = 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_DestAlignment_Between: {
-      /*
-       * While the memory area referenced by the `dest` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `dest` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
-       */
-      ctx->dest_offset = 2;
-      break;
-    }
+        case CStringReqMemcpy_Pre_DestAlignment_Unaligned_Two: {
+          ctx->dest_offset = 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_DestAlignment_BelowAligned: {
-      /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte below an address which is aligned to the size of type long.
-       */
-      ctx->dest_offset = sizeof( long ) - 1;
+        case CStringReqMemcpy_Pre_DestAlignment_Unaligned_WordMinusTwo: {
+          ctx->dest_offset = sizeof( long ) - 2;
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_DestAlignment_Unaligned_WordMinusOne: {
+          ctx->dest_offset = sizeof( long ) - 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -460,33 +718,34 @@ static void CStringReqMemcpy_Pre_SrcAlignment_Prepare(
       break;
     }
 
-    case CStringReqMemcpy_Pre_SrcAlignment_AboveAligned: {
+    case CStringReqMemcpy_Pre_SrcAlignment_Unaligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the memory area referenced by the `src` parameter starts at an
+       * address which is not aligned to the size of type long.
        */
-      ctx->src_offset = 1;
-      break;
-    }
+      switch (
+        CStringReqMemcpy_Pre_SrcAlignment_Unaligned_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemcpy_Pre_SrcAlignment_Unaligned_One: {
+          ctx->src_offset = 1;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_SrcAlignment_Between: {
-      /*
-       * While the memory area referenced by the `src` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `src` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
-       */
-      ctx->src_offset = 2;
-      break;
-    }
+        case CStringReqMemcpy_Pre_SrcAlignment_Unaligned_Two: {
+          ctx->src_offset = 2;
+          break;
+        }
 
-    case CStringReqMemcpy_Pre_SrcAlignment_BelowAligned: {
-      /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte below an address which is aligned to the size of type long.
-       */
-      ctx->src_offset = sizeof( long ) - 1;
+        case CStringReqMemcpy_Pre_SrcAlignment_Unaligned_WordMinusTwo: {
+          ctx->src_offset = sizeof( long ) - 2;
+          break;
+        }
+
+        case CStringReqMemcpy_Pre_SrcAlignment_Unaligned_WordMinusOne: {
+          ctx->src_offset = sizeof( long ) - 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -616,22 +875,16 @@ static void CStringReqMemcpy_Action( CStringReqMemcpy_Context *ctx )
 static const CStringReqMemcpy_Entry
 CStringReqMemcpy_Entries[] = {
   { 0, 0, 0, 0, CStringReqMemcpy_Post_Result_Dest,
-    CStringReqMemcpy_Post_Dest_Copy, CStringReqMemcpy_Post_Outside_Nop,
+    CStringReqMemcpy_Post_Dest_NA, CStringReqMemcpy_Post_Outside_Nop,
     CStringReqMemcpy_Post_Src_Nop, CStringReqMemcpy_Post_Errno_Nop },
   { 0, 0, 0, 0, CStringReqMemcpy_Post_Result_Dest,
-    CStringReqMemcpy_Post_Dest_NA, CStringReqMemcpy_Post_Outside_Nop,
+    CStringReqMemcpy_Post_Dest_Copy, CStringReqMemcpy_Post_Outside_Nop,
     CStringReqMemcpy_Post_Src_Nop, CStringReqMemcpy_Post_Errno_Nop }
 };
 
 static const uint8_t
 CStringReqMemcpy_Map[] = {
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+  0, 0, 0, 0, 1, 1, 1, 1
 };
 
 /* clang-format on */
@@ -643,7 +896,15 @@ static size_t CStringReqMemcpy_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqMemcpy_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 3 ];
+    size_t i;
+
+    for ( i = 0; i < 3; ++i ) {
+      pcd[ i ] = CStringReqMemcpy_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqMemcpy_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqMemcpy_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -673,6 +934,11 @@ static void CStringReqMemcpy_TestVariant( CStringReqMemcpy_Context *ctx )
   CStringReqMemcpy_Pre_N_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CStringReqMemcpy_Pre_DestAlignment_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringReqMemcpy_Pre_SrcAlignment_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqMemcpy_Action( ctx );
   CStringReqMemcpy_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqMemcpy_Post_Dest_Check( ctx, ctx->Map.entry.Post_Dest );
@@ -691,6 +957,7 @@ T_TEST_CASE_FIXTURE( CStringReqMemcpy, &CStringReqMemcpy_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqMemcpy_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqMemcpy_Pre_N_Zero;
@@ -708,11 +975,23 @@ T_TEST_CASE_FIXTURE( CStringReqMemcpy, &CStringReqMemcpy_Fixture )
         ++ctx->Map.pcs[ 2 ]
       ) {
         ctx->Map.entry = CStringReqMemcpy_PopEntry( ctx );
-        CStringReqMemcpy_Prepare( ctx );
-        CStringReqMemcpy_TestVariant( ctx );
+
+        for (
+          ctx->Map.rep = 0;
+          ctx->Map.rep < CStringReqMemcpy_GetRepresentativeCount( ctx );
+          ++ctx->Map.rep
+        ) {
+          ctx->Map.skip_rep = false;
+          CStringReqMemcpy_Prepare( ctx );
+          CStringReqMemcpy_TestVariant( ctx );
+
+          CStringReqMemcpy_MarkRepresentatives( ctx );
+        }
       }
     }
   }
+
+  CStringReqMemcpy_CheckRepresentatives( ctx );
 }
 
 /** @} */
