@@ -15,6 +15,16 @@ definition:
     name: AHBFAR
   offset: 0x4
   variants: []
+- default:
+    count: 1
+    name: AHBS:AHBS2
+  offset: 0x8
+  variants: []
+- default:
+    count: 1
+    name: AHBFAR:AHBFAR2
+  offset: 0xc
+  variants: []
 description: null
 enabled-by: true
 identifier: RTEMSDeviceGRLIBAHBSTAT
@@ -28,7 +38,7 @@ links:
 name: ahbstat
 notes: null
 register-block-group: AHBSTAT
-register-block-size: 8
+register-block-size: 16
 register-prefix: null
 registers:
 - bits:
