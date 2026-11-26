@@ -1,0 +1,528 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/nanosleep
+post-conditions:
+- name: Status
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The return value of ${../if/nanosleep:/name} shall be equal to zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The return value of ${../if/nanosleep:/name} shall be equal to minus one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} value shall not be changed by the
+      ${../if/nanosleep:/name} call.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} value shall be equal to
+      ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Timer
+  states:
+  - name: Inactive
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_INACTIVE );
+    text: |
+      The timer of the calling task shall be inactive.
+  - name: Monotonic
+    test-code: |
+      T_eq_int( ctx->timer_info.state, TASK_TIMER_MONOTONIC );
+    text: |
+      The timer of the calling task shall be active using the
+      ${/glossary/clock-monotonic:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Expire
+  states:
+  - name: Last
+    test-code: |
+      T_eq_u64( ctx->timer_info.expire_ticks, 0xffffffffffffffff );
+    text: |
+      The timer of the calling task shall expire at the last valid time point of the
+      ${/glossary/clock-monotonic:/term}.
+  - name: Relative
+    test-code: |
+      expire = ctx->now_monotonic;
+      expire.tv_sec += ctx->rqtp_obj.tv_sec;
+      expire.tv_nsec += ctx->rqtp_obj.tv_nsec;
+
+      if ( expire.tv_nsec >= 1000000000 ) {
+        ++expire.tv_sec;
+        expire.tv_nsec -= 1000000000;
+      }
+
+      T_eq_i64( ctx->timer_info.expire_timespec.tv_sec, expire.tv_sec );
+      T_eq_long( ctx->timer_info.expire_timespec.tv_nsec, expire.tv_nsec );
+    text: |
+      The timer of the calling task shall expire at the time point specified by the
+      sum of the current time of the ${/glossary/clock-monotonic:/term} and the
+      interval specified by the `rqtp` parameter.
+  test-epilogue: null
+  test-prologue: |
+    struct timespec expire;
+- name: Scheduler
+  states:
+  - name: Block
+    test-code: |
+      T_eq_sz( ctx->scheduler_log.header.recorded, 1 );
+      T_eq_int( ctx->scheduler_log.events[ 0 ].operation, T_SCHEDULER_BLOCK );
+    text: |
+      The calling task shall be blocked by the scheduler exactly once by the
+      ${../if/nanosleep:/name} call.
+  - name: BlockUnblock
+    test-code: |
+      T_eq_sz( ctx->scheduler_log.header.recorded, 2 );
+      T_eq_int( ctx->scheduler_log.events[ 0 ].operation, T_SCHEDULER_BLOCK );
+      T_eq_int( ctx->scheduler_log.events[ 1 ].operation, T_SCHEDULER_UNBLOCK );
+    text: |
+      The calling task shall be blocked exactly once by the scheduler and then
+      unblocked in the same thread dispatch critical section by the
+      ${../if/nanosleep:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: RMTp
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_i64( ctx->rmtp_obj.tv_sec, 0 );
+      T_eq_long( ctx->rmtp_obj.tv_nsec, 0 );
+    text: |
+      The object referenced by the `rmtp` parameter shall be cleared to zero after
+      the return of the ${../if/nanosleep:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: RQTp
+  states:
+  - name: Valid
+    test-code: |
+      ctx->rqtp = &ctx->rqtp_obj;
+    text: |
+      While the `rqtp` parameter references an object of type
+      ${../../if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->rqtp = NULL;
+    text: |
+      While the `rqtp` parameter is equal to ${../../if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: RQTpNSec
+  states:
+  - name: Zero
+    test-code: |
+      ctx->rqtp_obj.tv_nsec = 0;
+    text: |
+      While the `tv_nsec` member of the object referenced by the `rqtp` parameter is
+      equal to zero.
+  - name: Positive
+    representatives:
+    - name: One
+      test-code: |
+        ctx->rqtp_obj.tv_nsec = 1;
+    - name: Max
+      test-code: |
+        ctx->rqtp_obj.tv_nsec = 999999999;
+    test-code: null
+    text: |
+      While the `tv_nsec` member of the object referenced by the `rqtp` parameter is
+      greater than zero and less than one billion.
+  - name: Invalid
+    representatives:
+    - name: MinusOne
+      test-code: |
+        ctx->rqtp_obj.tv_nsec = -1;
+    - name: OneBillion
+      test-code: |
+        ctx->rqtp_obj.tv_nsec = 1000000000;
+    test-code: null
+    text: |
+      While the `tv_nsec` member of the object referenced by the `rqtp` parameter is
+      less than zero or greater than or equal to one billion.
+  test-epilogue: null
+  test-prologue: null
+- name: RQTpSec
+  states:
+  - name: Negative
+    test-code: |
+      ctx->rqtp_obj.tv_sec = -1;
+    text: |
+      While the `tv_sec` member of the object referenced by the `rqtp` parameter is
+      negative.
+  - name: Zero
+    test-code: |
+      ctx->rqtp_obj.tv_sec = 0;
+    text: |
+      While the `tv_sec` member of the object referenced by the `rqtp` parameter is
+      equal to zero.
+  - name: Future
+    representatives:
+    - name: One
+      test-code: |
+        ctx->rqtp_obj.tv_sec = 1;
+    - name: Limit
+      test-code: |
+        ctx->rqtp_sec_at_limit = true;
+        ctx->rqtp_sec_beyond_limit = 0;
+    test-code: null
+    text: |
+      While the `tv_sec` member of the object referenced by the `rqtp` parameter is
+      positive and specifies an interval which ends at a time point which is within
+      the implementation limits.
+  - name: FarFuture
+    representatives:
+    - name: Limit
+      test-code: |
+        ctx->rqtp_sec_at_limit = true;
+        ctx->rqtp_sec_beyond_limit = 1;
+    - name: Max
+      test-code: |
+        ctx->rqtp_obj.tv_sec = INT64_MAX;
+    test-code: null
+    text: |
+      While the `tv_sec` member of the object referenced by the `rqtp` parameter
+      specifies an interval which ends at a time point which is past the
+      implementation limit.
+  test-epilogue: null
+  test-prologue: null
+- name: RMTp
+  states:
+  - name: Valid
+    test-code: |
+      ctx->rmtp = &ctx->rmtp_obj;
+    text: |
+      While the `rmtp` parameter references an object of type
+      ${../../if/timespec:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->rmtp = NULL;
+    text: |
+      While the `rmtp` parameter is equal to ${../../if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  POSIX.1-2024 specifies that the function suspends the calling thread until the
+  time interval specified by the `rqtp` parameter has elapsed, measured using the
+  ${/glossary/clock-realtime:/term}, and that a relative interval is not affected
+  by a change of that clock. The function therefore uses the watchdog of the
+  ${/glossary/clock-monotonic:/term} for the interval, which the timer and its
+  expiration time show. An interval of zero ends at once, so the timer is not
+  activated and the calling task is blocked and unblocked in the same thread
+  dispatch critical section. An interval with zero seconds and a positive
+  nanoseconds value ends after the current time, so the timer is activated. The
+  representatives of the states lie at the edges where the implementation
+  compares a member. The nanoseconds member has its edges at zero and one
+  billion. The seconds member has its edges at zero and at the last second of the
+  ${/glossary/clock-monotonic:/term} which the watchdog can represent.
+
+  POSIX.1-2024 requires the error ${/c/errno/if/einval:/name} for a nanoseconds
+  member which is less than zero or not less than one billion. The implementation
+  also returns it for a negative seconds member and for a ${/c/if/null:/name}
+  `rqtp` parameter, for which POSIX.1-2024 specifies no behaviour. The function
+  returns minus one and sets ${/c/errno/if/errno:/name} for every error, and it
+  returns zero and leaves ${/c/errno/if/errno:/name} unchanged otherwise. The
+  test starts with an ${/c/errno/if/errno:/name} value which differs from every
+  error.
+
+  POSIX.1-2024 specifies the error ${/c/errno/if/eintr:/name}, if a signal
+  interrupts the function, and the storage of the remaining time in the object
+  referenced by the `rmtp` parameter. The pre-qualified build has RTEMS_POSIX_API
+  set to false, so no signal interrupts the function and
+  ${/c/errno/if/eintr:/name} is not returned. The function clears the object to
+  zero in every other case, also after an error.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ResumeTask( ctx->worker_id );
+  (void) T_scheduler_record( NULL );
+  GetTaskTimerInfo( ctx->worker_id, &ctx->timer_info );
+  ClockTick();
+  FinalClockTick();
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the scheduler operation records.
+  description: null
+  member: |
+    T_scheduler_log_4 scheduler_log
+- brief: |
+    This member contains the CLOCK_MONOTONIC value before the
+    ${../if/nanosleep:/name} call.
+  description: null
+  member: |
+    struct timespec now_monotonic
+- brief: |
+    This member contains the time of day before the test.
+  description: null
+  member: |
+    rtems_time_of_day tod_saved
+- brief: |
+    This member contains the worker task identifier.
+  description: null
+  member: |
+    rtems_id worker_id
+- brief: |
+    This member contains the timer information of the worker task.
+  description: null
+  member: |
+    TaskTimerInfo timer_info
+- brief: |
+    This member provides the object referenced by the `rqtp` parameter.
+  description: null
+  member: |
+    struct timespec rqtp_obj
+- brief: |
+    If this member is true, then the worker task sets the `tv_sec` member of the
+    object referenced by the `rqtp` parameter so that the interval ends at the
+    implementation limit plus ${.:/test-context-type}::rqtp_sec_beyond_limit
+    seconds.
+  description: null
+  member: |
+    bool rqtp_sec_at_limit
+- brief: |
+    This member specifies the seconds by which the interval ends past the
+    implementation limit.
+  description: null
+  member: |
+    time_t rqtp_sec_beyond_limit
+- brief: |
+    This member provides the object referenced by the `rmtp` parameter.
+  description: null
+  member: |
+    struct timespec rmtp_obj
+- brief: |
+    This member contains the return value of the ${../if/nanosleep:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the ${/c/errno/if/errno:/name} value after the
+    ${../if/nanosleep:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member specifies the `rqtp` parameter value.
+  description: null
+  member: |
+    const struct timespec *rqtp
+- brief: |
+    This member specifies the `rmtp` parameter value.
+  description: null
+  member: |
+    struct timespec *rmtp
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- rtems.h
+- stdint.h
+- time.h
+- rtems/test-scheduler.h
+- rtems/score/timecounter.h
+- rtems/score/watchdogimpl.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->status = -1;
+  ctx->errno_value = 0;
+  ctx->rqtp_obj.tv_sec = -1;
+  ctx->rqtp_obj.tv_nsec = -1;
+  ctx->rmtp_obj.tv_sec = -1;
+  ctx->rmtp_obj.tv_nsec = -1;
+  ctx->rqtp_sec_at_limit = false;
+test-setup:
+  brief: null
+  code: |
+    rtems_time_of_day now = { 1988, 1, 1, 0, 0, 0, 0 };
+    T_rsc_success( rtems_clock_get_tod( &ctx->tod_saved ) );
+    T_rsc_success( rtems_clock_set( &now ) );
+    SetSelfPriority( PRIO_NORMAL );
+    ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+    StartTask( ctx->worker_id, Worker, ctx );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static void Worker( rtems_task_argument arg )
+  {
+    Context *ctx;
+
+    ctx = (Context *) arg;
+
+    while ( true ) {
+      T_scheduler_log *log;
+      uint32_t         counter;
+
+      SuspendSelf();
+
+      log = T_scheduler_record_4( &ctx->scheduler_log );
+      T_null( log );
+
+      counter = GetTimecountCounter();
+      _Timecounter_Nanouptime( &ctx->now_monotonic );
+      SetTimecountCounter( counter );
+
+      if ( ctx->rqtp_sec_at_limit ) {
+        time_t carry;
+
+        if ( ctx->now_monotonic.tv_nsec + ctx->rqtp_obj.tv_nsec >= 1000000000 ) {
+          carry = 1;
+        } else {
+          carry = 0;
+        }
+
+        ctx->rqtp_obj.tv_sec = WATCHDOG_MAX_SECONDS - ctx->now_monotonic.tv_sec -
+                               carry + ctx->rqtp_sec_beyond_limit;
+      }
+
+      errno = -1;
+      ctx->status = nanosleep( ctx->rqtp, ctx->rmtp );
+      ctx->errno_value = errno;
+
+      (void) T_scheduler_record( NULL );
+    }
+  }
+test-target: testsuites/validation/tc-time-nanosleep.c
+test-teardown:
+  brief: null
+  code: |
+    DeleteTask( ctx->worker_id );
+    RestoreRunnerPriority();
+    T_rsc_success( rtems_clock_set( &ctx->tod_saved ) );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Zero
+    Errno: Nop
+    Timer:
+    - if:
+        pre-conditions:
+          RQTpNSec: Zero
+          RQTpSec: Zero
+      then: Inactive
+    - else: Monotonic
+    Expire:
+    - if:
+        pre-conditions:
+          RQTpNSec: Zero
+          RQTpSec: Zero
+      then: N/A
+    - if:
+        pre-conditions:
+          RQTpSec: FarFuture
+      then: Last
+    - else: Relative
+    Scheduler:
+    - if:
+        pre-conditions:
+          RQTpNSec: Zero
+          RQTpSec: Zero
+      then: BlockUnblock
+    - else: Block
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: Valid
+      then: Zero
+    - else: N/A
+  pre-conditions:
+    RQTp:
+    - Valid
+    RQTpNSec:
+    - Zero
+    - Positive
+    RQTpSec:
+    - Zero
+    - Future
+    - FarFuture
+    RMTp: all
+- enabled-by: true
+  post-conditions:
+    Status: MinusOne
+    Errno: Inval
+    Timer: Inactive
+    Expire: N/A
+    Scheduler: BlockUnblock
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: Valid
+      then: Zero
+    - else: N/A
+  pre-conditions:
+    RQTp:
+    - 'Null'
+    RQTpNSec: N/A
+    RQTpSec: N/A
+    RMTp: all
+- enabled-by: true
+  post-conditions:
+    Status: MinusOne
+    Errno: Inval
+    Timer: Inactive
+    Expire: N/A
+    Scheduler: BlockUnblock
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: Valid
+      then: Zero
+    - else: N/A
+  pre-conditions:
+    RQTp:
+    - Valid
+    RQTpNSec:
+    - Invalid
+    RQTpSec: all
+    RMTp: all
+- enabled-by: true
+  post-conditions:
+    Status: MinusOne
+    Errno: Inval
+    Timer: Inactive
+    Expire: N/A
+    Scheduler: BlockUnblock
+    RMTp:
+    - if:
+        pre-conditions:
+          RMTp: Valid
+      then: Zero
+    - else: N/A
+  pre-conditions:
+    RQTp:
+    - Valid
+    RQTpNSec:
+    - Zero
+    - Positive
+    RQTpSec:
+    - Negative
+    RMTp: all
+type: requirement
