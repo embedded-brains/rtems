@@ -41,24 +41,19 @@ definition:
   offset: 0x18
   variants: []
 - default:
-    count: 1
+    count: 6
     name: PCI2AHB
   offset: 0x20
   variants: []
 - default:
     count: 1
-    name: PCI2AHB
-  offset: 0x34
+    name: EXTCAP
+  offset: 0x38
   variants: []
 - default:
-    count: 1
+    count: 16
     name: AHBM2PCI
   offset: 0x40
-  variants: []
-- default:
-    count: 1
-    name: AHBM2PCI
-  offset: 0x7c
   variants: []
 - default:
     count: 1
@@ -296,6 +291,20 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: ECAP
+      properties:
+      - r
+      start: 22
+      width: 1
+    - brief: null
+      description: null
+      name: FH
+      properties:
+      - r
+      start: 21
+      width: 1
+    - brief: null
+      description: null
       name: CFGDO
       properties:
       - r
@@ -360,6 +369,7 @@ registers:
       name: BURST_LENGTH
       properties:
       - r
+      - w
       start: 0
       width: 8
     variants: []
@@ -510,7 +520,6 @@ registers:
       name: CHAN
       properties:
       - r
-      - w
       start: 0
       width: 32
     variants: []
@@ -526,7 +535,6 @@ registers:
       name: ADDR
       properties:
       - r
-      - w
       start: 0
       width: 32
     variants: []
@@ -534,6 +542,21 @@ registers:
     PCI BAR to AHB address mapping register
   description: null
   name: PCI2AHB
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: PF
+      properties:
+      - r
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    Extended Capability register
+  description: null
+  name: EXTCAP
   width: 32
 - bits:
   - default:
