@@ -123,6 +123,8 @@ extern "C" {
 
 #define GR1553B_HC_MOD 0x80000000U
 
+#define GR1553B_HC_DBUF 0x2000U
+
 #define GR1553B_HC_CVER 0x1000U
 
 #define GR1553B_HC_XKEYS 0x800U
@@ -312,6 +314,28 @@ extern "C" {
     ( ( ( _val ) << GR1553B_BCT_SCTM_SHIFT ) & GR1553B_BCT_SCTM_MASK ) )
 #define GR1553B_BCT_SCTM( _val ) \
   ( ( ( _val ) << GR1553B_BCT_SCTM_SHIFT ) & GR1553B_BCT_SCTM_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGR1553BBCTW GR1553B BC Timer wake-up register (BCTW)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GR1553B_BCTW_WKEN 0x80000000U
+
+#define GR1553B_BCTW_WKTM_SHIFT 0
+#define GR1553B_BCTW_WKTM_MASK  0xffffffU
+#define GR1553B_BCTW_WKTM_GET( _reg ) \
+  ( ( ( _reg ) & GR1553B_BCTW_WKTM_MASK ) >> GR1553B_BCTW_WKTM_SHIFT )
+#define GR1553B_BCTW_WKTM_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~GR1553B_BCTW_WKTM_MASK ) | \
+    ( ( ( _val ) << GR1553B_BCTW_WKTM_SHIFT ) & GR1553B_BCTW_WKTM_MASK ) )
+#define GR1553B_BCTW_WKTM( _val ) \
+  ( ( ( _val ) << GR1553B_BCTW_WKTM_SHIFT ) & GR1553B_BCTW_WKTM_MASK )
 
 /** @} */
 
@@ -766,8 +790,8 @@ extern "C" {
  * @{
  */
 
-#define GR1553B_RTELM_MASK_SHIFT 0
-#define GR1553B_RTELM_MASK_MASK  0xffffffffU
+#define GR1553B_RTELM_MASK_SHIFT 2
+#define GR1553B_RTELM_MASK_MASK  0xfffffffcU
 #define GR1553B_RTELM_MASK_GET( _reg ) \
   ( ( ( _reg ) & GR1553B_RTELM_MASK_MASK ) >> GR1553B_RTELM_MASK_SHIFT )
 #define GR1553B_RTELM_MASK_SET( _reg, _val )  \
@@ -992,8 +1016,8 @@ extern "C" {
  * @{
  */
 
-#define GR1553B_BMLBE_END_SHIFT 0
-#define GR1553B_BMLBE_END_MASK  0xffffffffU
+#define GR1553B_BMLBE_END_SHIFT 3
+#define GR1553B_BMLBE_END_MASK  0x3ffff8U
 #define GR1553B_BMLBE_END_GET( _reg ) \
   ( ( ( _reg ) & GR1553B_BMLBE_END_MASK ) >> GR1553B_BMLBE_END_SHIFT )
 #define GR1553B_BMLBE_END_SET( _reg, _val )  \
@@ -1012,8 +1036,8 @@ extern "C" {
  * @{
  */
 
-#define GR1553B_BMLBP_POSITION_SHIFT 0
-#define GR1553B_BMLBP_POSITION_MASK  0xffffffffU
+#define GR1553B_BMLBP_POSITION_SHIFT 3
+#define GR1553B_BMLBP_POSITION_MASK  0x3ffff8U
 #define GR1553B_BMLBP_POSITION_GET( _reg )        \
   ( ( ( _reg ) & GR1553B_BMLBP_POSITION_MASK ) >> \
     GR1553B_BMLBP_POSITION_SHIFT )
@@ -1106,7 +1130,10 @@ typedef struct gr1553b {
    */
   uint32_t bct;
 
-  uint32_t reserved_54_58;
+  /**
+   * @brief See @ref RTEMSDeviceGR1553BBCTW.
+   */
+  uint32_t bctw;
 
   /**
    * @brief See @ref RTEMSDeviceGR1553BBCRP.
