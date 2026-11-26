@@ -1,0 +1,139 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+functional-type: fatal-error
+links:
+- role: requirement-refinement
+  uid: /testsuites/validation
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: requirement-refinement
+  uid: stack-checker-enabled
+- role: interface-function
+  uid: ../if/stack-checker-enabled
+- role: interface-function
+  uid: /score/interr/if/source-stack-checker
+rationale: |
+  In SMP configurations, the thread switch extension of the stack checker runs on
+  the stack of the thread which enters the processor. It checks the
+  ${/glossary/stackpointer:/term} of this thread.
+requirement-type: functional
+test-brief: |
+  This validation test suite contains a test case which triggers the fatal error
+  of the ${/score/interr/if/source-stack-checker:/name} fatal source with the
+  object name of the thread as the fatal code.
+test-case-code: |
+  T_eq_int( source, ${/score/interr/if/source-stack-checker:/name} );
+  T_eq_ulong( code, rtems_build_name( 'T', 'A', 'S', 'K' ) );
+test-description: |
+  The task replaces its ${/glossary/allocatedstackarea:/term} by an area which
+  does not contain its ${/glossary/stackpointer:/term} and suspends itself. The
+  idle thread resumes the task. The thread switch from the idle thread to the
+  task triggers the fatal error.
+test-includes:
+- string.h
+- rtems/test-support.h
+- rtems/stackchkimpl.h
+- rtems/score/threadimpl.h
+test-local-includes: []
+test-support: |
+  static RTEMS_ALIGNED( RTEMS_TASK_STORAGE_ALIGNMENT ) char task_storage
+    [ RTEMS_TASK_STORAGE_SIZE(
+      RTEMS_MINIMUM_STACK_SIZE,
+      RTEMS_DEFAULT_ATTRIBUTES
+    ) ];
+
+  static const rtems_task_config task_config = {
+    .name = rtems_build_name( 'T', 'A', 'S', 'K' ),
+    .initial_priority = 1,
+    .storage_area = task_storage,
+    .storage_size = sizeof( task_storage ),
+    .maximum_thread_local_storage_size = 0,
+    .initial_modes = RTEMS_DEFAULT_MODES,
+    .attributes = RTEMS_DEFAULT_ATTRIBUTES
+  };
+
+  static rtems_id task_id;
+
+  #define AREA_SIZE 1024
+
+  static RTEMS_ALIGNED( CPU_STACK_ALIGNMENT ) uint8_t area[ AREA_SIZE ];
+
+  /*
+   * Replace the allocated stack area of the task by an area which does not
+   * contain the stack pointer.  The area holds the pattern of the stack
+   * checker, so that only the check of the stack pointer fails.
+   */
+  static void Arrange( void )
+  {
+    Thread_Control *executing;
+    Stack_Control   stack;
+
+    executing = _Thread_Get_executing();
+    stack.area = area;
+    stack.size = sizeof( area );
+    memcpy(
+      _Stack_check_Get_pattern( &stack ),
+      _Stack_check_Get_pattern( &executing->Start.Initial_stack ),
+      STACK_CHECK_PATTERN_SIZE
+    );
+    executing->Start.Initial_stack = stack;
+  }
+
+  static void *ResumeTheTask( uintptr_t ignored )
+  {
+    (void) ignored;
+
+    while ( true ) {
+      (void) rtems_task_resume( task_id );
+    }
+
+    return NULL;
+  }
+
+  #define CONFIGURE_IDLE_TASK_BODY ResumeTheTask
+
+  static void TaskBody( rtems_task_argument arg )
+  {
+    (void) arg;
+    Arrange();
+    (void) rtems_task_suspend( RTEMS_SELF );
+  }
+
+  static void ConstructAndStartTask( void )
+  {
+    rtems_status_code sc;
+
+    sc = rtems_task_construct( &task_config, &task_id );
+    T_quiet_rsc_success( sc );
+
+    sc = rtems_task_start( task_id, TaskBody, 0 );
+    T_quiet_rsc_success( sc );
+  }
+
+  RTEMS_SYSINIT_ITEM(
+    ConstructAndStartTask,
+    RTEMS_SYSINIT_LAST,
+    RTEMS_SYSINIT_ORDER_MIDDLE
+  );
+
+  #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
+
+  #define CONFIGURE_STACK_CHECKER_ENABLED
+
+  #define CONFIGURE_MAXIMUM_TASKS 1
+
+  #define CONFIGURE_MINIMUM_TASKS_WITH_USER_PROVIDED_STORAGE 1
+
+  #define CONFIGURE_IDLE_TASK_STORAGE_SIZE RTEMS_MINIMUM_STACK_SIZE
+test-target: testsuites/validation/ts-fatal-stack-checker-switch-stack-pointer-smp.c
+text: |
+  Where the application was configured with ${../if/stack-checker-enabled:/name},
+  where the system was built with SMP support enabled, while the
+  ${/glossary/stackpointer:/term} of a thread is outside the
+  ${/glossary/allocatedstackarea:/term} of the thread, if a thread switch to the
+  thread happens, then the system shall terminate with the
+  ${/score/interr/if/source-stack-checker:/name} fatal source and the object name
+  of the thread as the fatal code.
+type: requirement
