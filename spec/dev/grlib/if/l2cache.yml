@@ -27,6 +27,26 @@ definition:
   variants: []
 - default:
     count: 1
+    name: L2CACC
+  offset: 0x10
+  variants: []
+- default:
+    count: 1
+    name: L2CHIT
+  offset: 0x14
+  variants: []
+- default:
+    count: 1
+    name: L2CFSCCNT
+  offset: 0x18
+  variants: []
+- default:
+    count: 1
+    name: L2CFSUCNT
+  offset: 0x1c
+  variants: []
+- default:
+    count: 1
     name: L2CERR
   offset: 0x20
   variants: []
@@ -67,13 +87,43 @@ definition:
   variants: []
 - default:
     count: 1
-    name: L2CEINJCFG
+    name: PSTART0
+  offset: 0x40
+  variants: []
+- default:
+    count: 1
+    name: PSTOP0
+  offset: 0x44
+  variants: []
+- default:
+    count: 1
+    name: PSTART1
+  offset: 0x48
+  variants: []
+- default:
+    count: 1
+    name: PSTOP1
   offset: 0x4c
   variants: []
 - default:
     count: 1
+    name: L2CEINJCFG
+  offset: 0x50
+  variants: []
+- default:
+    count: 32
     name: L2CMTRR
   offset: 0x80
+  variants: []
+- default:
+    count: 131072
+    name: L2CDTAG
+  offset: 0x80000
+  variants: []
+- default:
+    count: 524288
+    name: L2CDDATA
+  offset: 0x200000
   variants: []
 description: null
 enabled-by: true
@@ -88,7 +138,7 @@ links:
 name: l2cache
 notes: null
 register-block-group: L2CACHE
-register-block-size: 132
+register-block-size: 4194304
 register-prefix: null
 registers:
 - bits:
@@ -197,6 +247,13 @@ registers:
   width: 32
 - bits:
   - default:
+    - brief: null
+      description: null
+      name: DP
+      properties:
+      - r
+      start: 25
+      width: 1
     - brief: null
       description: null
       name: LS
@@ -361,6 +418,70 @@ registers:
     L2C Flush (Set, Index) register
   description: null
   name: L2CFSI
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ACCESS_COUNTER
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Access counter register
+  description: null
+  name: L2CACC
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: HIT_COUNTER
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Hit counter register
+  description: null
+  name: L2CHIT
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: BUS_CYCLE_COUNTER
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Front-side bus cycle counter register
+  description: null
+  name: L2CFSCCNT
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: BUS_USAGE_COUNTER
+      properties:
+      - r
+      - w1c
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Front-side bus usage counter register
+  description: null
+  name: L2CFSUCNT
   width: 32
 - bits:
   - default:
@@ -559,7 +680,7 @@ registers:
       properties:
       - r
       - w
-      start: 2
+      start: 4
       width: 2
     - brief: null
       description: null
@@ -627,6 +748,14 @@ registers:
   - default:
     - brief: null
       description: null
+      name: AXCACHE
+      properties:
+      - r
+      - w
+      start: 16
+      width: 16
+    - brief: null
+      description: null
       name: DSC
       properties:
       - r
@@ -640,6 +769,22 @@ registers:
       - r
       - w
       start: 13
+      width: 1
+    - brief: null
+      description: null
+      name: RFCL
+      properties:
+      - r
+      - w
+      start: 12
+      width: 1
+    - brief: null
+      description: null
+      name: PS
+      properties:
+      - r
+      - w
+      start: 11
       width: 1
     - brief: null
       description: null
@@ -723,6 +868,101 @@ registers:
   - default:
     - brief: null
       description: null
+      name: ADDR
+      properties:
+      - r
+      - w
+      start: 5
+      width: 27
+    - brief: null
+      description: null
+      name: P
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: EN
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    L2C priming start register
+  description: null
+  name: PSTART0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ADDR
+      properties:
+      - r
+      - w
+      start: 5
+      width: 27
+    variants: []
+  brief: |
+    L2C priming stop register
+  description: null
+  name: PSTOP0
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ADDR
+      properties:
+      - r
+      - w
+      start: 5
+      width: 27
+    - brief: null
+      description: null
+      name: P
+      properties:
+      - r
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: EN
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    L2C priming start (second area) register
+  description: null
+  name: PSTART1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: ADDR
+      properties:
+      - r
+      - w
+      start: 5
+      width: 27
+    variants: []
+  brief: |
+    L2C priming stop (second area) register
+  description: null
+  name: PSTOP1
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
       name: EDI
       properties:
       - r
@@ -744,6 +984,38 @@ registers:
       - r
       - w
       start: 8
+      width: 1
+    - brief: null
+      description: null
+      name: M
+      properties:
+      - r
+      - w
+      start: 3
+      width: 1
+    - brief: null
+      description: null
+      name: PI
+      properties:
+      - r
+      - w
+      start: 2
+      width: 1
+    - brief: null
+      description: null
+      name: DT
+      properties:
+      - r
+      - w
+      start: 1
+      width: 1
+    - brief: null
+      description: null
+      name: CB
+      properties:
+      - r
+      - w
+      start: 0
       width: 1
     variants: []
   brief: |
@@ -798,5 +1070,37 @@ registers:
     L2C Memory type range register
   description: null
   name: L2CMTRR
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: L2CDTAG
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    L2C diagnostic tag area
+  description: null
+  name: L2CDTAG
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: L2CDDATA
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    L2C diagnostic data area
+  description: null
+  name: L2CDDATA
   width: 32
 type: interface
