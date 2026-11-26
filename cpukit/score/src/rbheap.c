@@ -2211,6 +2211,10 @@ bool _RBHeap_Free( RBHeap_control *control, void *begin )
   ISR_lock_Context lock_context;
   bool             result;
 
+  if ( begin == NULL ) {
+    return true;
+  }
+
   _RBHeap_Acquire( control, &lock_context );
   result = _RBHeap_Do_free( control, begin );
   _RBHeap_Release( control, &lock_context );
@@ -2848,7 +2852,11 @@ bool _RBHeap_Free_to_processor( RBHeap_control *control, void *block )
   RBHeap_processor_descriptor *desc;
   RBHeap_free_status           status;
 
-  if ( control->processors == NULL || block == NULL ) {
+  if ( block == NULL ) {
+    return true;
+  }
+
+  if ( control->processors == NULL ) {
     return _RBHeap_Free( control, block );
   }
 
