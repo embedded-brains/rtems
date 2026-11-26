@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@ const char rtems_test_name[] = "TestsuitesFatalTooLargeTlsSize";
 
 #define CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE \
   RTEMS_TASK_STORAGE_ALIGNMENT
+
+#define CONFIGURE_MAXIMUM_TASKS 1
 
 #define CONFIGURE_STACK_CHECKER_ENABLED
 

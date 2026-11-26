@@ -66,6 +66,8 @@ links:
 - role: build-dependency
   uid: fatal-too-large-tls-size
 - role: build-dependency
+  uid: fatal-workspace-too-large-tls-size
+- role: build-dependency
   uid: model-0
 - role: build-dependency
   uid: performance-no-clock-0
@@ -87,6 +89,8 @@ links:
   uid: validation-cxx-0
 - role: build-dependency
   uid: validation-heap-0
+- role: build-dependency
+  uid: validation-heap-1
 - role: build-dependency
   uid: validation-intr
 - role: build-dependency
