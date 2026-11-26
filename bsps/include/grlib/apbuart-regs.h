@@ -145,6 +145,20 @@ extern "C" {
 
 #define APBUART_CTRL_FA 0x80000000U
 
+#define APBUART_CTRL_TB 0x100000U
+
+#define APBUART_CTRL_BS_SHIFT 16
+#define APBUART_CTRL_BS_MASK  0xf0000U
+#define APBUART_CTRL_BS_GET( _reg ) \
+  ( ( ( _reg ) & APBUART_CTRL_BS_MASK ) >> APBUART_CTRL_BS_SHIFT )
+#define APBUART_CTRL_BS_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~APBUART_CTRL_BS_MASK ) | \
+    ( ( ( _val ) << APBUART_CTRL_BS_SHIFT ) & APBUART_CTRL_BS_MASK ) )
+#define APBUART_CTRL_BS( _val ) \
+  ( ( ( _val ) << APBUART_CTRL_BS_SHIFT ) & APBUART_CTRL_BS_MASK )
+
+#define APBUART_CTRL_NS 0x8000U
+
 #define APBUART_CTRL_SI 0x4000U
 
 #define APBUART_CTRL_DI 0x2000U
@@ -186,7 +200,7 @@ extern "C" {
  */
 
 #define APBUART_SCALER_SCALER_RELOAD_VALUE_SHIFT 0
-#define APBUART_SCALER_SCALER_RELOAD_VALUE_MASK  0xfffffU
+#define APBUART_SCALER_SCALER_RELOAD_VALUE_MASK  0xffffffffU
 #define APBUART_SCALER_SCALER_RELOAD_VALUE_GET( _reg )        \
   ( ( ( _reg ) & APBUART_SCALER_SCALER_RELOAD_VALUE_MASK ) >> \
     APBUART_SCALER_SCALER_RELOAD_VALUE_SHIFT )
@@ -221,6 +235,41 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBAPBUARTDCTRL \
+ *   UART FIFO debug control register (DCTRL)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define APBUART_DCTRL_DB 0x1U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBAPBUARTCAP UART capability register (CAP)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define APBUART_CAP_FL 0x40U
+
+#define APBUART_CAP_FIFO_SHIFT 0
+#define APBUART_CAP_FIFO_MASK  0x3fU
+#define APBUART_CAP_FIFO_GET( _reg ) \
+  ( ( ( _reg ) & APBUART_CAP_FIFO_MASK ) >> APBUART_CAP_FIFO_SHIFT )
+#define APBUART_CAP_FIFO_SET( _reg, _val )  \
+  ( ( ( _reg ) & ~APBUART_CAP_FIFO_MASK ) | \
+    ( ( ( _val ) << APBUART_CAP_FIFO_SHIFT ) & APBUART_CAP_FIFO_MASK ) )
+#define APBUART_CAP_FIFO( _val ) \
+  ( ( ( _val ) << APBUART_CAP_FIFO_SHIFT ) & APBUART_CAP_FIFO_MASK )
+
+/** @} */
+
+/**
  * @brief This structure defines the APBUART register block memory map.
  */
 typedef struct apbuart {
@@ -248,6 +297,16 @@ typedef struct apbuart {
    * @brief See @ref RTEMSDeviceGRLIBAPBUARTFIFO.
    */
   uint32_t fifo;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBAPBUARTDCTRL.
+   */
+  uint32_t dctrl;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBAPBUARTCAP.
+   */
+  uint32_t cap;
 } apbuart;
 
 /** @} */
