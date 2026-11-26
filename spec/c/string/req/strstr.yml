@@ -105,30 +105,30 @@ pre-conditions:
     text: |
       While the length of the string referenced by the
       ${../if/strstr:/params[1]/name} parameter is equal to two.
-  - name: Three
-    test-code: |
-      ctx->length = 3;
+  - name: More
+    representatives:
+    - name: Three
+      test-code: |
+        ctx->length = 3;
+    - name: Four
+      test-code: |
+        ctx->length = 4;
+    - name: Five
+      test-code: |
+        ctx->length = 5;
+    - name: Six
+      test-code: |
+        ctx->length = 6;
+    - name: SixtyFour
+      test-code: |
+        ctx->length = 64;
+    - name: Long
+      test-code: |
+        ctx->length = 300;
+    test-code: null
     text: |
       While the length of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter is equal to three.
-  - name: Four
-    test-code: |
-      ctx->length = 4;
-    text: |
-      While the length of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter is equal to four.
-  - name: Five
-    test-code: |
-      ctx->length = 5;
-    text: |
-      While the length of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter is equal to five.
-  - name: Long
-    test-code: |
-      ctx->length = 300;
-    text: |
-      While the length of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter is greater than five.
+      ${../if/strstr:/params[1]/name} parameter is greater than two.
   test-epilogue: null
   test-prologue: null
 - name: Haystack
@@ -326,6 +326,16 @@ pre-conditions:
 - name: HighByte
   states:
   - name: 'Yes'
+    representatives:
+    - name: Min
+      test-code: |
+        ctx->high_byte = 0x80;
+    - name: Mid
+      test-code: |
+        ctx->high_byte = 0xb0;
+    - name: Max
+      test-code: |
+        ctx->high_byte = 0xff;
     test-code: |
       ctx->high = true;
     text: |
@@ -348,12 +358,15 @@ rationale: |
   the function does not change ${/c/errno/if/errno:/name} on valid input.
 
   Dimension Length covers the length of the string referenced by the
-  ${../if/strstr:/params[1]/name} parameter, 7 states.
+  ${../if/strstr:/params[1]/name} parameter, 4 states.
   ${/ref/std/c23/strstr:/name} specifies the result for a string of zero length
-  apart from every other string. The implementation of the pre-qualified library
+  apart from every other string. A string of one or two characters holds fewer
+  shapes than a longer string. The implementation of the pre-qualified library
   selects its search by this length. It compares the length against one, two,
-  three and four. The states Empty to Five hold the values below, at and above
-  these boundaries. The Long state holds the values after these states.
+  three and four. The More state takes the lengths three, four, five and six, 64
+  and 300. The implementation searches the haystack in blocks. The block size is
+  the needle length with the lower six bits set. The length 64 is therefore the
+  first length with a block of 127 bytes.
 
   Dimension Haystack covers the length of the string referenced by the
   ${../if/strstr:/params[0]/name} parameter, 5 states. It takes this length
@@ -369,7 +382,8 @@ rationale: |
   ${/ref/std/c23/strstr:/name} interprets each character of a string function as
   type `unsigned char`. The characters with a value greater than 127 have a
   negative value as type `signed char`. The HighByte dimension holds this
-  distinction.
+  distinction. The Yes state takes the bytes 0x80, 0xb0 and 0xff. They are the
+  first, an inner and the last value greater than 127.
 
   Dimension Occurrences covers the number of occurrences of the string referenced
   by the ${../if/strstr:/params[1]/name} parameter in the string referenced by
@@ -587,6 +601,12 @@ test-context:
   member: |
     bool high
 - brief: |
+    This member specifies the byte with a value greater than 127, if the member
+    high is true.
+  description: null
+  member: |
+    unsigned char high_byte
+- brief: |
     This member contains the length of the string referenced by the
     ${../if/strstr:/params[0]/name} parameter.
   description: null
@@ -712,8 +732,6 @@ test-support: |
   typedef CStringReqStrstr_Context Context;
 
   #define FILLER 'c'
-
-  #define HIGH 0xb0
 
   typedef struct {
     unsigned char length;
@@ -1343,13 +1361,13 @@ test-support: |
 
     for ( i = 0; i < ctx->length; ++i ) {
       if ( ctx->s2_buf[ i ] == letter ) {
-        ctx->s2_buf[ i ] = (char) HIGH;
+        ctx->s2_buf[ i ] = (char) ctx->high_byte;
       }
     }
 
     for ( i = 0; i < ctx->size; ++i ) {
       if ( ctx->s1_buf[ i ] == letter ) {
-        ctx->s1_buf[ i ] = (char) HIGH;
+        ctx->s1_buf[ i ] = (char) ctx->high_byte;
       }
     }
   }
@@ -1494,10 +1512,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     - AboveNeedle
@@ -1568,10 +1583,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     - AboveNeedle
@@ -1720,7 +1732,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - Shorter
     Border: all
@@ -1743,7 +1755,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - BelowNeedle
     Border: all
@@ -1764,7 +1776,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -1788,7 +1800,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -1813,10 +1825,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -1838,10 +1847,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -1866,10 +1872,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     - Longer
@@ -1881,81 +1884,6 @@ transition-map:
     - 'No'
     Partial:
     - Inside
-    - Tail
-    NearMatch: all
-    HighByte: all
-- enabled-by: true
-  post-conditions:
-    Result: 'Null'
-    S1: Nop
-    S2: Nop
-    Errno: Nop
-  pre-conditions:
-    Length:
-    - Four
-    - Five
-    - Long
-    Haystack:
-    - Shorter
-    - BelowNeedle
-    Border: all
-    Occurrences:
-    - None
-    Position: N/A
-    Overlap:
-    - 'No'
-    Partial: all
-    NearMatch:
-    - None
-    HighByte: all
-- enabled-by: true
-  post-conditions:
-    Result: 'Null'
-    S1: Nop
-    S2: Nop
-    Errno: Nop
-  pre-conditions:
-    Length:
-    - Four
-    - Five
-    - Long
-    Haystack:
-    - EqualNeedle
-    Border:
-    - 'Yes'
-    Occurrences:
-    - None
-    Position: N/A
-    Overlap:
-    - 'No'
-    Partial:
-    - Inside
-    NearMatch:
-    - None
-    - Inner
-    - Last
-    HighByte: all
-- enabled-by: true
-  post-conditions:
-    Result: 'Null'
-    S1: Nop
-    S2: Nop
-    Errno: Nop
-  pre-conditions:
-    Length:
-    - Four
-    - Five
-    - Long
-    Haystack:
-    - EqualNeedle
-    Border:
-    - 'Yes'
-    Occurrences:
-    - None
-    Position: N/A
-    Overlap:
-    - 'No'
-    Partial:
     - Tail
     NearMatch: all
     HighByte: all
@@ -2091,10 +2019,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border: all
@@ -2166,10 +2091,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -2219,10 +2141,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -2271,10 +2190,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2376,10 +2292,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2452,10 +2365,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2561,10 +2471,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2614,10 +2521,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border: all
@@ -2641,10 +2545,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -2669,10 +2570,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -2696,10 +2594,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -2725,10 +2620,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border: all
@@ -2753,10 +2645,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2780,10 +2669,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border: all
@@ -2805,10 +2691,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2832,10 +2715,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -2858,10 +2738,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Longer
     Border:
@@ -3037,10 +2914,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3107,10 +2981,7 @@ transition-map:
   post-conditions: AboveHaystackHasNoRoomBetween
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3131,10 +3002,7 @@ transition-map:
   post-conditions: AboveHaystackHasNoRoomBetween
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3154,10 +3022,7 @@ transition-map:
   post-conditions: AboveHaystackHasNoRoomBetween
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3177,10 +3042,7 @@ transition-map:
   post-conditions: AboveHaystackHasNoRoomBetween
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3199,10 +3061,7 @@ transition-map:
   post-conditions: AboveHaystackHasNoRoomBetween
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3265,10 +3124,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3289,10 +3145,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border: all
@@ -3332,10 +3185,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3356,10 +3206,7 @@ transition-map:
   post-conditions: AboveHaystackIsTwoSequences
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - AboveNeedle
     Border:
@@ -3383,10 +3230,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -3726,10 +3570,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border: all
@@ -3813,10 +3654,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -3944,10 +3782,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -3969,10 +3804,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4014,10 +3846,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border: all
@@ -4038,10 +3867,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4061,10 +3887,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border: all
@@ -4082,10 +3905,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4105,10 +3925,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4127,10 +3944,7 @@ transition-map:
   post-conditions: EqualHaystackIsNeedle
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4152,9 +3966,6 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Four
-    - Five
-    - Long
     Haystack:
     - EqualNeedle
     Border:
@@ -4174,7 +3985,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4213,7 +4024,7 @@ transition-map:
   post-conditions: EqualHaystackIsOneSequence
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4233,10 +4044,7 @@ transition-map:
   post-conditions: EqualHaystackIsOneSequence
   pre-conditions:
     Length:
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - EqualNeedle
     Border:
@@ -4257,10 +4065,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border: all
     Occurrences:
@@ -4280,10 +4085,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border: all
     Occurrences:
@@ -4305,10 +4107,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4329,10 +4128,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'No'
@@ -4354,10 +4150,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4381,10 +4174,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4404,10 +4194,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4430,10 +4217,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4452,10 +4236,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'No'
@@ -4480,10 +4261,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'No'
@@ -4897,10 +4675,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'Yes'
@@ -4918,10 +4693,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'No'
@@ -4940,10 +4712,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border: all
     Occurrences:
@@ -5283,7 +5052,7 @@ transition-map:
   post-conditions: OneCharacterHaystackEndsWithPartialMatch
   pre-conditions:
     Length:
-    - Three
+    - More
     Haystack:
     - Shorter
     Border: all
@@ -5388,10 +5157,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border:
     - 'No'
@@ -5428,10 +5194,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border: all
     Occurrences:
@@ -5448,10 +5211,7 @@ transition-map:
     Length:
     - One
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack: all
     Border: all
     Occurrences:
@@ -5593,10 +5353,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5619,10 +5376,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5846,10 +5600,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5872,10 +5623,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5898,10 +5646,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5923,10 +5668,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5946,10 +5688,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5971,10 +5710,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -5996,10 +5732,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -6020,10 +5753,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -6047,10 +5777,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
@@ -6073,10 +5800,7 @@ transition-map:
   pre-conditions:
     Length:
     - Two
-    - Three
-    - Four
-    - Five
-    - Long
+    - More
     Haystack:
     - Shorter
     - BelowNeedle
