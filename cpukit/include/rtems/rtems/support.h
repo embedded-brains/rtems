@@ -517,6 +517,9 @@ typedef struct {
   /**
    * @brief This member contains the size in bytes of the largest free block of
    *   the heap.
+   *
+   * The size of a block in the processor bins of the C Program Heap does not
+   * count for this member.
    */
   size_t largest_free_size;
 

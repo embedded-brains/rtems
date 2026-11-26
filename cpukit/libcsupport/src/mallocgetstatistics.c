@@ -85,6 +85,10 @@ int malloc_get_statistics( rtems_heap_statistics *stats )
   info.Stats.free_size = info.Free.total;
   info.Stats.free_blocks = (uint32_t) info.Free.number;
   info.Stats.used_blocks = (uint32_t) info.Used.number;
-  _RTEMS_Convert_heap_statistics( &info.Stats, stats );
+  _RTEMS_Convert_heap_statistics(
+    &info.Stats,
+    _RBHeap_Get_largest_free_size( RTEMS_Malloc_Heap ),
+    stats
+  );
   return 0;
 }

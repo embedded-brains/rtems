@@ -851,6 +851,15 @@ void _RBHeap_Get_statistics(
 );
 
 /**
+ * @brief Gets the size of the largest free block of the red-black tree heap.
+ *
+ * @param control is the control of the heap.
+ *
+ * @return Returns the size in bytes of the largest free block, else zero.
+ */
+uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control );
+
+/**
  * @brief Gets the size of the slabs of the red-black tree heap which the heap
  *   frees if the used tree loses the count of entries.
  *

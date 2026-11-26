@@ -3161,6 +3161,26 @@ void _RBHeap_Get_statistics(
   _RBHeap_Release( control, &lock_context );
 }
 
+uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control )
+{
+  ISR_lock_Context         lock_context;
+  const RBHeap_descriptor *node;
+  uintptr_t                size;
+
+  _RBHeap_Acquire( control, &lock_context );
+  node = _RBHeap_Root( &control->free_root );
+  size = 0;
+
+  /* The tree orders the free blocks by size. */
+  while ( node != NULL ) {
+    size = node->size;
+    node = _RBHeap_Right( node );
+  }
+
+  _RBHeap_Release( control, &lock_context );
+  return size;
+}
+
 uintptr_t _RBHeap_Get_releasable_size(
   const RBHeap_control *control,
   uintptr_t             entries
