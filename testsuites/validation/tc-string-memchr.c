@@ -63,11 +63,7 @@
 typedef enum {
   CStringReqMemchr_Pre_N_Zero,
   CStringReqMemchr_Pre_N_One,
-  CStringReqMemchr_Pre_N_Short,
-  CStringReqMemchr_Pre_N_BelowWord,
-  CStringReqMemchr_Pre_N_Word,
-  CStringReqMemchr_Pre_N_AboveWord,
-  CStringReqMemchr_Pre_N_Long,
+  CStringReqMemchr_Pre_N_More,
   CStringReqMemchr_Pre_N_NA
 } CStringReqMemchr_Pre_N;
 
@@ -79,9 +75,7 @@ typedef enum {
 
 typedef enum {
   CStringReqMemchr_Pre_Alignment_Aligned,
-  CStringReqMemchr_Pre_Alignment_AboveAligned,
-  CStringReqMemchr_Pre_Alignment_Between,
-  CStringReqMemchr_Pre_Alignment_BelowAligned,
+  CStringReqMemchr_Pre_Alignment_Unaligned,
   CStringReqMemchr_Pre_Alignment_NA
 } CStringReqMemchr_Pre_Alignment;
 
@@ -185,6 +179,22 @@ typedef struct {
     size_t pcs[ 5 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 32 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -209,20 +219,43 @@ typedef struct {
 
 static CStringReqMemchr_Context CStringReqMemchr_Instance;
 
-static const char *const CStringReqMemchr_PreDesc_N[] =
-  { "Zero", "One", "Short", "BelowWord", "Word", "AboveWord", "Long", "NA" };
+static const char *const CStringReqMemchr_PreDesc_N[] = {
+  "Zero",
+  "One",
+  "MoreTwo",
+  "MoreWordMinusTwo",
+  "MoreWordMinusOne",
+  "MoreWord",
+  "MoreWordPlusOne",
+  "MoreWordPlusTwo",
+  "MoreFiveWords",
+  "MoreMax",
+  "NA"
+};
 
 static const char *const CStringReqMemchr_PreDesc_Bound[] =
   { "Inside", "Beyond", "NA" };
 
-static const char *const CStringReqMemchr_PreDesc_Alignment[] =
-  { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
+static const char *const CStringReqMemchr_PreDesc_Alignment[] = {
+  "Aligned",
+  "UnalignedOne",
+  "UnalignedTwo",
+  "UnalignedWordMinusTwo",
+  "UnalignedWordMinusOne",
+  "NA"
+};
 
-static const char *const CStringReqMemchr_PreDesc_C[] =
-  { "InRange", "Negative", "Greater", "NA" };
+static const char *const CStringReqMemchr_PreDesc_C[] = {
+  "InRange",
+  "NegativeNear",
+  "NegativeMin",
+  "GreaterNear",
+  "GreaterMax",
+  "NA"
+};
 
 static const char *const CStringReqMemchr_PreDesc_Match[] =
-  { "None", "One", "Several", "NA" };
+  { "None", "OneFirst", "OneLast", "SeveralStart", "SeveralInner", "NA" };
 
 static const char *const *const CStringReqMemchr_PreDesc[] = {
   CStringReqMemchr_PreDesc_N,
@@ -232,6 +265,247 @@ static const char *const *const CStringReqMemchr_PreDesc[] = {
   CStringReqMemchr_PreDesc_Match,
   NULL
 };
+
+typedef enum {
+  CStringReqMemchr_Pre_N_More_Two,
+  CStringReqMemchr_Pre_N_More_WordMinusTwo,
+  CStringReqMemchr_Pre_N_More_WordMinusOne,
+  CStringReqMemchr_Pre_N_More_Word,
+  CStringReqMemchr_Pre_N_More_WordPlusOne,
+  CStringReqMemchr_Pre_N_More_WordPlusTwo,
+  CStringReqMemchr_Pre_N_More_FiveWords,
+  CStringReqMemchr_Pre_N_More_Max
+} CStringReqMemchr_Pre_N_More_Rep;
+
+typedef enum {
+  CStringReqMemchr_Pre_Alignment_Unaligned_One,
+  CStringReqMemchr_Pre_Alignment_Unaligned_Two,
+  CStringReqMemchr_Pre_Alignment_Unaligned_WordMinusTwo,
+  CStringReqMemchr_Pre_Alignment_Unaligned_WordMinusOne
+} CStringReqMemchr_Pre_Alignment_Unaligned_Rep;
+
+typedef enum {
+  CStringReqMemchr_Pre_C_Negative_Near,
+  CStringReqMemchr_Pre_C_Negative_Min
+} CStringReqMemchr_Pre_C_Negative_Rep;
+
+typedef enum {
+  CStringReqMemchr_Pre_C_Greater_Near,
+  CStringReqMemchr_Pre_C_Greater_Max
+} CStringReqMemchr_Pre_C_Greater_Rep;
+
+typedef enum {
+  CStringReqMemchr_Pre_Match_One_First,
+  CStringReqMemchr_Pre_Match_One_Last
+} CStringReqMemchr_Pre_Match_One_Rep;
+
+typedef enum {
+  CStringReqMemchr_Pre_Match_Several_Start,
+  CStringReqMemchr_Pre_Match_Several_Inner
+} CStringReqMemchr_Pre_Match_Several_Rep;
+
+static const uint8_t CStringReqMemchr_PreRepOffset_N[] = { 0, 1, 2, 10, 11 };
+
+static const uint8_t CStringReqMemchr_PreRepOffset_Bound[] = { 0, 1, 2, 3 };
+
+static const uint8_t CStringReqMemchr_PreRepOffset_Alignment[] =
+  { 0, 1, 5, 6 };
+
+static const uint8_t CStringReqMemchr_PreRepOffset_C[] = { 0, 1, 3, 5, 6 };
+
+static const uint8_t CStringReqMemchr_PreRepOffset_Match[] = { 0, 1, 3, 5, 6 };
+
+static const uint8_t *const CStringReqMemchr_PreRepOffset[] = {
+  CStringReqMemchr_PreRepOffset_N,
+  CStringReqMemchr_PreRepOffset_Bound,
+  CStringReqMemchr_PreRepOffset_Alignment,
+  CStringReqMemchr_PreRepOffset_C,
+  CStringReqMemchr_PreRepOffset_Match
+};
+
+static size_t CStringReqMemchr_GetRepresentativeCountOf(
+  const CStringReqMemchr_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqMemchr_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqMemchr_GetRepresentative(
+  const CStringReqMemchr_Context *ctx,
+  size_t                          index
+)
+{
+  size_t count;
+
+  count = CStringReqMemchr_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqMemchr_GetRepresentativeCount(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 5; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqMemchr_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringReqMemchr_Pre_N_More_Rep
+CStringReqMemchr_Pre_N_More_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_N_More_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqMemchr_Pre_Alignment_Unaligned_Rep
+CStringReqMemchr_Pre_Alignment_Unaligned_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_Alignment_Unaligned_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 2 );
+}
+
+static CStringReqMemchr_Pre_C_Negative_Rep
+CStringReqMemchr_Pre_C_Negative_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_C_Negative_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 3 );
+}
+
+static CStringReqMemchr_Pre_C_Greater_Rep
+CStringReqMemchr_Pre_C_Greater_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_C_Greater_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 3 );
+}
+
+static CStringReqMemchr_Pre_Match_One_Rep
+CStringReqMemchr_Pre_Match_One_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_Match_One_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 4 );
+}
+
+static CStringReqMemchr_Pre_Match_Several_Rep
+CStringReqMemchr_Pre_Match_Several_GetRepresentative(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  return (
+    CStringReqMemchr_Pre_Match_Several_Rep
+  ) CStringReqMemchr_GetRepresentative( ctx, 4 );
+}
+
+static const uint8_t CStringReqMemchr_PreRepBase[] = { 0, 11, 14, 20, 26 };
+
+static const uint8_t CStringReqMemchr_PreRepStates[] = { 3, 2, 2, 3, 3 };
+
+static void CStringReqMemchr_ResetRepresentatives(
+  CStringReqMemchr_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 32; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqMemchr_MarkRepresentatives(
+  CStringReqMemchr_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 5; ++i ) {
+    size_t rep;
+
+    rep = CStringReqMemchr_PreRepBase[ i ] +
+          CStringReqMemchr_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqMemchr_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqMemchr_CheckRepresentatives(
+  const CStringReqMemchr_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 5; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqMemchr_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqMemchr_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqMemchr_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqMemchr_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 #define FILL 0x11
 
@@ -261,51 +535,52 @@ static void CStringReqMemchr_Pre_N_Prepare(
       break;
     }
 
-    case CStringReqMemchr_Pre_N_Short: {
+    case CStringReqMemchr_Pre_N_More: {
       /*
-       * While the size specified by `n` is greater than one, while the size
-       * specified by `n` is less than the size of type long minus one.
+       * While the size specified by `n` is greater than one.
        */
-      ctx->n = 2;
-      ctx->len = ctx->n;
-      break;
-    }
+      switch ( CStringReqMemchr_Pre_N_More_GetRepresentative( ctx ) ) {
+        case CStringReqMemchr_Pre_N_More_Two: {
+          ctx->n = 2;
+          break;
+        }
 
-    case CStringReqMemchr_Pre_N_BelowWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long
-       * minus one.
-       */
-      ctx->n = sizeof( long ) - 1;
-      ctx->len = ctx->n;
-      break;
-    }
+        case CStringReqMemchr_Pre_N_More_WordMinusTwo: {
+          ctx->n = sizeof( long ) - 2;
+          break;
+        }
 
-    case CStringReqMemchr_Pre_N_Word: {
-      /*
-       * While the size specified by `n` is equal to the size of type long.
-       */
-      ctx->n = sizeof( long );
-      ctx->len = ctx->n;
-      break;
-    }
+        case CStringReqMemchr_Pre_N_More_WordMinusOne: {
+          ctx->n = sizeof( long ) - 1;
+          break;
+        }
 
-    case CStringReqMemchr_Pre_N_AboveWord: {
-      /*
-       * While the size specified by `n` is equal to the size of type long plus
-       * one.
-       */
-      ctx->n = sizeof( long ) + 1;
-      ctx->len = ctx->n;
-      break;
-    }
+        case CStringReqMemchr_Pre_N_More_Word: {
+          ctx->n = sizeof( long );
+          break;
+        }
 
-    case CStringReqMemchr_Pre_N_Long: {
-      /*
-       * While the size specified by `n` is greater than the size of type long
-       * plus one.
-       */
-      ctx->n = 5 * sizeof( long ) + 1;
+        case CStringReqMemchr_Pre_N_More_WordPlusOne: {
+          ctx->n = sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemchr_Pre_N_More_WordPlusTwo: {
+          ctx->n = sizeof( long ) + 2;
+          break;
+        }
+
+        case CStringReqMemchr_Pre_N_More_FiveWords: {
+          ctx->n = 5 * sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemchr_Pre_N_More_Max: {
+          ctx->n = 13 * sizeof( long );
+          break;
+        }
+      }
+
       ctx->len = ctx->n;
       break;
     }
@@ -361,33 +636,34 @@ static void CStringReqMemchr_Pre_Alignment_Prepare(
       break;
     }
 
-    case CStringReqMemchr_Pre_Alignment_AboveAligned: {
+    case CStringReqMemchr_Pre_Alignment_Unaligned: {
       /*
-       * While the memory area referenced by the `s` parameter starts one byte
-       * above an address which is aligned to the size of type long.
+       * While the memory area referenced by the `s` parameter starts at an
+       * address which is not aligned to the size of type long.
        */
-      ctx->s = &ctx->buf[ sizeof( long ) + 1 ];
-      break;
-    }
+      switch (
+        CStringReqMemchr_Pre_Alignment_Unaligned_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemchr_Pre_Alignment_Unaligned_One: {
+          ctx->s = &ctx->buf[ sizeof( long ) + 1 ];
+          break;
+        }
 
-    case CStringReqMemchr_Pre_Alignment_Between: {
-      /*
-       * While the memory area referenced by the `s` parameter starts more than
-       * one byte above an address which is aligned to the size of type long,
-       * while the memory area referenced by the `s` parameter starts more than
-       * one byte below the next address which is aligned to the size of type
-       * long.
-       */
-      ctx->s = &ctx->buf[ sizeof( long ) + 2 ];
-      break;
-    }
+        case CStringReqMemchr_Pre_Alignment_Unaligned_Two: {
+          ctx->s = &ctx->buf[ sizeof( long ) + 2 ];
+          break;
+        }
 
-    case CStringReqMemchr_Pre_Alignment_BelowAligned: {
-      /*
-       * While the memory area referenced by the `s` parameter starts one byte
-       * below an address which is aligned to the size of type long.
-       */
-      ctx->s = &ctx->buf[ sizeof( long ) + sizeof( long ) - 1 ];
+        case CStringReqMemchr_Pre_Alignment_Unaligned_WordMinusTwo: {
+          ctx->s = &ctx->buf[ sizeof( long ) + sizeof( long ) - 2 ];
+          break;
+        }
+
+        case CStringReqMemchr_Pre_Alignment_Unaligned_WordMinusOne: {
+          ctx->s = &ctx->buf[ sizeof( long ) + sizeof( long ) - 1 ];
+          break;
+        }
+      }
       break;
     }
 
@@ -415,7 +691,17 @@ static void CStringReqMemchr_Pre_C_Prepare(
       /*
        * While the value of the `c` parameter is less than zero.
        */
-      ctx->c = TARGET - ( UCHAR_MAX + 1 );
+      switch ( CStringReqMemchr_Pre_C_Negative_GetRepresentative( ctx ) ) {
+        case CStringReqMemchr_Pre_C_Negative_Near: {
+          ctx->c = TARGET - ( UCHAR_MAX + 1 );
+          break;
+        }
+
+        case CStringReqMemchr_Pre_C_Negative_Min: {
+          ctx->c = INT_MIN + TARGET;
+          break;
+        }
+      }
       break;
     }
 
@@ -424,7 +710,17 @@ static void CStringReqMemchr_Pre_C_Prepare(
        * While the value of the `c` parameter is greater than the maximum value
        * of the type `unsigned char`.
        */
-      ctx->c = TARGET + ( UCHAR_MAX + 1 );
+      switch ( CStringReqMemchr_Pre_C_Greater_GetRepresentative( ctx ) ) {
+        case CStringReqMemchr_Pre_C_Greater_Near: {
+          ctx->c = TARGET + ( UCHAR_MAX + 1 );
+          break;
+        }
+
+        case CStringReqMemchr_Pre_C_Greater_Max: {
+          ctx->c = INT_MAX - UCHAR_MAX + TARGET;
+          break;
+        }
+      }
       break;
     }
 
@@ -457,8 +753,19 @@ static void CStringReqMemchr_Pre_Match_Prepare(
        * it is equal to the value of the `c` parameter converted to `unsigned
        * char`.
        */
-      ctx->s[ ctx->len - 1 ] = TARGET;
-      ctx->expected = &ctx->s[ ctx->len - 1 ];
+      switch ( CStringReqMemchr_Pre_Match_One_GetRepresentative( ctx ) ) {
+        case CStringReqMemchr_Pre_Match_One_First: {
+          ctx->s[ 0 ] = TARGET;
+          ctx->expected = &ctx->s[ 0 ];
+          break;
+        }
+
+        case CStringReqMemchr_Pre_Match_One_Last: {
+          ctx->s[ ctx->len - 1 ] = TARGET;
+          ctx->expected = &ctx->s[ ctx->len - 1 ];
+          break;
+        }
+      }
       break;
     }
 
@@ -469,12 +776,23 @@ static void CStringReqMemchr_Pre_Match_Prepare(
        * contains it is equal to the value of the `c` parameter converted to
        * `unsigned char`.
        */
-      if ( ctx->len > 2 ) {
-        ctx->s[ 1 ] = TARGET;
-        ctx->expected = &ctx->s[ 1 ];
-      } else {
-        ctx->s[ 0 ] = TARGET;
-        ctx->expected = &ctx->s[ 0 ];
+      switch ( CStringReqMemchr_Pre_Match_Several_GetRepresentative( ctx ) ) {
+        case CStringReqMemchr_Pre_Match_Several_Start: {
+          ctx->s[ 0 ] = TARGET;
+          ctx->expected = &ctx->s[ 0 ];
+          break;
+        }
+
+        case CStringReqMemchr_Pre_Match_Several_Inner: {
+          if ( ctx->len > 2 ) {
+            ctx->s[ 1 ] = TARGET;
+            ctx->expected = &ctx->s[ 1 ];
+          } else {
+            ctx->s[ 0 ] = TARGET;
+            ctx->expected = &ctx->s[ 0 ];
+          }
+          break;
+        }
       }
 
       ctx->s[ ctx->len - 1 ] = TARGET;
@@ -589,33 +907,16 @@ CStringReqMemchr_Entries[] = {
   { 1, 0, 0, 0, 0, 0, CStringReqMemchr_Post_Result_NA,
     CStringReqMemchr_Post_Area_NA, CStringReqMemchr_Post_Errno_NA },
   { 1, 0, 0, 0, 0, 0, CStringReqMemchr_Post_Result_NA,
-    CStringReqMemchr_Post_Area_NA, CStringReqMemchr_Post_Errno_NA },
-  { 1, 0, 0, 0, 0, 0, CStringReqMemchr_Post_Result_NA,
     CStringReqMemchr_Post_Area_NA, CStringReqMemchr_Post_Errno_NA }
 };
 
 static const uint8_t
 CStringReqMemchr_Map[] = {
-  2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 2, 5,
-  5, 2, 5, 5, 2, 5, 5, 2, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 2, 0, 6, 2, 0, 6,
-  2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0, 6, 2, 0,
-  6, 2, 0, 6, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0,
-  2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0,
-  2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0,
-  2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 2,
-  0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0,
-  2, 0, 0, 2, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-  1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2,
-  0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0,
-  3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0,
-  0, 3, 0, 0, 3, 0, 0, 3, 0, 0
+  2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 2, 4, 4, 3, 3, 3, 3, 3, 3, 3, 3,
+  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 0, 5, 2, 0, 5, 2, 0, 5, 2, 0, 5, 2, 0, 5, 2,
+  0, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 0, 0, 2, 0, 0,
+  2, 0, 0, 2, 0, 0, 2, 0, 0, 2, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
+  0, 1, 0, 0
 };
 
 /* clang-format on */
@@ -627,7 +928,15 @@ static size_t CStringReqMemchr_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqMemchr_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 5 ];
+    size_t i;
+
+    for ( i = 0; i < 5; ++i ) {
+      pcd[ i ] = CStringReqMemchr_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqMemchr_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqMemchr_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -659,6 +968,11 @@ static void CStringReqMemchr_TestVariant( CStringReqMemchr_Context *ctx )
   CStringReqMemchr_Pre_Alignment_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CStringReqMemchr_Pre_C_Prepare( ctx, ctx->Map.pcs[ 3 ] );
   CStringReqMemchr_Pre_Match_Prepare( ctx, ctx->Map.pcs[ 4 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqMemchr_Action( ctx );
   CStringReqMemchr_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqMemchr_Post_Area_Check( ctx, ctx->Map.entry.Post_Area );
@@ -675,6 +989,7 @@ T_TEST_CASE_FIXTURE( CStringReqMemchr, &CStringReqMemchr_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqMemchr_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqMemchr_Pre_N_Zero;
@@ -707,13 +1022,24 @@ T_TEST_CASE_FIXTURE( CStringReqMemchr, &CStringReqMemchr_Fixture )
               continue;
             }
 
-            CStringReqMemchr_Prepare( ctx );
-            CStringReqMemchr_TestVariant( ctx );
+            for (
+              ctx->Map.rep = 0;
+              ctx->Map.rep < CStringReqMemchr_GetRepresentativeCount( ctx );
+              ++ctx->Map.rep
+            ) {
+              ctx->Map.skip_rep = false;
+              CStringReqMemchr_Prepare( ctx );
+              CStringReqMemchr_TestVariant( ctx );
+
+              CStringReqMemchr_MarkRepresentatives( ctx );
+            }
           }
         }
       }
     }
   }
+
+  CStringReqMemchr_CheckRepresentatives( ctx );
 }
 
 /** @} */
