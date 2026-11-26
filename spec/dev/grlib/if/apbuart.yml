@@ -30,6 +30,16 @@ definition:
     name: FIFO
   offset: 0x10
   variants: []
+- default:
+    count: 1
+    name: DCTRL
+  offset: 0x14
+  variants: []
+- default:
+    count: 1
+    name: CAP
+  offset: 0x18
+  variants: []
 description: null
 enabled-by: true
 identifier: RTEMSDeviceGRLIBAPBUART
@@ -43,7 +53,7 @@ links:
 name: apbuart
 notes: null
 register-block-group: APBUART
-register-block-size: 20
+register-block-size: 28
 register-prefix: null
 registers:
 - bits:
@@ -176,6 +186,30 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: TB
+      properties:
+      - r
+      - w
+      start: 20
+      width: 1
+    - brief: null
+      description: null
+      name: BS
+      properties:
+      - r
+      - w
+      start: 16
+      width: 4
+    - brief: null
+      description: null
+      name: NS
+      properties:
+      - r
+      - w
+      start: 15
+      width: 1
+    - brief: null
+      description: null
       name: SI
       properties:
       - r
@@ -203,7 +237,6 @@ registers:
       name: DB
       properties:
       - r
-      - w
       start: 11
       width: 1
     - brief: null
@@ -309,7 +342,7 @@ registers:
       - r
       - w
       start: 0
-      width: 20
+      width: 32
     variants: []
   brief: |
     UART scaler reload register
@@ -331,5 +364,43 @@ registers:
     UART FIFO debug register
   description: null
   name: FIFO
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: DB
+      properties:
+      - r
+      - w
+      start: 0
+      width: 1
+    variants: []
+  brief: |
+    UART FIFO debug control register
+  description: null
+  name: DCTRL
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: FL
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
+      name: FIFO
+      properties:
+      - r
+      start: 0
+      width: 6
+    variants: []
+  brief: |
+    UART capability register
+  description: null
+  name: CAP
   width: 32
 type: interface
