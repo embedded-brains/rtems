@@ -415,6 +415,7 @@ source:
 - cpukit/libcsupport/src/mallocextenddefault.c
 - cpukit/libcsupport/src/mallocfreespace.c
 - cpukit/libcsupport/src/mallocgetheapptr.c
+- cpukit/libcsupport/src/mallocgetstatistics.c
 - cpukit/libcsupport/src/mallocheap.c
 - cpukit/libcsupport/src/mallocinfo.c
 - cpukit/libcsupport/src/mallocsetheapptr.c
@@ -496,6 +497,7 @@ source:
 - cpukit/libcsupport/src/utimensat.c
 - cpukit/libcsupport/src/utimes.c
 - cpukit/libcsupport/src/utsname.c
+- cpukit/libcsupport/src/wkspacefallbackmalloc.c
 - cpukit/libcsupport/src/write.c
 - cpukit/libcsupport/src/write_r.c
 - cpukit/libcsupport/src/writev.c
@@ -730,7 +732,6 @@ source:
 - cpukit/posix/src/munlockall.c
 - cpukit/posix/src/munmap.c
 - cpukit/posix/src/mutexclocklock.c
-- cpukit/posix/src/nanosleep.c
 - cpukit/posix/src/pbarrierdestroy.c
 - cpukit/posix/src/pbarrierinit.c
 - cpukit/posix/src/pbarrierwait.c
@@ -821,6 +822,7 @@ source:
 - cpukit/rtems/src/dpmemident.c
 - cpukit/rtems/src/dpmeminternal2external.c
 - cpukit/rtems/src/getapiconfig.c
+- cpukit/rtems/src/heapgetstatistics.c
 - cpukit/rtems/src/intrbody.c
 - cpukit/rtems/src/intrcatch.c
 - cpukit/rtems/src/modes.c
@@ -832,6 +834,7 @@ source:
 - cpukit/rtems/src/regiongetinfo.c
 - cpukit/rtems/src/regiongetsegment.c
 - cpukit/rtems/src/regiongetsegmentsize.c
+- cpukit/rtems/src/regiongetstatistics.c
 - cpukit/rtems/src/regionident.c
 - cpukit/rtems/src/regionprocessqueue.c
 - cpukit/rtems/src/regionresizesegment.c
@@ -855,6 +858,7 @@ source:
 - cpukit/rtems/src/statustoerrno.c
 - cpukit/rtems/src/timergetinfo.c
 - cpukit/rtems/src/workspace.c
+- cpukit/rtems/src/workspacegetstatistics.c
 - cpukit/rtems/src/workspacegreedy.c
 - cpukit/sapi/src/chainappendnotify.c
 - cpukit/sapi/src/chaingetnotify.c
@@ -900,6 +904,7 @@ source:
 - cpukit/score/src/debugisthreaddispatchingallowed.c
 - cpukit/score/src/debugunreachable.c
 - cpukit/score/src/freechain.c
+- cpukit/score/src/greedy.c
 - cpukit/score/src/hash.c
 - cpukit/score/src/heap.c
 - cpukit/score/src/heapallocate.c
@@ -1007,14 +1012,8 @@ source:
 - cpukit/score/src/timespectoticks.c
 - cpukit/score/src/wkspace.c
 - cpukit/score/src/wkspaceallocate.c
+- cpukit/score/src/wkspacefallbackdefault.c
 - cpukit/score/src/wkspacefree.c
 - cpukit/score/src/wkspaceisunifieddefault.c
 - cpukit/score/src/wkstringduplicate.c
-- cpukit/libcsupport/src/mallocgetstatistics.c
-- cpukit/libcsupport/src/wkspacefallbackmalloc.c
-- cpukit/rtems/src/heapgetstatistics.c
-- cpukit/rtems/src/regiongetstatistics.c
-- cpukit/rtems/src/workspacegetstatistics.c
-- cpukit/score/src/greedy.c
-- cpukit/score/src/wkspacefallbackdefault.c
 type: build

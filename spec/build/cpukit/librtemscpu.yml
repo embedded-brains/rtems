@@ -408,6 +408,7 @@ source:
 - cpukit/posix/src/mutextimedlock.c
 - cpukit/posix/src/mutextrylock.c
 - cpukit/posix/src/mutexunlock.c
+- cpukit/posix/src/nanosleep.c
 - cpukit/posix/src/pspindestroy.c
 - cpukit/posix/src/pspininit.c
 - cpukit/posix/src/pspinlock.c
