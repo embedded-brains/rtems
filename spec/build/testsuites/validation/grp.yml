@@ -48,6 +48,14 @@ links:
 - role: build-dependency
   uid: fatal-stack-checker-interrupt-stack
 - role: build-dependency
+  uid: fatal-stack-checker-switch-interrupt-stack
+- role: build-dependency
+  uid: fatal-stack-checker-switch-pattern
+- role: build-dependency
+  uid: fatal-stack-checker-switch-stack-pointer
+- role: build-dependency
+  uid: fatal-stack-checker-switch-stack-pointer-smp
+- role: build-dependency
   uid: fatal-start-of-mandatory-processor-failed
 - role: build-dependency
   uid: fatal-start-on-not-online-processor
