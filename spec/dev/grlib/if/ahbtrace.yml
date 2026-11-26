@@ -45,6 +45,11 @@ definition:
     name: TBBM
   offset: 0x1c
   variants: []
+- default:
+    count: 16384
+    name: TBUF
+  offset: 0x10000
+  variants: []
 description: null
 enabled-by: true
 identifier: RTEMSDeviceGRLIBAHBTRACE
@@ -58,7 +63,7 @@ links:
 name: ahbtrace
 notes: null
 register-block-group: AHBTRACE
-register-block-size: 32
+register-block-size: 131072
 register-prefix: null
 registers:
 - bits:
@@ -70,7 +75,30 @@ registers:
       - r
       - w
       start: 16
-      width: 7
+      width: 16
+    - brief: null
+      description: null
+      name: BA
+      properties:
+      - r
+      start: 15
+      width: 1
+    - brief: null
+      description: null
+      name: BSEL
+      properties:
+      - r
+      - w
+      start: 12
+      width: 3
+    - brief: null
+      description: null
+      name: EF
+      properties:
+      - r
+      - w
+      start: 9
+      width: 1
     - brief: null
       description: null
       name: PF
@@ -148,7 +176,7 @@ registers:
       - r
       - w
       start: 4
-      width: 7
+      width: 28
     variants: []
   brief: |
     Trace buffer index register
@@ -160,7 +188,8 @@ registers:
     - brief: null
       description: null
       name: TIMETAG
-      properties: []
+      properties:
+      - r
       start: 0
       width: 32
     variants: []
@@ -173,7 +202,7 @@ registers:
   - default:
     - brief: null
       description: null
-      name: SMASK_15_0
+      name: SMASK
       properties:
       - r
       - w
@@ -181,7 +210,7 @@ registers:
       width: 16
     - brief: null
       description: null
-      name: MMASK_15_0
+      name: MMASK
       properties:
       - r
       - w
@@ -240,5 +269,21 @@ registers:
     Trace buffer break mask registers
   description: null
   name: TBBM
+  width: 32
+- bits:
+  - default:
+    - brief: null
+      description: null
+      name: TBUF
+      properties:
+      - r
+      - w
+      start: 0
+      width: 32
+    variants: []
+  brief: |
+    Trace buffer area
+  description: null
+  name: TBUF
   width: 32
 type: interface
