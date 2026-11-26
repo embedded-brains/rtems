@@ -58,15 +58,33 @@ pre-conditions:
     text: |
       While the value of the ${../if/ffs:/params[0]/name} parameter is equal to one.
   - name: Least
-    test-code: |
-      ctx->i = 0x00080101;
+    representatives:
+    - name: Least
+      test-code: |
+        ctx->i = 0x00080101;
+    - name: LeastNegative
+      test-code: |
+        ctx->i = INT_MIN + 1;
+    test-code: null
     text: |
       While the least significant bit of the value of the
       ${../if/ffs:/params[0]/name} parameter is set, while the value of the
       ${../if/ffs:/params[0]/name} parameter is neither one nor minus one.
   - name: Middle
-    test-code: |
-      ctx->i = 0x00080100;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->i = 2;
+    - name: Inner
+      test-code: |
+        ctx->i = 0x00080100;
+    - name: BelowMost
+      test-code: |
+        ctx->i = 0x40000000;
+    - name: Negative
+      test-code: |
+        ctx->i = INT_MIN | 0x00000100;
+    test-code: null
     text: |
       While the least significant bit set in the value of the
       ${../if/ffs:/params[0]/name} parameter is neither the least significant bit nor
@@ -88,7 +106,10 @@ rationale: |
   The other states cover the position of the least significant bit set in the
   value. The Least and Most states hold the two ends of the index range, one and
   32\. The Most state holds the minimum value of the type, so the sign bit is set.
-  The Middle state holds every other value.
+  The Middle state holds every other value. The Least state takes a positive and
+  a negative value. The Middle state takes the index two, an inner index and the
+  index below the most significant bit. It also takes an inner index with the
+  sign bit set.
 references: []
 requirement-type: functional
 skip-reasons: {}
