@@ -284,6 +284,13 @@ registers:
       width: 1
     - brief: null
       description: null
+      name: EC
+      properties:
+      - r
+      start: 6
+      width: 1
+    - brief: null
+      description: null
       name: SERA
       properties:
       - r
