@@ -138,6 +138,8 @@ extern "C" {
  * @{
  */
 
+#define L2CACHE_L2CS_DP 0x2000000U
+
 #define L2CACHE_L2CS_LS 0x1000000U
 
 #define L2CACHE_L2CS_AT 0x800000U
@@ -283,6 +285,100 @@ extern "C" {
       L2CACHE_L2CFSI_FMODE_MASK ) )
 #define L2CACHE_L2CFSI_FMODE( _val ) \
   ( ( ( _val ) << L2CACHE_L2CFSI_FMODE_SHIFT ) & L2CACHE_L2CFSI_FMODE_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CACC Access counter register (L2CACC)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CACC_ACCESS_COUNTER_SHIFT 0
+#define L2CACHE_L2CACC_ACCESS_COUNTER_MASK  0xffffffffU
+#define L2CACHE_L2CACC_ACCESS_COUNTER_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CACC_ACCESS_COUNTER_MASK ) >> \
+    L2CACHE_L2CACC_ACCESS_COUNTER_SHIFT )
+#define L2CACHE_L2CACC_ACCESS_COUNTER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CACC_ACCESS_COUNTER_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CACC_ACCESS_COUNTER_SHIFT ) & \
+      L2CACHE_L2CACC_ACCESS_COUNTER_MASK ) )
+#define L2CACHE_L2CACC_ACCESS_COUNTER( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CACC_ACCESS_COUNTER_SHIFT ) & \
+    L2CACHE_L2CACC_ACCESS_COUNTER_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CHIT Hit counter register (L2CHIT)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CHIT_HIT_COUNTER_SHIFT 0
+#define L2CACHE_L2CHIT_HIT_COUNTER_MASK  0xffffffffU
+#define L2CACHE_L2CHIT_HIT_COUNTER_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CHIT_HIT_COUNTER_MASK ) >> \
+    L2CACHE_L2CHIT_HIT_COUNTER_SHIFT )
+#define L2CACHE_L2CHIT_HIT_COUNTER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CHIT_HIT_COUNTER_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CHIT_HIT_COUNTER_SHIFT ) & \
+      L2CACHE_L2CHIT_HIT_COUNTER_MASK ) )
+#define L2CACHE_L2CHIT_HIT_COUNTER( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CHIT_HIT_COUNTER_SHIFT ) & \
+    L2CACHE_L2CHIT_HIT_COUNTER_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CFSCCNT \
+ *   Front-side bus cycle counter register (L2CFSCCNT)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_SHIFT 0
+#define L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_MASK  0xffffffffU
+#define L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_MASK ) >> \
+    L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_SHIFT )
+#define L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_SHIFT ) & \
+      L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_MASK ) )
+#define L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_SHIFT ) & \
+    L2CACHE_L2CFSCCNT_BUS_CYCLE_COUNTER_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CFSUCNT \
+ *   Front-side bus usage counter register (L2CFSUCNT)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_SHIFT 0
+#define L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_MASK  0xffffffffU
+#define L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_MASK ) >> \
+    L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_SHIFT )
+#define L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_SHIFT ) & \
+      L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_MASK ) )
+#define L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_SHIFT ) & \
+    L2CACHE_L2CFSUCNT_BUS_USAGE_COUNTER_MASK )
 
 /** @} */
 
@@ -490,8 +586,8 @@ extern "C" {
   ( ( ( _val ) << L2CACHE_L2CSCRUB_INDEX_SHIFT ) & \
     L2CACHE_L2CSCRUB_INDEX_MASK )
 
-#define L2CACHE_L2CSCRUB_WAY_SHIFT 2
-#define L2CACHE_L2CSCRUB_WAY_MASK  0xcU
+#define L2CACHE_L2CSCRUB_WAY_SHIFT 4
+#define L2CACHE_L2CSCRUB_WAY_MASK  0x30U
 #define L2CACHE_L2CSCRUB_WAY_GET( _reg ) \
   ( ( ( _reg ) & L2CACHE_L2CSCRUB_WAY_MASK ) >> L2CACHE_L2CSCRUB_WAY_SHIFT )
 #define L2CACHE_L2CSCRUB_WAY_SET( _reg, _val )     \
@@ -561,9 +657,26 @@ extern "C" {
  * @{
  */
 
+#define L2CACHE_L2CACCC_AXCACHE_SHIFT 16
+#define L2CACHE_L2CACCC_AXCACHE_MASK  0xffff0000U
+#define L2CACHE_L2CACCC_AXCACHE_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CACCC_AXCACHE_MASK ) >> \
+    L2CACHE_L2CACCC_AXCACHE_SHIFT )
+#define L2CACHE_L2CACCC_AXCACHE_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CACCC_AXCACHE_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CACCC_AXCACHE_SHIFT ) & \
+      L2CACHE_L2CACCC_AXCACHE_MASK ) )
+#define L2CACHE_L2CACCC_AXCACHE( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CACCC_AXCACHE_SHIFT ) & \
+    L2CACHE_L2CACCC_AXCACHE_MASK )
+
 #define L2CACHE_L2CACCC_DSC 0x4000U
 
 #define L2CACHE_L2CACCC_SH 0x2000U
+
+#define L2CACHE_L2CACCC_RFCL 0x1000U
+
+#define L2CACHE_L2CACCC_PS 0x800U
 
 #define L2CACHE_L2CACCC_SPLITQ 0x400U
 
@@ -586,6 +699,101 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEPSTART0 \
+ *   L2C priming start register (PSTART0)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_PSTART0_ADDR_SHIFT 5
+#define L2CACHE_PSTART0_ADDR_MASK  0xffffffe0U
+#define L2CACHE_PSTART0_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & L2CACHE_PSTART0_ADDR_MASK ) >> L2CACHE_PSTART0_ADDR_SHIFT )
+#define L2CACHE_PSTART0_ADDR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_PSTART0_ADDR_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_PSTART0_ADDR_SHIFT ) & \
+      L2CACHE_PSTART0_ADDR_MASK ) )
+#define L2CACHE_PSTART0_ADDR( _val ) \
+  ( ( ( _val ) << L2CACHE_PSTART0_ADDR_SHIFT ) & L2CACHE_PSTART0_ADDR_MASK )
+
+#define L2CACHE_PSTART0_P 0x2U
+
+#define L2CACHE_PSTART0_EN 0x1U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEPSTOP0 L2C priming stop register (PSTOP0)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_PSTOP0_ADDR_SHIFT 5
+#define L2CACHE_PSTOP0_ADDR_MASK  0xffffffe0U
+#define L2CACHE_PSTOP0_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & L2CACHE_PSTOP0_ADDR_MASK ) >> L2CACHE_PSTOP0_ADDR_SHIFT )
+#define L2CACHE_PSTOP0_ADDR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_PSTOP0_ADDR_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_PSTOP0_ADDR_SHIFT ) & \
+      L2CACHE_PSTOP0_ADDR_MASK ) )
+#define L2CACHE_PSTOP0_ADDR( _val ) \
+  ( ( ( _val ) << L2CACHE_PSTOP0_ADDR_SHIFT ) & L2CACHE_PSTOP0_ADDR_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEPSTART1 \
+ *   L2C priming start (second area) register (PSTART1)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_PSTART1_ADDR_SHIFT 5
+#define L2CACHE_PSTART1_ADDR_MASK  0xffffffe0U
+#define L2CACHE_PSTART1_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & L2CACHE_PSTART1_ADDR_MASK ) >> L2CACHE_PSTART1_ADDR_SHIFT )
+#define L2CACHE_PSTART1_ADDR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_PSTART1_ADDR_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_PSTART1_ADDR_SHIFT ) & \
+      L2CACHE_PSTART1_ADDR_MASK ) )
+#define L2CACHE_PSTART1_ADDR( _val ) \
+  ( ( ( _val ) << L2CACHE_PSTART1_ADDR_SHIFT ) & L2CACHE_PSTART1_ADDR_MASK )
+
+#define L2CACHE_PSTART1_P 0x2U
+
+#define L2CACHE_PSTART1_EN 0x1U
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEPSTOP1 \
+ *   L2C priming stop (second area) register (PSTOP1)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_PSTOP1_ADDR_SHIFT 5
+#define L2CACHE_PSTOP1_ADDR_MASK  0xffffffe0U
+#define L2CACHE_PSTOP1_ADDR_GET( _reg ) \
+  ( ( ( _reg ) & L2CACHE_PSTOP1_ADDR_MASK ) >> L2CACHE_PSTOP1_ADDR_SHIFT )
+#define L2CACHE_PSTOP1_ADDR_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_PSTOP1_ADDR_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_PSTOP1_ADDR_SHIFT ) & \
+      L2CACHE_PSTOP1_ADDR_MASK ) )
+#define L2CACHE_PSTOP1_ADDR( _val ) \
+  ( ( ( _val ) << L2CACHE_PSTOP1_ADDR_SHIFT ) & L2CACHE_PSTOP1_ADDR_MASK )
+
+/** @} */
+
+/**
  * @defgroup RTEMSDeviceGRLIBL2CACHEL2CEINJCFG \
  *   L2C injection configuration register (L2CEINJCFG)
  *
@@ -599,6 +807,14 @@ extern "C" {
 #define L2CACHE_L2CEINJCFG_TER 0x200U
 
 #define L2CACHE_L2CEINJCFG_IMD 0x100U
+
+#define L2CACHE_L2CEINJCFG_M 0x8U
+
+#define L2CACHE_L2CEINJCFG_PI 0x4U
+
+#define L2CACHE_L2CEINJCFG_DT 0x2U
+
+#define L2CACHE_L2CEINJCFG_CB 0x1U
 
 /** @} */
 
@@ -651,6 +867,53 @@ extern "C" {
 /** @} */
 
 /**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CDTAG L2C diagnostic tag area (L2CDTAG)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CDTAG_L2CDTAG_SHIFT 0
+#define L2CACHE_L2CDTAG_L2CDTAG_MASK  0xffffffffU
+#define L2CACHE_L2CDTAG_L2CDTAG_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CDTAG_L2CDTAG_MASK ) >> \
+    L2CACHE_L2CDTAG_L2CDTAG_SHIFT )
+#define L2CACHE_L2CDTAG_L2CDTAG_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CDTAG_L2CDTAG_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CDTAG_L2CDTAG_SHIFT ) & \
+      L2CACHE_L2CDTAG_L2CDTAG_MASK ) )
+#define L2CACHE_L2CDTAG_L2CDTAG( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CDTAG_L2CDTAG_SHIFT ) & \
+    L2CACHE_L2CDTAG_L2CDTAG_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRLIBL2CACHEL2CDDATA \
+ *   L2C diagnostic data area (L2CDDATA)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define L2CACHE_L2CDDATA_L2CDDATA_SHIFT 0
+#define L2CACHE_L2CDDATA_L2CDDATA_MASK  0xffffffffU
+#define L2CACHE_L2CDDATA_L2CDDATA_GET( _reg )        \
+  ( ( ( _reg ) & L2CACHE_L2CDDATA_L2CDDATA_MASK ) >> \
+    L2CACHE_L2CDDATA_L2CDDATA_SHIFT )
+#define L2CACHE_L2CDDATA_L2CDDATA_SET( _reg, _val )     \
+  ( ( ( _reg ) & ~L2CACHE_L2CDDATA_L2CDDATA_MASK ) |    \
+    ( ( ( _val ) << L2CACHE_L2CDDATA_L2CDDATA_SHIFT ) & \
+      L2CACHE_L2CDDATA_L2CDDATA_MASK ) )
+#define L2CACHE_L2CDDATA_L2CDDATA( _val )             \
+  ( ( ( _val ) << L2CACHE_L2CDDATA_L2CDDATA_SHIFT ) & \
+    L2CACHE_L2CDDATA_L2CDDATA_MASK )
+
+/** @} */
+
+/**
  * @brief This structure defines the L2CACHE register block memory map.
  */
 typedef struct l2cache {
@@ -674,7 +937,25 @@ typedef struct l2cache {
    */
   uint32_t l2cfsi;
 
-  uint32_t reserved_10_20[ 4 ];
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CACC.
+   */
+  uint32_t l2cacc;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CHIT.
+   */
+  uint32_t l2chit;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CFSCCNT.
+   */
+  uint32_t l2cfsccnt;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CFSUCNT.
+   */
+  uint32_t l2cfsucnt;
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CERR.
@@ -716,19 +997,51 @@ typedef struct l2cache {
    */
   uint32_t l2caccc;
 
-  uint32_t reserved_40_4c[ 3 ];
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEPSTART0.
+   */
+  uint32_t pstart0;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEPSTOP0.
+   */
+  uint32_t pstop0;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEPSTART1.
+   */
+  uint32_t pstart1;
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEPSTOP1.
+   */
+  uint32_t pstop1;
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CEINJCFG.
    */
   uint32_t l2ceinjcfg;
 
-  uint32_t reserved_50_80[ 12 ];
+  uint32_t reserved_54_80[ 11 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CMTRR.
    */
-  uint32_t l2cmtrr;
+  uint32_t l2cmtrr[ 32 ];
+
+  uint32_t reserved_100_80000[ 131008 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CDTAG.
+   */
+  uint32_t l2cdtag[ 131072 ];
+
+  uint32_t reserved_100000_200000[ 262144 ];
+
+  /**
+   * @brief See @ref RTEMSDeviceGRLIBL2CACHEL2CDDATA.
+   */
+  uint32_t l2cddata[ 524288 ];
 } l2cache;
 
 /** @} */
