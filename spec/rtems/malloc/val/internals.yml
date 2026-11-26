@@ -67,6 +67,25 @@ test-actions:
   - role: validation
     uid: ../req/processor-blocks
 - action-brief: |
+    Free a ${/c/if/null:/name} pointer while the
+    ${/score/heap/glossary/c-program-heap:/term} does not exist.
+  action-code: |
+    RBHeap_control *heap;
+
+    (void) ctx;
+    heap = RTEMS_Malloc_Heap;
+    RTEMS_Malloc_Heap = NULL;
+    free( NULL );
+    T_true( _RBHeap_Free( NULL, NULL ) );
+    #if defined( RTEMS_SMP )
+    T_true( _RBHeap_Free_to_processor( NULL, NULL ) );
+    #endif
+    RTEMS_Malloc_Heap = heap;
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/free-null
+- action-brief: |
     Get the information of the RTEMS Workspace.
   action-code: |
     Heap_Information_block info;
