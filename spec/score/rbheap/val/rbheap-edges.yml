@@ -61,6 +61,26 @@ test-actions:
   - role: validation
     uid: ../req/slab
 - action-brief: |
+    Let the heap carve two slabs at the begin of a free block, each right after a
+    used block. Free the blocks until the heap releases one of the slabs.
+  action-code: |
+    RunSlabNext( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/release
+  - role: validation
+    uid: ../req/merge
+- action-brief: |
+    Let a heap with its slab outside of its area carve a slab inside the area. Free
+    all blocks and add descriptors to the heap.
+  action-code: |
+    RunClearAreaSlab( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/slab
+- action-brief: |
     Allocate an aligned block while the free block of the best fit does not hold it
     at its alignment and a successor of equal size does.
   action-code: |
@@ -1893,6 +1913,122 @@ test-support: |
     ++heap->stats.lifetime_freed;
     T_false( _RBHeap_Walk( heap ) );
     --heap->stats.lifetime_freed;
+    T_true( _RBHeap_Walk( heap ) );
+  }
+
+  /* Returns the begin of the largest free block. */
+  static uintptr_t LargestFreeBegin( const RBHeap_control *heap )
+  {
+    return Node( _RBTree_Maximum( &heap->free_root ) )->begin;
+  }
+
+  /*
+   * Allocates small blocks until the next allocation needs a new slab.  Frees
+   * a block between used blocks, so that a later allocation takes its place.
+   * Allocates a filler block which ends at a multiple of the slab size.  Then
+   * the next allocation lets the heap carve a slab at the begin of the free
+   * block after the filler, and takes the place of the freed block.
+   */
+  static size_t CarveSlabNext( Context *ctx, size_t n )
+  {
+    RBHeap_control *heap;
+    uintptr_t       begin;
+    uintptr_t       filler;
+    uintptr_t       slabs;
+    size_t          hole;
+
+    heap = &ctx->heap;
+
+    while ( heap->capacity >= 2 * ( heap->entries + 1 ) + 3 ) {
+      T_quiet_lt_sz( n, BLOCK_COUNT );
+      ctx->blocks[ n ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+      T_quiet_not_null( ctx->blocks[ n ] );
+      ++n;
+    }
+
+    hole = n - 2;
+    T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ hole ] ) );
+    ctx->blocks[ hole ] = NULL;
+
+    begin = LargestFreeBegin( heap );
+    filler = RTEMS_ALIGN_UP( begin, RBHEAP_SLAB_SIZE ) - begin;
+
+    if ( filler < 4 * RBHEAP_SLAB_SLOTS ) {
+      filler += RBHEAP_SLAB_SIZE;
+    }
+
+    ctx->blocks[ n ] = _RBHeap_Allocate( heap, filler - RBHEAP_GUARD_SIZE );
+    T_quiet_eq_uptr( (uintptr_t) ctx->blocks[ n ], begin );
+    ++n;
+
+    slabs = heap->area_slab_count;
+    ctx->blocks[ hole ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+    T_quiet_not_null( ctx->blocks[ hole ] );
+    T_eq_uptr( heap->area_slab_count, slabs + 1 );
+    T_eq_uptr( LargestFreeBegin( heap ), begin + filler + RBHEAP_SLAB_SIZE );
+    return n;
+  }
+
+  static void RunSlabNext( Context *ctx )
+  {
+    RBHeap_control *heap;
+    size_t          n;
+    size_t          i;
+
+    heap = &ctx->heap;
+    Init( ctx, 0, AREA_SIZE );
+    n = CarveSlabNext( ctx, 0 );
+    n = CarveSlabNext( ctx, n );
+    T_eq_uptr( heap->area_slab_count, 2 );
+
+    for ( i = 0; i < n; ++i ) {
+      T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ i ] ) );
+    }
+
+    T_eq_uptr( heap->area_slab_count, 1 );
+    T_true( _RBHeap_Walk( heap ) );
+  }
+
+  /*
+   * The slab of the heap lies outside of its area, so the slab inside the area
+   * is no home slab.  After all frees, this slab is the only entry of the
+   * heap, and the addition of descriptors clears the heap.
+   */
+  static void RunClearAreaSlab( Context *ctx )
+  {
+    RBHeap_control *heap;
+    size_t          n;
+    size_t          i;
+    bool            ok;
+
+    heap = &ctx->heap;
+    ok = _RBHeap_Initialize_with_slab(
+      heap,
+      ctx->area,
+      AREA_SIZE,
+      ctx->slabs[ 0 ],
+      NULL
+    );
+    T_assert_true( ok );
+    n = 0;
+
+    while ( heap->area_slab_count == 0 ) {
+      T_quiet_lt_sz( n, BLOCK_COUNT );
+      ctx->blocks[ n ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+      T_quiet_not_null( ctx->blocks[ n ] );
+      ++n;
+    }
+
+    for ( i = 0; i < n; ++i ) {
+      T_quiet_true( _RBHeap_Free( heap, ctx->blocks[ i ] ) );
+    }
+
+    T_eq_uptr( heap->area_slab_count, 1 );
+    T_eq_uptr( heap->entries, 1 );
+    T_true( _RBHeap_Add_descriptors( heap, ctx->slabs[ 1 ], RBHEAP_SLAB_SIZE ) );
+    T_eq_uptr( heap->area_slab_count, 0 );
+    T_eq_uptr( heap->entries, 0 );
+    T_eq_uptr( heap->free_size, heap->area_end - heap->area_begin );
     T_true( _RBHeap_Walk( heap ) );
   }
 test-target: testsuites/validation/tc-score-rbheap-edges.c
