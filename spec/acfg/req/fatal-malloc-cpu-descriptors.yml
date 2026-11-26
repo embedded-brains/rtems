@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: requirement-refinement
+  uid: malloc-cpu-descriptors
+rationale: null
+requirement-type: functional
+text: |
+  Where the application was configured with a value greater than zero for
+  ${../if/malloc-cpu-descriptors:/name}, while the system is initialized, if the
+  C Program Heap has no storage for the processor blocks, then the system shall
+  terminate with the ${/score/interr/if/internal-error-core:/name} fatal source
+  and the ${/score/interr/if/no-memory-for-heap:/name} fatal code.
+type: requirement

@@ -1,0 +1,69 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: RTEMS_SMP
+links: []
+test-actions:
+- action-brief: |
+    The test action is carried out by configuring more descriptors of the processor
+    blocks than the C Program Heap can store.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the expected fatal source is present.
+    code: |
+      T_step_eq_int( ${.:/step}, ctx->source, INTERNAL_ERROR_CORE );
+    links:
+    - role: validation
+      uid: ../req/fatal-malloc-cpu-descriptors
+  - brief: |
+      Check that the expected fatal code is present.
+    code: |
+      T_step_eq_ulong( ${.:/step}, ctx->code, INTERNAL_ERROR_NO_MEMORY_FOR_HEAP );
+    links:
+    - role: validation
+      uid: ../req/fatal-malloc-cpu-descriptors
+  - brief: |
+      Check that the C Program Heap has no processor blocks.
+    code: |
+      T_step_null( ${.:/step}, RTEMS_Malloc_Heap->processors );
+    links:
+    - role: validation
+      uid: ../req/fatal-malloc-cpu-descriptors
+  links: []
+test-brief: |
+  Tests a fatal error.
+test-context: []
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: true
+  includes:
+  - rtems.h
+  local-includes: []
+  run-params:
+  - description: |
+      is fatal source.
+    dir: null
+    name: source
+    specifier: ${/rtems/userext/if/fatal-source:/name} ${.:name}
+  - description: |
+      is fatal code.
+    dir: null
+    name: code
+    specifier: ${/rtems/userext/if/fatal-code:/name} ${.:name}
+  target: testsuites/validation/tr-fatal-malloc-cpu-descriptors.h
+test-includes:
+- rtems.h
+- rtems/malloc.h
+- rtems/score/rbheap.h
+test-local-includes:
+- tr-fatal-malloc-cpu-descriptors.h
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tr-fatal-malloc-cpu-descriptors.c
+test-teardown: null
+type: test-case

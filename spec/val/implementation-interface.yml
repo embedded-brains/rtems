@@ -110,6 +110,8 @@ links:
 - role: validation
   uid: /score/interr/if/internal-error-rtems-api
 - role: validation
+  uid: /score/interr/if/no-memory-for-heap
+- role: validation
   uid: /score/interr/if/no-memory-for-idle-task-stack
 - role: validation
   uid: /score/interr/if/source
