@@ -150,32 +150,37 @@ T_TEST_CASE( MallocCPUAligned )
   free( q );
 }
 
-/* A full bin sends the block to the heap. */
+/*
+ * A full bin sends the block to the heap.  The allocations take the blocks
+ * which earlier test cases left in the bin, so the bin is empty before the
+ * frees.
+ */
 T_TEST_CASE( MallocCPUFullBin )
 {
   uintptr_t used;
   size_t    i;
 
   set_processor( 0 );
-  used = heap_used_blocks();
 
   for ( i = 0; i < RTEMS_ARRAY_SIZE( blocks ); ++i ) {
     blocks[ i ] = malloc( 2048 );
     T_quiet_not_null( blocks[ i ] );
   }
 
+  used = heap_used_blocks();
+
   for ( i = 0; i < RTEMS_ARRAY_SIZE( blocks ); ++i ) {
     free( blocks[ i ] );
   }
 
-  T_eq_uptr( heap_used_blocks(), used + CAP );
+  T_eq_uptr( heap_used_blocks(), used - 1 );
 
   for ( i = 0; i < CAP; ++i ) {
     blocks[ i ] = malloc( 2048 );
     T_quiet_not_null( blocks[ i ] );
   }
 
-  T_eq_uptr( heap_used_blocks(), used + CAP );
+  T_eq_uptr( heap_used_blocks(), used - 1 );
 
   for ( i = 0; i < CAP; ++i ) {
     free( blocks[ i ] );
@@ -238,7 +243,9 @@ T_TEST_CASE( MallocCPURealloc )
 
 /*
  * A free on another processor puts the block into the kept list of its owner.
- * The owner serves the block again after a miss of its bin.
+ * The statistics count the kept block as free.  The kept list keeps no data in
+ * the block, so a write into the freed block does not disturb the drain.  The
+ * owner serves the block again after a miss of its bin.
  */
 T_TEST_CASE( MallocCPURemote )
 {
@@ -255,12 +262,16 @@ T_TEST_CASE( MallocCPURemote )
     void     *p;
     void     *q;
     void     *r;
-    void     *s;
-    uintptr_t address;
-    uintptr_t used;
+    void                 *s;
+    void                 *t;
+    uintptr_t             address;
+    uintptr_t             used;
+    rtems_heap_statistics before;
+    rtems_heap_statistics after;
 
     set_processor( cpu );
     used = heap_used_blocks();
+    T_eq_int( malloc_get_statistics( &before ), 0 );
     p = malloc( 1024 );
     T_not_null( p );
     address = (uintptr_t) p;
@@ -279,6 +290,13 @@ T_TEST_CASE( MallocCPURemote )
     }
 
     T_eq_uptr( heap_used_blocks(), used + 1 );
+    T_eq_int( malloc_get_statistics( &after ), 0 );
+    T_eq_u32( after.used_blocks, before.used_blocks );
+    T_eq_sz( after.free_size, before.free_size );
+
+    /* Deliberately write into the freed block */
+    RTEMS_OBFUSCATE_VARIABLE( address );
+    memset( (void *) address, 0xa5, sizeof( void * ) );
 
     set_processor( cpu );
     r = malloc( 1024 );
@@ -287,6 +305,11 @@ T_TEST_CASE( MallocCPURemote )
     T_eq_uptr( heap_used_blocks(), used + 1 );
     s = malloc( 1024 );
     T_eq_uptr( (uintptr_t) s, address );
+
+    /* This bin miss drains the kept list once more */
+    t = malloc( 1024 );
+    T_not_null( t );
+    free( t );
     free( s );
   }
 

@@ -2232,11 +2232,13 @@ bool _RBHeap_Free( RBHeap_control *control, void *begin )
  *
  * The processor changes its bins and its used tree with interrupts disabled.
  * A free on another processor sets the kept bit of the processor descriptor
- * and pushes the block onto the kept list of the owner.  The first word of the
- * block links the list.  A miss of the bins drains one kept block into its
- * bin.  Only the owner reads its bins, so the free on another processor
- * cannot see whether the block lies in a bin.  The owner checks the kept bit
- * when it takes a descriptor out of a bin and when it drains a block.
+ * and pushes the descriptor onto the kept list of the owner.  The kept links
+ * of the owner link the list by the index of each descriptor plus one.  The
+ * heap therefore keeps no data in the memory of a block.  A miss of the bins
+ * drains one kept block into its bin.  Only the owner reads its bins, so the
+ * free on another processor cannot see whether the block lies in a bin.  The
+ * owner checks the kept bit when it takes a descriptor out of a bin and when
+ * it drains a block.
  *
  * Each allocation and each free takes the lock of the heap at most once.
  */
@@ -2306,10 +2308,18 @@ typedef struct RBHeap_processor {
   Atomic_Ulong *kept_bits;
 
   /**
-   * @brief The blocks of the kept list which the processor took and did not
-   *   drain yet.
+   * @brief The kept link of each descriptor.
+   *
+   * The link is the index of the next descriptor of the kept list plus one,
+   * else zero.
    */
-  void *pending;
+  uintptr_t *kept_links;
+
+  /**
+   * @brief The index plus one of the first descriptor of the kept list which
+   *   the processor took and did not drain yet, else zero.
+   */
+  uintptr_t pending;
 
   /**
    * @brief The count of blocks in the bins.
@@ -2323,11 +2333,23 @@ typedef struct RBHeap_processor {
   uintptr_t free_bytes;
 
   /**
-   * @brief The kept list which other processors push onto.
+   * @brief The index plus one of the first descriptor of the kept list which
+   *   other processors push onto, else zero.
    *
    * Other processors write this member, so it begins a cache line of its own.
    */
   Atomic_Uintptr kept RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES );
+
+  /**
+   * @brief The count of blocks in the kept list.
+   */
+  Atomic_Uintptr kept_blocks;
+
+  /**
+   * @brief The total size of the blocks in the kept list, the guard words
+   *   included.
+   */
+  Atomic_Uintptr kept_bytes;
 } RTEMS_ALIGNED( CPU_CACHE_LINE_BYTES ) RBHeap_processor;
 
 /**
@@ -2611,30 +2633,41 @@ static RTEMS_NO_INLINE void _RBHeap_Processor_Drain_kept(
   RBHeap_processor *cpu
 )
 {
-  void                        *block;
+  uintptr_t                    index;
   RBHeap_processor_descriptor *desc;
 
-  if ( cpu->pending == NULL ) {
-    cpu->pending = (void *)
-      _Atomic_Exchange_uintptr( &cpu->kept, 0, ATOMIC_ORDER_ACQUIRE );
+  if ( cpu->pending == 0 ) {
+    cpu->pending = _Atomic_Exchange_uintptr(
+      &cpu->kept,
+      0,
+      ATOMIC_ORDER_ACQUIRE
+    );
 
-    if ( cpu->pending == NULL ) {
+    if ( cpu->pending == 0 ) {
       return;
     }
   }
 
-  block = cpu->pending;
-  cpu->pending = *(void **) block;
-  desc = _RBHeap_Processor_Used_find( cpu, (uintptr_t) block );
+  index = cpu->pending - 1;
+  cpu->pending = cpu->kept_links[ index ];
+  desc = &cpu->descs[ index ];
 
-  if ( desc == NULL ) {
-    _Terminate( RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE, (Internal_errors_t) block );
+  /* A kept block which lies in a bin was freed twice. */
+  if ( _RBHeap_Processor_Used_find( cpu, desc->begin ) != desc ) {
+    _Terminate(
+      RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE,
+      (Internal_errors_t) desc->begin
+    );
   }
 
-  _RBHeap_Processor_Clear_bit(
-    cpu->kept_bits,
-    _RBHeap_Processor_Index( cpu, desc )
+  (void)
+    _Atomic_Fetch_sub_uintptr( &cpu->kept_blocks, 1, ATOMIC_ORDER_RELAXED );
+  (void) _Atomic_Fetch_sub_uintptr(
+    &cpu->kept_bytes,
+    desc->size + RBHEAP_GUARD_SIZE,
+    ATOMIC_ORDER_RELAXED
   );
+  _RBHeap_Processor_Clear_bit( cpu->kept_bits, index );
   _RBTree_Extract( &cpu->used, &desc->node );
   _RBHeap_Processor_Bin_push(
     cpu,
@@ -2758,7 +2791,6 @@ static bool _RBHeap_Processor_Release(
   unsigned long     bit;
   unsigned long     previous;
   uintptr_t         head;
-  uintptr_t        *block;
 
   index = (uintptr_t) ( bound - (RBHeap_descriptor *) control->bound_begin );
   owner = &control->processors[ index / control->processor_pairs ];
@@ -2779,15 +2811,21 @@ static bool _RBHeap_Processor_Release(
     return false;
   }
 
-  block = (uintptr_t *) bound->begin;
+  (void)
+    _Atomic_Fetch_add_uintptr( &owner->kept_blocks, 1, ATOMIC_ORDER_RELAXED );
+  (void) _Atomic_Fetch_add_uintptr(
+    &owner->kept_bytes,
+    bound->size,
+    ATOMIC_ORDER_RELAXED
+  );
   head = _Atomic_Load_uintptr( &owner->kept, ATOMIC_ORDER_RELAXED );
 
   do {
-    *block = head;
+    owner->kept_links[ index ] = head;
   } while ( !_Atomic_Compare_exchange_uintptr(
     &owner->kept,
     &head,
-    (uintptr_t) block,
+    index + 1,
     ATOMIC_ORDER_RELEASE,
     ATOMIC_ORDER_RELAXED
   ) );
@@ -2950,8 +2988,10 @@ void _RBHeap_Get_processor_information(
     uintptr_t               bytes;
 
     cpu = &control->processors[ i ];
-    blocks = cpu->free_blocks;
-    bytes = cpu->free_bytes;
+    blocks = cpu->free_blocks +
+             _Atomic_Load_uintptr( &cpu->kept_blocks, ATOMIC_ORDER_RELAXED );
+    bytes = cpu->free_bytes +
+            _Atomic_Load_uintptr( &cpu->kept_bytes, ATOMIC_ORDER_RELAXED );
     info->Used.number -= blocks;
     info->Used.total -= bytes;
     info->Free.number += blocks;
@@ -3001,6 +3041,7 @@ bool _RBHeap_Initialize_processor_blocks(
   words = ( pairs + BITS_PER_WORD - 1 ) / BITS_PER_WORD;
   total = processor_count * pairs;
   part_size = words * sizeof( *cpus->kept_bits ) +
+              pairs * sizeof( *cpus->kept_links ) +
               pairs * sizeof( *cpus->descs ) +
               bin_count * sizeof( *cpus->bins ) +
               bin_count * sizeof( *cpus->bin_counts );
@@ -3042,12 +3083,16 @@ bool _RBHeap_Initialize_processor_blocks(
     part += bin_count * sizeof( *cpu->bins );
     cpu->kept_bits = (Atomic_Ulong *) part;
     part += words * sizeof( *cpu->kept_bits );
+    cpu->kept_links = (uintptr_t *) part;
+    part += pairs * sizeof( *cpu->kept_links );
     cpu->descs = (RBHeap_processor_descriptor *) part;
     part += pairs * sizeof( *cpu->descs );
     cpu->bin_counts = (uint32_t *) part;
     cpu->bound = &bound[ i * pairs ];
     _RBTree_Initialize_empty( &cpu->used );
     _Atomic_Init_uintptr( &cpu->kept, 0 );
+    _Atomic_Init_uintptr( &cpu->kept_blocks, 0 );
+    _Atomic_Init_uintptr( &cpu->kept_bytes, 0 );
 
     for ( j = 0; j < words; ++j ) {
       _Atomic_Init_ulong( &cpu->kept_bits[ j ], 0 );
