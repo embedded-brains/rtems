@@ -167,6 +167,10 @@ extern "C" {
 
 #define GRPCI2_STATCAP_TRACE 0x800000U
 
+#define GRPCI2_STATCAP_ECAP 0x400000U
+
+#define GRPCI2_STATCAP_FH 0x200000U
+
 #define GRPCI2_STATCAP_CFGDO 0x100000U
 
 #define GRPCI2_STATCAP_CFGER 0x80000U
@@ -394,6 +398,18 @@ extern "C" {
       GRPCI2_PCI2AHB_ADDR_MASK ) )
 #define GRPCI2_PCI2AHB_ADDR( _val ) \
   ( ( ( _val ) << GRPCI2_PCI2AHB_ADDR_SHIFT ) & GRPCI2_PCI2AHB_ADDR_MASK )
+
+/** @} */
+
+/**
+ * @defgroup RTEMSDeviceGRPCI2EXTCAP Extended Capability register (EXTCAP)
+ *
+ * @brief This group contains register bit definitions.
+ *
+ * @{
+ */
+
+#define GRPCI2_EXTCAP_PF 0x1U
 
 /** @} */
 
@@ -754,28 +770,19 @@ typedef struct grpci2 {
   /**
    * @brief See @ref RTEMSDeviceGRPCI2PCI2AHB.
    */
-  uint32_t pci2ahb_0;
-
-  uint32_t reserved_24_34[ 4 ];
+  uint32_t pci2ahb[ 6 ];
 
   /**
-   * @brief See @ref RTEMSDeviceGRPCI2PCI2AHB.
+   * @brief See @ref RTEMSDeviceGRPCI2EXTCAP.
    */
-  uint32_t pci2ahb_1;
+  uint32_t extcap;
 
-  uint32_t reserved_38_40[ 2 ];
+  uint32_t reserved_3c_40;
 
   /**
    * @brief See @ref RTEMSDeviceGRPCI2AHBM2PCI.
    */
-  uint32_t ahbm2pci_0;
-
-  uint32_t reserved_44_7c[ 14 ];
-
-  /**
-   * @brief See @ref RTEMSDeviceGRPCI2AHBM2PCI.
-   */
-  uint32_t ahbm2pci_1;
+  uint32_t ahbm2pci[ 16 ];
 
   /**
    * @brief See @ref RTEMSDeviceGRPCI2TCTRC.
