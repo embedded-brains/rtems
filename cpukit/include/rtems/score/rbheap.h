@@ -709,6 +709,13 @@ uintptr_t _RBHeap_Round_for_processor(
  * @brief Frees the block of the red-black tree heap through the processor
  *   blocks.
  *
+ * A free of a processor block on another processor puts the block into the
+ * kept list of its owner.  The function then cannot see whether the block lies
+ * in a bin of the owner.  The owner detects such a double free when it takes
+ * the block from its bin or drains its kept list.  It then terminates the
+ * system with #RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE in the context of an
+ * unrelated allocation.
+ *
  * @param[in, out] control is the control of the heap.
  *
  * @param block is the begin of the block, or NULL.
