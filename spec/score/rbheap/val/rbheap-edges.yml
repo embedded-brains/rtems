@@ -26,6 +26,18 @@ test-actions:
   - role: validation
     uid: ../req/largest-free
 - action-brief: |
+    Allocate a block with a boundary while the free block of the best fit and its
+    four successors cross a multiple of the boundary and a larger free block holds
+    the block after the move.
+  action-code: |
+    RunBoundaryPadded( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/boundary
+  - role: validation
+    uid: ../req/find
+- action-brief: |
     Allocate blocks until the heap carves a slab. Then free and allocate one block
     several times.
   action-code: |
@@ -376,6 +388,43 @@ test-support: |
     T_true( _RBHeap_Walk( heap ) );
   }
 
+  static void RunBoundaryPadded( Context *ctx )
+  {
+    RBHeap_control *heap;
+    size_t          n;
+    size_t          i;
+    size_t          j;
+    size_t          k;
+    void           *ptr;
+
+    heap = &ctx->heap;
+    n = Fill( ctx );
+    i = 0;
+
+    /*
+     * Each of these free blocks begins between two multiples of the boundary.
+     * The block crosses the next multiple at the begin of the free block and
+     * does not fit after the move.
+     */
+    for ( j = 0; j <= RBHEAP_FIND_SUCCESSORS; ++j ) {
+      i = FindChunks( ctx, n, i, 2, 2 * CHUNK_SIZE, CHUNK_SIZE );
+      FreeChunks( ctx, i, 2 );
+      i += 2;
+    }
+
+    /* This free block holds the block after the move */
+    k = FindChunks( ctx, n, i, 4, 2 * CHUNK_SIZE, CHUNK_SIZE );
+    FreeChunks( ctx, k, 4 );
+    ptr = _RBHeap_Allocate_aligned_with_boundary(
+      heap,
+      3 * CHUNK_SIZE / 2,
+      0,
+      2 * CHUNK_SIZE
+    );
+    T_eq_ptr( ptr, ctx->blocks[ k + 1 ] );
+    T_true( _RBHeap_Walk( heap ) );
+  }
+
   static void RunHysteresis( Context *ctx )
   {
     RBHeap_control *heap;
@@ -564,6 +613,14 @@ test-support: |
       _RBHeap_Extend( heap, &ctx->area[ 2 * quarter ], RBHEAP_SLAB_SIZE )
     );
     T_true( _RBHeap_Walk( heap ) );
+
+    /*
+     * The capacity of the added slabs exceeds the need, but the slabs lie
+     * outside of the areas, so the heap frees none of them.
+     */
+    T_gt_uptr( heap->capacity, 2 * heap->entries + 3 + 2 * RBHEAP_SLAB_SLOTS );
+    T_eq_uptr( heap->area_slab_count, 0 );
+    T_eq_uptr( _RBHeap_Get_releasable_size( heap, 0 ), 0 );
   }
 
   static void RunExtend( Context *ctx )
@@ -1684,6 +1741,9 @@ test-support: |
     CheckCorrupt( heap, &heap->free_size, heap->free_size + 8 );
     CheckCorruptU32( heap, &heap->stats.free_blocks );
     CheckCorruptU32( heap, &heap->stats.used_blocks );
+    ++heap->stats.lifetime_freed;
+    T_false( _RBHeap_Walk( heap ) );
+    --heap->stats.lifetime_freed;
     T_true( _RBHeap_Walk( heap ) );
   }
 test-target: testsuites/validation/tc-score-rbheap-edges.c
