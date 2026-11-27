@@ -754,10 +754,8 @@ static void CStringReqMemcmp_Pre_Position_Prepare(
   switch ( state ) {
     case CStringReqMemcmp_Pre_Position_Before: {
       /*
-       * While a byte which precedes the last byte of the first `n` bytes of
-       * the memory area referenced by the `s1` parameter differs from the byte
-       * at the same position of the memory area referenced by the `s2`
-       * parameter.
+       * While a compared byte which precedes the last compared byte differs
+       * from its corresponding byte.
        */
       switch (
         CStringReqMemcmp_Pre_Position_Before_GetRepresentative( ctx )
@@ -777,10 +775,8 @@ static void CStringReqMemcmp_Pre_Position_Prepare(
 
     case CStringReqMemcmp_Pre_Position_Last: {
       /*
-       * While each byte which precedes the last byte of the first `n` bytes of
-       * the memory area referenced by the `s1` parameter is equal to the byte
-       * at the same position of the memory area referenced by the `s2`
-       * parameter.
+       * While each compared byte which precedes the last compared byte is
+       * equal to its corresponding byte.
        */
       ctx->pos = ctx->n - 1;
       break;
@@ -799,9 +795,7 @@ static void CStringReqMemcmp_Pre_Diff_Prepare(
   switch ( state ) {
     case CStringReqMemcmp_Pre_Diff_Equal: {
       /*
-       * While each byte of the first `n` bytes of the memory area referenced
-       * by the `s1` parameter is equal to the byte at the same position of the
-       * memory area referenced by the `s2` parameter.
+       * While each compared byte is equal to its corresponding byte.
        */
       ctx->s1[ ctx->n ] = LOW;
       ctx->s2[ ctx->n ] = HIGH;
@@ -810,11 +804,8 @@ static void CStringReqMemcmp_Pre_Diff_Prepare(
 
     case CStringReqMemcmp_Pre_Diff_Less: {
       /*
-       * While the value as `unsigned char` of the first byte of the first `n`
-       * bytes of the memory area referenced by the `s1` parameter which
-       * differs from the byte at the same position of the memory area
-       * referenced by the `s2` parameter is less than the value as `unsigned
-       * char` of that byte.
+       * While the value as `unsigned char` of the first differing byte is less
+       * than the value as `unsigned char` of its corresponding byte.
        */
       switch ( CStringReqMemcmp_Pre_Diff_Less_GetRepresentative( ctx ) ) {
         case CStringReqMemcmp_Pre_Diff_Less_Wide: {
@@ -834,11 +825,8 @@ static void CStringReqMemcmp_Pre_Diff_Prepare(
 
     case CStringReqMemcmp_Pre_Diff_Greater: {
       /*
-       * While the value as `unsigned char` of the first byte of the first `n`
-       * bytes of the memory area referenced by the `s1` parameter which
-       * differs from the byte at the same position of the memory area
-       * referenced by the `s2` parameter is greater than the value as
-       * `unsigned char` of that byte.
+       * While the value as `unsigned char` of the first differing byte is
+       * greater than the value as `unsigned char` of its corresponding byte.
        */
       switch ( CStringReqMemcmp_Pre_Diff_Greater_GetRepresentative( ctx ) ) {
         case CStringReqMemcmp_Pre_Diff_Greater_Wide: {
@@ -869,10 +857,8 @@ static void CStringReqMemcmp_Pre_Rest_Prepare(
   switch ( state ) {
     case CStringReqMemcmp_Pre_Rest_Equal: {
       /*
-       * While each byte after the first differing byte of the first `n` bytes
-       * of the memory area referenced by the `s1` parameter is equal to the
-       * byte at the same position of the memory area referenced by the `s2`
-       * parameter.
+       * While each compared byte after the first differing byte is equal to
+       * its corresponding byte.
        */
       /* The prepare fills both memory areas with the same byte */
       break;
@@ -880,10 +866,8 @@ static void CStringReqMemcmp_Pre_Rest_Prepare(
 
     case CStringReqMemcmp_Pre_Rest_Differs: {
       /*
-       * While a byte after the first differing byte of the first `n` bytes of
-       * the memory area referenced by the `s1` parameter differs from the byte
-       * at the same position of the memory area referenced by the `s2`
-       * parameter.
+       * While a compared byte after the first differing byte differs from its
+       * corresponding byte.
        */
       ctx->s1[ ctx->n - 1 ] = ctx->s2[ ctx->pos ];
       ctx->s2[ ctx->n - 1 ] = ctx->s1[ ctx->pos ];
