@@ -633,7 +633,6 @@ source:
 - cpukit/libmisc/capture/rtems-trace-buffer-default.c
 - cpukit/libmisc/capture/rtems-trace-buffer-vars.c
 - cpukit/libmisc/cpuuse/cpuinforeport.c
-- cpukit/libmisc/cpuuse/cpuusagereport.c
 - cpukit/libmisc/cpuuse/cpuusagetop.c
 - cpukit/libmisc/devnull/devnull.c
 - cpukit/libmisc/devnull/devzero.c
@@ -1000,7 +999,6 @@ source:
 - cpukit/score/src/threadwaitgetid.c
 - cpukit/score/src/threadyield.c
 - cpukit/score/src/timespecaddto.c
-- cpukit/score/src/timespecdivide.c
 - cpukit/score/src/timespecfromticks.c
 - cpukit/score/src/timespecisnonnegative.c
 - cpukit/score/src/timespecisvalid.c

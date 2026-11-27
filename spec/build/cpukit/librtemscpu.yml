@@ -357,6 +357,7 @@ source:
 - cpukit/libcsupport/src/rtemscalloc.c
 - cpukit/libcsupport/src/vprintk.c
 - cpukit/libmisc/cpuuse/cpuusagedata.c
+- cpukit/libmisc/cpuuse/cpuusagereport.c
 - cpukit/libmisc/cpuuse/cpuusagereset.c
 - cpukit/libmisc/stackchk/check.c
 - cpukit/libtrace/record/record-dump-base64.c
@@ -660,6 +661,7 @@ source:
 - cpukit/score/src/threadstartmultitasking.c
 - cpukit/score/src/threadtimeout.c
 - cpukit/score/src/threadyield.c
+- cpukit/score/src/timespecdivide.c
 - cpukit/score/src/timespecdividebyinteger.c
 - cpukit/score/src/timespecgetasnanoseconds.c
 - cpukit/score/src/tlsallocsize.c
