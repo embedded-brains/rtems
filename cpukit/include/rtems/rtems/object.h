@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2009 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -342,7 +342,8 @@ rtems_name rtems_build_name( char c1, char c2, char c3, char c4 );
  *
  * @param[out] name is the pointer to an ::rtems_name object. When the
  *   directive call is successful, the object name associated with the object
- *   identifier will be stored in this object.
+ *   identifier will be stored in this object. When the directive returns
+ *   ::RTEMS_INVALID_ID, zero will be stored in this object.
  *
  * @retval ::RTEMS_SUCCESSFUL The requested operation was successful.
  *
@@ -360,10 +361,6 @@ rtems_name rtems_build_name( char c1, char c2, char c3, char c4 );
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within any runtime context.
  *
