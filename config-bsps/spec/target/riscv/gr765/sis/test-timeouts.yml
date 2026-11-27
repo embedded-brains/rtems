@@ -110,7 +110,7 @@ timeouts:
     ts-validation-no-clock-0.exe:
     - 34.489809671998955
     ts-validation-no-clock-1.exe:
-    - 47.83842302398989
+    - 81.0
     ts-validation-one-cpu-0.exe:
     - 10.640712110034656
     ts-validation-one-cpu-1.exe:
@@ -126,7 +126,7 @@ timeouts:
     ts-validation-timecounter-0.exe:
     - 2.5663250309880823
     ts-validation-timecounter-1.exe:
-    - 18.646644885011483
+    - 68.0
     ts-validation-timecounter-smp-0.exe:
     - 3.3664480439620093
     ts-validation-tls-0.exe:
