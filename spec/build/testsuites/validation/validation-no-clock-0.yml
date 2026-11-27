@@ -47,6 +47,8 @@ source:
 - testsuites/validation/tc-clock-set-tod.c
 - testsuites/validation/tc-clock-set.c
 - testsuites/validation/tc-clock.c
+- testsuites/validation/tc-cpuuse-report-with-plugin.c
+- testsuites/validation/tc-cpuuse-report.c
 - testsuites/validation/tc-cpuuse.c
 - testsuites/validation/tc-events.c
 - testsuites/validation/tc-gmtime-r.c

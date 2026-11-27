@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -96,16 +96,15 @@ int rtems_cpu_info_report( const struct rtems_printer *printer );
  *
  * @brief Reports the CPU usage of each thread using the printk() printer.
  *
+ * The directive prints the report of rtems_cpu_usage_report_with_plugin()
+ * through a printer which rtems_print_printer_printk() initializes.
+ *
  * @par Notes
  * See also rtems_cpu_usage_report_with_plugin().
  *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within device driver initialization
  *   context.
@@ -127,13 +126,39 @@ void rtems_cpu_usage_report( void );
  *
  * @param printer is the printer plugin to output the report.
  *
+ * The directive prints a report of the processor time which each thread used
+ * since the last CPU usage reset point through the printer. Each line of the
+ * report ends with a newline character. The report starts with a rule line,
+ * the title line, a column rule line, the column title line and a column rule
+ * line.
+ *
+ * The thread lines follow. Each thread line describes one thread, in the order
+ * of increasing thread identifiers. The fields of a thread line are the
+ * following:
+ *
+ * - the identifier of the thread as `0x` followed by hexadecimal digits padded
+ *   on the left with zeros to eight digits,
+ *
+ * - the name of the thread, truncated to 37 characters and padded on the right
+ *   with space characters to 38 characters,
+ *
+ * - the processor time which the thread used since the last CPU usage reset
+ *   point, and
+ *
+ * - the share of this processor time in the time elapsed since the last CPU
+ *   usage reset point as a percentage with three decimal places.
+ *
+ * The report ends with a column rule line, the line of the time elapsed since
+ * the last CPU usage reset point and a rule line. A time is the seconds as a
+ * decimal number padded on the left with space characters to seven characters,
+ * followed by `.` and the microseconds as a decimal number padded on the left
+ * with zeros to six digits. The directive gets the time elapsed for a thread
+ * line after the processor time of its thread. The time elapsed of the total
+ * line is the one of the last thread line.
+ *
  * @par Constraints
  * @parblock
  * The following constraints apply to this directive:
- *
- * - The directive is not included in the pre-qualified feature set of RTEMS.
- *   Applications which are restricted to only use interfaces of the
- *   pre-qualified feature set of RTEMS shall not use the directive.
  *
  * - The directive may be called from within device driver initialization
  *   context.

@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,8 @@ const char rtems_test_name[] = "TestsuitesValidationNoClock0";
 #define CONFIGURE_APPLICATION_DOES_NOT_NEED_CLOCK_DRIVER
 
 #define CONFIGURE_STACK_CHECKER_ENABLED
+
+#define CONFIGURE_MAXIMUM_THREAD_NAME_SIZE 48
 
 #include "ts-default.h"
 
