@@ -5,7 +5,9 @@ actions:
     state: exclude
     tests:
     - can01
+    - capture
     - exit03
+    - fileio
     - flashdisk01
     - fsbdpart01
     - fsdosfsname01
@@ -22,6 +24,7 @@ actions:
     - tftpfs
     - tmck
     - unit-no-clock-0
+    - unlimited
     - userext
     - validation-0
     - validation-1
@@ -146,7 +149,7 @@ actions:
 - append-test-cppflags: tmtimer01
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@ Heap_Control *RTEMS_Malloc_Heap;
 
 void _Malloc_Initialize( void )
 {
-  RTEMS_Malloc_Heap = ( *_Workspace_Malloc_initializer )();
+  RTEMS_Malloc_Heap = _Workspace_Malloc_initialize_separate();
 }
 
 RTEMS_SYSINIT_ITEM(

@@ -6,11 +6,11 @@
  * @ingroup RTEMSScoreWorkspace
  *
  * @brief This source file contains the default definition of
- *   ::_Workspace_Malloc_initializer.
+ *   ::_Workspace_Fallback_heap.
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,5 +40,4 @@
 
 #include <rtems/score/wkspacedata.h>
 
-struct Heap_Control *( *const _Workspace_Malloc_initializer )( void ) =
-  _Workspace_Malloc_initialize_separate;
+struct Heap_Control *const *const _Workspace_Fallback_heap;

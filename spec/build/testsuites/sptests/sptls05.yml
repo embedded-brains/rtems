@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 build-type: test-program
 cflags: []
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
 cppflags: []
 cxxflags: []
 enabled-by: true
@@ -11,9 +11,9 @@ includes: []
 ldflags: []
 links: []
 source:
-- testsuites/sptests/spfatal12/init.c
+- testsuites/sptests/sptls05/init.c
 stlib: []
-target: testsuites/sptests/spfatal12.exe
+target: testsuites/sptests/sptls05.exe
 type: build
 use-after: []
 use-before: []

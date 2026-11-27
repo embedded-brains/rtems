@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,13 +46,6 @@
 #ifdef CONFIGURE_UNLIMITED_OBJECTS
 
 #include <rtems/config.h>
-
-#if !defined( CONFIGURE_UNIFIED_WORK_AREAS ) && \
-  !defined( CONFIGURE_EXECUTIVE_RAM_SIZE ) &&   \
-  !defined( CONFIGURE_MEMORY_OVERHEAD )
-  #error \
-    "CONFIGURE_UNLIMITED_OBJECTS requires one of CONFIGURE_UNIFIED_WORK_AREAS, CONFIGURE_EXECUTIVE_RAM_SIZE, and CONFIGURE_MEMORY_OVERHEAD"
-#endif
 
 #ifndef CONFIGURE_UNLIMITED_ALLOCATION_SIZE
   #define CONFIGURE_UNLIMITED_ALLOCATION_SIZE 8

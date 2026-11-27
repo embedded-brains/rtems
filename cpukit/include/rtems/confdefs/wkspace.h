@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2020, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@
 #ifdef CONFIGURE_INIT
 
 #include <rtems/confdefs/bdbuf.h>
+#include <rtems/confdefs/extensions.h>
 #include <rtems/confdefs/inittask.h>
 #include <rtems/confdefs/initthread.h>
 #include <rtems/confdefs/objectsposix.h>
@@ -52,8 +53,11 @@
 #include <rtems/confdefs/wkspacesupport.h>
 #include <rtems/score/coremsg.h>
 #include <rtems/score/context.h>
+#include <rtems/score/heap.h>
 #include <rtems/score/memory.h>
 #include <rtems/score/stack.h>
+#include <rtems/score/wkspace.h>
+#include <rtems/malloc.h>
 #include <rtems/sysinit.h>
 
 #if CPU_STACK_ALIGNMENT > CPU_HEAP_ALIGNMENT
@@ -146,17 +150,102 @@
 
 #endif /* CONFIGURE_EXECUTIVE_RAM_SIZE */
 
+#define _CONFIGURE_TLS_ALLOCATION_SIZE_LIMIT                    \
+  ( CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE != 0            \
+      ? (uintptr_t) CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE \
+      : (uintptr_t) THREAD_DEFAULT_MAXIMUM_TLS_SIZE )
+
+#if defined( CONFIGURE_TASK_STACK_ALLOCATOR ) && \
+  defined( CONFIGURE_TASK_STACK_DEALLOCATOR ) && \
+  defined( CONFIGURE_TASK_STACK_ALLOCATOR_AVOIDS_WORK_SPACE )
+  #define _CONFIGURE_WORKSPACE_TLS_AREA_COUNT 0
+  #define _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE 0
+#else
+  /*
+   * The link step determines the allocation size of the thread-local storage
+   * area.  The storage area reserves the limit of this size for each
+   * configured thread which allocates its stack from the workspace.
+   */
+  #define _CONFIGURE_WORKSPACE_TLS_AREA_COUNT                         \
+  ( _CONFIGURE_IDLE_THREAD_COUNT +                                  \
+    rtems_resource_maximum_per_allocation(                          \
+      _CONFIGURE_TASKS - CONFIGURE_MINIMUM_TASKS_WITH_USER_PROVIDED_STORAGE \
+    ) +                                                             \
+    rtems_resource_maximum_per_allocation( CONFIGURE_MAXIMUM_POSIX_THREADS ) )
+
+  #define _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE \
+  ( _CONFIGURE_STACK_SPACE_SIZE +               \
+    _CONFIGURE_WORKSPACE_TLS_AREA_COUNT * _CONFIGURE_TLS_ALLOCATION_SIZE_LIMIT )
+#endif
+
+#define _CONFIGURE_WORKSPACE_PAGE_SIZE \
+  RTEMS_ALIGN_UP( CPU_HEAP_ALIGNMENT, CPU_ALIGNMENT )
+
+/* The value equals _Heap_Area_overhead( CPU_HEAP_ALIGNMENT ) */
+#define _CONFIGURE_WORKSPACE_AREA_OVERHEAD                                   \
+  ( _CONFIGURE_WORKSPACE_PAGE_SIZE - 1 +                                     \
+    RTEMS_ALIGN_UP( sizeof( Heap_Block ), _CONFIGURE_WORKSPACE_PAGE_SIZE ) + \
+    HEAP_BLOCK_HEADER_SIZE )
+
+#define _CONFIGURE_WORKSPACE_STORAGE_SIZE                                  \
+  ( CONFIGURE_EXECUTIVE_RAM_SIZE + _CONFIGURE_WORKSPACE_STACK_SPACE_SIZE + \
+    _CONFIGURE_WORKSPACE_AREA_OVERHEAD )
+
+#if defined( CONFIGURE_UNIFIED_WORK_AREAS ) ||                             \
+  ( ( CONFIGURE_MAXIMUM_BARRIERS | CONFIGURE_MAXIMUM_MESSAGE_QUEUES |      \
+      CONFIGURE_MAXIMUM_PARTITIONS | CONFIGURE_MAXIMUM_PERIODS |           \
+      CONFIGURE_MAXIMUM_PORTS | CONFIGURE_MAXIMUM_REGIONS |                \
+      CONFIGURE_MAXIMUM_SEMAPHORES | CONFIGURE_MAXIMUM_TASKS |             \
+      CONFIGURE_MAXIMUM_TIMERS | CONFIGURE_MAXIMUM_USER_EXTENSIONS |       \
+      CONFIGURE_MAXIMUM_POSIX_KEYS |                                       \
+      CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS |                            \
+      CONFIGURE_MAXIMUM_POSIX_MESSAGE_QUEUES |                             \
+      CONFIGURE_MAXIMUM_POSIX_SEMAPHORES | CONFIGURE_MAXIMUM_POSIX_SHMS |  \
+      CONFIGURE_MAXIMUM_POSIX_THREADS | CONFIGURE_MAXIMUM_POSIX_TIMERS ) & \
+    RTEMS_UNLIMITED_OBJECTS ) != 0
+  #define _CONFIGURE_WORKSPACE_FALLBACK
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 const uintptr_t _Workspace_Size = CONFIGURE_EXECUTIVE_RAM_SIZE;
 
+char _Workspace_Storage_area
+  [ _CONFIGURE_WORKSPACE_STORAGE_SIZE ] RTEMS_ALIGNED(
+    CPU_HEAP_ALIGNMENT
+  ) RTEMS_NOINIT;
+
+const uintptr_t _Workspace_Storage_size = sizeof( _Workspace_Storage_area );
+
+/*
+ * With the fallback, the C Program Heap provides a thread-local storage area
+ * which exceeds the reserved size.
+ */
+#ifdef _CONFIGURE_WORKSPACE_FALLBACK
+const size_t _Workspace_TLS_area_count = 0;
+#else
+const size_t _Workspace_TLS_area_count = _CONFIGURE_WORKSPACE_TLS_AREA_COUNT;
+#endif
+
 #ifdef CONFIGURE_UNIFIED_WORK_AREAS
 const bool _Workspace_Is_unified = true;
+#endif
 
-struct Heap_Control *( *const _Workspace_Malloc_initializer )( void ) =
-  _Workspace_Malloc_initialize_unified;
+#ifdef _CONFIGURE_WORKSPACE_FALLBACK
+struct Heap_Control *const *const
+  _Workspace_Fallback_heap = &RTEMS_Malloc_Heap;
+
+void *_Workspace_Allocate( size_t size )
+{
+  return _Workspace_Allocate_with_fallback( size );
+}
+
+void _Workspace_Free( void *ptr )
+{
+  _Workspace_Free_with_fallback( ptr );
+}
 #endif
 
 uint32_t rtems_minimum_stack_size = CONFIGURE_MINIMUM_TASK_STACK_SIZE;

@@ -804,6 +804,7 @@ source:
 - cpukit/libcsupport/src/utimes.c
 - cpukit/libcsupport/src/utsname.c
 - cpukit/libcsupport/src/vprintk.c
+- cpukit/libcsupport/src/wkspacefallbackmalloc.c
 - cpukit/libcsupport/src/write.c
 - cpukit/libcsupport/src/write_r.c
 - cpukit/libcsupport/src/writev.c
@@ -1632,10 +1633,9 @@ source:
 - cpukit/score/src/watchdogtimeslicedefault.c
 - cpukit/score/src/wkspace.c
 - cpukit/score/src/wkspaceallocate.c
+- cpukit/score/src/wkspacefallbackdefault.c
 - cpukit/score/src/wkspacefree.c
 - cpukit/score/src/wkspaceisunifieddefault.c
-- cpukit/score/src/wkspacemallocinitdefault.c
-- cpukit/score/src/wkspacemallocinitunified.c
 - cpukit/score/src/wkstringduplicate.c
 target: rtemscpu
 type: build

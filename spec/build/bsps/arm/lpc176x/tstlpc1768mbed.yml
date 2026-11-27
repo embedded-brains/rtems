@@ -18,13 +18,15 @@ actions:
     - sp48
     - sptimecounter02
     - sptimecounter03
+    - ticker
     - tmcontext01
     - tmfine01
     - top
+    - unlimited
     - utf8proc01
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

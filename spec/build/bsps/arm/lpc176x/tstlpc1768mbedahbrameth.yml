@@ -4,6 +4,7 @@ actions:
     reason: null
     state: exclude
     tests:
+    - basesp
     - block08
     - calloc
     - capture
@@ -65,6 +66,7 @@ actions:
     - monitor02
     - nanosleep
     - open
+    - paranoia
     - pipe
     - posixmemalign
     - psxaio01
@@ -112,10 +114,12 @@ actions:
     - sptimecounter03
     - sptls02
     - stat
+    - ticker
     - tm21
     - tmcontext01
     - tmfine01
     - top
+    - unlimited
     - unlink
     - utf8proc01
     - vfork
@@ -125,7 +129,7 @@ actions:
     - writev
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

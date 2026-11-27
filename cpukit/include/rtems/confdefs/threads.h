@@ -236,11 +236,15 @@ const size_t _Thread_queue_Heads_size = sizeof(
 );
 #endif
 
-const size_t _Thread_Initial_thread_count =
 #if !defined( CONFIGURE_IDLE_TASK_STORAGE_SIZE ) && \
   !defined( CONFIGURE_TASK_STACK_ALLOCATOR_FOR_IDLE )
-  _CONFIGURE_MAXIMUM_PROCESSORS +
+  #define _CONFIGURE_IDLE_THREAD_COUNT _CONFIGURE_MAXIMUM_PROCESSORS
+#else
+  #define _CONFIGURE_IDLE_THREAD_COUNT 0
 #endif
+
+const size_t _Thread_Initial_thread_count =
+  _CONFIGURE_IDLE_THREAD_COUNT +
   rtems_resource_maximum_per_allocation( _CONFIGURE_TASKS ) +
   rtems_resource_maximum_per_allocation( CONFIGURE_MAXIMUM_POSIX_THREADS );
 

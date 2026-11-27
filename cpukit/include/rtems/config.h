@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2009, 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2009, 2026 embedded brains GmbH & Co. KG
  * Copyright (C) 1988, 2021 On-Line Applications Research Corporation (OAR)
  *
  * Redistribution and use in source and binary forms, with or without
@@ -738,7 +738,9 @@ uint32_t rtems_configuration_get_maximum_extensions( void );
  *   be unified for this application.
  *
  * @return Returns true, if the RTEMS Workspace and C Program Heap are
- *   configured to be unified for this application, otherwise false.
+ *   configured to be unified for this application, otherwise false.  In a
+ *   unified configuration, the RTEMS Workspace allocates from the C Program
+ *   Heap if its storage area is exhausted.
  *
  * @par Notes
  * The setting is defined by the @ref CONFIGURE_UNIFIED_WORK_AREAS application

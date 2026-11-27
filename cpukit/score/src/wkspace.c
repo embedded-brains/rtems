@@ -6,11 +6,11 @@
  * @ingroup RTEMSScoreWorkspace
  *
  * @brief This source file contains the definition of ::_Workspace_Area and the
- *   Workspace Handler system initialization.
+ *   implementation of _Workspace_Handler_initialization().
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,9 +39,44 @@
 #endif
 
 #include <rtems/score/wkspace.h>
+#include <rtems/score/heapfirstfitimpl.h>
+#include <rtems/score/assert.h>
+#include <rtems/score/interr.h>
+#include <rtems/score/thread.h>
+#include <rtems/score/tls.h>
+#include <rtems/score/wkspacedata.h>
 #include <rtems/sysinit.h>
 
 Heap_Control _Workspace_Area;
+
+void _Workspace_Handler_initialization( void )
+{
+  uintptr_t available_size;
+
+  available_size = _Heap_Initialize(
+    &_Workspace_Area,
+    _Workspace_Storage_area,
+    _Workspace_Storage_size,
+    CPU_HEAP_ALIGNMENT
+  );
+
+  _Assert( available_size >= _Workspace_Storage_size - _Heap_Area_overhead(
+    CPU_HEAP_ALIGNMENT
+  ) );
+  (void) available_size;
+
+  if ( _Workspace_TLS_area_count != 0 && _Thread_Maximum_TLS_size == 0 ) {
+    /*
+     * The storage area reserves THREAD_DEFAULT_MAXIMUM_TLS_SIZE for each
+     * thread-local storage area.
+     */
+    if ( _TLS_Get_allocation_size() > THREAD_DEFAULT_MAXIMUM_TLS_SIZE ) {
+      _Internal_error( INTERNAL_ERROR_TOO_LARGE_TLS_SIZE );
+    }
+  }
+
+  _Heap_Protection_set_delayed_free_fraction( &_Workspace_Area, 1 );
+}
 
 RTEMS_SYSINIT_ITEM(
   _Workspace_Handler_initialization,

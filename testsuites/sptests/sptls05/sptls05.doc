@@ -1,0 +1,13 @@
+This file describes the directives and concepts tested by this test set.
+
+test set name: sptls05
+
+directives:
+
+  - rtems_task_create()
+
+concepts:
+
+  - Ensure that an application with unified work areas boots with a
+    thread-local storage size above 64 pointers and without
+    CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE.

@@ -40,13 +40,10 @@
 #include "config.h"
 #endif
 
+#include <rtems/score/apimutex.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/score/protectedheap.h>
-#include <rtems/score/interr.h>
-#include <rtems/config.h>
 #include <rtems/rtems/support.h>
-
-#include <string.h> /* for memset */
 
 bool rtems_workspace_get_information( Heap_Information_block *the_info )
 {
@@ -73,9 +70,13 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer )
   }
 
   /*
-   * Allocate the memory
+   * With the fallback, _Workspace_Allocate() allocates from the C Program Heap
+   * if the storage area is exhausted.
    */
-  ptr = _Protected_heap_Allocate( &_Workspace_Area, bytes );
+  _RTEMS_Lock_allocator();
+  ptr = _Workspace_Allocate( bytes );
+  _RTEMS_Unlock_allocator();
+
   if ( !ptr ) {
     return false;
   }
@@ -86,5 +87,9 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer )
 
 bool rtems_workspace_free( void *pointer )
 {
-  return _Protected_heap_Free( &_Workspace_Area, pointer );
+  _RTEMS_Lock_allocator();
+  _Workspace_Free( pointer );
+  _RTEMS_Unlock_allocator();
+
+  return true;
 }

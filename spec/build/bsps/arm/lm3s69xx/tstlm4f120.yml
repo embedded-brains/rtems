@@ -6,6 +6,7 @@ actions:
     tests:
     - block08
     - capture
+    - cdtest
     - fileio
     - iostream
     - ostream
@@ -25,12 +26,14 @@ actions:
     - spregionerr01
     - sptimecounter02
     - sptimecounter03
+    - ticker
     - tmcontext01
     - top
+    - unlimited
     - utf8proc01
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

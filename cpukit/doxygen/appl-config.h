@@ -2984,6 +2984,19 @@
  * a non-zero value of this configuration option, then a fatal error will occur
  * during system initialization.
  *
+ * The RTEMS Workspace reserves a thread-local storage area for each
+ * configured thread which allocates its stack from the RTEMS Workspace.  If
+ * the value of this configuration option is zero, then the size of each
+ * reserved area is 64 times the size of a pointer.  If the RTEMS Workspace
+ * reserves at least one area and the thread-local storage allocation size of
+ * the executable exceeds the reserved size, then the fatal error
+ * ::INTERNAL_ERROR_TOO_LARGE_TLS_SIZE will occur during system
+ * initialization.
+ *
+ * With @ref CONFIGURE_UNIFIED_WORK_AREAS or an unlimited object class, the
+ * RTEMS Workspace allocates an area which exceeds the reserved size from the C
+ * Program Heap.  The fatal error does not occur in this case.
+ *
  * Use RTEMS_ALIGN_UP() and #RTEMS_TASK_STORAGE_ALIGNMENT to adjust the size to
  * meet the minimum alignment requirement of a thread-local storage area.
  *
@@ -3321,25 +3334,20 @@
  *
  * @anchor CONFIGURE_UNIFIED_WORK_AREAS
  *
- * In case this configuration option is defined, then the RTEMS Workspace and
- * the C Program Heap will be one pool of memory.
+ * In case this configuration option is defined, then the RTEMS Workspace
+ * allocates from the C Program Heap if its storage area is exhausted.
  *
  * @par Default Configuration
- * If this configuration option is undefined, then there will be separate
- * memory pools for the RTEMS Workspace and C Program Heap.
+ * If this configuration option is undefined, then the RTEMS Workspace
+ * allocates from the C Program Heap only if an object class uses <a
+ * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
+ * Objects</a>.
  *
  * @par Notes
- * @parblock
- * Having separate pools does have some advantages in the event a task blows a
- * stack or writes outside its memory area. However, in low memory systems the
- * overhead of the two pools plus the potential for unused memory in either
- * pool is very undesirable.
- *
- * In high memory environments, this is desirable when you want to use the <a
- * href="https://docs.rtems.org/docs/main/c-user/config/intro.html#unlimited-objects">Unlimited
- * Objects</a> option. You will be able to create objects until you run out of
- * all available memory rather then just until you run out of RTEMS Workspace.
- * @endparblock
+ * The application configuration defines the storage area of the RTEMS
+ * Workspace as a statically allocated array.  The size of the array covers
+ * the configured objects and task stacks.  Objects which an unlimited object
+ * class allocates beyond its initial allocation come from the C Program Heap.
  */
 #define CONFIGURE_UNIFIED_WORK_AREAS
 
@@ -3391,9 +3399,8 @@
  *
  * @par Notes
  * @parblock
- * When using unlimited objects, it is common practice to also specify @ref
- * CONFIGURE_UNIFIED_WORK_AREAS so the system operates with a single pool of
- * memory for both RTEMS Workspace and C Program Heap.
+ * If an object class uses unlimited objects, then the RTEMS Workspace
+ * allocates from the C Program Heap if its storage area is exhausted.
  *
  * This option does not override an explicit configuration for a particular
  * object class by the user.

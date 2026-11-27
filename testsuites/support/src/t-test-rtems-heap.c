@@ -90,10 +90,7 @@ static void T_heap_run_initialize( void )
 
   ctx = &T_resource_heap_instance;
   T_get_workspace_usage( &ctx->workspace_usage );
-
-  if ( !rtems_configuration_get_unified_work_area() ) {
-    T_get_malloc_usage( &ctx->heap_usage );
-  }
+  T_get_malloc_usage( &ctx->heap_usage );
 }
 
 static void T_heap_case_end( void )
@@ -108,26 +105,16 @@ static void T_heap_case_end( void )
   ok = memcmp( &usage, &ctx->workspace_usage, sizeof( usage ) ) == 0;
 
   if ( !ok ) {
-    const char *where;
-
-    if ( rtems_configuration_get_unified_work_area() ) {
-      where = "workspace or heap";
-    } else {
-      where = "workspace";
-    }
-
-    T_check( &T_special, ok, "memory leak in %s", where );
+    T_check( &T_special, ok, "memory leak in workspace" );
     memcpy( &ctx->workspace_usage, &usage, sizeof( usage ) );
   }
 
-  if ( !rtems_configuration_get_unified_work_area() ) {
-    T_get_malloc_usage( &usage );
-    ok = memcmp( &usage, &ctx->heap_usage, sizeof( usage ) ) == 0;
+  T_get_malloc_usage( &usage );
+  ok = memcmp( &usage, &ctx->heap_usage, sizeof( usage ) ) == 0;
 
-    if ( !ok ) {
-      T_check( &T_special, ok, "memory leak in heap" );
-      memcpy( &ctx->heap_usage, &usage, sizeof( usage ) );
-    }
+  if ( !ok ) {
+    T_check( &T_special, ok, "memory leak in heap" );
+    memcpy( &ctx->heap_usage, &usage, sizeof( usage ) );
   }
 }
 

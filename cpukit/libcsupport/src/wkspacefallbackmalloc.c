@@ -1,15 +1,16 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "../spfatal_support/spfatal.h"
-
-/*  Test __assert_func with NULL function name
+/**
+ * @file
  *
- *  COPYRIGHT (c) 1989-2009.
- *  On-Line Applications Research Corporation (OAR).
+ * @ingroup MallocSupport
+ *
+ * @brief This source file contains the implementation of
+ *   _Workspace_Allocate_with_fallback() and _Workspace_Free_with_fallback().
+ */
+
+/*
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,44 +34,40 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <rtems/score/wkspacedata.h>
+#include <rtems/score/assert.h>
+#include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
-#include <rtems/score/memory.h>
-#include <rtems/sysinit.h>
+#include <rtems/malloc.h>
 
-#define FATAL_ERROR_TEST_NAME "12"
-#define FATAL_ERROR_DESCRIPTION \
-  "_Heap_Initialize fails during RTEMS initialization"
-#define FATAL_ERROR_EXPECTED_SOURCE INTERNAL_ERROR_CORE
-#define FATAL_ERROR_EXPECTED_ERROR  INTERNAL_ERROR_TOO_LITTLE_WORKSPACE
+#include <stdlib.h>
 
-static void force_error( void )
+void *_Workspace_Allocate_with_fallback( size_t size )
 {
-  void *p;
+  void *ptr;
 
-  /* we will not run this far */
-  p = _Workspace_Allocate( 1 );
-  RTEMS_OBFUSCATE_VARIABLE( p );
+  ptr = _Heap_Allocate( &_Workspace_Area, size );
+
+  if ( ptr == NULL ) {
+    ptr = rtems_malloc( size );
+  }
+
+  return ptr;
 }
 
-static void consume_all_memory( void )
+void _Workspace_Free_with_fallback( void *ptr )
 {
-  const Memory_Information *mem;
-  size_t                    i;
+  if ( _Workspace_Is_in_storage_area( ptr ) ) {
+    bool ok;
 
-  mem = _Memory_Get();
-
-  for ( i = 0; i < _Memory_Get_count( mem ); ++i ) {
-    Memory_Area *area;
-
-    area = _Memory_Get_area( mem, i );
-    _Memory_Consume( area, _Memory_Get_free_size( area ) );
+    ok = _Heap_Free( &_Workspace_Area, ptr );
+    _Assert( ok );
+    (void) ok;
+  } else {
+    free( ptr );
   }
 }
-
-RTEMS_SYSINIT_ITEM(
-  consume_all_memory,
-  RTEMS_SYSINIT_WORKSPACE,
-  RTEMS_SYSINIT_ORDER_FIRST
-);
-
-#include "../spfatal_support/spfatalimpl.h"

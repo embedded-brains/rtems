@@ -50,10 +50,12 @@ actions:
     - syscall01
     - tar01
     - termios
+    - ticker
     - tmcontext01
     - tmfine01
     - top
     - ttest01
+    - unlimited
     - utf8proc01
 - set-test-state:
     reason: These are too large to link with Debug enabled
@@ -66,7 +68,7 @@ actions:
     - mdosfsfsrmdirparent
 build-type: option
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 default: []
 description: ''
 enabled-by: true

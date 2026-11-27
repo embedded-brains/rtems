@@ -4,7 +4,7 @@ bsp: altcycv_devkit
 build-type: bsp
 cflags: []
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 cppflags: []
 enabled-by: true
 family: altera-cyclone-v
@@ -139,5 +139,4 @@ source:
 - bsps/shared/start/mallocinitmulti.c
 - bsps/shared/start/sbrk.c
 - bsps/shared/start/stackalloc.c
-- bsps/shared/start/wkspaceinitmulti.c
 type: build

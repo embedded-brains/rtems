@@ -312,7 +312,13 @@ typedef struct {
  * @return Returns true, if the allocation was successful, otherwise false.
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * If the RTEMS Workspace allocates from the C Program Heap when its storage
+ * area is exhausted, then the directive also allocates from the C Program
+ * Heap.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -338,8 +344,11 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  *
  * @param pointer is the begin address of the memory area to free.
  *
- * @return Returns true, if freeing the memory area was successful, otherwise
- *   false.
+ * @return Returns true.
+ *
+ * @par Notes
+ * The directive does not check that the memory area was allocated from the
+ * RTEMS Workspace.
  *
  * @par Constraints
  * @parblock
@@ -446,6 +455,11 @@ bool rtems_workspace_get_statistics( rtems_heap_statistics *stats );
  *
  * @return The returned pointer value may be used to free the greedy allocation
  *   by calling rtems_workspace_greedy_free().
+ *
+ * @par Notes
+ * If the RTEMS Workspace allocates from the C Program Heap when its storage
+ * area is exhausted, then the directive also uses all blocks of the C Program
+ * Heap.
  */
 void *rtems_workspace_greedy_allocate(
   const uintptr_t *block_sizes,
@@ -470,7 +484,13 @@ void *rtems_workspace_greedy_allocate(
  *   by calling rtems_workspace_greedy_free().
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * If the RTEMS Workspace allocates from the C Program Heap when its storage
+ * area is exhausted, then the directive also uses all blocks of the C Program
+ * Heap.
+ * @endparblock
  *
  * @par Constraints
  * @parblock
@@ -501,7 +521,12 @@ void *rtems_workspace_greedy_allocate_all_except_largest(
  *   rtems_workspace_greedy_allocate_all_except_largest().
  *
  * @par Notes
+ * @parblock
  * This directive is intended to be used by tests of the RTEMS test suites.
+ *
+ * The directive frees the blocks of the RTEMS Workspace and the blocks of the
+ * C Program Heap which the greedy allocation used.
+ * @endparblock
  *
  * @par Constraints
  * @parblock

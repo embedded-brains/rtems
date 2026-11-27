@@ -7,11 +7,13 @@
  *
  * @brief This header file provides data structures used by the implementation
  *   and the @ref RTEMSImplApplConfig to define ::_Workspace_Size,
- *   ::_Workspace_Is_unified, and ::_Workspace_Malloc_initializer.
+ *   ::_Workspace_Is_unified, ::_Workspace_Storage_area,
+ *   ::_Workspace_Storage_size, ::_Workspace_TLS_area_count, and
+ *   ::_Workspace_Fallback_heap.
  */
 
 /*
- * Copyright (C) 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,12 +71,78 @@ struct Heap_Control;
 extern const uintptr_t _Workspace_Size;
 
 /**
- * @brief Indicates if the workspace and C program heap are unified.
+ * @brief Indicates if the application configuration defines
+ *   #CONFIGURE_UNIFIED_WORK_AREAS.
+ *
+ * This constant is defined by the application configuration via
+ * <rtems/confdefs.h> or a default configuration.
+ */
+extern const bool _Workspace_Is_unified;
+
+/**
+ * @brief This array provides the storage area of the RTEMS Workspace.
+ *
+ * This array is defined by the application configuration via
+ * <rtems/confdefs.h>.
+ */
+extern char _Workspace_Storage_area[];
+
+/**
+ * @brief This constant provides the size of ::_Workspace_Storage_area in
+ *   bytes.
  *
  * This constant is defined by the application configuration via
  * <rtems/confdefs.h>.
  */
-extern const bool _Workspace_Is_unified;
+extern const uintptr_t _Workspace_Storage_size;
+
+/**
+ * @brief This constant provides the count of thread-local storage areas
+ *   which ::_Workspace_Storage_area shall hold.
+ *
+ * The count is zero if the RTEMS Workspace allocates from the C Program Heap
+ * when its storage area has no fitting block.
+ *
+ * This constant is defined by the application configuration via
+ * <rtems/confdefs.h>.
+ */
+extern const size_t _Workspace_TLS_area_count;
+
+/**
+ * @brief This constant references the heap control of the C Program Heap if
+ *   the RTEMS Workspace allocates from the C Program Heap when its storage
+ *   area is exhausted.
+ *
+ * If the value is NULL, then the RTEMS Workspace uses only its storage area.
+ *
+ * This constant is defined by the application configuration via
+ * <rtems/confdefs.h> or a default configuration.
+ */
+extern struct Heap_Control *const *const _Workspace_Fallback_heap;
+
+/**
+ * @brief Allocates a memory area from the RTEMS Workspace and, if its storage
+ *   area is exhausted, from the C Program Heap.
+ *
+ * The application configuration uses this function to define
+ * _Workspace_Allocate().
+ *
+ * @param size is the size in bytes of the memory area.
+ *
+ * @return Returns the begin address of the memory area, otherwise NULL.
+ */
+void *_Workspace_Allocate_with_fallback( size_t size );
+
+/**
+ * @brief Frees a memory area which _Workspace_Allocate_with_fallback()
+ *   returned.
+ *
+ * The application configuration uses this function to define
+ * _Workspace_Free().
+ *
+ * @param ptr is the begin address of the memory area.
+ */
+void _Workspace_Free_with_fallback( void *ptr );
 
 /**
  * @brief Initializes the C Program Heap separated from the RTEMS Workspace.
@@ -82,23 +150,6 @@ extern const bool _Workspace_Is_unified;
  * @return Returns the heap control used for the C Program Heap.
  */
 struct Heap_Control *_Workspace_Malloc_initialize_separate( void );
-
-/**
- * @brief Initializes the C Program Heap so that it is unified with the RTEMS
- * Workspace.
- *
- * @return Returns the heap control used for the C Program Heap.
- */
-struct Heap_Control *_Workspace_Malloc_initialize_unified( void );
-
-/**
- * @brief This constant provides the C Program Heap initialization handler.
- *
- * This constant is defined by the application configuration option
- * #CONFIGURE_UNIFIED_WORK_AREAS via <rtems/confdefs.h> or a default
- * configuration.
- */
-extern struct Heap_Control *( *const _Workspace_Malloc_initializer )( void );
 
 /** @} */
 

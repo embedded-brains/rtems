@@ -1,7 +1,7 @@
 /* SPDX-License-Identifier: BSD-2-Clause */
 
 /*
- * Copyright (C) 2014, 2020 embedded brains GmbH & Co. KG
+ * Copyright (C) 2014, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -316,6 +316,9 @@ extern "C" void Init(rtems_task_argument arg)
 
 #define CONFIGURE_MAXIMUM_POSIX_KEYS 2
 #define CONFIGURE_MAXIMUM_POSIX_KEY_VALUE_PAIRS 2
+
+#define CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE \
+  ( 6 * RTEMS_MINIMUM_STACK_SIZE )
 
 #define CONFIGURE_INIT
 

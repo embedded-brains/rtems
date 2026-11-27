@@ -12,6 +12,7 @@
 /*
  *  COPYRIGHT (c) 1989-2009.
  *  On-Line Applications Research Corporation (OAR).
+ *  Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +40,7 @@
 #define _RTEMS_SCORE_WKSPACE_H
 
 #include <rtems/score/heap.h>
+#include <rtems/score/wkspacedata.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -64,6 +66,24 @@ extern Heap_Control _Workspace_Area;
  * This routine performs the initialization necessary for this handler.
  */
 void _Workspace_Handler_initialization( void );
+
+/**
+ * @brief Checks if the address is in the storage area of the RTEMS Workspace.
+ *
+ * @param ptr is the address to check.
+ *
+ * @retval true The address is in the storage area.
+ *
+ * @retval false Otherwise.
+ */
+static inline bool _Workspace_Is_in_storage_area( const void *ptr )
+{
+  uintptr_t begin;
+
+  begin = (uintptr_t) _Workspace_Storage_area;
+
+  return (uintptr_t) ptr - begin < _Workspace_Storage_size;
+}
 
 /**
  * @brief Allocates a memory block of the specified size from the workspace.

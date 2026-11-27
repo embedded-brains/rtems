@@ -1079,6 +1079,15 @@ extern const size_t _Thread_Initial_thread_count;
 #define THREAD_DEFAULT_MAXIMUM_NAME_SIZE 16
 
 /**
+ * @brief The default maximum allocation size of a thread-local storage area
+ * in bytes.
+ *
+ * This value applies if the application configuration option
+ * CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE is zero.
+ */
+#define THREAD_DEFAULT_MAXIMUM_TLS_SIZE ( 64 * sizeof( void * ) )
+
+/**
  * @brief Maximum size of a thread name in characters (including the
  * terminating '\0' character).
  *
