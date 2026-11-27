@@ -877,7 +877,8 @@ uintptr_t _RBHeap_Get_largest_free_size( const RBHeap_control *control );
  * @param entries is the count of entries.
  *
  * @return Returns the size in bytes of the slabs in the areas which the
- *   capacity does not need after the loss of the entries.
+ *   capacity does not need after the loss of the entries.  The size includes
+ *   the slab which the heap drains.
  */
 uintptr_t _RBHeap_Get_releasable_size(
   const RBHeap_control *control,

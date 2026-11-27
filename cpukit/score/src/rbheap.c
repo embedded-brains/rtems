@@ -3324,6 +3324,11 @@ uintptr_t _RBHeap_Get_releasable_size(
     count = control->area_slab_count;
   }
 
+  /* The frees which return the entries complete the drain. */
+  if ( control->draining != NULL ) {
+    ++count;
+  }
+
   _RBHeap_Release( control, &lock_context );
   return count * RBHEAP_SLAB_SIZE;
 }
