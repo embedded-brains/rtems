@@ -144,11 +144,11 @@ static RtemsIoReqOutputCharIsDrain_Context
   RtemsIoReqOutputCharIsDrain_Instance;
 
 static const char *const RtemsIoReqOutputCharIsDrain_PreDesc_Sign[] = {
-  "NonNegative:Zero",
-  "NonNegative:Char",
-  "NonNegative:Max",
-  "Negative:Min",
-  "Negative:MinusOne",
+  "NonNegativeZero",
+  "NonNegativeChar",
+  "NonNegativeMax",
+  "NegativeMin",
+  "NegativeMinusOne",
   "NA"
 };
 

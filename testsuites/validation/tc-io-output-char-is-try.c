@@ -142,11 +142,11 @@ typedef struct {
 static RtemsIoReqOutputCharIsTry_Context RtemsIoReqOutputCharIsTry_Instance;
 
 static const char *const RtemsIoReqOutputCharIsTry_PreDesc_Sign[] = {
-  "NonNegative:Zero",
-  "NonNegative:Char",
-  "NonNegative:Max",
-  "Negative:Min",
-  "Negative:MinusOne",
+  "NonNegativeZero",
+  "NonNegativeChar",
+  "NonNegativeMax",
+  "NegativeMin",
+  "NegativeMinusOne",
   "NA"
 };
 
