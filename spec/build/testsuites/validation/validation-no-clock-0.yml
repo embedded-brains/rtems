@@ -50,6 +50,8 @@ source:
 - testsuites/validation/tc-events.c
 - testsuites/validation/tc-gmtime-r.c
 - testsuites/validation/tc-io-getchark.c
+- testsuites/validation/tc-io-output-char-is-drain.c
+- testsuites/validation/tc-io-output-char-is-try.c
 - testsuites/validation/tc-io-printer.c
 - testsuites/validation/tc-io-printk-printer.c
 - testsuites/validation/tc-io-put-char.c

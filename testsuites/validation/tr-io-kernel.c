@@ -72,6 +72,14 @@
  *   - Check that the drain request with RTEMS_OUTPUT_CHAR_TRY returned zero if
  *     the drain request returned zero, otherwise minus one.
  *
+ * - Call the function referenced by BSP_output_char with RTEMS_OUTPUT_CHAR_TRY
+ *   and a character. Then call it with a new line character and no flag.
+ *
+ *   - Check that the request with RTEMS_OUTPUT_CHAR_TRY returned zero or minus
+ *     one.
+ *
+ *   - Check that the call with the new line character returned zero.
+ *
  * - If BSP_poll_char references a function, then call it.
  *
  *   - Check that the returned value is minus one or an unsigned character
@@ -150,9 +158,40 @@ static void RtemsIoValKernel_Action_2( void )
 }
 
 /**
- * @brief If BSP_poll_char references a function, then call it.
+ * @brief Call the function referenced by BSP_output_char with
+ *   RTEMS_OUTPUT_CHAR_TRY and a character. Then call it with a new line
+ *   character and no flag.
  */
 static void RtemsIoValKernel_Action_3( void )
+{
+  int rv_try;
+  int rv_nl;
+
+  rv_try = ( *BSP_output_char )( RTEMS_OUTPUT_CHAR_TRY | 'T' );
+
+  if ( rv_try == 0 ) {
+    T_report_hash_sha256_update( 'T' );
+  }
+
+  T_report_hash_sha256_update( '\n' );
+  rv_nl = ( *BSP_output_char )( '\n' );
+
+  /*
+   * Check that the request with RTEMS_OUTPUT_CHAR_TRY returned zero or minus
+   * one.
+   */
+  T_step_true( 7, rv_try == 0 || rv_try == -1 );
+
+  /*
+   * Check that the call with the new line character returned zero.
+   */
+  T_step_eq_int( 8, rv_nl, 0 );
+}
+
+/**
+ * @brief If BSP_poll_char references a function, then call it.
+ */
+static void RtemsIoValKernel_Action_4( void )
 {
   BSP_polling_getchar_function_type poll_char;
   int                               c;
@@ -168,19 +207,20 @@ static void RtemsIoValKernel_Action_3( void )
   /*
    * Check that the returned value is minus one or an unsigned character value.
    */
-  T_step_true( 7, c == -1 || ( c & ~0xff ) == 0 );
+  T_step_true( 9, c == -1 || ( c & ~0xff ) == 0 );
 }
 
 void RtemsIoValKernel_Run( void )
 {
   (void) T_case_begin( "RtemsIoValKernel", &T_empty_fixture );
 
-  T_plan( 8 );
+  T_plan( 10 );
 
   RtemsIoValKernel_Action_0();
   RtemsIoValKernel_Action_1();
   RtemsIoValKernel_Action_2();
   RtemsIoValKernel_Action_3();
+  RtemsIoValKernel_Action_4();
 
   T_case_end();
 }
