@@ -600,7 +600,7 @@ static void CStringReqMemchr_Pre_Bound_Prepare(
       /*
        * While the size specified by `n` is less than or equal to the count of
        * bytes from the address specified by the `s` parameter to the end of
-       * the object which contains it.
+       * the object which contains this address.
        */
       /* The N pre-condition sets the size. */
       break;
@@ -610,7 +610,7 @@ static void CStringReqMemchr_Pre_Bound_Prepare(
       /*
        * While the size specified by `n` is greater than the count of bytes
        * from the address specified by the `s` parameter to the end of the
-       * object which contains it.
+       * object which contains this address.
        */
       ctx->n = SIZE_MAX;
       break;
@@ -737,9 +737,8 @@ static void CStringReqMemchr_Pre_Match_Prepare(
   switch ( state ) {
     case CStringReqMemchr_Pre_Match_None: {
       /*
-       * While no byte which lies in the first `n` bytes of the memory area
-       * referenced by the `s` parameter and in the object which contains it is
-       * equal to the value of the `c` parameter converted to `unsigned char`.
+       * While no byte of the search area is equal to the value of the `c`
+       * parameter converted to `unsigned char`.
        */
       ctx->s[ -1 ] = TARGET;
       ctx->s[ ctx->len ] = TARGET;
@@ -748,10 +747,8 @@ static void CStringReqMemchr_Pre_Match_Prepare(
 
     case CStringReqMemchr_Pre_Match_One: {
       /*
-       * While exactly one byte which lies in the first `n` bytes of the memory
-       * area referenced by the `s` parameter and in the object which contains
-       * it is equal to the value of the `c` parameter converted to `unsigned
-       * char`.
+       * While exactly one byte of the search area is equal to the value of the
+       * `c` parameter converted to `unsigned char`.
        */
       switch ( CStringReqMemchr_Pre_Match_One_GetRepresentative( ctx ) ) {
         case CStringReqMemchr_Pre_Match_One_First: {
@@ -771,10 +768,8 @@ static void CStringReqMemchr_Pre_Match_Prepare(
 
     case CStringReqMemchr_Pre_Match_Several: {
       /*
-       * While more than one byte which lies in the first `n` bytes of the
-       * memory area referenced by the `s` parameter and in the object which
-       * contains it is equal to the value of the `c` parameter converted to
-       * `unsigned char`.
+       * While more than one byte of the search area is equal to the value of
+       * the `c` parameter converted to `unsigned char`.
        */
       switch ( CStringReqMemchr_Pre_Match_Several_GetRepresentative( ctx ) ) {
         case CStringReqMemchr_Pre_Match_Several_Start: {
@@ -812,10 +807,9 @@ static void CStringReqMemchr_Post_Result_Check(
   switch ( state ) {
     case CStringReqMemchr_Post_Result_First: {
       /*
-       * The return value of memchr() shall be the address of the first byte
-       * which lies in the first `n` bytes of the memory area referenced by the
-       * `s` parameter and in the object which contains it and which is equal
-       * to the value of the `c` parameter converted to `unsigned char`.
+       * The return value of memchr() shall be the address of the first byte of
+       * the search area which is equal to the value of the `c` parameter
+       * converted to `unsigned char`.
        */
       T_eq_ptr( ctx->retval, ctx->expected );
       break;
