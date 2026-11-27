@@ -763,7 +763,11 @@ static RBHeap_descriptor *_RBHeap_Free_find(
   return best;
 }
 
-/* Returns the free block of the size and the begin. */
+/*
+ * Returns the free block of the size and the begin.  Each caller looks up a gap
+ * of the heap, and the free tree holds a block for each gap, see
+ * _RBHeap_Walk_has_free().
+ */
 static RBHeap_descriptor *_RBHeap_Free_lookup(
   const RBHeap_control *control,
   uintptr_t             size,
@@ -774,7 +778,9 @@ static RBHeap_descriptor *_RBHeap_Free_lookup(
 
   node = _RBHeap_Root( &control->free_root );
 
-  while ( node != NULL ) {
+  while ( true ) {
+    _Assert( node != NULL );
+
     if ( size == node->size && begin == node->begin ) {
       return node;
     }
@@ -785,9 +791,6 @@ static RBHeap_descriptor *_RBHeap_Free_lookup(
       node = _RBHeap_Right( node );
     }
   }
-
-  _Assert( false );
-  return NULL;
 }
 
 /*
