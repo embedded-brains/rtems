@@ -1,0 +1,390 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/get-classic-name
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_rsc_success( ctx->status );
+    text: |
+      The return status of ${../if/get-classic-name:/name} shall be
+      ${../../status/if/successful:/name}.
+  - name: InvAddr
+    test-code: |
+      T_rsc( ctx->status, RTEMS_INVALID_ADDRESS );
+    text: |
+      The return status of ${../if/get-classic-name:/name} shall be
+      ${../../status/if/invalid-address:/name}.
+  - name: InvId
+    test-code: |
+      T_rsc( ctx->status, RTEMS_INVALID_ID );
+    text: |
+      The return status of ${../if/get-classic-name:/name} shall be
+      ${../../status/if/invalid-id:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Set
+    test-code: |
+      T_eq_u32( ctx->name_value, TEST_RUNNER_NAME );
+    text: |
+      The value of the object referenced by the
+      ${../if/get-classic-name:/params[1]/name} parameter shall be the object name of
+      the object identified by the ${../if/get-classic-name:/params[0]/name}
+      parameter.
+  - name: Zero
+    test-code: |
+      T_eq_u32( ctx->name_value, 0 );
+    text: |
+      The value of the object referenced by the
+      ${../if/get-classic-name:/params[1]/name} parameter shall be zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: API
+  states:
+  - name: Zero
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the API of the ${../if/get-classic-name:/params[0]/name} parameter is
+      zero.
+  - name: Valid
+    test-code: |
+      ctx->id |= OBJECTS_CLASSIC_API << OBJECTS_API_START_BIT;
+    text: |
+      While the API of the ${../if/get-classic-name:/params[0]/name} parameter is
+      associated with an object API.
+  - name: Invalid
+    representatives:
+    - name: AboveLast
+      test-code: |
+        ctx->id |= ( OBJECTS_APIS_LAST + 1 ) << OBJECTS_API_START_BIT;
+    - name: Max
+      test-code: |
+        ctx->id |= OBJECTS_API_VALID_BITS << OBJECTS_API_START_BIT;
+    test-code: null
+    text: |
+      While the API of the ${../if/get-classic-name:/params[0]/name} parameter is not
+      equal to zero and is associated with no object API.
+  test-epilogue: null
+  test-prologue: null
+- name: Class
+  states:
+  - name: Zero
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the class of the ${../if/get-classic-name:/params[0]/name} parameter is
+      zero.
+  - name: ValidNoObjects
+    test-code: |
+      ctx->id |= OBJECTS_RTEMS_TASKS << OBJECTS_CLASS_START_BIT;
+      ctx->information->maximum_id = 0;
+    text: |
+      While the class of the ${../if/get-classic-name:/params[0]/name} parameter is
+      associated with an object class which has no object configured.
+  - name: ValidMaybeObjects
+    test-code: |
+      ctx->id |= OBJECTS_RTEMS_TASKS << OBJECTS_CLASS_START_BIT;
+    text: |
+      While the class of the ${../if/get-classic-name:/params[0]/name} parameter is
+      associated with an object class which has at least one object configured.
+  - name: Invalid
+    representatives:
+    - name: AboveLast
+      test-code: |
+        ctx->id |= ( OBJECTS_RTEMS_CLASSES_LAST + 1 ) << OBJECTS_CLASS_START_BIT;
+    - name: Max
+      test-code: |
+        ctx->id |= OBJECTS_CLASS_VALID_BITS << OBJECTS_CLASS_START_BIT;
+    test-code: null
+    text: |
+      While the class of the ${../if/get-classic-name:/params[0]/name} parameter is
+      not equal to zero and is associated with no object class.
+  test-epilogue: null
+  test-prologue: null
+- name: Node
+  states:
+  - name: Zero
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the node of the ${../if/get-classic-name:/params[0]/name} parameter is
+      zero.
+  - name: Valid
+    test-code: |
+      ctx->id |= 1 << OBJECTS_NODE_START_BIT;
+    text: |
+      While the node of the ${../if/get-classic-name:/params[0]/name} parameter is
+      associated with a node.
+  - name: Invalid
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->id |= 2 << OBJECTS_NODE_START_BIT;
+    - name: Max
+      test-code: |
+        ctx->id |= OBJECTS_NODE_VALID_BITS << OBJECTS_NODE_START_BIT;
+    test-code: null
+    text: |
+      While the node of the ${../if/get-classic-name:/params[0]/name} parameter is
+      not equal to zero and is associated with no node.
+  test-epilogue: null
+  test-prologue: null
+- name: Index
+  states:
+  - name: Zero
+    test-code: |
+      /* Already prepared */
+    text: |
+      While the index of the ${../if/get-classic-name:/params[0]/name} parameter is
+      zero.
+  - name: Valid
+    test-code: |
+      ctx->id |= _Objects_Get_index( ctx->object->id ) << OBJECTS_INDEX_START_BIT;
+    text: |
+      While the index of the ${../if/get-classic-name:/params[0]/name} parameter is
+      associated with an object.
+  - name: Invalid
+    representatives:
+    - name: AboveMaximum
+      test-code: |
+        ctx->id |= ( _Objects_Get_index( ctx->maximum_id ) + 1 )
+                   << OBJECTS_INDEX_START_BIT;
+    - name: Max
+      test-code: |
+        ctx->id |= OBJECTS_INDEX_VALID_BITS << OBJECTS_INDEX_START_BIT;
+    test-code: null
+    text: |
+      While the index of the ${../if/get-classic-name:/params[0]/name} parameter is
+      not equal to zero and is associated with no object.
+  test-epilogue: null
+  test-prologue: null
+- name: NameType
+  states:
+  - name: Integer
+    test-code: |
+      ctx->information->name_length = 0;
+    text: |
+      While the object class uses integer names.
+  - name: String
+    test-code: |
+      ctx->information->name_length = sizeof( rtems_name );
+    text: |
+      While the object class uses string names.
+  test-epilogue: null
+  test-prologue: null
+- name: Name
+  states:
+  - name: Valid
+    test-code: |
+      ctx->name = &ctx->name_value;
+    text: |
+      While the ${../if/get-classic-name:/params[1]/name} parameter references an
+      object of type ${../../type/if/name:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->name = NULL;
+    text: |
+      While the ${../if/get-classic-name:/params[1]/name} parameter is
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The ${../if/get-classic-name:/params[0]/name} parameter consists of the API,
+  the class, the node and the index. The dimensions of the same names cover these
+  parts. An identifier with all four parts equal to zero selects the executing
+  thread. The test changes the class information of the task class. This covers
+  string names and a class without objects.
+
+  The invalid state of each part takes the first value above the range of the
+  part and the maximum value of its field as representatives.
+
+  The executing thread is the test runner. Its object name is TEST_RUNNER_NAME,
+  which is not zero.
+references: []
+requirement-type: functional
+skip-reasons:
+  NeedsAPI: |
+    For a valid object class, a valid object API is required.
+  NeedsAPIClassNode: |
+    For a valid object index, a valid object API, class, and node is required.
+test-action: |
+  ctx->status = rtems_object_get_classic_name( ctx->id, ctx->name );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides an object information to manipulate.
+  description: null
+  member: |
+    Objects_Information *information
+- brief: |
+    This member contains the original object maximum identifier.
+  description: null
+  member: |
+    Objects_Id maximum_id
+- brief: |
+    This member provides the object of the executing thread.
+  description: null
+  member: |
+    Objects_Control *object
+- brief: |
+    This member provides the object referenced by the
+    ${../if/get-classic-name:/params[1]/name} parameter.
+  description: null
+  member: |
+    rtems_name name_value
+- brief: |
+    This member provides the ${../if/get-classic-name:/params[0]/name} parameter
+    value.
+  description: null
+  member: |
+    rtems_id id
+- brief: |
+    This member provides the ${../if/get-classic-name:/params[1]/name} parameter
+    value.
+  description: null
+  member: |
+    rtems_name *name
+- brief: |
+    This member contains the return status.
+  description: null
+  member: |
+    rtems_status_code status
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/score/objectimpl.h
+test-local-includes:
+- ts-config.h
+- tx-support.h
+test-prepare: |
+  ctx->id = 0;
+  ctx->name_value = 0xffffffff;
+  ctx->information->maximum_id = ctx->maximum_id;
+  ctx->information->name_length = 0;
+test-setup:
+  brief: null
+  code: |
+    ctx->information = _Objects_Information_table[ OBJECTS_CLASSIC_API ]
+                                                 [ OBJECTS_RTEMS_TASKS ];
+    ctx->maximum_id = ctx->information->maximum_id;
+    ctx->object = &GetExecuting()->Object;
+    T_eq_u32( ctx->object->name.name_u32, TEST_RUNNER_NAME );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-object-get-classic-name.c
+test-teardown:
+  brief: null
+  code: |
+    ctx->information->maximum_id = ctx->maximum_id;
+    ctx->information->name_length = 0;
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Name: 'Null'
+      then: InvAddr
+    - if:
+      - pre-conditions:
+          API: Zero
+          Class: Zero
+          Index: Zero
+          NameType: Integer
+          Node: Zero
+      - pre-conditions:
+          API: Valid
+          Class: ValidMaybeObjects
+          Index: Valid
+          NameType: Integer
+          Node: Valid
+      then: Ok
+    - else: InvId
+    Name:
+    - if:
+        pre-conditions:
+          Name: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Set
+    - else: Zero
+  pre-conditions:
+    API: all
+    Class:
+      applicable:
+      - pre-conditions:
+          API: Valid
+      - pre-conditions:
+          Class:
+          - Zero
+          - Invalid
+      skip:
+        condition:
+        - pre-conditions:
+            API:
+            - Zero
+            - Invalid
+            Class:
+            - ValidNoObjects
+            - ValidMaybeObjects
+        reason: NeedsAPI
+    Node: all
+    Index:
+      applicable:
+      - pre-conditions:
+          API: Valid
+          Class: ValidMaybeObjects
+          Node: Valid
+      - pre-conditions:
+          Index:
+          - Zero
+          - Invalid
+      skip:
+        condition:
+        - pre-conditions:
+            API:
+            - Zero
+            - Invalid
+            Index: Valid
+        - pre-conditions:
+            Class:
+            - Zero
+            - Invalid
+            Index: Valid
+        - pre-conditions:
+            Index: Valid
+            Node:
+            - Zero
+            - Invalid
+        reason: NeedsAPIClassNode
+    NameType:
+      applicable:
+      - pre-conditions:
+          API: Zero
+          Class: Zero
+          Index: Zero
+          Node: Zero
+      - pre-conditions:
+          API: Valid
+          Class: ValidMaybeObjects
+    Name: all
+type: requirement

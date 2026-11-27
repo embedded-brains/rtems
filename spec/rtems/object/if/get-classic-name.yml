@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Gets the object name associated with the object identifier.
 copyrights:
-- Copyright (C) 2020 embedded brains GmbH & Co. KG
+- Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -23,8 +23,6 @@ links:
 - role: interface-ingroup
   uid: group
 - role: constraint
-  uid: /constraint/directive-not-pre-qualified
-- role: constraint
   uid: /constraint/directive-ctx-any
 - role: constraint
   uid: /constraint/directive-no-preempt
@@ -38,7 +36,8 @@ params:
 - description: |
     is the pointer to an ${../../type/if/name:/name} object. When the directive
     call is successful, the object name associated with the object identifier will
-    be stored in this object.
+    be stored in this object. When the directive returns
+    ${../../status/if/invalid-id:/name}, zero will be stored in this object.
   dir: out
   name: name
 return:
