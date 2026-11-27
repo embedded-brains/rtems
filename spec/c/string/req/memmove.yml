@@ -129,31 +129,29 @@ pre-conditions:
     test-code: |
       ctx->dest_misalign = 0;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[0]/name}
-      parameter starts at an address which is aligned to the size of type long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[0]/name} parameter is equal to zero.
   - name: AboveAligned
     test-code: |
       ctx->dest_misalign = 1;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[0]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[0]/name} parameter is equal to one.
   - name: Between
     test-code: |
       ctx->dest_misalign = 2;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[0]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memmove:/params[0]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[0]/name} parameter is greater than one, while
+      this ${../glossary/alignment-offset:/term} is less than the size of type long
+      minus one.
   - name: BelowAligned
     test-code: |
       ctx->dest_misalign = sizeof( long ) - 1;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[0]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[0]/name} parameter is equal to the size of type
+      long minus one.
   test-epilogue: null
   test-prologue: null
 - name: SrcAlignment
@@ -162,31 +160,29 @@ pre-conditions:
     test-code: |
       ctx->src_misalign = 0;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[1]/name}
-      parameter starts at an address which is aligned to the size of type long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[1]/name} parameter is equal to zero.
   - name: AboveAligned
     test-code: |
       ctx->src_misalign = 1;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[1]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[1]/name} parameter is equal to one.
   - name: Between
     test-code: |
       ctx->src_misalign = 2;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[1]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memmove:/params[1]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[1]/name} parameter is greater than one, while
+      this ${../glossary/alignment-offset:/term} is less than the size of type long
+      minus one.
   - name: BelowAligned
     test-code: |
       ctx->src_misalign = sizeof( long ) - 1;
     text: |
-      While the memory area referenced by the ${../if/memmove:/params[1]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      While the ${../glossary/alignment-offset:/term} of the memory area referenced
+      by the ${../if/memmove:/params[1]/name} parameter is equal to the size of type
+      long minus one.
   test-epilogue: |
     ctx->dest_misalign = Resolve( ctx->dest_misalign, ctx->src_misalign );
     ctx->src_misalign = Resolve( ctx->src_misalign, ctx->dest_misalign );
