@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Copy the string referenced by ${.:/params[1]/name}, including its terminating
+  null character, to the array referenced by ${.:/params[0]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - char *restrict ${.:/params[0]/name}
+    - const char *restrict ${.:/params[1]/name}
+    return: char *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: header
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/strcpy
+name: strcpy
+notes: |
+  See ${/ref/std/c23/strcpy:/name}.
+params:
+- description: |
+    is the pointer to the destination array.
+  dir: out
+  name: s1
+- description: |
+    is the pointer to the source string.
+  dir: in
+  name: s2
+return:
+  return: |
+    Returns the value of the ${.:/params[0]/name} parameter.
+  return-values: []
+type: interface
