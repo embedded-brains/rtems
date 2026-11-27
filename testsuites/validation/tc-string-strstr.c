@@ -1589,10 +1589,10 @@ static void CStringReqStrstr_Pre_Partial_Prepare(
   switch ( state ) {
     case CStringReqStrstr_Pre_Partial_No: {
       /*
-       * While the string referenced by the `s1` parameter holds no partial
-       * match of the string referenced by the `s2` parameter which no
-       * occurrence precedes, while the string referenced by the `s1` parameter
-       * does not end with a partial match.
+       * While the string referenced by the `s1` parameter holds no leading
+       * partial match of the string referenced by the `s2` parameter, while
+       * the string referenced by the `s1` parameter does not end with a
+       * partial match.
        */
       ctx->partial = PARTIAL_NO;
       break;
@@ -1600,10 +1600,10 @@ static void CStringReqStrstr_Pre_Partial_Prepare(
 
     case CStringReqStrstr_Pre_Partial_Inside: {
       /*
-       * While the string referenced by the `s1` parameter holds a partial
-       * match of the string referenced by the `s2` parameter which no
-       * occurrence precedes, while the string referenced by the `s1` parameter
-       * does not end with a partial match.
+       * While the string referenced by the `s1` parameter holds a leading
+       * partial match of the string referenced by the `s2` parameter, while
+       * the string referenced by the `s1` parameter does not end with a
+       * partial match.
        */
       ctx->partial = PARTIAL_INSIDE;
       break;
@@ -1631,9 +1631,8 @@ static void CStringReqStrstr_Pre_NearMatch_Prepare(
   switch ( state ) {
     case CStringReqStrstr_Pre_NearMatch_None: {
       /*
-       * While the string referenced by the `s1` parameter holds no near match
-       * of the string referenced by the `s2` parameter which no occurrence
-       * precedes.
+       * While the string referenced by the `s1` parameter holds no leading
+       * near match of the string referenced by the `s2` parameter.
        */
       ctx->near_match = NEAR_MATCH_NONE;
       break;
@@ -1641,9 +1640,9 @@ static void CStringReqStrstr_Pre_NearMatch_Prepare(
 
     case CStringReqStrstr_Pre_NearMatch_First: {
       /*
-       * While the first near match of the string referenced by the `s2`
-       * parameter in the string referenced by the `s1` parameter which no
-       * occurrence precedes differs in the first character.
+       * While the first leading near match of the string referenced by the
+       * `s2` parameter in the string referenced by the `s1` parameter differs
+       * in the first character.
        */
       ctx->near_match = NEAR_MATCH_FIRST;
       break;
@@ -1651,10 +1650,9 @@ static void CStringReqStrstr_Pre_NearMatch_Prepare(
 
     case CStringReqStrstr_Pre_NearMatch_Inner: {
       /*
-       * While the first near match of the string referenced by the `s2`
-       * parameter in the string referenced by the `s1` parameter which no
-       * occurrence precedes differs in a character other than the first and
-       * the last character.
+       * While the first leading near match of the string referenced by the
+       * `s2` parameter in the string referenced by the `s1` parameter differs
+       * in a character other than the first and the last character.
        */
       ctx->near_match = NEAR_MATCH_INNER;
       break;
@@ -1662,10 +1660,10 @@ static void CStringReqStrstr_Pre_NearMatch_Prepare(
 
     case CStringReqStrstr_Pre_NearMatch_Last: {
       /*
-       * While the first near match of the string referenced by the `s2`
-       * parameter in the string referenced by the `s1` parameter which no
-       * occurrence precedes differs in the last character, while the length of
-       * the string referenced by the `s2` parameter is greater than one.
+       * While the first leading near match of the string referenced by the
+       * `s2` parameter in the string referenced by the `s1` parameter differs
+       * in the last character, while the length of the string referenced by
+       * the `s2` parameter is greater than one.
        */
       ctx->near_match = NEAR_MATCH_LAST;
       break;
