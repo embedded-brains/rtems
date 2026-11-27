@@ -118,6 +118,7 @@ static void bsp_start_default( void )
    * probe.
    */
   pc386_parse_console_arguments();
+  pc386_initialize_printk_port();
 
   Clock_driver_install_handler();
 

@@ -100,6 +100,19 @@ static bool serialValid(console_tbl *port)
   return serialOK;
 }
 
+void pc386_initialize_printk_port(void)
+{
+  #if BSP_ENABLE_VGA
+    bool isVga =  BSPPrintkPort == BSP_CONSOLE_VGA;
+  #else
+    bool isVga = false;
+  #endif
+
+  if ( !isVga && Console_Port_Tbl != NULL ) {
+    (void) serialValid(pc386_console_port(BSPPrintkPort));
+  }
+}
+
 int BSP_outch(int ch);
 int BSP_inch(void);
 

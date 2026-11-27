@@ -90,6 +90,13 @@ const pci_config_access_functions *pci_io_initialize(void);
 void pc386_parse_console_arguments(void);
 
 /*
+ * Initializes the device of the printk() port.  The device initialization
+ * allocates memory, so it cannot run in a fatal error handler or with thread
+ * dispatching disabled.
+ */
+void pc386_initialize_printk_port(void);
+
+/*
  * Helper to parse boot command line arguments related to gdb
  */
 void pc386_parse_gdb_arguments(void);
