@@ -84,6 +84,14 @@
  *   count of descriptors in use. Return descriptors to the slab which is not
  *   the first of the list until it moves to another list.
  *
+ * - Start the drain of a slab whose descriptors describe holes and free
+ *   blocks. Fill the holes, so that the slab has no descriptor in use, and add
+ *   holes until an allocation needs more capacity.
+ *
+ * - Start the drain of a slab whose descriptors describe holes and free
+ *   blocks. Fill each hole, so that the draining slab is the only entry of the
+ *   heap, and add descriptors.
+ *
  * - Allocate an aligned block while the free block of the best fit does not
  *   hold it at its alignment and a successor of equal size does.
  *
@@ -2051,6 +2059,165 @@ static void RunSlabMove( Context *ctx )
   T_true( _RBHeap_Walk( heap ) );
 }
 
+#define DRAIN_AREA ( 4 * RBHEAP_SLAB_SIZE )
+
+#define DRAIN_STRIDE 128
+
+#define DRAIN_HOLES 256
+
+typedef struct {
+  uintptr_t holes[ DRAIN_HOLES ];
+  bool      filled[ DRAIN_HOLES ];
+  size_t    count;
+  uintptr_t next;
+} DrainState;
+
+static DrainState drain_state;
+
+/* Extends the heap by an area which leaves a hole below it */
+static void DrainExtend( Context *ctx )
+{
+  DrainState *state;
+
+  state = &drain_state;
+  T_quiet_lt_sz( state->count, DRAIN_HOLES );
+  T_quiet_le_uptr( state->next + 64, AREA_SIZE );
+  T_quiet_true( _RBHeap_Extend( &ctx->heap, &ctx->area[ state->next ], 64 ) );
+  state->holes[ state->count ] = (uintptr_t) &ctx->area[ state->next - 64 ];
+  state->filled[ state->count ] = false;
+  ++state->count;
+  state->next += DRAIN_STRIDE;
+}
+
+/* Extends the heap by the area of the hole, which fills the hole */
+static void DrainFill( Context *ctx, size_t i )
+{
+  DrainState *state;
+
+  state = &drain_state;
+  T_quiet_false( state->filled[ i ] );
+  T_quiet_true( _RBHeap_Extend( &ctx->heap, (void *) state->holes[ i ], 64 ) );
+  state->filled[ i ] = true;
+}
+
+/*
+ * Prepares a heap whose slab lies outside of its area.  Holes use up the
+ * descriptors of this slab, so that an allocation carves a slab inside the
+ * area and the descriptors of further holes come from that slab.  Added
+ * descriptors and filled holes let the free of the block start the drain of
+ * that slab.  Returns the index of the first hole with descriptors in the
+ * draining slab.
+ */
+static size_t PrepareDrain( Context *ctx )
+{
+  RBHeap_control *heap;
+  DrainState     *state;
+  void           *block;
+  size_t          first;
+  size_t          i;
+  bool            ok;
+
+  heap = &ctx->heap;
+  state = &drain_state;
+  state->count = 0;
+  state->next = DRAIN_AREA + 64;
+  ok = _RBHeap_Initialize_with_slab(
+    heap,
+    ctx->area,
+    DRAIN_AREA,
+    ctx->slabs[ 0 ],
+    NULL
+  );
+  T_quiet_true( ok );
+
+  while ( heap->spare >= 2 ) {
+    DrainExtend( ctx );
+  }
+
+  block = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+  T_quiet_not_null( block );
+  T_quiet_eq_uptr( heap->area_slab_count, 1 );
+  first = state->count;
+
+  for ( i = 0; i < 6; ++i ) {
+    DrainExtend( ctx );
+  }
+
+  T_quiet_true(
+    _RBHeap_Add_descriptors( heap, ctx->slabs[ 1 ], RBHEAP_SLAB_SIZE )
+  );
+
+  for ( i = 0; heap->entries > 50; ++i ) {
+    DrainFill( ctx, i );
+  }
+
+  T_quiet_true( _RBHeap_Free( heap, block ) );
+  T_quiet_not_null( heap->draining );
+  T_quiet_gt_u32( heap->draining->live, 0 );
+  return first;
+}
+
+static void RunCancelEmpty( Context *ctx )
+{
+  RBHeap_control *heap;
+  RBHeap_slab    *slab;
+  DrainState     *state;
+  void           *block;
+  size_t          first;
+  size_t          i;
+
+  heap = &ctx->heap;
+  state = &drain_state;
+  first = PrepareDrain( ctx );
+  slab = heap->draining;
+
+  for ( i = first; i < state->count && slab->live > 0; ++i ) {
+    DrainFill( ctx, i );
+  }
+
+  T_eq_u32( slab->live, 0 );
+  T_eq_ptr( heap->draining, slab );
+
+  while (
+    heap->capacity >= 2 * ( heap->entries + 1 ) + 3 && heap->spare >= 2
+  ) {
+    DrainExtend( ctx );
+  }
+
+  T_lt_uptr( heap->capacity, 2 * ( heap->entries + 1 ) + 3 );
+  block = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+  T_not_null( block );
+  T_null( heap->draining );
+  T_eq_ptr( heap->empty, slab );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
+static void RunClearDraining( Context *ctx )
+{
+  RBHeap_control *heap;
+  RBHeap_slab    *slab;
+  DrainState     *state;
+  size_t          i;
+
+  heap = &ctx->heap;
+  state = &drain_state;
+  (void) PrepareDrain( ctx );
+  slab = heap->draining;
+
+  for ( i = 0; i < state->count; ++i ) {
+    if ( !state->filled[ i ] ) {
+      DrainFill( ctx, i );
+    }
+  }
+
+  T_eq_uptr( heap->entries, 1 );
+  T_eq_ptr( heap->draining, slab );
+  T_true( _RBHeap_Add_descriptors( heap, ctx->slabs[ 2 ], RBHEAP_SLAB_SIZE ) );
+  T_null( heap->draining );
+  T_eq_uptr( heap->entries, 0 );
+  T_true( _RBHeap_Walk( heap ) );
+}
+
 static T_fixture ScoreRbheapValRbheapEdges_Fixture = {
   .setup = NULL,
   .stop = NULL,
@@ -2152,10 +2319,34 @@ static void ScoreRbheapValRbheapEdges_Action_7(
 }
 
 /**
+ * @brief Start the drain of a slab whose descriptors describe holes and free
+ *   blocks. Fill the holes, so that the slab has no descriptor in use, and add
+ *   holes until an allocation needs more capacity.
+ */
+static void ScoreRbheapValRbheapEdges_Action_8(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunCancelEmpty( ctx );
+}
+
+/**
+ * @brief Start the drain of a slab whose descriptors describe holes and free
+ *   blocks. Fill each hole, so that the draining slab is the only entry of the
+ *   heap, and add descriptors.
+ */
+static void ScoreRbheapValRbheapEdges_Action_9(
+  ScoreRbheapValRbheapEdges_Context *ctx
+)
+{
+  RunClearDraining( ctx );
+}
+
+/**
  * @brief Allocate an aligned block while the free block of the best fit does
  *   not hold it at its alignment and a successor of equal size does.
  */
-static void ScoreRbheapValRbheapEdges_Action_8(
+static void ScoreRbheapValRbheapEdges_Action_10(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2166,7 +2357,7 @@ static void ScoreRbheapValRbheapEdges_Action_8(
  * @brief Allocate, resize and free with huge sizes and invalid blocks. Extend
  *   a heap by an area of a huge size.
  */
-static void ScoreRbheapValRbheapEdges_Action_9(
+static void ScoreRbheapValRbheapEdges_Action_11(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2177,7 +2368,7 @@ static void ScoreRbheapValRbheapEdges_Action_9(
  * @brief Allocate blocks from a heap whose slab source returns no slab.
  *   Initialize heaps with slabs and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_10(
+static void ScoreRbheapValRbheapEdges_Action_12(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2187,7 +2378,7 @@ static void ScoreRbheapValRbheapEdges_Action_10(
 /**
  * @brief Add descriptors to heaps with valid and invalid memory areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_11(
+static void ScoreRbheapValRbheapEdges_Action_13(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2198,7 +2389,7 @@ static void ScoreRbheapValRbheapEdges_Action_11(
  * @brief Extend a heap by areas which fill parts of its holes, by areas next
  *   to its areas and by invalid areas.
  */
-static void ScoreRbheapValRbheapEdges_Action_12(
+static void ScoreRbheapValRbheapEdges_Action_14(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2209,7 +2400,7 @@ static void ScoreRbheapValRbheapEdges_Action_12(
  * @brief Free blocks until the heap releases a slab and allocate blocks while
  *   the heap drains the slab.
  */
-static void ScoreRbheapValRbheapEdges_Action_13(
+static void ScoreRbheapValRbheapEdges_Action_15(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2220,7 +2411,7 @@ static void ScoreRbheapValRbheapEdges_Action_13(
  * @brief Extend a heap by many small areas with gaps between them until the
  *   heap has no spare descriptor.
  */
-static void ScoreRbheapValRbheapEdges_Action_14(
+static void ScoreRbheapValRbheapEdges_Action_16(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2231,7 +2422,7 @@ static void ScoreRbheapValRbheapEdges_Action_14(
  * @brief Extend and add descriptors to heaps at the ends of their areas, near
  *   the top of the address space, over used blocks and over holes.
  */
-static void ScoreRbheapValRbheapEdges_Action_15(
+static void ScoreRbheapValRbheapEdges_Action_17(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2244,7 +2435,7 @@ static void ScoreRbheapValRbheapEdges_Action_15(
  *   processor block on another processor, and free a processor block for a
  *   full bin.
  */
-static void ScoreRbheapValRbheapEdges_Action_16(
+static void ScoreRbheapValRbheapEdges_Action_18(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2256,7 +2447,7 @@ static void ScoreRbheapValRbheapEdges_Action_16(
  *   information of a heap with holes and extend heaps below their used blocks
  *   and below their added descriptors.
  */
-static void ScoreRbheapValRbheapEdges_Action_17(
+static void ScoreRbheapValRbheapEdges_Action_19(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2267,7 +2458,7 @@ static void ScoreRbheapValRbheapEdges_Action_17(
 /**
  * @brief Walk heaps with descriptors which form invalid trees.
  */
-static void ScoreRbheapValRbheapEdges_Action_18(
+static void ScoreRbheapValRbheapEdges_Action_20(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2279,7 +2470,7 @@ static void ScoreRbheapValRbheapEdges_Action_18(
  *   Extend the heap by areas with a gap until the heap has less than two spare
  *   descriptors. Grow a block into the free block after it.
  */
-static void ScoreRbheapValRbheapEdges_Action_19(
+static void ScoreRbheapValRbheapEdges_Action_21(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2290,7 +2481,7 @@ static void ScoreRbheapValRbheapEdges_Action_19(
  * @brief Corrupt the descriptors and the counters of a heap one after the
  *   other and walk the heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_20(
+static void ScoreRbheapValRbheapEdges_Action_22(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2302,7 +2493,7 @@ static void ScoreRbheapValRbheapEdges_Action_20(
  *   the descriptors of a heap with a drain one after the other and walk the
  *   heap.
  */
-static void ScoreRbheapValRbheapEdges_Action_21(
+static void ScoreRbheapValRbheapEdges_Action_23(
   ScoreRbheapValRbheapEdges_Context *ctx
 )
 {
@@ -2343,6 +2534,8 @@ T_TEST_CASE_FIXTURE(
   ScoreRbheapValRbheapEdges_Action_19( ctx );
   ScoreRbheapValRbheapEdges_Action_20( ctx );
   ScoreRbheapValRbheapEdges_Action_21( ctx );
+  ScoreRbheapValRbheapEdges_Action_22( ctx );
+  ScoreRbheapValRbheapEdges_Action_23( ctx );
 }
 
 /** @} */
