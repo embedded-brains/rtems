@@ -1464,7 +1464,7 @@ requires-dist = [
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "metrixpp", specifier = ">=1.8.1" },
     { name = "pykwalify", specifier = ">=1.8.0" },
-    { name = "specmake", specifier = ">=1.10.12" },
+    { name = "specmake", specifier = ">=1.10.13" },
     { name = "sphinx-book-theme", specifier = ">=1.1.4" },
     { name = "sphinx-copybutton", specifier = ">=0.5.2" },
 ]
@@ -1995,7 +1995,7 @@ wheels = [
 
 [[package]]
 name = "specmake"
-version = "1.10.12"
+version = "1.10.13"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "gcovr" },
@@ -2017,9 +2017,9 @@ dependencies = [
     { name = "sphinxcontrib-serializinghtml" },
     { name = "yapf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b8/1b/9bb8e67e9a2af4945772d019a3ab6c5b1b4c4f361953e13d75bf20e8187a/specmake-1.10.12.tar.gz", hash = "sha256:418a706e2a80bb0f6cb9d5db4be703e71fd03baa9b7b327aacccb9c3fc39c0fd", size = 295123, upload-time = "2026-11-26T08:53:32.436Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/53/a8d2c2306cb288967f60dde28dab7f264afb48722005b3790af3784c96d1/specmake-1.10.13.tar.gz", hash = "sha256:063a3b8d5233fe39f063b1d9b8313e113b1436a440989a37aa50b6b8f0a6b761", size = 295297, upload-time = "2026-11-27T02:04:15.757Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9d/c6/776a090f86fa4cf315a5917863d842fbc703bc12878b4ec47fde6794cd94/specmake-1.10.12-py3-none-any.whl", hash = "sha256:84f64bf43d79b5f508ac24bfd557d2e6a76264210e0311bab74274e5c680d7a2", size = 370500, upload-time = "2026-11-26T08:53:31.369Z" },
+    { url = "https://files.pythonhosted.org/packages/33/67/a09f3c895a44f7c1b70a1ab5bd95d4db46cd22595c299dedf0668362c462/specmake-1.10.13-py3-none-any.whl", hash = "sha256:02713568e77b88cb7b3dd53ab14b70175433f846636b78795be65b2fb68a1eb9", size = 370643, upload-time = "2026-11-27T02:04:14.394Z" },
 ]
 
 [[package]]
@@ -2039,14 +2039,14 @@ wheels = [
 
 [[package]]
 name = "specware"
-version = "1.3.51"
+version = "1.3.52"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "specitems" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bf/d5/f54c4bf63614d1b90eb5769253e73224b141d71b79adc90b508b6bde468d/specware-1.3.51.tar.gz", hash = "sha256:68a1ba89364d9d5a5109d9e9f8283a8534ac0ce825b9540f1c77b16174ad0843", size = 121317, upload-time = "2026-11-26T07:52:20.71Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/cd/a39a29c15a26b6e0c46c2e67abe4990ffedb39f71da3c47fdcd314e65c38/specware-1.3.52.tar.gz", hash = "sha256:9f946d359ae6fa128d6438fc34f256fc2b3fa65bb94d92b719b7967572a14941", size = 123642, upload-time = "2026-11-27T00:37:03.273Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/aa/bf/a8e35ede6be5a56d6f6b5be60864efbac0bfa1daa72788f84a774246192c/specware-1.3.51-py3-none-any.whl", hash = "sha256:03c91b5855ef26209fac93efc1912a80aa2b9937f8579c9fa33c26442f811d5b", size = 138498, upload-time = "2026-11-26T07:52:19.709Z" },
+    { url = "https://files.pythonhosted.org/packages/6f/b3/22b08409b2d0fb78328cbd40679b3be6ffab63d543b2461db61eee8b2635/specware-1.3.52-py3-none-any.whl", hash = "sha256:2e698aeb1ef90558517e0a7de3ae61f0ce78779e24ad0c7f261fbb400d0dca5a", size = 141766, upload-time = "2026-11-27T00:37:04.264Z" },
 ]
 
 [[package]]
