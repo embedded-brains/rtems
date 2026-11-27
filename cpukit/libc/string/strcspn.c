@@ -40,7 +40,11 @@ size_t strcspn(const char *s, const char *c)
 	if (!c[0] || !c[1]) return __strchrnul(s, *c)-a;
 
 	memset(byteset, 0, sizeof byteset);
+#ifndef __rtems__
 	for (; *c && BITOP(byteset, *(unsigned char *)c, |=); c++);
+#else /* __rtems__ */
+	for (; *c; c++) BITOP(byteset, *(unsigned char *)c, |=);
+#endif /* __rtems__ */
 	for (; *s && !BITOP(byteset, *(unsigned char *)s, &); s++);
 	return s-a;
 }
