@@ -81,6 +81,16 @@ test-actions:
   - role: validation
     uid: ../req/slab
 - action-brief: |
+    Return descriptors to two full slabs, so that both share a list of their count
+    of descriptors in use. Return descriptors to the slab which is not the first of
+    the list until it moves to another list.
+  action-code: |
+    RunSlabMove( ctx );
+  checks: []
+  links:
+  - role: validation
+    uid: ../req/slab
+- action-brief: |
     Allocate an aligned block while the free block of the best fit does not hold it
     at its alignment and a successor of equal size does.
   action-code: |
@@ -2029,6 +2039,149 @@ test-support: |
     T_eq_uptr( heap->area_slab_count, 0 );
     T_eq_uptr( heap->entries, 0 );
     T_eq_uptr( heap->free_size, heap->area_end - heap->area_begin );
+    T_true( _RBHeap_Walk( heap ) );
+  }
+
+  #define MOVE_BLOCKS 700
+
+  static RBHeap_slab *SlabOfBlock( const RBHeap_control *heap, void *block )
+  {
+    RBTree_Node *node;
+
+    node = _RBTree_Minimum( &heap->used_root );
+
+    while ( node != NULL ) {
+      RBHeap_descriptor *desc;
+
+      desc = Node( node );
+
+      if ( desc->begin == (uintptr_t) block ) {
+        return (RBHeap_slab *) ( (uintptr_t) desc &
+                                 ~( (uintptr_t) RBHEAP_SLAB_SIZE - 1 ) );
+      }
+
+      node = _RBTree_Successor( node );
+    }
+
+    return NULL;
+  }
+
+  static uint32_t SlabClass( uint32_t live )
+  {
+    return 31 - (uint32_t) __builtin_clz( live );
+  }
+
+  /* Returns true if the blocks from i to i + count - 1 are adjacent and used */
+  static bool AdjacentUsed( Context *ctx, size_t i, size_t count, uintptr_t unit )
+  {
+    size_t j;
+
+    for ( j = 0; j < count; ++j ) {
+      if ( ctx->blocks[ i + j ] == NULL ) {
+        return false;
+      }
+
+      if (
+        j > 0 && (uintptr_t) ctx->blocks[ i + j - 1 ] + unit !=
+                   (uintptr_t) ctx->blocks[ i + j ]
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  static void FreeBlock( Context *ctx, size_t i )
+  {
+    T_quiet_true( _RBHeap_Free( &ctx->heap, ctx->blocks[ i ] ) );
+    ctx->blocks[ i ] = NULL;
+  }
+
+  /*
+   * Returns descriptors to the slab.  Of three adjacent used blocks between
+   * used blocks, the heap frees the first, the third and then the middle
+   * block.  The middle block merges with both, so the descriptors of the
+   * middle and the third block go back to their slabs.
+   */
+  static void ReturnTo( Context *ctx, RBHeap_slab *slab, uintptr_t unit )
+  {
+    RBHeap_control *heap;
+    size_t          i;
+
+    heap = &ctx->heap;
+
+    for ( i = 1; i + 4 < MOVE_BLOCKS; ++i ) {
+      if (
+        AdjacentUsed( ctx, i - 1, 5, unit ) &&
+        SlabOfBlock( heap, ctx->blocks[ i + 1 ] ) == slab &&
+        SlabOfBlock( heap, ctx->blocks[ i + 2 ] ) == slab
+      ) {
+        FreeBlock( ctx, i );
+        FreeBlock( ctx, i + 2 );
+        FreeBlock( ctx, i + 1 );
+        return;
+      }
+    }
+
+    T_quiet_true( false );
+  }
+
+  static void RunSlabMove( Context *ctx )
+  {
+    RBHeap_control *heap;
+    RBHeap_slab    *a;
+    RBHeap_slab    *b;
+    uintptr_t       unit;
+    uintptr_t       size;
+    uint32_t        full;
+    uint32_t        k;
+    size_t          i;
+
+    heap = &ctx->heap;
+    Init( ctx, 0, AREA_SIZE );
+
+    for ( i = 0; i < MOVE_BLOCKS; ++i ) {
+      ctx->blocks[ i ] = _RBHeap_Allocate( heap, RBHEAP_MIN_SIZE );
+      T_quiet_not_null( ctx->blocks[ i ] );
+    }
+
+    T_quiet_true( _RBHeap_Size_of_block( heap, ctx->blocks[ 0 ], &size ) );
+    unit = size + RBHEAP_GUARD_SIZE;
+
+    /* Find two full slabs inside the area besides the home slab */
+    full = RBHEAP_SLAB_SLOTS - 1;
+    a = NULL;
+    b = NULL;
+
+    for ( i = 0; i < MOVE_BLOCKS && b == NULL; ++i ) {
+      RBHeap_slab *slab;
+
+      slab = SlabOfBlock( heap, ctx->blocks[ i ] );
+
+      if ( slab != heap->home && slab != a && slab->live == full ) {
+        if ( a == NULL ) {
+          a = slab;
+        } else {
+          b = slab;
+        }
+      }
+    }
+
+    T_assert_not_null( b );
+    k = SlabClass( full - 1 );
+    ReturnTo( ctx, a, unit );
+    T_eq_ptr( heap->occupied[ k ], a );
+    ReturnTo( ctx, b, unit );
+    T_eq_ptr( heap->occupied[ k ], b );
+    T_eq_ptr( b->next, a );
+
+    for ( i = 0; i < RBHEAP_SLAB_SLOTS && SlabClass( a->live ) == k; ++i ) {
+      ReturnTo( ctx, a, unit );
+    }
+
+    T_eq_ptr( heap->occupied[ k ], b );
+    T_eq_ptr( heap->occupied[ k - 1 ], a );
     T_true( _RBHeap_Walk( heap ) );
   }
 test-target: testsuites/validation/tc-score-rbheap-edges.c
