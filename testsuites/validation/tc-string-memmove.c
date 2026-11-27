@@ -649,8 +649,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
   switch ( state ) {
     case CStringReqMemmove_Pre_DestAlignment_Aligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts at an
-       * address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to zero.
        */
       ctx->dest_misalign = 0;
       break;
@@ -658,8 +658,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_AboveAligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to one.
        */
       ctx->dest_misalign = 1;
       break;
@@ -667,11 +667,9 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_Between: {
       /*
-       * While the memory area referenced by the `dest` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `dest` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is greater than one, while this alignment offset is less
+       * than the size of type long minus one.
        */
       ctx->dest_misalign = 2;
       break;
@@ -679,8 +677,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_BelowAligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte below an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to the size of type long minus one.
        */
       ctx->dest_misalign = sizeof( long ) - 1;
       break;
@@ -699,8 +697,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
   switch ( state ) {
     case CStringReqMemmove_Pre_SrcAlignment_Aligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts at an
-       * address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to zero.
        */
       ctx->src_misalign = 0;
       break;
@@ -708,8 +706,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_AboveAligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to one.
        */
       ctx->src_misalign = 1;
       break;
@@ -717,11 +715,9 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_Between: {
       /*
-       * While the memory area referenced by the `src` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `src` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is greater than one, while this alignment offset is less
+       * than the size of type long minus one.
        */
       ctx->src_misalign = 2;
       break;
@@ -729,8 +725,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_BelowAligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte below an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to the size of type long minus one.
        */
       ctx->src_misalign = sizeof( long ) - 1;
       break;
