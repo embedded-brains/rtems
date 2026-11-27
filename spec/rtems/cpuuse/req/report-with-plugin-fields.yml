@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/report-with-plugin
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The format of a thread line of the ${../if/report-with-plugin:/name} directive
+  shall be a space character, followed by the ID field, followed by ` |`,
+  followed by a space character, followed by the NAME field, followed by ` |`,
+  followed by the SECONDS field, followed by ` |`, followed by the PERCENT field.
+type: requirement

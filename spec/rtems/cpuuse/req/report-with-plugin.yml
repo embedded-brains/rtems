@@ -1,0 +1,494 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/report-with-plugin
+post-conditions:
+- name: Name
+  states:
+  - name: Complete
+    test-code: |
+      CheckName( ctx, NAME_FIELD_SIZE );
+    text: |
+      The NAME field of the thread line of the thread shall be the name of the
+      thread, padded on the right with space characters to 38 characters.
+  - name: Truncated
+    test-code: |
+      CheckName( ctx, NAME_FIELD_SIZE - 1 );
+    text: |
+      The NAME field of the thread line of the thread shall be the first 37
+      characters of the name of the thread, followed by one space character.
+  test-epilogue: null
+  test-prologue: null
+- name: Seconds
+  states:
+  - name: Used
+    test-code: |
+      CheckTime( ctx->line + SECONDS_FIELD_OFFSET, &ctx->used_time );
+    text: |
+      The SECONDS field of the thread line of the thread shall be the processor time
+      which the thread used since the last ${/glossary/cpu-usage-reset-point:/term}
+      at some time point during the directive call, in the time format of the report.
+  test-epilogue: null
+  test-prologue: null
+- name: Percent
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_nstr( ctx->line + PERCENT_FIELD_OFFSET, "   0.000\n", 9 );
+    text: |
+      The PERCENT field of the thread line of the thread shall be `   0.000`.
+  - name: Ratio
+    test-code: |
+      CheckPercent( ctx );
+    text: |
+      The PERCENT field of the thread line of the thread shall be the processor time
+      which the thread used since the last ${/glossary/cpu-usage-reset-point:/term}
+      multiplied by 100 and divided by the time elapsed since the last
+      ${/glossary/cpu-usage-reset-point:/term}, truncated to three decimal places, in
+      the form of the integer part in decimal digits padded on the left with space
+      characters to four characters, followed by `.`, followed by the three decimal
+      places.
+  test-epilogue: null
+  test-prologue: null
+- name: Total
+  states:
+  - name: Elapsed
+    test-code: |
+      CheckTime( ctx->total + TOTAL_FIELD_OFFSET, &ctx->elapsed_time );
+    text: |
+      The TIME field of the total line shall be the time elapsed since the last
+      ${/glossary/cpu-usage-reset-point:/term} at some time point during the
+      directive call, in the time format of the report.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Name
+  states:
+  - name: Fits
+    representatives:
+    - name: Object
+      test-code: |
+        SetName( ctx, "", "WORK" );
+    - name: Max
+      test-code: |
+        SetName( ctx, NAME_37, NAME_37 );
+    test-code: null
+    text: |
+      While the name of a thread has at most 37 characters.
+  - name: Long
+    representatives:
+    - name: Min
+      test-code: |
+        SetName( ctx, NAME_38, NAME_38 );
+    - name: Max
+      test-code: |
+        SetName( ctx, NAME_47, NAME_47 );
+    test-code: null
+    text: |
+      While the name of a thread has more than 37 characters.
+  test-epilogue: null
+  test-prologue: null
+- name: Elapsed
+  states:
+  - name: Zero
+    test-code: |
+      ctx->elapsed = 0;
+    text: |
+      While the time elapsed since the last ${/glossary/cpu-usage-reset-point:/term}
+      is zero.
+  - name: NonZero
+    representatives:
+    - name: Seconds
+      test-code: |
+        ctx->elapsed = 2 * SBT_1S;
+    - name: Hours
+      test-code: |
+        ctx->elapsed = 200 * 3600 * SBT_1S;
+    test-code: null
+    text: |
+      While the time elapsed since the last ${/glossary/cpu-usage-reset-point:/term}
+      is greater than zero.
+  test-epilogue: |
+    CPU_usage_Uptime_at_last_reset -= ctx->elapsed;
+  test-prologue: null
+- name: Used
+  states:
+  - name: Zero
+    test-code: |
+      ctx->used = 0;
+    text: |
+      While the processor time which the thread used since the last
+      ${/glossary/cpu-usage-reset-point:/term} is zero.
+  - name: Part
+    test-code: |
+      ctx->used = ctx->elapsed / 2;
+    text: |
+      While the processor time which the thread used since the last
+      ${/glossary/cpu-usage-reset-point:/term} is greater than zero and less than the
+      time elapsed since the last ${/glossary/cpu-usage-reset-point:/term}.
+  - name: All
+    test-code: |
+      ctx->used = ctx->elapsed;
+    text: |
+      While the processor time which the thread used since the last
+      ${/glossary/cpu-usage-reset-point:/term} is equal to the time elapsed since the
+      last ${/glossary/cpu-usage-reset-point:/term}.
+  test-epilogue: |
+    ctx->thread->cpu_time_used_at_last_reset -= ctx->used;
+  test-prologue: null
+rationale: |
+  Dimension Name covers the length of the name of the thread against the 37
+  characters which the NAME field holds, 2 states. Dimension Elapsed covers
+  whether the time elapsed since the last
+  ${/glossary/cpu-usage-reset-point:/term} is zero, 2 states. Dimension Used
+  covers the processor time of the thread relative to the elapsed time, 3 states.
+
+  The state code of Elapsed comes first. The state code of Used derives the
+  processor time of the thread from the elapsed time.
+
+  The time stays frozen while the test case runs. The state code moves the CPU
+  usage reset point of the system and of the thread back by the arranged times.
+  The test case therefore reaches times above the range of the uptime of a test
+  run.
+references: []
+requirement-type: functional
+skip-reasons:
+  NoElapsedTime: |
+    While the time elapsed since the last ${/glossary/cpu-usage-reset-point:/term}
+    is zero, the processor time which a thread used since this point is zero.
+test-action: |
+  rtems_printer printer;
+  int           status;
+
+  ResetOutput( ctx );
+  printer.context = ctx;
+  printer.printer = Capture;
+  rtems_cpu_usage_report_with_plugin( &printer );
+
+  ctx->line = FindThreadLine( ctx );
+  T_assert_not_null( ctx->line );
+  ctx->total = strstr( ctx->output, TOTAL_LINE_PREFIX );
+  T_assert_not_null( ctx->total );
+
+  status = clock_gettime( ctx->clock_id, &ctx->used_time );
+  T_eq_int( status, 0 );
+  status = clock_gettime( CLOCK_PROCESS_CPUTIME_ID, &ctx->elapsed_time );
+  T_eq_int( status, 0 );
+test-brief: null
+test-cleanup: |
+  rtems_cpu_usage_reset();
+test-context:
+- brief: |
+    This member contains the identifier of the thread of the thread line.
+  description: null
+  member: |
+    rtems_id id
+- brief: |
+    This member references the TCB of the thread of the thread line.
+  description: null
+  member: |
+    Thread_Control *thread
+- brief: |
+    This member contains the CPU-time clock of the thread.
+  description: null
+  member: |
+    clockid_t clock_id
+- brief: |
+    This member contains the previous timecount handler.
+  description: null
+  member: |
+    GetTimecountHandler previous_timecount_handler
+- brief: |
+    This member references the expected name of the thread.
+  description: null
+  member: |
+    const char *name
+- brief: |
+    This member specifies the time elapsed since the last CPU usage reset point.
+  description: null
+  member: |
+    Timestamp_Control elapsed
+- brief: |
+    This member specifies the processor time which the thread used since the last
+    CPU usage reset point.
+  description: null
+  member: |
+    Timestamp_Control used
+- brief: |
+    This member contains the output of the action.
+  description: null
+  member: |
+    char output[ 4096 ]
+- brief: |
+    This member contains the count of characters in the output.
+  description: null
+  member: |
+    size_t output_size
+- brief: |
+    This member references the thread line of the thread in the output.
+  description: null
+  member: |
+    const char *line
+- brief: |
+    This member references the total line in the output.
+  description: null
+  member: |
+    const char *total
+- brief: |
+    This member contains the processor time of the thread which
+    ${/c/time/if/clock-gettime:/name} returns after the action.
+  description: null
+  member: |
+    struct timespec used_time
+- brief: |
+    This member contains the time of the
+    ${/c/time/if/clock-process-cputime-id:/name} clock which
+    ${/c/time/if/clock-gettime:/name} returns after the action.
+  description: null
+  member: |
+    struct timespec elapsed_time
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- inttypes.h
+- pthread.h
+- rtems.h
+- rtems/cpuuse.h
+- rtems/cpuuseimpl.h
+- rtems/dev/io.h
+- rtems/printer.h
+- rtems/score/threadimpl.h
+- stdarg.h
+- string.h
+- time.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  rtems_cpu_usage_reset();
+  ctx->name = NULL;
+  ctx->elapsed = 0;
+  ctx->used = 0;
+test-setup:
+  brief: null
+  code: |
+    int status;
+
+    ctx->previous_timecount_handler = SetGetTimecountHandler( FreezeTime );
+    ctx->id = CreateTask( "WORK", PRIO_LOW );
+    ctx->thread = GetThread( ctx->id );
+    status = pthread_getcpuclockid( (pthread_t) ctx->id, &ctx->clock_id );
+    T_assert_eq_int( status, 0 );
+  description: null
+test-stop: null
+test-support: |
+  typedef RtemsCpuuseReqReportWithPlugin_Context Context;
+
+  #define NAME_FIELD_OFFSET 14
+
+  #define NAME_FIELD_SIZE 38
+
+  #define SECONDS_FIELD_OFFSET ( NAME_FIELD_OFFSET + NAME_FIELD_SIZE + 2 )
+
+  #define PERCENT_FIELD_OFFSET ( SECONDS_FIELD_OFFSET + 14 + 2 )
+
+  #define TOTAL_LINE_PREFIX " TIME SINCE LAST CPU USAGE RESET IN SECONDS:"
+
+  #define TOTAL_FIELD_OFFSET 64
+
+  #define NAME_37 "abcdefghijklmnopqrstuvwxyz0123456789A"
+
+  #define NAME_38 NAME_37 "B"
+
+  #define NAME_47 NAME_38 "CDEFGHIJK"
+
+  typedef struct {
+    char  *buffer;
+    size_t size;
+    size_t index;
+  } Sink;
+
+  static uint32_t FreezeTime( void )
+  {
+    return GetTimecountCounter() - 1;
+  }
+
+  static void PutChar( int c, void *arg )
+  {
+    Sink *sink;
+
+    sink = arg;
+
+    if ( sink->index + 1 < sink->size ) {
+      sink->buffer[ sink->index ] = (char) c;
+      ++sink->index;
+      sink->buffer[ sink->index ] = '\0';
+    }
+  }
+
+  static void Format( char *buffer, size_t size, const char *format, ... )
+  {
+    Sink    sink;
+    va_list ap;
+
+    sink.buffer = buffer;
+    sink.size = size;
+    sink.index = 0;
+    buffer[ 0 ] = '\0';
+    va_start( ap, format );
+    (void) _IO_Vprintf( PutChar, &sink, format, ap );
+    va_end( ap );
+  }
+
+  static void ResetOutput( Context *ctx )
+  {
+    memset( ctx->output, 0, sizeof( ctx->output ) );
+    ctx->output_size = 0;
+  }
+
+  static int Capture( void *arg, const char *format, va_list ap )
+  {
+    Context *ctx;
+    Sink     sink;
+    int      n;
+
+    ctx = arg;
+    sink.buffer = ctx->output;
+    sink.size = sizeof( ctx->output );
+    sink.index = ctx->output_size;
+    n = _IO_Vprintf( PutChar, &sink, format, ap );
+    ctx->output_size = sink.index;
+    T_quiet_lt_sz( ctx->output_size, sizeof( ctx->output ) - 1 );
+
+    return n;
+  }
+
+  static const char *FindThreadLine( const Context *ctx )
+  {
+    char prefix[ NAME_FIELD_OFFSET + 1 ];
+
+    Format( prefix, sizeof( prefix ), " 0x%08" PRIx32 " | ", ctx->id );
+
+    return strstr( ctx->output, prefix );
+  }
+
+  static void SetName( Context *ctx, const char *name, const char *expected )
+  {
+    int status;
+
+    status = pthread_setname_np( (pthread_t) ctx->id, name );
+    T_quiet_eq_int( status, 0 );
+    ctx->name = expected;
+  }
+
+  static void CheckName( const Context *ctx, size_t count )
+  {
+    char expected[ NAME_FIELD_SIZE + 1 ];
+
+    memset( expected, ' ', NAME_FIELD_SIZE );
+    expected[ NAME_FIELD_SIZE ] = '\0';
+    memcpy(
+      expected,
+      ctx->name,
+      strlen( ctx->name ) < count ? strlen( ctx->name ) : count
+    );
+    T_eq_nstr( ctx->line + NAME_FIELD_OFFSET, expected, NAME_FIELD_SIZE );
+    T_eq_nstr( ctx->line + NAME_FIELD_OFFSET + NAME_FIELD_SIZE, " |", 2 );
+  }
+
+  static void CheckTime( const char *field, const struct timespec *ts )
+  {
+    char expected[ 15 ];
+
+    Format(
+      expected,
+      sizeof( expected ),
+      "%7" PRIu32 ".%06" PRIu32,
+      (uint32_t) ts->tv_sec,
+      (uint32_t) ( ts->tv_nsec / 1000 )
+    );
+    T_eq_nstr( field, expected, 14 );
+  }
+
+  static void CheckPercent( const Context *ctx )
+  {
+    const struct timespec *used;
+    const struct timespec *elapsed;
+    uint64_t               percent;
+    char                   expected[ 10 ];
+
+    used = &ctx->used_time;
+    elapsed = &ctx->elapsed_time;
+
+    /*
+     * The times of the large representatives are whole seconds.  The quotient
+     * of the seconds is then the quotient of the nanoseconds.
+     */
+    if ( used->tv_nsec == 0 && elapsed->tv_nsec == 0 ) {
+      percent = ( (uint64_t) used->tv_sec * 100000 ) /
+                (uint64_t) elapsed->tv_sec;
+    } else {
+      uint64_t used_ns;
+      uint64_t elapsed_ns;
+
+      used_ns = (uint64_t) used->tv_sec * 1000000000 + (uint64_t) used->tv_nsec;
+      elapsed_ns = (uint64_t) elapsed->tv_sec * 1000000000 +
+                   (uint64_t) elapsed->tv_nsec;
+      T_quiet_lt_u64( used_ns, UINT64_MAX / 100000 );
+      percent = ( used_ns * 100000 ) / elapsed_ns;
+    }
+
+    Format(
+      expected,
+      sizeof( expected ),
+      "%4" PRIu32 ".%03" PRIu32 "\n",
+      (uint32_t) ( percent / 1000 ),
+      (uint32_t) ( percent % 1000 )
+    );
+    T_eq_nstr( ctx->line + PERCENT_FIELD_OFFSET, expected, 9 );
+  }
+test-target: testsuites/validation/tc-cpuuse-report-with-plugin.c
+test-teardown:
+  brief: null
+  code: |
+    rtems_cpu_usage_reset();
+    DeleteTask( ctx->id );
+    SetGetTimecountHandler( ctx->previous_timecount_handler );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Name:
+    - if:
+        pre-conditions:
+          Name: Fits
+      then: Complete
+    - else: Truncated
+    Seconds: Used
+    Percent:
+    - if:
+        pre-conditions:
+          Elapsed: Zero
+      then: Zero
+    - else: Ratio
+    Total: Elapsed
+  pre-conditions:
+    Name: all
+    Elapsed: all
+    Used: all
+- enabled-by: true
+  post-conditions: NoElapsedTime
+  pre-conditions:
+    Name: all
+    Elapsed:
+    - Zero
+    Used:
+    - Part
+    - All
+type: requirement

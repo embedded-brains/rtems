@@ -1,0 +1,18 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/report-with-plugin
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The ${../if/report-with-plugin:/name} directive shall print a rule line,
+  followed by a title line, followed by a column rule line, followed by a column
+  title line, followed by a column rule line, followed by the thread lines,
+  followed by a column rule line, followed by a total line, followed by a rule
+  line.
+type: requirement

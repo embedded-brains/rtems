@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/report-with-plugin
+rationale: null
+references: []
+requirement-type: functional
+text: |
+  The TIME field of the total line of the ${../if/report-with-plugin:/name}
+  directive shall be the time elapsed since the last
+  ${/glossary/cpu-usage-reset-point:/term} which the directive got for the last
+  thread line.
+type: requirement

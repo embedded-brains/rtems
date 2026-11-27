@@ -3,7 +3,7 @@ brief: |
   Reports the CPU usage of each thread using the ${../../io/if/printk:/name}
   printer.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -11,7 +11,9 @@ definition:
     params: []
     return: void
   variants: []
-description: null
+description: |
+  The directive prints the report of ${report-with-plugin:/name} through a
+  printer which ${/rtems/io/if/print-printer-printk:/name} initializes.
 enabled-by: true
 index-entries: []
 interface-type: function
@@ -20,8 +22,6 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
 - role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint

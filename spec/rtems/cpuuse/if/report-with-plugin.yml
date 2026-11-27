@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Reports the CPU usage of each thread using the printer plugin.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 definition:
   default:
     attributes: null
@@ -11,7 +11,36 @@ definition:
     - const ${printer:/name} *${.:/params[0]/name}
     return: void
   variants: []
-description: null
+description: |
+  The directive prints a report of the processor time which each thread used
+  since the last ${/glossary/cpu-usage-reset-point:/term} through the printer.
+  Each line of the report ends with a newline character. The report starts with a
+  rule line, the title line, a column rule line, the column title line and a
+  column rule line.
+
+  The thread lines follow. Each thread line describes one thread, in the order of
+  increasing thread identifiers. The fields of a thread line are the following:
+
+  - the identifier of the thread as `0x` followed by hexadecimal digits padded on
+    the left with zeros to eight digits,
+
+  - the name of the thread, truncated to 37 characters and padded on the right
+    with space characters to 38 characters,
+
+  - the processor time which the thread used since the last
+    ${/glossary/cpu-usage-reset-point:/term}, and
+
+  - the share of this processor time in the time elapsed since the last
+    ${/glossary/cpu-usage-reset-point:/term} as a percentage with three decimal
+    places.
+
+  The report ends with a column rule line, the line of the time elapsed since the
+  last ${/glossary/cpu-usage-reset-point:/term} and a rule line. A time is the
+  seconds as a decimal number padded on the left with space characters to seven
+  characters, followed by `.` and the microseconds as a decimal number padded on
+  the left with zeros to six digits. The directive gets the time elapsed for a
+  thread line after the processor time of its thread. The time elapsed of the
+  total line is the one of the last thread line.
 enabled-by: true
 index-entries: []
 interface-type: function
@@ -20,8 +49,6 @@ links:
   uid: header
 - role: interface-ingroup
   uid: group
-- role: constraint
-  uid: /constraint/directive-not-pre-qualified
 - role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint
