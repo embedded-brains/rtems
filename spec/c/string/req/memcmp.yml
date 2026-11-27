@@ -177,20 +177,16 @@ pre-conditions:
         ctx->pos = ctx->n - 2;
     test-code: null
     text: |
-      While a byte which precedes the last byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter differs from the byte at the same
-      position of the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter.
+      While a ${../glossary/compared-byte:/term} which precedes the last
+      ${../glossary/compared-byte:/term} differs from its
+      ${../glossary/corresponding-byte:/term}.
   - name: Last
     test-code: |
       ctx->pos = ctx->n - 1;
     text: |
-      While each byte which precedes the last byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter is equal to the byte at the same
-      position of the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter.
+      While each ${../glossary/compared-byte:/term} which precedes the last
+      ${../glossary/compared-byte:/term} is equal to its
+      ${../glossary/corresponding-byte:/term}.
   test-epilogue: null
   test-prologue: null
 - name: Diff
@@ -200,10 +196,8 @@ pre-conditions:
       ctx->s1[ ctx->n ] = LOW;
       ctx->s2[ ctx->n ] = HIGH;
     text: |
-      While each byte of the first ${../if/memcmp:/params[2]/name} bytes of the
-      memory area referenced by the ${../if/memcmp:/params[0]/name} parameter is
-      equal to the byte at the same position of the memory area referenced by the
-      ${../if/memcmp:/params[1]/name} parameter.
+      While each ${../glossary/compared-byte:/term} is equal to its
+      ${../glossary/corresponding-byte:/term}.
   - name: Less
     representatives:
     - name: Wide
@@ -216,12 +210,9 @@ pre-conditions:
         ctx->s2[ ctx->pos ] = HIGH;
     test-code: null
     text: |
-      While the value as `unsigned char` of the first byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter which differs from the byte at the
-      same position of the memory area referenced by the
-      ${../if/memcmp:/params[1]/name} parameter is less than the value as
-      `unsigned char` of that byte.
+      While the value as `unsigned char` of the
+      ${../glossary/first-differing-byte:/term} is less than the value as
+      `unsigned char` of its ${../glossary/corresponding-byte:/term}.
   - name: Greater
     representatives:
     - name: Wide
@@ -234,12 +225,9 @@ pre-conditions:
         ctx->s2[ ctx->pos ] = HIGH - 1;
     test-code: null
     text: |
-      While the value as `unsigned char` of the first byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter which differs from the byte at the
-      same position of the memory area referenced by the
-      ${../if/memcmp:/params[1]/name} parameter is greater than the value as
-      `unsigned char` of that byte.
+      While the value as `unsigned char` of the
+      ${../glossary/first-differing-byte:/term} is greater than the value as
+      `unsigned char` of its ${../glossary/corresponding-byte:/term}.
   test-epilogue: null
   test-prologue: null
 - name: Rest
@@ -248,21 +236,17 @@ pre-conditions:
     test-code: |
       /* The prepare fills both memory areas with the same byte */
     text: |
-      While each byte after the first differing byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter is equal to the byte at the same
-      position of the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter.
+      While each ${../glossary/compared-byte:/term} after the
+      ${../glossary/first-differing-byte:/term} is equal to its
+      ${../glossary/corresponding-byte:/term}.
   - name: Differs
     test-code: |
       ctx->s1[ ctx->n - 1 ] = ctx->s2[ ctx->pos ];
       ctx->s2[ ctx->n - 1 ] = ctx->s1[ ctx->pos ];
     text: |
-      While a byte after the first differing byte of the first
-      ${../if/memcmp:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memcmp:/params[0]/name} parameter differs from the byte at the same
-      position of the memory area referenced by the ${../if/memcmp:/params[1]/name}
-      parameter.
+      While a ${../glossary/compared-byte:/term} after the
+      ${../glossary/first-differing-byte:/term} differs from its
+      ${../glossary/corresponding-byte:/term}.
   test-epilogue: null
   test-prologue: null
 rationale: |

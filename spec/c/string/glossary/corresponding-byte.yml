@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: corresponding byte
+text: |
+  The corresponding byte of a ${compared-byte:/term} is the byte at the same
+  position of the memory area referenced by the ${../if/memcmp:/params[1]/name}
+  parameter.
+type: glossary
