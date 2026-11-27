@@ -2332,14 +2332,20 @@ typedef struct RBHeap_processor {
 
   /**
    * @brief The count of blocks in the bins.
+   *
+   * Only the owner writes this member.  _RBHeap_Get_processor_information()
+   * reads it on each processor.
    */
-  uintptr_t free_blocks;
+  Atomic_Uintptr free_blocks;
 
   /**
    * @brief The total size of the blocks in the bins, the guard words
    *   included.
+   *
+   * Only the owner writes this member.  _RBHeap_Get_processor_information()
+   * reads it on each processor.
    */
-  uintptr_t free_bytes;
+  Atomic_Uintptr free_bytes;
 
   /**
    * @brief The index plus one of the first descriptor of the kept list which
@@ -2534,6 +2540,28 @@ static uint32_t _RBHeap_Processor_Bin_of( uintptr_t size )
   );
 }
 
+/*
+ * Adds the deltas to the bin counters of the processor.  Only the owner writes
+ * the counters, so a relaxed load and store suffice.
+ */
+static void _RBHeap_Processor_Add_free(
+  RBHeap_processor *cpu,
+  uintptr_t         blocks,
+  uintptr_t         bytes
+)
+{
+  _Atomic_Store_uintptr(
+    &cpu->free_blocks,
+    _Atomic_Load_uintptr( &cpu->free_blocks, ATOMIC_ORDER_RELAXED ) + blocks,
+    ATOMIC_ORDER_RELAXED
+  );
+  _Atomic_Store_uintptr(
+    &cpu->free_bytes,
+    _Atomic_Load_uintptr( &cpu->free_bytes, ATOMIC_ORDER_RELAXED ) + bytes,
+    ATOMIC_ORDER_RELAXED
+  );
+}
+
 static void _RBHeap_Processor_Bin_push(
   RBHeap_processor            *cpu,
   uint32_t                     bin,
@@ -2543,8 +2571,7 @@ static void _RBHeap_Processor_Bin_push(
   desc->next = cpu->bins[ bin ];
   cpu->bins[ bin ] = desc;
   ++cpu->bin_counts[ bin ];
-  ++cpu->free_blocks;
-  cpu->free_bytes += desc->size + RBHEAP_GUARD_SIZE;
+  _RBHeap_Processor_Add_free( cpu, 1, desc->size + RBHEAP_GUARD_SIZE );
 }
 
 /* Frees the block of the bound descriptor.  The heap has a spare descriptor. */
@@ -2739,8 +2766,11 @@ void *_RBHeap_Allocate_from_processor(
 
     cpu->bins[ bin ] = desc->next;
     --cpu->bin_counts[ bin ];
-    --cpu->free_blocks;
-    cpu->free_bytes -= desc->size + RBHEAP_GUARD_SIZE;
+    _RBHeap_Processor_Add_free(
+      cpu,
+      (uintptr_t) -1,
+      (uintptr_t) -( desc->size + RBHEAP_GUARD_SIZE )
+    );
     _RBHeap_Processor_Used_insert( cpu, desc );
     block = (void *) desc->begin;
   } else {
@@ -2997,9 +3027,9 @@ void _RBHeap_Get_processor_information(
     uintptr_t               bytes;
 
     cpu = &control->processors[ i ];
-    blocks = cpu->free_blocks +
+    blocks = _Atomic_Load_uintptr( &cpu->free_blocks, ATOMIC_ORDER_RELAXED ) +
              _Atomic_Load_uintptr( &cpu->kept_blocks, ATOMIC_ORDER_RELAXED );
-    bytes = cpu->free_bytes +
+    bytes = _Atomic_Load_uintptr( &cpu->free_bytes, ATOMIC_ORDER_RELAXED ) +
             _Atomic_Load_uintptr( &cpu->kept_bytes, ATOMIC_ORDER_RELAXED );
     info->Used.number -= blocks;
     info->Used.total -= bytes;
@@ -3102,6 +3132,8 @@ bool _RBHeap_Initialize_processor_blocks(
     _Atomic_Init_uintptr( &cpu->kept, 0 );
     _Atomic_Init_uintptr( &cpu->kept_blocks, 0 );
     _Atomic_Init_uintptr( &cpu->kept_bytes, 0 );
+    _Atomic_Init_uintptr( &cpu->free_blocks, 0 );
+    _Atomic_Init_uintptr( &cpu->free_bytes, 0 );
 
     for ( j = 0; j < words; ++j ) {
       _Atomic_Init_ulong( &cpu->kept_bits[ j ], 0 );
