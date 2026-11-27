@@ -4,6 +4,8 @@
  *  COPYRIGHT (c) 1989-2011.
  *  On-Line Applications Research Corporation (OAR).
  *
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -34,6 +36,8 @@
 #include "test_support.h"
 #include <rtems/libcsupport.h>
 #include <rtems/malloc.h>
+#include <rtems/sysinit.h>
+#include <rtems/score/threaddispatch.h>
 #include <errno.h>
 
 const char rtems_test_name[] = "MALLOC 4";
@@ -89,6 +93,40 @@ void *sbrk( ptrdiff_t incr )
   return p;
 }
 
+static char Early_extend_area[ 1024 ] CPU_STRUCTURE_ALIGNMENT;
+
+static rtems_status_code early_extend_status;
+
+static size_t early_extend_size_before;
+
+static size_t early_extend_size_after;
+
+/*
+ * The BSPs lpc176x, lpc24xx and amd64 extend the C Program Heap in
+ * bsp_start().  No thread exists at this point.
+ */
+static void early_extend( void )
+{
+  rtems_heap_statistics stats;
+
+  (void) malloc_get_statistics( &stats );
+  early_extend_size_before = stats.size;
+
+  early_extend_status = rtems_heap_extend(
+    Early_extend_area,
+    sizeof( Early_extend_area )
+  );
+
+  (void) malloc_get_statistics( &stats );
+  early_extend_size_after = stats.size;
+}
+
+RTEMS_SYSINIT_ITEM(
+  early_extend,
+  RTEMS_SYSINIT_BSP_START,
+  RTEMS_SYSINIT_ORDER_LAST
+);
+
 rtems_task Init( rtems_task_argument argument )
 {
   (void) argument;
@@ -97,10 +135,21 @@ rtems_task Init( rtems_task_argument argument )
   const Memory_Information *mem;
   Memory_Area              *area;
   size_t                    i;
+  rtems_status_code         sc;
 
   void *p;
 
   TEST_BEGIN();
+
+  puts( "Heap extend before multitasking" );
+  rtems_test_assert( early_extend_status == RTEMS_SUCCESSFUL );
+  rtems_test_assert( early_extend_size_after > early_extend_size_before );
+
+  puts( "Heap extend with thread dispatching disabled" );
+  _Thread_Dispatch_disable();
+  sc = rtems_heap_extend( Early_extend_area, sizeof( Early_extend_area ) );
+  _Thread_Dispatch_enable( _Per_CPU_Get() );
+  rtems_test_assert( sc == RTEMS_INCORRECT_STATE );
 
   mem = _Memory_Get();
 

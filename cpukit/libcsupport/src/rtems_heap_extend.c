@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (c) 2011 embedded brains GmbH & Co. KG
+ * Copyright (C) 2011, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,11 +41,37 @@
 #ifdef RTEMS_NEWLIB
 #include "malloc_p.h"
 
+#include <rtems/score/apimutex.h>
+#include <rtems/score/heap.h>
+
 rtems_status_code rtems_heap_extend( void *area_begin, uintptr_t area_size )
 {
-  bool ok = _Protected_heap_Extend( RTEMS_Malloc_Heap, area_begin, area_size );
+  uintptr_t extended_size;
 
-  if ( ok ) {
+  switch ( _Malloc_System_state() ) {
+    case MALLOC_SYSTEM_STATE_NORMAL:
+      _RTEMS_Lock_allocator();
+      extended_size = _Heap_Extend(
+        RTEMS_Malloc_Heap,
+        area_begin,
+        area_size,
+        0
+      );
+      _RTEMS_Unlock_allocator();
+      break;
+    case MALLOC_SYSTEM_STATE_NO_PROTECTION:
+      extended_size = _Heap_Extend(
+        RTEMS_Malloc_Heap,
+        area_begin,
+        area_size,
+        0
+      );
+      break;
+    default:
+      return RTEMS_INCORRECT_STATE;
+  }
+
+  if ( extended_size != 0 ) {
     return RTEMS_SUCCESSFUL;
   } else {
     return RTEMS_INVALID_ADDRESS;

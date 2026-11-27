@@ -244,8 +244,13 @@ int malloc_get_statistics( rtems_heap_statistics *stats );
  * which cover the gaps.  Extending with an inappropriate memory area will
  * corrupt the heap.
  *
+ * The function may be called before the system initialization creates the
+ * threads, for example in bsp_start().
+ *
  * @retval RTEMS_SUCCESSFUL Successful operation.
  * @retval RTEMS_INVALID_ADDRESS Invalid memory area.
+ * @retval RTEMS_INCORRECT_STATE The function was called with thread
+ *   dispatching disabled.
  */
 rtems_status_code rtems_heap_extend(
   void *area_begin,

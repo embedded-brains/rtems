@@ -1,4 +1,6 @@
 *** TEST MALLOC 04 ***
+Heap extend before multitasking
+Heap extend with thread dispatching disabled
 No sbrk() amount
 Misaligned extend
 sbrk(512)
