@@ -49,12 +49,12 @@ void _Timespec_Divide(
   uint32_t              *fval_percentage
 )
 {
-  uint64_t left, right, answer;
+  uint64_t left;
+  uint64_t right;
+  uint64_t remainder;
+  uint64_t answer;
+  int      i;
 
-  /*
-   *  For math simplicity just convert the timespec to nanoseconds
-   *  in a 64-bit integer.
-   */
   left = lhs->tv_sec * (uint64_t) TOD_NANOSECONDS_PER_SECOND;
   left += lhs->tv_nsec;
   right = rhs->tv_sec * (uint64_t) TOD_NANOSECONDS_PER_SECOND;
@@ -66,13 +66,19 @@ void _Timespec_Divide(
     return;
   }
 
-  /*
-   *  Put it back in the timespec result.
-   *
-   *  TODO: Rounding on the last digit of the fval.
-   */
+  answer = left / right;
+  remainder = left % right;
 
-  answer = ( left * 100000 ) / right;
+  /*
+   * The long division appends the five decimal digits of the percentage.  The
+   * remainder is less than the divisor, so ten times the remainder fits into
+   * 64 bits for a divisor of at most UINT64_MAX / 10 nanoseconds.
+   */
+  for ( i = 0; i < 5; ++i ) {
+    remainder *= 10;
+    answer = answer * 10 + remainder / right;
+    remainder %= right;
+  }
 
   *ival_percentage = answer / 1000;
   *fval_percentage = answer % 1000;
