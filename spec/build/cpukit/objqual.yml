@@ -40,10 +40,12 @@ source:
 - cpukit/libc/string/memmove.c
 - cpukit/libc/string/memrchr.c
 - cpukit/libc/string/memset.c
+- cpukit/libc/string/stpcpy.c
 - cpukit/libc/string/strcasecmp.c
 - cpukit/libc/string/strchr.c
 - cpukit/libc/string/strchrnul.c
 - cpukit/libc/string/strcmp.c
+- cpukit/libc/string/strcpy.c
 - cpukit/libc/string/strcspn.c
 - cpukit/libc/string/strlcpy.c
 - cpukit/libc/string/strlen.c
