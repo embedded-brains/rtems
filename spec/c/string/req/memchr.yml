@@ -18,11 +18,9 @@ post-conditions:
       T_eq_ptr( ctx->retval, ctx->expected );
     text: |
       The ${/glossary/returnvalue:/term} of ${../if/memchr:/name} shall be the
-      address of the first byte which lies in the first
-      ${../if/memchr:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memchr:/params[0]/name} parameter and in the object which contains it
-      and which is equal to the value of the ${../if/memchr:/params[1]/name}
-      parameter converted to `unsigned char`.
+      address of the first byte of the ${../glossary/search-area:/term} which is
+      equal to the value of the ${../if/memchr:/params[1]/name} parameter converted
+      to `unsigned char`.
   - name: 'Null'
     test-code: |
       T_null( ctx->retval );
@@ -107,7 +105,7 @@ pre-conditions:
       While the size specified by ${../if/memchr:/params[2]/name} is less than or
       equal to the count of bytes from the address specified by the
       ${../if/memchr:/params[0]/name} parameter to the end of the object which
-      contains it.
+      contains this address.
   - name: Beyond
     test-code: |
       ctx->n = SIZE_MAX;
@@ -115,7 +113,7 @@ pre-conditions:
       While the size specified by ${../if/memchr:/params[2]/name} is greater than the
       count of bytes from the address specified by the
       ${../if/memchr:/params[0]/name} parameter to the end of the object which
-      contains it.
+      contains this address.
   test-epilogue: null
   test-prologue: null
 - name: Alignment
@@ -187,10 +185,8 @@ pre-conditions:
       ctx->s[ -1 ] = TARGET;
       ctx->s[ ctx->len ] = TARGET;
     text: |
-      While no byte which lies in the first ${../if/memchr:/params[2]/name} bytes of
-      the memory area referenced by the ${../if/memchr:/params[0]/name} parameter and
-      in the object which contains it is equal to the value of the
-      ${../if/memchr:/params[1]/name} parameter converted to `unsigned char`.
+      While no byte of the ${../glossary/search-area:/term} is equal to the value of
+      the ${../if/memchr:/params[1]/name} parameter converted to `unsigned char`.
   - name: One
     representatives:
     - name: First
@@ -203,10 +199,9 @@ pre-conditions:
         ctx->expected = &ctx->s[ ctx->len - 1 ];
     test-code: null
     text: |
-      While exactly one byte which lies in the first ${../if/memchr:/params[2]/name}
-      bytes of the memory area referenced by the ${../if/memchr:/params[0]/name}
-      parameter and in the object which contains it is equal to the value of the
-      ${../if/memchr:/params[1]/name} parameter converted to `unsigned char`.
+      While exactly one byte of the ${../glossary/search-area:/term} is equal to the
+      value of the ${../if/memchr:/params[1]/name} parameter converted to
+      `unsigned char`.
   - name: Several
     representatives:
     - name: Start
@@ -225,11 +220,9 @@ pre-conditions:
     test-code: |
       ctx->s[ ctx->len - 1 ] = TARGET;
     text: |
-      While more than one byte which lies in the first
-      ${../if/memchr:/params[2]/name} bytes of the memory area referenced by the
-      ${../if/memchr:/params[0]/name} parameter and in the object which contains it
-      is equal to the value of the ${../if/memchr:/params[1]/name} parameter
-      converted to `unsigned char`.
+      While more than one byte of the ${../glossary/search-area:/term} is equal to
+      the value of the ${../if/memchr:/params[1]/name} parameter converted to
+      `unsigned char`.
   test-epilogue: null
   test-prologue: null
 rationale: |
