@@ -644,6 +644,9 @@ static void RunDrain( Context *ctx )
           _RBHeap_Get_releasable_size( heap, 0 ),
           _RBHeap_Get_releasable_size( heap, 1 )
         );
+
+        /* The draining slab is releasable */
+        T_ge_uptr( _RBHeap_Get_releasable_size( heap, 0 ), RBHEAP_SLAB_SIZE );
         ptr = _RBHeap_Allocate( heap, 8 );
 
         while ( ptr != NULL && heap->draining != NULL ) {
