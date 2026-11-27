@@ -91,6 +91,22 @@ typedef struct {
     size_t pcs[ 1 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 13 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -115,13 +131,191 @@ typedef struct {
 
 static CStringsReqFfsll_Context CStringsReqFfsll_Instance;
 
-static const char *const CStringsReqFfsll_PreDesc_Value[] =
-  { "MinusOne", "Zero", "One", "Least", "Middle", "Most", "NA" };
+static const char *const CStringsReqFfsll_PreDesc_Value[] = {
+  "MinusOne",
+  "Zero",
+  "One",
+  "LeastLeast",
+  "LeastLeastNegative",
+  "MiddleTwo",
+  "MiddleBelowHalf",
+  "MiddleAboveHalf",
+  "MiddleInner",
+  "MiddleBelowMost",
+  "MiddleNegative",
+  "Most",
+  "NA"
+};
 
 static const char *const *const CStringsReqFfsll_PreDesc[] = {
   CStringsReqFfsll_PreDesc_Value,
   NULL
 };
+
+typedef enum {
+  CStringsReqFfsll_Pre_Value_Least_Least,
+  CStringsReqFfsll_Pre_Value_Least_LeastNegative
+} CStringsReqFfsll_Pre_Value_Least_Rep;
+
+typedef enum {
+  CStringsReqFfsll_Pre_Value_Middle_Two,
+  CStringsReqFfsll_Pre_Value_Middle_BelowHalf,
+  CStringsReqFfsll_Pre_Value_Middle_AboveHalf,
+  CStringsReqFfsll_Pre_Value_Middle_Inner,
+  CStringsReqFfsll_Pre_Value_Middle_BelowMost,
+  CStringsReqFfsll_Pre_Value_Middle_Negative
+} CStringsReqFfsll_Pre_Value_Middle_Rep;
+
+static const uint8_t CStringsReqFfsll_PreRepOffset_Value[] =
+  { 0, 1, 2, 3, 5, 11, 12, 13 };
+
+static const uint8_t *const CStringsReqFfsll_PreRepOffset[] = {
+  CStringsReqFfsll_PreRepOffset_Value
+};
+
+static size_t CStringsReqFfsll_GetRepresentativeCountOf(
+  const CStringsReqFfsll_Context *ctx,
+  size_t                          index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringsReqFfsll_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringsReqFfsll_GetRepresentative(
+  const CStringsReqFfsll_Context *ctx,
+  size_t                          index
+)
+{
+  size_t count;
+
+  count = CStringsReqFfsll_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringsReqFfsll_GetRepresentativeCount(
+  const CStringsReqFfsll_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 1; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringsReqFfsll_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringsReqFfsll_Pre_Value_Least_Rep
+CStringsReqFfsll_Pre_Value_Least_GetRepresentative(
+  const CStringsReqFfsll_Context *ctx
+)
+{
+  return (
+    CStringsReqFfsll_Pre_Value_Least_Rep
+  ) CStringsReqFfsll_GetRepresentative( ctx, 0 );
+}
+
+static CStringsReqFfsll_Pre_Value_Middle_Rep
+CStringsReqFfsll_Pre_Value_Middle_GetRepresentative(
+  const CStringsReqFfsll_Context *ctx
+)
+{
+  return (
+    CStringsReqFfsll_Pre_Value_Middle_Rep
+  ) CStringsReqFfsll_GetRepresentative( ctx, 0 );
+}
+
+static const uint8_t CStringsReqFfsll_PreRepBase[] = { 0 };
+
+static const uint8_t CStringsReqFfsll_PreRepStates[] = { 6 };
+
+static void CStringsReqFfsll_ResetRepresentatives(
+  CStringsReqFfsll_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 13; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringsReqFfsll_MarkRepresentatives(
+  CStringsReqFfsll_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 1; ++i ) {
+    size_t rep;
+
+    rep = CStringsReqFfsll_PreRepBase[ i ] +
+          CStringsReqFfsll_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringsReqFfsll_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringsReqFfsll_CheckRepresentatives(
+  const CStringsReqFfsll_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 1; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringsReqFfsll_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringsReqFfsll_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringsReqFfsll_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringsReqFfsll_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static void CStringsReqFfsll_Pre_Value_Prepare(
   CStringsReqFfsll_Context  *ctx,
@@ -159,7 +353,17 @@ static void CStringsReqFfsll_Pre_Value_Prepare(
        * set, while the value of the `i` parameter is neither one nor minus
        * one.
        */
-      ctx->i = 0x0008010000000001LL;
+      switch ( CStringsReqFfsll_Pre_Value_Least_GetRepresentative( ctx ) ) {
+        case CStringsReqFfsll_Pre_Value_Least_Least: {
+          ctx->i = 0x0008010000000001LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Least_LeastNegative: {
+          ctx->i = LLONG_MIN + 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -169,7 +373,37 @@ static void CStringsReqFfsll_Pre_Value_Prepare(
        * is neither the least significant bit nor the most significant bit of
        * the value.
        */
-      ctx->i = 0x0008010000000000LL;
+      switch ( CStringsReqFfsll_Pre_Value_Middle_GetRepresentative( ctx ) ) {
+        case CStringsReqFfsll_Pre_Value_Middle_Two: {
+          ctx->i = 2LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Middle_BelowHalf: {
+          ctx->i = 0x0000000080000000LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Middle_AboveHalf: {
+          ctx->i = 0x0000000100000000LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Middle_Inner: {
+          ctx->i = 0x0008010000000000LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Middle_BelowMost: {
+          ctx->i = 0x4000000000000000LL;
+          break;
+        }
+
+        case CStringsReqFfsll_Pre_Value_Middle_Negative: {
+          ctx->i = LLONG_MIN | 0x0000000000000100LL;
+          break;
+        }
+      }
       break;
     }
 
@@ -254,7 +488,15 @@ static size_t CStringsReqFfsll_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringsReqFfsll_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 1 ];
+    size_t i;
+
+    for ( i = 0; i < 1; ++i ) {
+      pcd[ i ] = CStringsReqFfsll_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringsReqFfsll_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringsReqFfsll_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -282,6 +524,11 @@ static inline CStringsReqFfsll_Entry CStringsReqFfsll_PopEntry(
 static void CStringsReqFfsll_TestVariant( CStringsReqFfsll_Context *ctx )
 {
   CStringsReqFfsll_Pre_Value_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringsReqFfsll_Action( ctx );
   CStringsReqFfsll_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
 }
@@ -296,6 +543,7 @@ T_TEST_CASE_FIXTURE( CStringsReqFfsll, &CStringsReqFfsll_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringsReqFfsll_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringsReqFfsll_Pre_Value_MinusOne;
@@ -303,8 +551,20 @@ T_TEST_CASE_FIXTURE( CStringsReqFfsll, &CStringsReqFfsll_Fixture )
     ++ctx->Map.pcs[ 0 ]
   ) {
     ctx->Map.entry = CStringsReqFfsll_PopEntry( ctx );
-    CStringsReqFfsll_TestVariant( ctx );
+
+    for (
+      ctx->Map.rep = 0;
+      ctx->Map.rep < CStringsReqFfsll_GetRepresentativeCount( ctx );
+      ++ctx->Map.rep
+    ) {
+      ctx->Map.skip_rep = false;
+      CStringsReqFfsll_TestVariant( ctx );
+
+      CStringsReqFfsll_MarkRepresentatives( ctx );
+    }
   }
+
+  CStringsReqFfsll_CheckRepresentatives( ctx );
 }
 
 /** @} */

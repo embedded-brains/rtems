@@ -61,68 +61,54 @@ pre-conditions:
       ctx->n = 0;
     text: |
       While the size specified by ${../if/memset:/params[2]/name} is equal to zero.
-  - name: One
-    test-code: |
-      ctx->n = 1;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to one.
-  - name: Short
-    test-code: |
-      ctx->n = 2;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is greater than
-      one, while the size specified by ${../if/memset:/params[2]/name} is less than
-      the size of type long minus one.
-  - name: BelowWord
-    test-code: |
-      ctx->n = sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to the
-      size of type long minus one.
-  - name: Word
-    test-code: |
-      ctx->n = sizeof( long );
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to the
-      size of type long.
-  - name: AboveWord
-    test-code: |
-      ctx->n = sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to the
-      size of type long plus one.
-  - name: Medium
-    test-code: |
-      ctx->n = sizeof( long ) + 2;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is greater than the
-      size of type long plus one, while the size specified by
-      ${../if/memset:/params[2]/name} is less than four times the size of type long
-      minus one.
-  - name: BelowBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to four
-      times the size of type long minus one.
-  - name: Block
-    test-code: |
-      ctx->n = 4 * sizeof( long );
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to four
-      times the size of type long.
-  - name: AboveBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memset:/params[2]/name} is equal to four
-      times the size of type long plus one.
-  - name: Long
-    test-code: |
-      ctx->n = 9 * sizeof( long ) + 1;
+  - name: Positive
+    representatives:
+    - name: One
+      test-code: |
+        ctx->n = 1;
+    - name: Two
+      test-code: |
+        ctx->n = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->n = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->n = sizeof( long ) - 1;
+    - name: Word
+      test-code: |
+        ctx->n = sizeof( long );
+    - name: WordPlusOne
+      test-code: |
+        ctx->n = sizeof( long ) + 1;
+    - name: WordPlusTwo
+      test-code: |
+        ctx->n = sizeof( long ) + 2;
+    - name: BlockMinusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 2;
+    - name: BlockMinusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 1;
+    - name: Block
+      test-code: |
+        ctx->n = 4 * sizeof( long );
+    - name: BlockPlusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 1;
+    - name: BlockPlusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 2;
+    - name: TwoBlocks
+      test-code: |
+        ctx->n = 9 * sizeof( long ) + 1;
+    - name: Max
+      test-code: |
+        ctx->n = 12 * sizeof( long );
+    test-code: null
     text: |
       While the size specified by ${../if/memset:/params[2]/name} is greater than
-      four times the size of type long plus one.
+      zero.
   test-epilogue: null
   test-prologue: null
 - name: Alignment
@@ -133,29 +119,24 @@ pre-conditions:
     text: |
       While the memory area referenced by the ${../if/memset:/params[0]/name}
       parameter starts at an address which is aligned to the size of type long.
-  - name: AboveAligned
-    test-code: |
-      ctx->s = &ctx->buf[ 2 * sizeof( long ) + 1 ];
+  - name: Unaligned
+    representatives:
+    - name: One
+      test-code: |
+        ctx->s = &ctx->buf[ 2 * sizeof( long ) + 1 ];
+    - name: Two
+      test-code: |
+        ctx->s = &ctx->buf[ 2 * sizeof( long ) + 2 ];
+    - name: WordMinusTwo
+      test-code: |
+        ctx->s = &ctx->buf[ 2 * sizeof( long ) + sizeof( long ) - 2 ];
+    - name: WordMinusOne
+      test-code: |
+        ctx->s = &ctx->buf[ 2 * sizeof( long ) + sizeof( long ) - 1 ];
+    test-code: null
     text: |
       While the memory area referenced by the ${../if/memset:/params[0]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
-  - name: Between
-    test-code: |
-      ctx->s = &ctx->buf[ 2 * sizeof( long ) + 2 ];
-    text: |
-      While the memory area referenced by the ${../if/memset:/params[0]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memset:/params[0]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
-  - name: BelowAligned
-    test-code: |
-      ctx->s = &ctx->buf[ 2 * sizeof( long ) + sizeof( long ) - 1 ];
-    text: |
-      While the memory area referenced by the ${../if/memset:/params[0]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      parameter starts at an address which is not aligned to the size of type long.
   test-epilogue: null
   test-prologue: null
 - name: C
@@ -167,40 +148,55 @@ pre-conditions:
       While the value of the ${../if/memset:/params[1]/name} parameter is in the
       range of the type `unsigned char`.
   - name: Negative
-    test-code: |
-      ctx->c = TARGET - ( UCHAR_MAX + 1 );
+    representatives:
+    - name: Near
+      test-code: |
+        ctx->c = TARGET - ( UCHAR_MAX + 1 );
+    - name: Min
+      test-code: |
+        ctx->c = INT_MIN + TARGET;
+    test-code: null
     text: |
       While the value of the ${../if/memset:/params[1]/name} parameter is less than
       zero.
   - name: Greater
-    test-code: |
-      ctx->c = TARGET + ( UCHAR_MAX + 1 );
+    representatives:
+    - name: Near
+      test-code: |
+        ctx->c = TARGET + ( UCHAR_MAX + 1 );
+    - name: Max
+      test-code: |
+        ctx->c = INT_MAX - UCHAR_MAX + TARGET;
+    test-code: null
     text: |
       While the value of the ${../if/memset:/params[1]/name} parameter is greater
       than the maximum value of the type `unsigned char`.
   test-epilogue: null
   test-prologue: null
 rationale: |
-  Dimension N covers the size, 11 states. ${/ref/std/c23/memset:/name} sets each
+  Dimension N covers the size, 2 states. ${/ref/std/c23/memset:/name} sets each
   byte of the memory area. A size of zero sets no byte. The implementation of the
   pre-qualified library compares the size against zero, the size of type long and
-  four times this size. The states Zero and One hold the boundary zero and the
-  value above it. Each other boundary has a state for the value below it, at it
-  and above it. The states Short, Medium and Long hold the values between and
-  after these states. A size beyond the memory area is outside the domain, so N
-  has no state for the last value of the type.
+  four times this size. The Positive state takes the sizes one and two, the size
+  of type long and four times this size. It also takes the sizes one and two
+  below and above each of these two sizes. Nine times the size of type long plus
+  one runs the loop of four blocks twice. The last size is the largest which the
+  buffer holds. A size beyond the memory area is outside the domain, so N has no
+  state for the last value of the type.
 
   Dimension C covers the value of the character, 3 states.
   ${/ref/std/c23/memset:/name} converts it to `unsigned char`. The conversion
   keeps a value of that range. It changes a negative value and a value beyond the
-  maximum of the type.
+  maximum of the type. The Negative state takes the value of the character minus
+  256 and the minimum of type int plus this value. The Greater state takes the
+  value plus 256 and the maximum of type int minus 255 plus this value. Each of
+  these values converts to the same `unsigned char`.
 
-  Dimension Alignment covers the start address of the memory area, 4 states. The
+  Dimension Alignment covers the start address of the memory area, 2 states. The
   implementation sets the bytes before the first aligned address one at a time.
   The offset of the start address to the preceding aligned address ranges from
-  zero to the size of type long minus one. The states Aligned and AboveAligned
-  hold the boundary zero and the value above it. The state BelowAligned holds the
-  largest offset. The state Between holds the offsets between them.
+  zero to the size of type long minus one. The Unaligned state takes the offsets
+  one and two and the offsets two and one below the size of type long.
 
   ${/ref/std/posix-2024/memset:/name} states that the function does not change
   ${/c/errno/if/errno:/name} on valid input.

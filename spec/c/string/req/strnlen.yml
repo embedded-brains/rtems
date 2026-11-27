@@ -59,8 +59,17 @@ pre-conditions:
     text: |
       While the ${../if/strnlen:/params[1]/name} parameter is equal to one.
   - name: Between
-    test-code: |
-      ctx->maxlen = 4;
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->maxlen = 2;
+    - name: Four
+      test-code: |
+        ctx->maxlen = 4;
+    - name: Blocks
+      test-code: |
+        ctx->maxlen = 3 * sizeof( long ) + 1;
+    test-code: null
     text: |
       While the ${../if/strnlen:/params[1]/name} parameter is greater than one, while
       the ${../if/strnlen:/params[1]/name} parameter is less than
@@ -76,13 +85,18 @@ pre-conditions:
 - name: Nul
   states:
   - name: Before
+    representatives:
+    - name: Empty
+      test-code: |
+        ctx->length = 0;
+    - name: Late
+      test-code: |
+        if ( ctx->maxlen == SIZE_MAX ) {
+          ctx->length = 3;
+        } else {
+          ctx->length = ctx->maxlen - 2;
+        }
     test-code: |
-      if ( ctx->maxlen == SIZE_MAX ) {
-        ctx->length = 3;
-      } else {
-        ctx->length = ctx->maxlen - 2;
-      }
-
       ctx->buf[ ctx->length ] = '\0';
     text: |
       While the first null byte of the array referenced by the
@@ -96,27 +110,22 @@ pre-conditions:
       While the first null byte of the array referenced by the
       ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
       the ${../if/strnlen:/params[1]/name} parameter minus one.
-  - name: At
-    test-code: |
-      ctx->buf[ ctx->maxlen ] = '\0';
-    text: |
-      While the first null byte of the array referenced by the
-      ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
-      the ${../if/strnlen:/params[1]/name} parameter.
-  - name: Next
-    test-code: |
-      ctx->buf[ ctx->maxlen + 1 ] = '\0';
-    text: |
-      While the first null byte of the array referenced by the
-      ${../if/strnlen:/params[0]/name} parameter has an index equal to the value of
-      the ${../if/strnlen:/params[1]/name} parameter plus one.
-  - name: Beyond
-    test-code: |
-      ctx->buf[ ctx->maxlen + 2 ] = '\0';
+  - name: NotWithin
+    representatives:
+    - name: At
+      test-code: |
+        ctx->buf[ ctx->maxlen ] = '\0';
+    - name: Next
+      test-code: |
+        ctx->buf[ ctx->maxlen + 1 ] = '\0';
+    - name: Beyond
+      test-code: |
+        ctx->buf[ ctx->maxlen + 2 ] = '\0';
+    test-code: null
     text: |
       While the array referenced by the ${../if/strnlen:/params[0]/name} parameter
-      contains no null byte at an index less than or equal to the value of the
-      ${../if/strnlen:/params[1]/name} parameter plus one.
+      contains no null byte at an index less than the value of the
+      ${../if/strnlen:/params[1]/name} parameter.
   test-epilogue: null
   test-prologue: null
 rationale: |
@@ -129,22 +138,25 @@ rationale: |
   parameter, 4 states. The implementation passes this value as the size to
   ${../if/memchr:/name}, which compares the count of examined bytes against it.
   The states Zero and One hold the boundary zero and the value above it. The Max
-  state holds the last value of the type.
+  state holds the last value of the type. The Between state takes the values two
+  and four and three times the size of type long plus one. The last value lets
+  ${../if/memchr:/name} search more than one block.
 
   Dimension Nul covers the index of the first null byte of the array relative to
-  the value of the ${../if/strnlen:/params[1]/name} parameter, 5 states.
+  the value of the ${../if/strnlen:/params[1]/name} parameter, 3 states.
   ${/ref/std/posix-2024/strnlen:/name} separates a null byte within the first
   ${../if/strnlen:/params[1]/name} bytes from every other array. The
-  implementation stops at this bound. The states Last, At and Next hold the index
-  below the bound, at it and above it. The states Before and Beyond hold the
-  indices below and above these states. The Beyond state includes an array of
-  exactly the number of bytes which the ${../if/strnlen:/params[1]/name}
-  parameter specifies. A shorter array without a null byte is no array which the
-  function may examine, so the dimension excludes it.
+  implementation stops at this bound. The Last state holds the index below the
+  bound. The Before state holds the indices below it, at index zero and two
+  indices below the bound. The NotWithin state places the null byte at the bound,
+  one index above it and two indices above it. It includes an array of exactly
+  the number of bytes which the ${../if/strnlen:/params[1]/name} parameter
+  specifies. A shorter array without a null byte is no array which the function
+  may examine, so the dimension excludes it.
 
   An array of ${/c/if/size_max:/name} bytes does not fit into the address space
-  of the target. This limit of the target skips the states Last, At, Next and
-  Beyond for the Max state.
+  of the target. This limit of the target skips the states Last and NotWithin for
+  the Max state.
 
   The Maxlen arrangement comes before the Nul arrangement, since the Nul
   arrangement places the null byte relative to the value of the
@@ -198,13 +210,13 @@ test-context:
     ${../if/strnlen:/params[0]/name} parameter.
   description: null
   member: |
-    char buf[ 8 ]
+    char buf[ 32 ]
 - brief: |
     This member contains the content of the array before the ${../if/strnlen:/name}
     call.
   description: null
   member: |
-    char buf_before[ 8 ]
+    char buf_before[ 32 ]
 - brief: |
     This member contains the value of ${/c/errno/if/errno:/name} after the
     ${../if/strnlen:/name} call.
@@ -267,7 +279,5 @@ transition-map:
     - Max
     Nul:
     - Last
-    - At
-    - Next
-    - Beyond
+    - NotWithin
 type: requirement

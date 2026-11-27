@@ -1,0 +1,14 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: lowercase value
+text: |
+  The lowercase value of a byte is the value of the byte as type `unsigned char`,
+  where an ${/c/ctype/glossary/uppercase:/term} is first converted to the
+  corresponding ${/c/ctype/glossary/lowercase:/term}.
+type: glossary

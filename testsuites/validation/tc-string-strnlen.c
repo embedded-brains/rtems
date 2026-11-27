@@ -60,9 +60,7 @@ typedef enum {
 typedef enum {
   CStringReqStrnlen_Pre_Nul_Before,
   CStringReqStrnlen_Pre_Nul_Last,
-  CStringReqStrnlen_Pre_Nul_At,
-  CStringReqStrnlen_Pre_Nul_Next,
-  CStringReqStrnlen_Pre_Nul_Beyond,
+  CStringReqStrnlen_Pre_Nul_NotWithin,
   CStringReqStrnlen_Pre_Nul_NA
 } CStringReqStrnlen_Pre_Nul;
 
@@ -118,13 +116,13 @@ typedef struct {
   /**
    * @brief This member provides the array referenced by the `s` parameter.
    */
-  char buf[ 8 ];
+  char buf[ 32 ];
 
   /**
    * @brief This member contains the content of the array before the strnlen()
    *   call.
    */
-  char buf_before[ 8 ];
+  char buf_before[ 32 ];
 
   /**
    * @brief This member contains the value of errno after the strnlen() call.
@@ -136,6 +134,22 @@ typedef struct {
      * @brief This member defines the pre-condition states for the next action.
      */
     size_t pcs[ 2 ];
+
+    /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 14 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -163,13 +177,201 @@ typedef struct {
 static CStringReqStrnlen_Context CStringReqStrnlen_Instance;
 
 static const char *const CStringReqStrnlen_PreDesc_Maxlen[] =
-  { "Zero", "One", "Between", "Max", "NA" };
+  { "Zero", "One", "BetweenTwo", "BetweenFour", "BetweenBlocks", "Max", "NA" };
 
-static const char *const CStringReqStrnlen_PreDesc_Nul[] =
-  { "Before", "Last", "At", "Next", "Beyond", "NA" };
+static const char *const CStringReqStrnlen_PreDesc_Nul[] = {
+  "BeforeEmpty",
+  "BeforeLate",
+  "Last",
+  "NotWithinAt",
+  "NotWithinNext",
+  "NotWithinBeyond",
+  "NA"
+};
 
 static const char *const *const CStringReqStrnlen_PreDesc[] =
   { CStringReqStrnlen_PreDesc_Maxlen, CStringReqStrnlen_PreDesc_Nul, NULL };
+
+typedef enum {
+  CStringReqStrnlen_Pre_Maxlen_Between_Two,
+  CStringReqStrnlen_Pre_Maxlen_Between_Four,
+  CStringReqStrnlen_Pre_Maxlen_Between_Blocks
+} CStringReqStrnlen_Pre_Maxlen_Between_Rep;
+
+typedef enum {
+  CStringReqStrnlen_Pre_Nul_Before_Empty,
+  CStringReqStrnlen_Pre_Nul_Before_Late
+} CStringReqStrnlen_Pre_Nul_Before_Rep;
+
+typedef enum {
+  CStringReqStrnlen_Pre_Nul_NotWithin_At,
+  CStringReqStrnlen_Pre_Nul_NotWithin_Next,
+  CStringReqStrnlen_Pre_Nul_NotWithin_Beyond
+} CStringReqStrnlen_Pre_Nul_NotWithin_Rep;
+
+static const uint8_t CStringReqStrnlen_PreRepOffset_Maxlen[] =
+  { 0, 1, 2, 5, 6, 7 };
+
+static const uint8_t CStringReqStrnlen_PreRepOffset_Nul[] = { 0, 2, 3, 6, 7 };
+
+static const uint8_t *const CStringReqStrnlen_PreRepOffset[] = {
+  CStringReqStrnlen_PreRepOffset_Maxlen,
+  CStringReqStrnlen_PreRepOffset_Nul
+};
+
+static size_t CStringReqStrnlen_GetRepresentativeCountOf(
+  const CStringReqStrnlen_Context *ctx,
+  size_t                           index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqStrnlen_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqStrnlen_GetRepresentative(
+  const CStringReqStrnlen_Context *ctx,
+  size_t                           index
+)
+{
+  size_t count;
+
+  count = CStringReqStrnlen_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqStrnlen_GetRepresentativeCount(
+  const CStringReqStrnlen_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 2; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqStrnlen_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringReqStrnlen_Pre_Maxlen_Between_Rep
+CStringReqStrnlen_Pre_Maxlen_Between_GetRepresentative(
+  const CStringReqStrnlen_Context *ctx
+)
+{
+  return (
+    CStringReqStrnlen_Pre_Maxlen_Between_Rep
+  ) CStringReqStrnlen_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqStrnlen_Pre_Nul_Before_Rep
+CStringReqStrnlen_Pre_Nul_Before_GetRepresentative(
+  const CStringReqStrnlen_Context *ctx
+)
+{
+  return (
+    CStringReqStrnlen_Pre_Nul_Before_Rep
+  ) CStringReqStrnlen_GetRepresentative( ctx, 1 );
+}
+
+static CStringReqStrnlen_Pre_Nul_NotWithin_Rep
+CStringReqStrnlen_Pre_Nul_NotWithin_GetRepresentative(
+  const CStringReqStrnlen_Context *ctx
+)
+{
+  return (
+    CStringReqStrnlen_Pre_Nul_NotWithin_Rep
+  ) CStringReqStrnlen_GetRepresentative( ctx, 1 );
+}
+
+static const uint8_t CStringReqStrnlen_PreRepBase[] = { 0, 7 };
+
+static const uint8_t CStringReqStrnlen_PreRepStates[] = { 4, 3 };
+
+static void CStringReqStrnlen_ResetRepresentatives(
+  CStringReqStrnlen_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 14; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqStrnlen_MarkRepresentatives(
+  CStringReqStrnlen_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 2; ++i ) {
+    size_t rep;
+
+    rep = CStringReqStrnlen_PreRepBase[ i ] +
+          CStringReqStrnlen_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqStrnlen_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqStrnlen_CheckRepresentatives(
+  const CStringReqStrnlen_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 2; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqStrnlen_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqStrnlen_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqStrnlen_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqStrnlen_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 static void CStringReqStrnlen_Pre_Maxlen_Prepare(
   CStringReqStrnlen_Context   *ctx,
@@ -198,7 +400,24 @@ static void CStringReqStrnlen_Pre_Maxlen_Prepare(
        * While the `maxlen` parameter is greater than one, while the `maxlen`
        * parameter is less than SIZE_MAX.
        */
-      ctx->maxlen = 4;
+      switch (
+        CStringReqStrnlen_Pre_Maxlen_Between_GetRepresentative( ctx )
+      ) {
+        case CStringReqStrnlen_Pre_Maxlen_Between_Two: {
+          ctx->maxlen = 2;
+          break;
+        }
+
+        case CStringReqStrnlen_Pre_Maxlen_Between_Four: {
+          ctx->maxlen = 4;
+          break;
+        }
+
+        case CStringReqStrnlen_Pre_Maxlen_Between_Blocks: {
+          ctx->maxlen = 3 * sizeof( long ) + 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -226,10 +445,20 @@ static void CStringReqStrnlen_Pre_Nul_Prepare(
        * While the first null byte of the array referenced by the `s` parameter
        * has an index less than the value of the `maxlen` parameter minus one.
        */
-      if ( ctx->maxlen == SIZE_MAX ) {
-        ctx->length = 3;
-      } else {
-        ctx->length = ctx->maxlen - 2;
+      switch ( CStringReqStrnlen_Pre_Nul_Before_GetRepresentative( ctx ) ) {
+        case CStringReqStrnlen_Pre_Nul_Before_Empty: {
+          ctx->length = 0;
+          break;
+        }
+
+        case CStringReqStrnlen_Pre_Nul_Before_Late: {
+          if ( ctx->maxlen == SIZE_MAX ) {
+            ctx->length = 3;
+          } else {
+            ctx->length = ctx->maxlen - 2;
+          }
+          break;
+        }
       }
 
       ctx->buf[ ctx->length ] = '\0';
@@ -246,31 +475,27 @@ static void CStringReqStrnlen_Pre_Nul_Prepare(
       break;
     }
 
-    case CStringReqStrnlen_Pre_Nul_At: {
-      /*
-       * While the first null byte of the array referenced by the `s` parameter
-       * has an index equal to the value of the `maxlen` parameter.
-       */
-      ctx->buf[ ctx->maxlen ] = '\0';
-      break;
-    }
-
-    case CStringReqStrnlen_Pre_Nul_Next: {
-      /*
-       * While the first null byte of the array referenced by the `s` parameter
-       * has an index equal to the value of the `maxlen` parameter plus one.
-       */
-      ctx->buf[ ctx->maxlen + 1 ] = '\0';
-      break;
-    }
-
-    case CStringReqStrnlen_Pre_Nul_Beyond: {
+    case CStringReqStrnlen_Pre_Nul_NotWithin: {
       /*
        * While the array referenced by the `s` parameter contains no null byte
-       * at an index less than or equal to the value of the `maxlen` parameter
-       * plus one.
+       * at an index less than the value of the `maxlen` parameter.
        */
-      ctx->buf[ ctx->maxlen + 2 ] = '\0';
+      switch ( CStringReqStrnlen_Pre_Nul_NotWithin_GetRepresentative( ctx ) ) {
+        case CStringReqStrnlen_Pre_Nul_NotWithin_At: {
+          ctx->buf[ ctx->maxlen ] = '\0';
+          break;
+        }
+
+        case CStringReqStrnlen_Pre_Nul_NotWithin_Next: {
+          ctx->buf[ ctx->maxlen + 1 ] = '\0';
+          break;
+        }
+
+        case CStringReqStrnlen_Pre_Nul_NotWithin_Beyond: {
+          ctx->buf[ ctx->maxlen + 2 ] = '\0';
+          break;
+        }
+      }
       break;
     }
 
@@ -366,19 +591,19 @@ static void CStringReqStrnlen_Action( CStringReqStrnlen_Context *ctx )
 
 static const CStringReqStrnlen_Entry
 CStringReqStrnlen_Entries[] = {
-  { 0, 0, 0, CStringReqStrnlen_Post_Result_Maxlen,
-    CStringReqStrnlen_Post_Array_Nop, CStringReqStrnlen_Post_Errno_Nop },
   { 0, 0, 0, CStringReqStrnlen_Post_Result_Length,
     CStringReqStrnlen_Post_Array_Nop, CStringReqStrnlen_Post_Errno_Nop },
   { 1, 0, 0, CStringReqStrnlen_Post_Result_NA, CStringReqStrnlen_Post_Array_NA,
     CStringReqStrnlen_Post_Errno_NA },
+  { 0, 0, 0, CStringReqStrnlen_Post_Result_Maxlen,
+    CStringReqStrnlen_Post_Array_Nop, CStringReqStrnlen_Post_Errno_Nop },
   { 1, 0, 0, CStringReqStrnlen_Post_Result_NA, CStringReqStrnlen_Post_Array_NA,
     CStringReqStrnlen_Post_Errno_NA }
 };
 
 static const uint8_t
 CStringReqStrnlen_Map[] = {
-  3, 3, 0, 0, 0, 3, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 2, 2, 2, 2
+  1, 1, 2, 1, 0, 2, 0, 0, 2, 0, 3, 3
 };
 
 /* clang-format on */
@@ -390,7 +615,15 @@ static size_t CStringReqStrnlen_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqStrnlen_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 2 ];
+    size_t i;
+
+    for ( i = 0; i < 2; ++i ) {
+      pcd[ i ] = CStringReqStrnlen_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqStrnlen_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqStrnlen_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -419,6 +652,11 @@ static void CStringReqStrnlen_TestVariant( CStringReqStrnlen_Context *ctx )
 {
   CStringReqStrnlen_Pre_Maxlen_Prepare( ctx, ctx->Map.pcs[ 0 ] );
   CStringReqStrnlen_Pre_Nul_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqStrnlen_Action( ctx );
   CStringReqStrnlen_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqStrnlen_Post_Array_Check( ctx, ctx->Map.entry.Post_Array );
@@ -435,6 +673,7 @@ T_TEST_CASE_FIXTURE( CStringReqStrnlen, &CStringReqStrnlen_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqStrnlen_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqStrnlen_Pre_Maxlen_Zero;
@@ -452,10 +691,21 @@ T_TEST_CASE_FIXTURE( CStringReqStrnlen, &CStringReqStrnlen_Fixture )
         continue;
       }
 
-      CStringReqStrnlen_Prepare( ctx );
-      CStringReqStrnlen_TestVariant( ctx );
+      for (
+        ctx->Map.rep = 0;
+        ctx->Map.rep < CStringReqStrnlen_GetRepresentativeCount( ctx );
+        ++ctx->Map.rep
+      ) {
+        ctx->Map.skip_rep = false;
+        CStringReqStrnlen_Prepare( ctx );
+        CStringReqStrnlen_TestVariant( ctx );
+
+        CStringReqStrnlen_MarkRepresentatives( ctx );
+      }
     }
   }
+
+  CStringReqStrnlen_CheckRepresentatives( ctx );
 }
 
 /** @} */

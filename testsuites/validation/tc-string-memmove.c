@@ -69,12 +69,7 @@ typedef enum {
   CStringReqMemmove_Pre_N_Short,
   CStringReqMemmove_Pre_N_BelowWord,
   CStringReqMemmove_Pre_N_Word,
-  CStringReqMemmove_Pre_N_AboveWord,
-  CStringReqMemmove_Pre_N_Medium,
-  CStringReqMemmove_Pre_N_BelowBlock,
-  CStringReqMemmove_Pre_N_Block,
-  CStringReqMemmove_Pre_N_AboveBlock,
-  CStringReqMemmove_Pre_N_Long,
+  CStringReqMemmove_Pre_N_More,
   CStringReqMemmove_Pre_N_NA
 } CStringReqMemmove_Pre_N;
 
@@ -95,8 +90,7 @@ typedef enum {
 } CStringReqMemmove_Pre_SrcAlignment;
 
 typedef enum {
-  CStringReqMemmove_Pre_Overlap_DisjointBelow,
-  CStringReqMemmove_Pre_Overlap_DisjointAbove,
+  CStringReqMemmove_Pre_Overlap_Disjoint,
   CStringReqMemmove_Pre_Overlap_Same,
   CStringReqMemmove_Pre_Overlap_DestBelow,
   CStringReqMemmove_Pre_Overlap_DestAbove,
@@ -209,6 +203,22 @@ typedef struct {
     size_t pcs[ 4 ];
 
     /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 31 ];
+
+    /**
      * @brief If this member is true, then the test action loop is executed.
      */
     bool in_action_loop;
@@ -236,15 +246,18 @@ static CStringReqMemmove_Context CStringReqMemmove_Instance;
 static const char *const CStringReqMemmove_PreDesc_N[] = {
   "Zero",
   "One",
-  "Short",
+  "ShortTwo",
+  "ShortWordMinusTwo",
   "BelowWord",
   "Word",
-  "AboveWord",
-  "Medium",
-  "BelowBlock",
-  "Block",
-  "AboveBlock",
-  "Long",
+  "MoreWordPlusOne",
+  "MoreWordPlusTwo",
+  "MoreBlockMinusTwo",
+  "MoreBlockMinusOne",
+  "MoreBlock",
+  "MoreBlockPlusOne",
+  "MoreBlockPlusTwo",
+  "MoreTwoBlocks",
   "NA"
 };
 
@@ -254,8 +267,14 @@ static const char *const CStringReqMemmove_PreDesc_DestAlignment[] =
 static const char *const CStringReqMemmove_PreDesc_SrcAlignment[] =
   { "Aligned", "AboveAligned", "Between", "BelowAligned", "NA" };
 
-static const char *const CStringReqMemmove_PreDesc_Overlap[] =
-  { "DisjointBelow", "DisjointAbove", "Same", "DestBelow", "DestAbove", "NA" };
+static const char *const CStringReqMemmove_PreDesc_Overlap[] = {
+  "DisjointDestBelow",
+  "DisjointDestAbove",
+  "Same",
+  "DestBelow",
+  "DestAbove",
+  "NA"
+};
 
 static const char *const *const CStringReqMemmove_PreDesc[] = {
   CStringReqMemmove_PreDesc_N,
@@ -264,6 +283,200 @@ static const char *const *const CStringReqMemmove_PreDesc[] = {
   CStringReqMemmove_PreDesc_Overlap,
   NULL
 };
+
+typedef enum {
+  CStringReqMemmove_Pre_N_Short_Two,
+  CStringReqMemmove_Pre_N_Short_WordMinusTwo
+} CStringReqMemmove_Pre_N_Short_Rep;
+
+typedef enum {
+  CStringReqMemmove_Pre_N_More_WordPlusOne,
+  CStringReqMemmove_Pre_N_More_WordPlusTwo,
+  CStringReqMemmove_Pre_N_More_BlockMinusTwo,
+  CStringReqMemmove_Pre_N_More_BlockMinusOne,
+  CStringReqMemmove_Pre_N_More_Block,
+  CStringReqMemmove_Pre_N_More_BlockPlusOne,
+  CStringReqMemmove_Pre_N_More_BlockPlusTwo,
+  CStringReqMemmove_Pre_N_More_TwoBlocks
+} CStringReqMemmove_Pre_N_More_Rep;
+
+typedef enum {
+  CStringReqMemmove_Pre_Overlap_Disjoint_DestBelow,
+  CStringReqMemmove_Pre_Overlap_Disjoint_DestAbove
+} CStringReqMemmove_Pre_Overlap_Disjoint_Rep;
+
+static const uint8_t CStringReqMemmove_PreRepOffset_N[] =
+  { 0, 1, 2, 4, 5, 6, 14, 15 };
+
+static const uint8_t CStringReqMemmove_PreRepOffset_DestAlignment[] =
+  { 0, 1, 2, 3, 4, 5 };
+
+static const uint8_t CStringReqMemmove_PreRepOffset_SrcAlignment[] =
+  { 0, 1, 2, 3, 4, 5 };
+
+static const uint8_t CStringReqMemmove_PreRepOffset_Overlap[] =
+  { 0, 2, 3, 4, 5, 6 };
+
+static const uint8_t *const CStringReqMemmove_PreRepOffset[] = {
+  CStringReqMemmove_PreRepOffset_N,
+  CStringReqMemmove_PreRepOffset_DestAlignment,
+  CStringReqMemmove_PreRepOffset_SrcAlignment,
+  CStringReqMemmove_PreRepOffset_Overlap
+};
+
+static size_t CStringReqMemmove_GetRepresentativeCountOf(
+  const CStringReqMemmove_Context *ctx,
+  size_t                           index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringReqMemmove_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringReqMemmove_GetRepresentative(
+  const CStringReqMemmove_Context *ctx,
+  size_t                           index
+)
+{
+  size_t count;
+
+  count = CStringReqMemmove_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringReqMemmove_GetRepresentativeCount(
+  const CStringReqMemmove_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringReqMemmove_GetRepresentativeCountOf( ctx, i );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringReqMemmove_Pre_N_Short_Rep
+CStringReqMemmove_Pre_N_Short_GetRepresentative(
+  const CStringReqMemmove_Context *ctx
+)
+{
+  return (
+    CStringReqMemmove_Pre_N_Short_Rep
+  ) CStringReqMemmove_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqMemmove_Pre_N_More_Rep
+CStringReqMemmove_Pre_N_More_GetRepresentative(
+  const CStringReqMemmove_Context *ctx
+)
+{
+  return (
+    CStringReqMemmove_Pre_N_More_Rep
+  ) CStringReqMemmove_GetRepresentative( ctx, 0 );
+}
+
+static CStringReqMemmove_Pre_Overlap_Disjoint_Rep
+CStringReqMemmove_Pre_Overlap_Disjoint_GetRepresentative(
+  const CStringReqMemmove_Context *ctx
+)
+{
+  return (
+    CStringReqMemmove_Pre_Overlap_Disjoint_Rep
+  ) CStringReqMemmove_GetRepresentative( ctx, 3 );
+}
+
+static const uint8_t CStringReqMemmove_PreRepBase[] = { 0, 15, 20, 25 };
+
+static const uint8_t CStringReqMemmove_PreRepStates[] = { 6, 4, 4, 4 };
+
+static void CStringReqMemmove_ResetRepresentatives(
+  CStringReqMemmove_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 31; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringReqMemmove_MarkRepresentatives(
+  CStringReqMemmove_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t rep;
+
+    rep = CStringReqMemmove_PreRepBase[ i ] +
+          CStringReqMemmove_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringReqMemmove_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringReqMemmove_CheckRepresentatives(
+  const CStringReqMemmove_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 4; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringReqMemmove_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringReqMemmove_PreRepBase[ i ] ];
+
+    for ( state = 0; state < CStringReqMemmove_PreRepStates[ i ]; ++state ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringReqMemmove_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
 
 typedef CStringReqMemmove_Context Context;
 
@@ -344,7 +557,17 @@ static void CStringReqMemmove_Pre_N_Prepare(
        * While the size specified by `n` is greater than one, while the size
        * specified by `n` is less than the size of type long minus one.
        */
-      ctx->n = 2;
+      switch ( CStringReqMemmove_Pre_N_Short_GetRepresentative( ctx ) ) {
+        case CStringReqMemmove_Pre_N_Short_Two: {
+          ctx->n = 2;
+          break;
+        }
+
+        case CStringReqMemmove_Pre_N_Short_WordMinusTwo: {
+          ctx->n = sizeof( long ) - 2;
+          break;
+        }
+      }
       break;
     }
 
@@ -365,58 +588,51 @@ static void CStringReqMemmove_Pre_N_Prepare(
       break;
     }
 
-    case CStringReqMemmove_Pre_N_AboveWord: {
+    case CStringReqMemmove_Pre_N_More: {
       /*
-       * While the size specified by `n` is equal to the size of type long plus
-       * one.
+       * While the size specified by `n` is greater than the size of type long.
        */
-      ctx->n = sizeof( long ) + 1;
-      break;
-    }
+      switch ( CStringReqMemmove_Pre_N_More_GetRepresentative( ctx ) ) {
+        case CStringReqMemmove_Pre_N_More_WordPlusOne: {
+          ctx->n = sizeof( long ) + 1;
+          break;
+        }
 
-    case CStringReqMemmove_Pre_N_Medium: {
-      /*
-       * While the size specified by `n` is greater than the size of type long
-       * plus one, while the size specified by `n` is less than four times the
-       * size of type long minus one.
-       */
-      ctx->n = sizeof( long ) + 2;
-      break;
-    }
+        case CStringReqMemmove_Pre_N_More_WordPlusTwo: {
+          ctx->n = sizeof( long ) + 2;
+          break;
+        }
 
-    case CStringReqMemmove_Pre_N_BelowBlock: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long minus one.
-       */
-      ctx->n = 4 * sizeof( long ) - 1;
-      break;
-    }
+        case CStringReqMemmove_Pre_N_More_BlockMinusTwo: {
+          ctx->n = 4 * sizeof( long ) - 2;
+          break;
+        }
 
-    case CStringReqMemmove_Pre_N_Block: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long.
-       */
-      ctx->n = 4 * sizeof( long );
-      break;
-    }
+        case CStringReqMemmove_Pre_N_More_BlockMinusOne: {
+          ctx->n = 4 * sizeof( long ) - 1;
+          break;
+        }
 
-    case CStringReqMemmove_Pre_N_AboveBlock: {
-      /*
-       * While the size specified by `n` is equal to four times the size of
-       * type long plus one.
-       */
-      ctx->n = 4 * sizeof( long ) + 1;
-      break;
-    }
+        case CStringReqMemmove_Pre_N_More_Block: {
+          ctx->n = 4 * sizeof( long );
+          break;
+        }
 
-    case CStringReqMemmove_Pre_N_Long: {
-      /*
-       * While the size specified by `n` is greater than four times the size of
-       * type long plus one.
-       */
-      ctx->n = 9 * sizeof( long ) + 1;
+        case CStringReqMemmove_Pre_N_More_BlockPlusOne: {
+          ctx->n = 4 * sizeof( long ) + 1;
+          break;
+        }
+
+        case CStringReqMemmove_Pre_N_More_BlockPlusTwo: {
+          ctx->n = 4 * sizeof( long ) + 2;
+          break;
+        }
+
+        case CStringReqMemmove_Pre_N_More_TwoBlocks: {
+          ctx->n = 9 * sizeof( long ) + 1;
+          break;
+        }
+      }
       break;
     }
 
@@ -433,8 +649,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
   switch ( state ) {
     case CStringReqMemmove_Pre_DestAlignment_Aligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts at an
-       * address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to zero.
        */
       ctx->dest_misalign = 0;
       break;
@@ -442,8 +658,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_AboveAligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to one.
        */
       ctx->dest_misalign = 1;
       break;
@@ -451,11 +667,9 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_Between: {
       /*
-       * While the memory area referenced by the `dest` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `dest` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is greater than one, while this alignment offset is less
+       * than the size of type long minus one.
        */
       ctx->dest_misalign = 2;
       break;
@@ -463,8 +677,8 @@ static void CStringReqMemmove_Pre_DestAlignment_Prepare(
 
     case CStringReqMemmove_Pre_DestAlignment_BelowAligned: {
       /*
-       * While the memory area referenced by the `dest` parameter starts one
-       * byte below an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `dest`
+       * parameter is equal to the size of type long minus one.
        */
       ctx->dest_misalign = sizeof( long ) - 1;
       break;
@@ -483,8 +697,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
   switch ( state ) {
     case CStringReqMemmove_Pre_SrcAlignment_Aligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts at an
-       * address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to zero.
        */
       ctx->src_misalign = 0;
       break;
@@ -492,8 +706,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_AboveAligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte above an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to one.
        */
       ctx->src_misalign = 1;
       break;
@@ -501,11 +715,9 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_Between: {
       /*
-       * While the memory area referenced by the `src` parameter starts more
-       * than one byte above an address which is aligned to the size of type
-       * long, while the memory area referenced by the `src` parameter starts
-       * more than one byte below the next address which is aligned to the size
-       * of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is greater than one, while this alignment offset is less
+       * than the size of type long minus one.
        */
       ctx->src_misalign = 2;
       break;
@@ -513,8 +725,8 @@ static void CStringReqMemmove_Pre_SrcAlignment_Prepare(
 
     case CStringReqMemmove_Pre_SrcAlignment_BelowAligned: {
       /*
-       * While the memory area referenced by the `src` parameter starts one
-       * byte below an address which is aligned to the size of type long.
+       * While the alignment offset of the memory area referenced by the `src`
+       * parameter is equal to the size of type long minus one.
        */
       ctx->src_misalign = sizeof( long ) - 1;
       break;
@@ -534,25 +746,26 @@ static void CStringReqMemmove_Pre_Overlap_Prepare(
 )
 {
   switch ( state ) {
-    case CStringReqMemmove_Pre_Overlap_DisjointBelow: {
+    case CStringReqMemmove_Pre_Overlap_Disjoint: {
       /*
        * While the memory areas referenced by the `dest` and `src` parameters
-       * do not overlap, while the `dest` parameter is less than the `src`
-       * parameter.
+       * do not overlap.
        */
-      ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
-      ctx->src_offset = 14 * sizeof( long ) + ctx->src_misalign;
-      break;
-    }
+      switch (
+        CStringReqMemmove_Pre_Overlap_Disjoint_GetRepresentative( ctx )
+      ) {
+        case CStringReqMemmove_Pre_Overlap_Disjoint_DestBelow: {
+          ctx->dest_offset = 2 * sizeof( long ) + ctx->dest_misalign;
+          ctx->src_offset = 14 * sizeof( long ) + ctx->src_misalign;
+          break;
+        }
 
-    case CStringReqMemmove_Pre_Overlap_DisjointAbove: {
-      /*
-       * While the memory areas referenced by the `dest` and `src` parameters
-       * do not overlap, while the `dest` parameter is greater than the `src`
-       * parameter.
-       */
-      ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
-      ctx->dest_offset = 14 * sizeof( long ) + ctx->dest_misalign;
+        case CStringReqMemmove_Pre_Overlap_Disjoint_DestAbove: {
+          ctx->src_offset = 2 * sizeof( long ) + ctx->src_misalign;
+          ctx->dest_offset = 14 * sizeof( long ) + ctx->dest_misalign;
+          break;
+        }
+      }
       break;
     }
 
@@ -711,40 +924,21 @@ CStringReqMemmove_Entries[] = {
 
 static const uint8_t
 CStringReqMemmove_Map[] = {
-  3, 3, 3, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3,
-  3, 3, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3,
-  3, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 1, 2, 2, 3, 3, 3,
-  2, 2, 0, 0, 0, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2,
-  2, 0, 0, 0, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2,
-  0, 0, 0, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0,
-  0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 0, 0, 0,
-  1, 2, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2, 2, 0, 0, 1,
-  2, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0, 2, 0, 0, 1, 2, 2, 0, 0, 1, 2,
-  0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1, 2, 0,
-  0, 0, 1, 2, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-  0, 1, 2, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0,
-  1, 2, 0, 0, 0, 0, 2, 2, 0, 0, 0, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
-  0, 0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,
-  0, 0, 1, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-  0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
-  0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0,
-  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0,
-  0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0,
-  0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-  0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-  0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-  0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-  0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0
+  3, 3, 1, 1, 3, 2, 1, 1, 3, 2, 1, 1, 3, 2, 1, 1, 3, 2, 1, 1, 3, 3, 1, 1, 3, 2,
+  1, 1, 3, 2, 1, 1, 3, 2, 1, 1, 3, 2, 1, 1, 3, 3, 1, 1, 3, 2, 1, 1, 3, 2, 1, 1,
+  3, 2, 1, 1, 3, 2, 1, 1, 3, 3, 1, 1, 0, 0, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2,
+  1, 1, 0, 2, 1, 1, 0, 0, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1,
+  0, 0, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 1, 0, 0, 1, 1, 0, 0,
+  1, 1, 0, 2, 0, 1, 0, 2, 1, 1, 0, 2, 1, 0, 0, 2, 1, 0, 0, 0, 1, 1, 0, 2, 0, 1,
+  0, 2, 1, 1, 0, 2, 1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2,
+  1, 1, 0, 2, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 1, 0, 2, 0, 0, 0, 2, 1, 0,
+  0, 2, 1, 0, 0, 0, 1, 1, 0, 2, 0, 1, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 1, 0, 0, 0,
+  1, 1, 0, 2, 0, 1, 0, 2, 0, 1, 0, 2, 0, 0, 0, 2, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1,
+  0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0, 2, 0, 0, 0, 2,
+  0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0,
+  0, 2, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2,
+  0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0,
+  0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0
 };
 
 /* clang-format on */
@@ -756,7 +950,15 @@ static size_t CStringReqMemmove_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringReqMemmove_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 4 ];
+    size_t i;
+
+    for ( i = 0; i < 4; ++i ) {
+      pcd[ i ] = CStringReqMemmove_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringReqMemmove_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringReqMemmove_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -787,6 +989,11 @@ static void CStringReqMemmove_TestVariant( CStringReqMemmove_Context *ctx )
   CStringReqMemmove_Pre_DestAlignment_Prepare( ctx, ctx->Map.pcs[ 1 ] );
   CStringReqMemmove_Pre_SrcAlignment_Prepare( ctx, ctx->Map.pcs[ 2 ] );
   CStringReqMemmove_Pre_Overlap_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringReqMemmove_Action( ctx );
   CStringReqMemmove_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringReqMemmove_Post_Dest_Check( ctx, ctx->Map.entry.Post_Dest );
@@ -804,6 +1011,7 @@ T_TEST_CASE_FIXTURE( CStringReqMemmove, &CStringReqMemmove_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringReqMemmove_ResetRepresentatives( ctx );
 
   for (
     ctx->Map.pcs[ 0 ] = CStringReqMemmove_Pre_N_Zero;
@@ -821,7 +1029,7 @@ T_TEST_CASE_FIXTURE( CStringReqMemmove, &CStringReqMemmove_Fixture )
         ++ctx->Map.pcs[ 2 ]
       ) {
         for (
-          ctx->Map.pcs[ 3 ] = CStringReqMemmove_Pre_Overlap_DisjointBelow;
+          ctx->Map.pcs[ 3 ] = CStringReqMemmove_Pre_Overlap_Disjoint;
           ctx->Map.pcs[ 3 ] < CStringReqMemmove_Pre_Overlap_NA;
           ++ctx->Map.pcs[ 3 ]
         ) {
@@ -831,12 +1039,23 @@ T_TEST_CASE_FIXTURE( CStringReqMemmove, &CStringReqMemmove_Fixture )
             continue;
           }
 
-          CStringReqMemmove_Prepare( ctx );
-          CStringReqMemmove_TestVariant( ctx );
+          for (
+            ctx->Map.rep = 0;
+            ctx->Map.rep < CStringReqMemmove_GetRepresentativeCount( ctx );
+            ++ctx->Map.rep
+          ) {
+            ctx->Map.skip_rep = false;
+            CStringReqMemmove_Prepare( ctx );
+            CStringReqMemmove_TestVariant( ctx );
+
+            CStringReqMemmove_MarkRepresentatives( ctx );
+          }
         }
       }
     }
   }
+
+  CStringReqMemmove_CheckRepresentatives( ctx );
 }
 
 /** @} */

@@ -71,68 +71,54 @@ pre-conditions:
       ctx->n = 0;
     text: |
       While the size specified by ${../if/memcpy:/params[2]/name} is equal to zero.
-  - name: One
-    test-code: |
-      ctx->n = 1;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to one.
-  - name: Short
-    test-code: |
-      ctx->n = 2;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is greater than
-      one, while the size specified by ${../if/memcpy:/params[2]/name} is less than
-      the size of type long minus one.
-  - name: BelowWord
-    test-code: |
-      ctx->n = sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
-      size of type long minus one.
-  - name: Word
-    test-code: |
-      ctx->n = sizeof( long );
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
-      size of type long.
-  - name: AboveWord
-    test-code: |
-      ctx->n = sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to the
-      size of type long plus one.
-  - name: Medium
-    test-code: |
-      ctx->n = sizeof( long ) + 2;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is greater than the
-      size of type long plus one, while the size specified by
-      ${../if/memcpy:/params[2]/name} is less than four times the size of type long
-      minus one.
-  - name: BelowBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) - 1;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
-      times the size of type long minus one.
-  - name: Block
-    test-code: |
-      ctx->n = 4 * sizeof( long );
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
-      times the size of type long.
-  - name: AboveBlock
-    test-code: |
-      ctx->n = 4 * sizeof( long ) + 1;
-    text: |
-      While the size specified by ${../if/memcpy:/params[2]/name} is equal to four
-      times the size of type long plus one.
-  - name: Long
-    test-code: |
-      ctx->n = 9 * sizeof( long ) + 1;
+  - name: Positive
+    representatives:
+    - name: One
+      test-code: |
+        ctx->n = 1;
+    - name: Two
+      test-code: |
+        ctx->n = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->n = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->n = sizeof( long ) - 1;
+    - name: Word
+      test-code: |
+        ctx->n = sizeof( long );
+    - name: WordPlusOne
+      test-code: |
+        ctx->n = sizeof( long ) + 1;
+    - name: WordPlusTwo
+      test-code: |
+        ctx->n = sizeof( long ) + 2;
+    - name: BlockMinusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 2;
+    - name: BlockMinusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) - 1;
+    - name: Block
+      test-code: |
+        ctx->n = 4 * sizeof( long );
+    - name: BlockPlusOne
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 1;
+    - name: BlockPlusTwo
+      test-code: |
+        ctx->n = 4 * sizeof( long ) + 2;
+    - name: TwoBlocks
+      test-code: |
+        ctx->n = 9 * sizeof( long ) + 1;
+    - name: Max
+      test-code: |
+        ctx->n = 12 * sizeof( long );
+    test-code: null
     text: |
       While the size specified by ${../if/memcpy:/params[2]/name} is greater than
-      four times the size of type long plus one.
+      zero.
   test-epilogue: null
   test-prologue: null
 - name: DestAlignment
@@ -143,29 +129,24 @@ pre-conditions:
     text: |
       While the memory area referenced by the ${../if/memcpy:/params[0]/name}
       parameter starts at an address which is aligned to the size of type long.
-  - name: AboveAligned
-    test-code: |
-      ctx->dest_offset = 1;
+  - name: Unaligned
+    representatives:
+    - name: One
+      test-code: |
+        ctx->dest_offset = 1;
+    - name: Two
+      test-code: |
+        ctx->dest_offset = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->dest_offset = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->dest_offset = sizeof( long ) - 1;
+    test-code: null
     text: |
       While the memory area referenced by the ${../if/memcpy:/params[0]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
-  - name: Between
-    test-code: |
-      ctx->dest_offset = 2;
-    text: |
-      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memcpy:/params[0]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
-  - name: BelowAligned
-    test-code: |
-      ctx->dest_offset = sizeof( long ) - 1;
-    text: |
-      While the memory area referenced by the ${../if/memcpy:/params[0]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      parameter starts at an address which is not aligned to the size of type long.
   test-epilogue: null
   test-prologue: null
 - name: SrcAlignment
@@ -176,54 +157,57 @@ pre-conditions:
     text: |
       While the memory area referenced by the ${../if/memcpy:/params[1]/name}
       parameter starts at an address which is aligned to the size of type long.
-  - name: AboveAligned
-    test-code: |
-      ctx->src_offset = 1;
+  - name: Unaligned
+    representatives:
+    - name: One
+      test-code: |
+        ctx->src_offset = 1;
+    - name: Two
+      test-code: |
+        ctx->src_offset = 2;
+    - name: WordMinusTwo
+      test-code: |
+        ctx->src_offset = sizeof( long ) - 2;
+    - name: WordMinusOne
+      test-code: |
+        ctx->src_offset = sizeof( long ) - 1;
+    test-code: null
     text: |
       While the memory area referenced by the ${../if/memcpy:/params[1]/name}
-      parameter starts one byte above an address which is aligned to the size of type
-      long.
-  - name: Between
-    test-code: |
-      ctx->src_offset = 2;
-    text: |
-      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
-      parameter starts more than one byte above an address which is aligned to the
-      size of type long, while the memory area referenced by the
-      ${../if/memcpy:/params[1]/name} parameter starts more than one byte below the
-      next address which is aligned to the size of type long.
-  - name: BelowAligned
-    test-code: |
-      ctx->src_offset = sizeof( long ) - 1;
-    text: |
-      While the memory area referenced by the ${../if/memcpy:/params[1]/name}
-      parameter starts one byte below an address which is aligned to the size of type
-      long.
+      parameter starts at an address which is not aligned to the size of type long.
   test-epilogue: null
   test-prologue: null
 rationale: |
-  Dimension N covers the size, 11 states. ${/ref/std/c23/memcpy:/name} defines
-  the copy for each size. A size of zero copies no byte. The implementation of
-  the pre-qualified library compares the size against zero, the size of type long
-  and four times this size. The states Zero and One hold the boundary zero and
-  the value above it. Each other boundary has a state for the value below it, at
-  it and above it. The states Short, Medium and Long hold the values between and
-  after these states. A size beyond the memory areas is outside the domain, so N
-  has no state for the last value of the type.
+  Dimension N covers the size, 2 states. ${/ref/std/c23/memcpy:/name} defines the
+  copy for each size. A size of zero copies no byte. The implementation of the
+  pre-qualified library compares the size against zero, the size of type long and
+  four times this size. The Positive state takes the sizes one and two, the size
+  of type long and four times this size. It also takes the sizes one and two
+  below and above each of these two sizes. Nine times the size of type long plus
+  one runs the loop of four blocks twice. The last size is the largest which the
+  buffers hold. A size beyond the memory areas is outside the domain, so N has no
+  state for the last value of the type.
 
   Dimension DestAlignment covers the start address of the destination memory
-  area, 4 states. Dimension SrcAlignment covers the start address of the source
-  memory area, 4 states. The block loops of the implementation need two aligned
-  start addresses. Otherwise the byte loop copies all bytes. The offset of the
+  area, 2 states. Dimension SrcAlignment covers the start address of the source
+  memory area, 2 states. The block loops of the implementation need two aligned
+  start addresses. Otherwise the byte loop copies all bytes. The offset of a
   start address to the preceding aligned address ranges from zero to the size of
-  type long minus one. The states Aligned and AboveAligned hold the boundary zero
-  and the value above it. The state BelowAligned holds the largest offset. The
-  state Between holds the offsets between them. Two overlapping memory areas are
-  outside the domain, so no dimension covers their relative position.
+  type long minus one. The Unaligned states take the offsets one and two and the
+  offsets two and one below the size of type long. Two overlapping memory areas
+  are outside the domain, so no dimension covers their relative position.
+
+  The representative product of N, DestAlignment and SrcAlignment runs each size
+  with each pair of offsets. The block loops of the implementation need the size
+  and both start addresses at the same time.
 
   ${/ref/std/posix-2024/memcpy:/name} states that the function does not change
   ${/c/errno/if/errno:/name} on valid input.
 references: []
+representative-products:
+- - N
+  - DestAlignment
+  - SrcAlignment
 requirement-type: functional
 skip-reasons: {}
 test-action: |

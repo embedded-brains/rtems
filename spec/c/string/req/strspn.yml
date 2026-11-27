@@ -76,23 +76,36 @@ pre-conditions:
     text: |
       While the length of the string referenced by the
       ${../if/strspn:/params[1]/name} parameter is equal to zero.
-  - name: One
-    test-code: |
-      ctx->accept_length = 1;
+  - name: NonEmpty
+    representatives:
+    - name: One
+      test-code: |
+        ctx->accept_length = 1;
+    - name: Two
+      test-code: |
+        ctx->accept_length = 2;
+    - name: Three
+      test-code: |
+        ctx->accept_length = ACCEPT_MAX;
+    test-code: null
     text: |
       While the length of the string referenced by the
-      ${../if/strspn:/params[1]/name} parameter is equal to one.
-  - name: Several
-    test-code: |
-      ctx->accept_length = ACCEPT_MAX;
-    text: |
-      While the length of the string referenced by the
-      ${../if/strspn:/params[1]/name} parameter is greater than one.
+      ${../if/strspn:/params[1]/name} parameter is greater than zero.
   test-epilogue: null
   test-prologue: null
 - name: HighByte
   states:
   - name: 'Yes'
+    representatives:
+    - name: Min
+      test-code: |
+        ctx->high_byte = 0x80;
+    - name: Mid
+      test-code: |
+        ctx->high_byte = 0xe2;
+    - name: Max
+      test-code: |
+        ctx->high_byte = 0xff;
     test-code: |
       ctx->high = true;
     text: |
@@ -156,14 +169,17 @@ rationale: |
   ${/c/errno/if/errno:/name} on valid input.
 
   Dimension Accept covers the length of the string referenced by the
-  ${../if/strspn:/params[1]/name} parameter, 3 states. An empty string holds no
-  character, so it accepts none. One character and several characters tell apart
-  a test of the first character from a test of each character of the string.
+  ${../if/strspn:/params[1]/name} parameter, 2 states. An empty string holds no
+  character, so it accepts none. The NonEmpty state takes the lengths one, two
+  and three. One character and several characters tell apart a test of the first
+  character from a test of each character of the string.
 
   ${/ref/std/c23/string-function-conventions:/name} interprets each character of
   a string function as type `unsigned char`. The characters with a value greater
   than 127 have a negative value as type `signed char`. The HighByte dimension
-  holds this distinction.
+  holds this distinction. The Yes state takes the characters 0x80, 0xe2 and 0xff.
+  They are the first, an inner and the last character with a value greater than
+  127\.
 
   Dimension Segment covers the maximum initial segment relative to the string
   referenced by the ${../if/strspn:/params[0]/name} parameter, 4 states. The
@@ -203,6 +219,12 @@ test-context:
   description: null
   member: |
     bool high
+- brief: |
+    This member specifies the first character of the string referenced by the
+    ${../if/strspn:/params[1]/name} parameter, if the member high is true.
+  description: null
+  member: |
+    unsigned char high_byte
 - brief: |
     This member specifies the maximum initial segment.
   description: null
@@ -315,12 +337,15 @@ test-support: |
   static void Build( Context *ctx )
   {
     const unsigned char *members;
+    unsigned char        high[ ACCEPT_MAX ];
     unsigned char        reject;
     size_t               i;
     size_t               n;
 
     if ( ctx->high ) {
-      members = accept_high;
+      memcpy( high, accept_high, sizeof( high ) );
+      high[ 0 ] = ctx->high_byte;
+      members = high;
       reject = 0x62;
     } else {
       members = accept_low;
@@ -389,8 +414,7 @@ transition-map:
     Errno: Nop
   pre-conditions:
     Accept:
-    - One
-    - Several
+    - NonEmpty
     HighByte: all
     Segment: all
 - enabled-by: true

@@ -50,6 +50,11 @@
  */
 
 typedef enum {
+  CStringsReqStrcasecmp_Pre_Position_Inner,
+  CStringsReqStrcasecmp_Pre_Position_NA
+} CStringsReqStrcasecmp_Pre_Position;
+
+typedef enum {
   CStringsReqStrcasecmp_Pre_Stop_BothEnd,
   CStringsReqStrcasecmp_Pre_Stop_S1Ends,
   CStringsReqStrcasecmp_Pre_Stop_S2Ends,
@@ -95,6 +100,7 @@ typedef enum {
 
 typedef struct {
   uint16_t Skip : 1;
+  uint16_t Pre_Position_NA : 1;
   uint16_t Pre_Stop_NA : 1;
   uint16_t Pre_Letters_NA : 1;
   uint16_t Pre_CaseDiffers_NA : 1;
@@ -135,10 +141,10 @@ typedef struct {
   size_t stop;
 
   /**
-   * @brief This member references the pairs of bytes at the stop index, one
-   *   pair for each number of letters.
+   * @brief This member references the pairs of bytes at the stop index, three
+   *   pairs for each number of letters, one pair for each representative.
    */
-  const unsigned char ( *pairs )[ 2 ];
+  const unsigned char ( *pairs )[ 3 ][ 2 ];
 
   /**
    * @brief This member provides the string referenced by the `s1` parameter.
@@ -166,7 +172,23 @@ typedef struct {
     /**
      * @brief This member defines the pre-condition states for the next action.
      */
-    size_t pcs[ 3 ];
+    size_t pcs[ 4 ];
+
+    /**
+     * @brief This member defines the representative index for the next action.
+     */
+    size_t rep;
+
+    /**
+     * @brief If this member is true, then the current run of the
+     *   representatives should be skipped.
+     */
+    bool skip_rep;
+
+    /**
+     * @brief This member records the representatives which ran.
+     */
+    bool rep_ran[ 21 ];
 
     /**
      * @brief If this member is true, then the test action loop is executed.
@@ -193,38 +215,275 @@ typedef struct {
 
 static CStringsReqStrcasecmp_Context CStringsReqStrcasecmp_Instance;
 
+static const char *const CStringsReqStrcasecmp_PreDesc_Position[] =
+  { "InnerOne", "InnerThree", "InnerSix", "NA" };
+
 static const char *const CStringsReqStrcasecmp_PreDesc_Stop[] =
   { "BothEnd", "S1Ends", "S2Ends", "Less", "Greater", "NA" };
 
-static const char *const CStringsReqStrcasecmp_PreDesc_Letters[] =
-  { "None", "One", "Both", "NA" };
+static const char *const CStringsReqStrcasecmp_PreDesc_Letters[] = {
+  "NoneWide",
+  "NoneBelow",
+  "NoneAbove",
+  "OneLow",
+  "OneHigh",
+  "BothLow",
+  "BothHigh",
+  "NA"
+};
 
 static const char *const CStringsReqStrcasecmp_PreDesc_CaseDiffers[] =
   { "Yes", "No", "NA" };
 
 static const char *const *const CStringsReqStrcasecmp_PreDesc[] = {
+  CStringsReqStrcasecmp_PreDesc_Position,
   CStringsReqStrcasecmp_PreDesc_Stop,
   CStringsReqStrcasecmp_PreDesc_Letters,
   CStringsReqStrcasecmp_PreDesc_CaseDiffers,
   NULL
 };
 
+typedef enum {
+  CStringsReqStrcasecmp_Pre_Position_Inner_One,
+  CStringsReqStrcasecmp_Pre_Position_Inner_Three,
+  CStringsReqStrcasecmp_Pre_Position_Inner_Six
+} CStringsReqStrcasecmp_Pre_Position_Inner_Rep;
+
+typedef enum {
+  CStringsReqStrcasecmp_Pre_Letters_None_Wide,
+  CStringsReqStrcasecmp_Pre_Letters_None_Below,
+  CStringsReqStrcasecmp_Pre_Letters_None_Above
+} CStringsReqStrcasecmp_Pre_Letters_None_Rep;
+
+typedef enum {
+  CStringsReqStrcasecmp_Pre_Letters_One_Low,
+  CStringsReqStrcasecmp_Pre_Letters_One_High
+} CStringsReqStrcasecmp_Pre_Letters_One_Rep;
+
+typedef enum {
+  CStringsReqStrcasecmp_Pre_Letters_Both_Low,
+  CStringsReqStrcasecmp_Pre_Letters_Both_High
+} CStringsReqStrcasecmp_Pre_Letters_Both_Rep;
+
+static const uint8_t CStringsReqStrcasecmp_PreRepOffset_Position[] =
+  { 0, 3, 4 };
+
+static const uint8_t CStringsReqStrcasecmp_PreRepOffset_Stop[] =
+  { 0, 1, 2, 3, 4, 5, 6 };
+
+static const uint8_t CStringsReqStrcasecmp_PreRepOffset_Letters[] =
+  { 0, 3, 5, 7, 8 };
+
+static const uint8_t CStringsReqStrcasecmp_PreRepOffset_CaseDiffers[] =
+  { 0, 1, 2, 3 };
+
+static const uint8_t *const CStringsReqStrcasecmp_PreRepOffset[] = {
+  CStringsReqStrcasecmp_PreRepOffset_Position,
+  CStringsReqStrcasecmp_PreRepOffset_Stop,
+  CStringsReqStrcasecmp_PreRepOffset_Letters,
+  CStringsReqStrcasecmp_PreRepOffset_CaseDiffers
+};
+
+static size_t CStringsReqStrcasecmp_GetRepresentativeCountOf(
+  const CStringsReqStrcasecmp_Context *ctx,
+  size_t                               index
+)
+{
+  const uint8_t *offsets;
+  size_t         state;
+
+  offsets = CStringsReqStrcasecmp_PreRepOffset[ index ];
+  state = ctx->Map.pcs[ index ];
+
+  return offsets[ state + 1 ] - offsets[ state ];
+}
+
+static size_t CStringsReqStrcasecmp_GetRepresentative(
+  const CStringsReqStrcasecmp_Context *ctx,
+  size_t                               index
+)
+{
+  size_t count;
+
+  count = CStringsReqStrcasecmp_GetRepresentativeCountOf( ctx, index );
+
+  if ( ctx->Map.rep < count ) {
+    return ctx->Map.rep;
+  }
+
+  return count - 1;
+}
+
+static size_t CStringsReqStrcasecmp_GetRepresentativeCount(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  size_t count;
+  size_t i;
+
+  count = 1;
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t count_of_condition;
+
+    count_of_condition = CStringsReqStrcasecmp_GetRepresentativeCountOf(
+      ctx,
+      i
+    );
+
+    if ( count_of_condition > count ) {
+      count = count_of_condition;
+    }
+  }
+
+  return count;
+}
+
+static CStringsReqStrcasecmp_Pre_Position_Inner_Rep
+CStringsReqStrcasecmp_Pre_Position_Inner_GetRepresentative(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrcasecmp_Pre_Position_Inner_Rep
+  ) CStringsReqStrcasecmp_GetRepresentative( ctx, 0 );
+}
+
+static CStringsReqStrcasecmp_Pre_Letters_None_Rep
+CStringsReqStrcasecmp_Pre_Letters_None_GetRepresentative(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrcasecmp_Pre_Letters_None_Rep
+  ) CStringsReqStrcasecmp_GetRepresentative( ctx, 2 );
+}
+
+static CStringsReqStrcasecmp_Pre_Letters_One_Rep
+CStringsReqStrcasecmp_Pre_Letters_One_GetRepresentative(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrcasecmp_Pre_Letters_One_Rep
+  ) CStringsReqStrcasecmp_GetRepresentative( ctx, 2 );
+}
+
+static CStringsReqStrcasecmp_Pre_Letters_Both_Rep
+CStringsReqStrcasecmp_Pre_Letters_Both_GetRepresentative(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  return (
+    CStringsReqStrcasecmp_Pre_Letters_Both_Rep
+  ) CStringsReqStrcasecmp_GetRepresentative( ctx, 2 );
+}
+
+static const uint8_t CStringsReqStrcasecmp_PreRepBase[] = { 0, 4, 10, 18 };
+
+static const uint8_t CStringsReqStrcasecmp_PreRepStates[] = { 1, 5, 3, 2 };
+
+static void CStringsReqStrcasecmp_ResetRepresentatives(
+  CStringsReqStrcasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 21; ++i ) {
+    ctx->Map.rep_ran[ i ] = false;
+  }
+}
+
+static void CStringsReqStrcasecmp_MarkRepresentatives(
+  CStringsReqStrcasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
+  for ( i = 0; i < 4; ++i ) {
+    size_t rep;
+
+    rep = CStringsReqStrcasecmp_PreRepBase[ i ] +
+          CStringsReqStrcasecmp_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+          CStringsReqStrcasecmp_GetRepresentative( ctx, i );
+    ctx->Map.rep_ran[ rep ] = true;
+  }
+}
+
+static void CStringsReqStrcasecmp_CheckRepresentatives(
+  const CStringsReqStrcasecmp_Context *ctx
+)
+{
+  size_t i;
+
+  for ( i = 0; i < 4; ++i ) {
+    const uint8_t *offsets;
+    const bool    *ran;
+    size_t         state;
+
+    offsets = CStringsReqStrcasecmp_PreRepOffset[ i ];
+    ran = &ctx->Map.rep_ran[ CStringsReqStrcasecmp_PreRepBase[ i ] ];
+
+    for (
+      state = 0; state < CStringsReqStrcasecmp_PreRepStates[ i ]; ++state
+    ) {
+      size_t k;
+      bool   any;
+
+      any = false;
+
+      for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+        any = any || ran[ k ];
+      }
+
+      if ( any ) {
+        for ( k = offsets[ state ]; k < offsets[ state + 1 ]; ++k ) {
+          T_quiet_true(
+            ran[ k ],
+            "representative %s did not run",
+            CStringsReqStrcasecmp_PreDesc[ i ][ k ]
+          );
+        }
+      }
+    }
+  }
+}
+
 typedef CStringsReqStrcasecmp_Context Context;
 
-static const unsigned char both_end_pairs[ 3 ][ 2 ] =
-  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } };
+static const unsigned char both_end_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char s1_ends_pairs[ 3 ][ 2 ] =
-  { { '\0', 0xff }, { '\0', 'a' }, { '\0', '\0' } };
+static const unsigned char s1_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '\0', 0xff }, { '\0', '@' }, { '\0', '[' } },
+  { { '\0', 'a' }, { '\0', 'Z' }, { '\0', 'Z' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char s2_ends_pairs[ 3 ][ 2 ] =
-  { { 0xff, '\0' }, { 'a', '\0' }, { '\0', '\0' } };
+static const unsigned char s2_ends_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { 0xff, '\0' }, { '@', '\0' }, { '[', '\0' } },
+  { { 'a', '\0' }, { 'Z', '\0' }, { 'Z', '\0' } },
+  { { '\0', '\0' }, { '\0', '\0' }, { '\0', '\0' } }
+};
 
-static const unsigned char less_pairs[ 3 ][ 2 ] =
-  { { '!', 0x80 }, { '_', 'A' }, { 'a', 'B' } };
+static const unsigned char less_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { '!', 0x80 }, { '@', '[' }, { '[', '`' } },
+  { { '_', 'A' }, { '_', 'Z' }, { '_', 'Z' } },
+  { { 'a', 'B' }, { 'y', 'Z' }, { 'y', 'Z' } }
+};
 
-static const unsigned char greater_pairs[ 3 ][ 2 ] =
-  { { 0x80, '!' }, { 'A', '_' }, { 'B', 'a' } };
+static const unsigned char greater_pairs[ 3 ][ 3 ][ 2 ] = {
+  { { 0x80, '!' }, { '[', '@' }, { '`', '[' } },
+  { { 'A', '_' }, { 'Z', '_' }, { 'Z', '_' } },
+  { { 'B', 'a' }, { 'Z', 'y' }, { 'Z', 'y' } }
+};
 
 static void SetPair( Context *ctx, const unsigned char *pair )
 {
@@ -232,6 +491,42 @@ static void SetPair( Context *ctx, const unsigned char *pair )
   memcpy( &ctx->s2_buf[ ctx->stop ], &pair[ 1 ], 1 );
   ctx->s1_buf[ ctx->stop + 1 ] = '\0';
   ctx->s2_buf[ ctx->stop + 1 ] = '\0';
+}
+
+static void CStringsReqStrcasecmp_Pre_Position_Prepare(
+  CStringsReqStrcasecmp_Context     *ctx,
+  CStringsReqStrcasecmp_Pre_Position state
+)
+{
+  switch ( state ) {
+    case CStringsReqStrcasecmp_Pre_Position_Inner: {
+      /*
+       * While the stop index is greater than zero.
+       */
+      switch (
+        CStringsReqStrcasecmp_Pre_Position_Inner_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrcasecmp_Pre_Position_Inner_One: {
+          ctx->stop = 1;
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Position_Inner_Three: {
+          ctx->stop = 3;
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Position_Inner_Six: {
+          ctx->stop = 6;
+          break;
+        }
+      }
+      break;
+    }
+
+    case CStringsReqStrcasecmp_Pre_Position_NA:
+      break;
+  }
 }
 
 static void CStringsReqStrcasecmp_Pre_Stop_Prepare(
@@ -270,12 +565,10 @@ static void CStringsReqStrcasecmp_Pre_Stop_Prepare(
 
     case CStringsReqStrcasecmp_Pre_Stop_Less: {
       /*
-       * While no string holds a null byte at the stop index, while the byte of
-       * the string referenced by the `s1` parameter at the stop index is less
-       * than the byte of the string referenced by the `s2` parameter at the
-       * stop index, after the conversion of each uppercase letter to the
-       * corresponding lowercase letter, where both bytes are interpreted as
-       * type `unsigned char`.
+       * While no string holds a null byte at the stop index, while the
+       * lowercase value of the byte of the string referenced by the `s1`
+       * parameter at the stop index is less than the lowercase value of the
+       * byte of the string referenced by the `s2` parameter at the stop index.
        */
       ctx->pairs = less_pairs;
       break;
@@ -283,12 +576,10 @@ static void CStringsReqStrcasecmp_Pre_Stop_Prepare(
 
     case CStringsReqStrcasecmp_Pre_Stop_Greater: {
       /*
-       * While no string holds a null byte at the stop index, while the byte of
-       * the string referenced by the `s1` parameter at the stop index is
-       * greater than the byte of the string referenced by the `s2` parameter
-       * at the stop index, after the conversion of each uppercase letter to
-       * the corresponding lowercase letter, where both bytes are interpreted
-       * as type `unsigned char`.
+       * While no string holds a null byte at the stop index, while the
+       * lowercase value of the byte of the string referenced by the `s1`
+       * parameter at the stop index is greater than the lowercase value of the
+       * byte of the string referenced by the `s2` parameter at the stop index.
        */
       ctx->pairs = greater_pairs;
       break;
@@ -310,7 +601,24 @@ static void CStringsReqStrcasecmp_Pre_Letters_Prepare(
        * While no byte of the strings at the stop index is an uppercase letter
        * or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 0 ] );
+      switch (
+        CStringsReqStrcasecmp_Pre_Letters_None_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrcasecmp_Pre_Letters_None_Wide: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Letters_None_Below: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 1 ] );
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Letters_None_Above: {
+          SetPair( ctx, ctx->pairs[ 0 ][ 2 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -319,7 +627,19 @@ static void CStringsReqStrcasecmp_Pre_Letters_Prepare(
        * While exactly one byte of the strings at the stop index is an
        * uppercase letter or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 1 ] );
+      switch (
+        CStringsReqStrcasecmp_Pre_Letters_One_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrcasecmp_Pre_Letters_One_Low: {
+          SetPair( ctx, ctx->pairs[ 1 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Letters_One_High: {
+          SetPair( ctx, ctx->pairs[ 1 ][ 1 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -328,7 +648,19 @@ static void CStringsReqStrcasecmp_Pre_Letters_Prepare(
        * While each byte of the strings at the stop index is an uppercase
        * letter or a lowercase letter.
        */
-      SetPair( ctx, ctx->pairs[ 2 ] );
+      switch (
+        CStringsReqStrcasecmp_Pre_Letters_Both_GetRepresentative( ctx )
+      ) {
+        case CStringsReqStrcasecmp_Pre_Letters_Both_Low: {
+          SetPair( ctx, ctx->pairs[ 2 ][ 0 ] );
+          break;
+        }
+
+        case CStringsReqStrcasecmp_Pre_Letters_Both_High: {
+          SetPair( ctx, ctx->pairs[ 2 ][ 1 ] );
+          break;
+        }
+      }
       break;
     }
 
@@ -349,7 +681,10 @@ static void CStringsReqStrcasecmp_Pre_CaseDiffers_Prepare(
        * index.
        */
       ctx->s1_buf[ 0 ] = 'X';
-      ctx->s2_buf[ 1 ] = 'X';
+
+      if ( ctx->stop > 1 ) {
+        ctx->s2_buf[ 1 ] = 'X';
+      }
       break;
     }
 
@@ -483,16 +818,16 @@ static void CStringsReqStrcasecmp_Action( CStringsReqStrcasecmp_Context *ctx )
 
 static const CStringsReqStrcasecmp_Entry
 CStringsReqStrcasecmp_Entries[] = {
-  { 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Less,
+  { 0, 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Less,
     CStringsReqStrcasecmp_Post_S1_Nop, CStringsReqStrcasecmp_Post_S2_Nop,
     CStringsReqStrcasecmp_Post_Errno_Nop },
-  { 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Greater,
+  { 0, 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Greater,
     CStringsReqStrcasecmp_Post_S1_Nop, CStringsReqStrcasecmp_Post_S2_Nop,
     CStringsReqStrcasecmp_Post_Errno_Nop },
-  { 1, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_NA,
+  { 1, 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_NA,
     CStringsReqStrcasecmp_Post_S1_NA, CStringsReqStrcasecmp_Post_S2_NA,
     CStringsReqStrcasecmp_Post_Errno_NA },
-  { 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Equal,
+  { 0, 0, 0, 0, 0, CStringsReqStrcasecmp_Post_Result_Equal,
     CStringsReqStrcasecmp_Post_S1_Nop, CStringsReqStrcasecmp_Post_S2_Nop,
     CStringsReqStrcasecmp_Post_Errno_Nop }
 };
@@ -512,7 +847,15 @@ static size_t CStringsReqStrcasecmp_Scope( void *arg, char *buf, size_t n )
   ctx = arg;
 
   if ( ctx->Map.in_action_loop ) {
-    return T_get_scope( CStringsReqStrcasecmp_PreDesc, buf, n, ctx->Map.pcs );
+    size_t pcd[ 4 ];
+    size_t i;
+
+    for ( i = 0; i < 4; ++i ) {
+      pcd[ i ] = CStringsReqStrcasecmp_PreRepOffset[ i ][ ctx->Map.pcs[ i ] ] +
+                 CStringsReqStrcasecmp_GetRepresentative( ctx, i );
+    }
+
+    return T_get_scope( CStringsReqStrcasecmp_PreDesc, buf, n, pcd );
   }
 
   return 0;
@@ -541,9 +884,15 @@ static void CStringsReqStrcasecmp_TestVariant(
   CStringsReqStrcasecmp_Context *ctx
 )
 {
-  CStringsReqStrcasecmp_Pre_Stop_Prepare( ctx, ctx->Map.pcs[ 0 ] );
-  CStringsReqStrcasecmp_Pre_Letters_Prepare( ctx, ctx->Map.pcs[ 1 ] );
-  CStringsReqStrcasecmp_Pre_CaseDiffers_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  CStringsReqStrcasecmp_Pre_Position_Prepare( ctx, ctx->Map.pcs[ 0 ] );
+  CStringsReqStrcasecmp_Pre_Stop_Prepare( ctx, ctx->Map.pcs[ 1 ] );
+  CStringsReqStrcasecmp_Pre_Letters_Prepare( ctx, ctx->Map.pcs[ 2 ] );
+  CStringsReqStrcasecmp_Pre_CaseDiffers_Prepare( ctx, ctx->Map.pcs[ 3 ] );
+
+  if ( ctx->Map.skip_rep ) {
+    return;
+  }
+
   CStringsReqStrcasecmp_Action( ctx );
   CStringsReqStrcasecmp_Post_Result_Check( ctx, ctx->Map.entry.Post_Result );
   CStringsReqStrcasecmp_Post_S1_Check( ctx, ctx->Map.entry.Post_S1 );
@@ -561,33 +910,51 @@ T_TEST_CASE_FIXTURE( CStringsReqStrcasecmp, &CStringsReqStrcasecmp_Fixture )
   ctx = T_fixture_context();
   ctx->Map.in_action_loop = true;
   ctx->Map.index = 0;
+  CStringsReqStrcasecmp_ResetRepresentatives( ctx );
 
   for (
-    ctx->Map.pcs[ 0 ] = CStringsReqStrcasecmp_Pre_Stop_BothEnd;
-    ctx->Map.pcs[ 0 ] < CStringsReqStrcasecmp_Pre_Stop_NA;
+    ctx->Map.pcs[ 0 ] = CStringsReqStrcasecmp_Pre_Position_Inner;
+    ctx->Map.pcs[ 0 ] < CStringsReqStrcasecmp_Pre_Position_NA;
     ++ctx->Map.pcs[ 0 ]
   ) {
     for (
-      ctx->Map.pcs[ 1 ] = CStringsReqStrcasecmp_Pre_Letters_None;
-      ctx->Map.pcs[ 1 ] < CStringsReqStrcasecmp_Pre_Letters_NA;
+      ctx->Map.pcs[ 1 ] = CStringsReqStrcasecmp_Pre_Stop_BothEnd;
+      ctx->Map.pcs[ 1 ] < CStringsReqStrcasecmp_Pre_Stop_NA;
       ++ctx->Map.pcs[ 1 ]
     ) {
       for (
-        ctx->Map.pcs[ 2 ] = CStringsReqStrcasecmp_Pre_CaseDiffers_Yes;
-        ctx->Map.pcs[ 2 ] < CStringsReqStrcasecmp_Pre_CaseDiffers_NA;
+        ctx->Map.pcs[ 2 ] = CStringsReqStrcasecmp_Pre_Letters_None;
+        ctx->Map.pcs[ 2 ] < CStringsReqStrcasecmp_Pre_Letters_NA;
         ++ctx->Map.pcs[ 2 ]
       ) {
-        ctx->Map.entry = CStringsReqStrcasecmp_PopEntry( ctx );
+        for (
+          ctx->Map.pcs[ 3 ] = CStringsReqStrcasecmp_Pre_CaseDiffers_Yes;
+          ctx->Map.pcs[ 3 ] < CStringsReqStrcasecmp_Pre_CaseDiffers_NA;
+          ++ctx->Map.pcs[ 3 ]
+        ) {
+          ctx->Map.entry = CStringsReqStrcasecmp_PopEntry( ctx );
 
-        if ( ctx->Map.entry.Skip ) {
-          continue;
+          if ( ctx->Map.entry.Skip ) {
+            continue;
+          }
+
+          for (
+            ctx->Map.rep = 0;
+            ctx->Map.rep < CStringsReqStrcasecmp_GetRepresentativeCount( ctx );
+            ++ctx->Map.rep
+          ) {
+            ctx->Map.skip_rep = false;
+            CStringsReqStrcasecmp_Prepare( ctx );
+            CStringsReqStrcasecmp_TestVariant( ctx );
+
+            CStringsReqStrcasecmp_MarkRepresentatives( ctx );
+          }
         }
-
-        CStringsReqStrcasecmp_Prepare( ctx );
-        CStringsReqStrcasecmp_TestVariant( ctx );
       }
     }
   }
+
+  CStringsReqStrcasecmp_CheckRepresentatives( ctx );
 }
 
 /** @} */
