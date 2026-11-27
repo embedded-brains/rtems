@@ -179,11 +179,18 @@ static RBHeap_slab *_RBHeap_Slab_of( const RBHeap_descriptor *desc )
   return (RBHeap_slab *) ( (uintptr_t) desc & ~( RBHEAP_SLAB_SIZE - 1 ) );
 }
 
-/* Returns true if the used descriptor describes a slab. */
+/*
+ * Returns true if the used descriptor describes a slab.  Only the first slot
+ * of a slab lies at the begin of a used block plus the size of a descriptor.
+ * The block of a slab has the size of a slab.
+ */
 static bool _RBHeap_Is_slab( const RBHeap_descriptor *desc )
 {
-  return (uintptr_t) desc == desc->begin + sizeof( RBHeap_descriptor ) &&
-         desc->size == RBHEAP_SLAB_SIZE;
+  bool is_slab;
+
+  is_slab = (uintptr_t) desc == desc->begin + sizeof( RBHeap_descriptor );
+  _Assert( !is_slab || desc->size == RBHEAP_SLAB_SIZE );
+  return is_slab;
 }
 
 /*
