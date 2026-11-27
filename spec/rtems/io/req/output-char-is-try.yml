@@ -1,0 +1,137 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/output-char-is-try
+post-conditions:
+- name: Result
+  states:
+  - name: 'True'
+    test-code: |
+      T_true( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/output-char-is-try:/name} shall
+      be true.
+  - name: 'False'
+    test-code: |
+      T_false( ctx->result );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/output-char-is-try:/name} shall
+      be false.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sign
+  states:
+  - name: NonNegative
+    representatives:
+    - name: Zero
+      test-code: |
+        ctx->c = 0;
+    - name: Char
+      test-code: |
+        ctx->c = 'c';
+    - name: Max
+      test-code: |
+        ctx->c = INT_MAX;
+    test-code: null
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter is
+      non-negative.
+  - name: Negative
+    representatives:
+    - name: Min
+      test-code: |
+        ctx->c = INT_MIN;
+    - name: MinusOne
+      test-code: |
+        ctx->c = -1;
+    test-code: null
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter is negative.
+  test-epilogue: null
+  test-prologue: null
+- name: Try
+  states:
+  - name: Set
+    test-code: |
+      ctx->c |= RTEMS_OUTPUT_CHAR_TRY;
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter sets
+      ${../if/output-char-try:/name}.
+  - name: Cleared
+    test-code: |
+      ctx->c &= ~RTEMS_OUTPUT_CHAR_TRY;
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter clears
+      ${../if/output-char-try:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Drain
+  states:
+  - name: Set
+    test-code: |
+      ctx->c |= RTEMS_OUTPUT_CHAR_DRAIN;
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter sets
+      ${../if/output-char-drain:/name}.
+  - name: Cleared
+    test-code: |
+      ctx->c &= ~RTEMS_OUTPUT_CHAR_DRAIN;
+    text: |
+      While the ${../if/output-char-is-try:/params[0]/name} parameter clears
+      ${../if/output-char-drain:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+references: []
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = rtems_output_char_is_try( ctx->c );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the parameter of the action.
+  description: null
+  member: |
+    int c
+- brief: |
+    This member contains the return value of the action.
+  description: null
+  member: |
+    bool result
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- limits.h
+- rtems/bspIo.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-io-output-char-is-try.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Sign: NonNegative
+          Try: Set
+      then: 'True'
+    - else: 'False'
+  pre-conditions:
+    Sign: all
+    Try: all
+    Drain: all
+type: requirement

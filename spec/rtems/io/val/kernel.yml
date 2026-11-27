@@ -76,6 +76,37 @@ test-actions:
     links: []
   links: []
 - action-brief: |
+    Call the function referenced by ${../if/bsp-output-char:/name} with
+    ${../if/output-char-try:/name} and a character. Then call it with a new line
+    character and no flag.
+  action-code: |
+    int rv_try;
+    int rv_nl;
+
+    rv_try = ( *BSP_output_char )( RTEMS_OUTPUT_CHAR_TRY | 'T' );
+
+    if ( rv_try == 0 ) {
+      T_report_hash_sha256_update( 'T' );
+    }
+
+    T_report_hash_sha256_update( '\n' );
+    rv_nl = ( *BSP_output_char )( '\n' );
+  checks:
+  - brief: |
+      Check that the request with ${../if/output-char-try:/name} returned zero or
+      minus one.
+    code: |
+      T_step_true( ${.:/step}, rv_try == 0 || rv_try == -1 );
+    links: []
+  - brief: |
+      Check that the call with the new line character returned zero.
+    code: |
+      T_step_eq_int( ${.:/step}, rv_nl, 0 );
+    links:
+    - role: validation
+      uid: ../req/bsp-output-char
+  links: []
+- action-brief: |
     If ${../if/bsp-poll-char:/name} references a function, then call it.
   action-code: |
     BSP_polling_getchar_function_type poll_char;
