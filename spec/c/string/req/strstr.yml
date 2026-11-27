@@ -265,19 +265,19 @@ pre-conditions:
       ctx->partial = PARTIAL_NO;
     text: |
       While the string referenced by the ${../if/strstr:/params[0]/name} parameter
-      holds no ${../glossary/partial-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes, while
-      the string referenced by the ${../if/strstr:/params[0]/name} parameter does not
-      end with a ${../glossary/partial-match:/term}.
+      holds no ${../glossary/leading-partial-match:/term} of the string referenced by
+      the ${../if/strstr:/params[1]/name} parameter, while the string referenced by
+      the ${../if/strstr:/params[0]/name} parameter does not end with a
+      ${../glossary/partial-match:/term}.
   - name: Inside
     test-code: |
       ctx->partial = PARTIAL_INSIDE;
     text: |
       While the string referenced by the ${../if/strstr:/params[0]/name} parameter
-      holds a ${../glossary/partial-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes, while
-      the string referenced by the ${../if/strstr:/params[0]/name} parameter does not
-      end with a ${../glossary/partial-match:/term}.
+      holds a ${../glossary/leading-partial-match:/term} of the string referenced by
+      the ${../if/strstr:/params[1]/name} parameter, while the string referenced by
+      the ${../if/strstr:/params[0]/name} parameter does not end with a
+      ${../glossary/partial-match:/term}.
   - name: Tail
     test-code: |
       ctx->partial = PARTIAL_TAIL;
@@ -294,32 +294,32 @@ pre-conditions:
       ctx->near_match = NEAR_MATCH_NONE;
     text: |
       While the string referenced by the ${../if/strstr:/params[0]/name} parameter
-      holds no ${../glossary/near-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter which no occurrence precedes.
+      holds no ${../glossary/leading-near-match:/term} of the string referenced by
+      the ${../if/strstr:/params[1]/name} parameter.
   - name: First
     test-code: |
       ctx->near_match = NEAR_MATCH_FIRST;
     text: |
-      While the first ${../glossary/near-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
-      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
-      in the first character.
+      While the first ${../glossary/leading-near-match:/term} of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter in the string
+      referenced by the ${../if/strstr:/params[0]/name} parameter differs in the
+      first character.
   - name: Inner
     test-code: |
       ctx->near_match = NEAR_MATCH_INNER;
     text: |
-      While the first ${../glossary/near-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
-      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
-      in a character other than the first and the last character.
+      While the first ${../glossary/leading-near-match:/term} of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter in the string
+      referenced by the ${../if/strstr:/params[0]/name} parameter differs in a
+      character other than the first and the last character.
   - name: Last
     test-code: |
       ctx->near_match = NEAR_MATCH_LAST;
     text: |
-      While the first ${../glossary/near-match:/term} of the string referenced by the
-      ${../if/strstr:/params[1]/name} parameter in the string referenced by the
-      ${../if/strstr:/params[0]/name} parameter which no occurrence precedes differs
-      in the last character, while the length of the string referenced by the
+      While the first ${../glossary/leading-near-match:/term} of the string
+      referenced by the ${../if/strstr:/params[1]/name} parameter in the string
+      referenced by the ${../if/strstr:/params[0]/name} parameter differs in the last
+      character, while the length of the string referenced by the
       ${../if/strstr:/params[1]/name} parameter is greater than one.
   test-epilogue: null
   test-prologue: null
