@@ -1,63 +1,49 @@
-/* SPDX-License-Identifier: BSD-3-Clause */
+/* SPDX-License-Identifier: MIT */
 
 /*
- * Copyright (c) 1994-2009 Red Hat, Inc. All rights reserved.
+ * Copyright (C) 2005-2020 Rich Felker, et al.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-/*
-FUNCTION
-	<<strspn>>---find initial match
-
-INDEX
-	strspn
-
-SYNOPSIS
-	#include <string.h>
-	size_t strspn(const char *<[s1]>, const char *<[s2]>);
-
-DESCRIPTION
-	This function computes the length of the initial segment of
-	the string pointed to by <[s1]> which consists entirely of
-	characters from the string pointed to by <[s2]> (excluding the
-	terminating null character).
-
-RETURNS
-	<<strspn>> returns the length of the segment found.
-
-PORTABILITY
-<<strspn>> is ANSI C.
-
-<<strspn>> requires no supporting OS subroutines.
-
-QUICKREF
-	strspn ansi pure
-*/
 
 #include <string.h>
 
-size_t
-strspn (const char *s1,
-	const char *s2)
+#define BITOP(a,b,op) \
+ ((a)[(size_t)(b)/(8*sizeof *(a))] op (size_t)1<<((size_t)(b)%(8*sizeof *(a))))
+
+size_t strspn(const char *s, const char *c)
 {
-  const char *s = s1;
-  const char *c;
+	const char *a = s;
+	size_t byteset[32/sizeof(size_t)] = { 0 };
 
-  while (*s1)
-    {
-      for (c = s2; *c; c++)
-	{
-	  if (*s1 == *c)
-	    goto found;
+	if (!c[0]) return 0;
+	if (!c[1]) {
+		for (; *s == *c; s++);
+		return s-a;
 	}
-#ifndef __rtems__
-      if (*c == '\0')
-	break;
-#else /* __rtems__ */
-      break;
-#endif /* __rtems__ */
-found:
-      s1++;
-    }
 
-  return s1 - s;
+#ifndef __rtems__
+	for (; *c && BITOP(byteset, *(unsigned char *)c, |=); c++);
+#else /* __rtems__ */
+	for (; *c; c++) BITOP(byteset, *(unsigned char *)c, |=);
+#endif /* __rtems__ */
+	for (; *s && BITOP(byteset, *(unsigned char *)s, &); s++);
+	return s-a;
 }
