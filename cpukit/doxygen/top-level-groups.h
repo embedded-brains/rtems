@@ -345,6 +345,14 @@
  */
 
 /**
+ * @file cpukit/libc/string/stpcpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of __stpcpy().
+ */
+
+/**
  * @file cpukit/libc/string/strcasecmp.c
  *
  * @ingroup libcsupport
@@ -367,6 +375,15 @@
  * @ingroup libcsupport
  *
  * @brief This source file contains the implemention of a C library function.
+ */
+
+/**
+ * @file cpukit/libc/string/strcpy.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcpy()
+ *   function.
  */
 
 /**
