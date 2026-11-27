@@ -177,25 +177,23 @@ pre-conditions:
       ctx->pairs = less_pairs;
     text: |
       While no array holds a null byte at the ${../glossary/stop-index:/term}, while
-      the byte of the array referenced by the ${../if/strncasecmp:/params[0]/name}
-      parameter at the ${../glossary/stop-index:/term} is less than the byte of the
-      array referenced by the ${../if/strncasecmp:/params[1]/name} parameter at the
-      ${../glossary/stop-index:/term}, after the conversion of each
-      ${/c/ctype/glossary/uppercase:/term} to the corresponding
-      ${/c/ctype/glossary/lowercase:/term}, where both bytes are interpreted as type
-      `unsigned char`.
+      the ${../glossary/lowercase-value:/term} of the byte of the array referenced by
+      the ${../if/strncasecmp:/params[0]/name} parameter at the
+      ${../glossary/stop-index:/term} is less than the
+      ${../glossary/lowercase-value:/term} of the byte of the array referenced by the
+      ${../if/strncasecmp:/params[1]/name} parameter at the
+      ${../glossary/stop-index:/term}.
   - name: Greater
     test-code: |
       ctx->pairs = greater_pairs;
     text: |
       While no array holds a null byte at the ${../glossary/stop-index:/term}, while
-      the byte of the array referenced by the ${../if/strncasecmp:/params[0]/name}
-      parameter at the ${../glossary/stop-index:/term} is greater than the byte of
-      the array referenced by the ${../if/strncasecmp:/params[1]/name} parameter at
-      the ${../glossary/stop-index:/term}, after the conversion of each
-      ${/c/ctype/glossary/uppercase:/term} to the corresponding
-      ${/c/ctype/glossary/lowercase:/term}, where both bytes are interpreted as type
-      `unsigned char`.
+      the ${../glossary/lowercase-value:/term} of the byte of the array referenced by
+      the ${../if/strncasecmp:/params[0]/name} parameter at the
+      ${../glossary/stop-index:/term} is greater than the
+      ${../glossary/lowercase-value:/term} of the byte of the array referenced by the
+      ${../if/strncasecmp:/params[1]/name} parameter at the
+      ${../glossary/stop-index:/term}.
   test-epilogue: null
   test-prologue: null
 - name: Letters
