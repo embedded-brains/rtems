@@ -7,7 +7,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,28 +47,10 @@ extern "C" {
  */
 
 typedef enum {
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_One,
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Two,
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_Three,
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_More,
-  ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler_NA
-} ScoreTqReqEnqueuePriorityInherit_Pre_Scheduler;
-
-typedef enum {
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_None,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_High,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Equal,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_Low,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible_NA
-} ScoreTqReqEnqueuePriorityInherit_Pre_QueueEligible;
-
-typedef enum {
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_None,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Only,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_Before,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_After,
-  ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible_NA
-} ScoreTqReqEnqueuePriorityInherit_Pre_QueueIneligible;
+  ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Home,
+  ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_Helping,
+  ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler_NA
+} ScoreTqReqEnqueuePriorityInherit_Pre_EligibleScheduler;
 
 typedef enum {
   ScoreTqReqEnqueuePriorityInherit_Pre_PriorityForOwner_Vital,
@@ -89,18 +71,6 @@ typedef enum {
   ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_PriorityInherit,
   ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState_NA
 } ScoreTqReqEnqueuePriorityInherit_Pre_OwnerState;
-
-typedef enum {
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialFirst,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_InitialLast,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_First,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_Second,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstFirst,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondFirst,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_FirstLast,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_SecondLast,
-  ScoreTqReqEnqueuePriorityInherit_Post_Position_NA
-} ScoreTqReqEnqueuePriorityInherit_Post_Position;
 
 typedef enum {
   ScoreTqReqEnqueuePriorityInherit_Post_OwnerPriority_Raise,

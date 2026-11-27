@@ -50,7 +50,7 @@
 /**
  * @defgroup RtemsSemReqObtain spec:/rtems/sem/req/obtain
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */

@@ -261,6 +261,14 @@ RTEMS_NO_RETURN void ExitWithFailure( const char *msg );
 
 #define SCHEDULER_D_ID 0xf010004
 
+#define SCHEDULER_E_ID 0xf010005
+
+#define SCHEDULER_F_ID 0xf010006
+
+#define SCHEDULER_G_ID 0xf010007
+
+#define SCHEDULER_H_ID 0xf010008
+
 /**
  * @brief Creates a task.
  *

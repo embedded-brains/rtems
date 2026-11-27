@@ -1,0 +1,397 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: Position
+  states:
+  - name: First
+    test-code: |
+      CheckPosition( ctx, true );
+    text: |
+      The thread queue shall position the thread as the first thread of the priority
+      queue associated with its ${/glossary/scheduler-home:/term}.
+  - name: Second
+    test-code: |
+      CheckPosition( ctx, false );
+    text: |
+      The thread queue shall position the thread in the priority queue associated
+      with its ${/glossary/scheduler-home:/term} after each thread of the priority
+      queue with a priority higher than or equal to the new
+      ${/glossary/priority-eligible:/term} of the thread and before each thread of
+      the priority queue with a lower priority.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Kept
+    test-code: |
+      TQCheckSameQueues( &ctx->before, &ctx->after );
+    text: |
+      The thread queue shall not change the order of its priority queues.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: TargetPosition
+  states:
+  - name: First
+    representatives:
+    - name: OneOther
+      test-code: |
+        ctx->lower = false;
+    - name: TwoOthers
+      test-code: |
+        ctx->lower = true;
+    test-code: |
+      ctx->initial_priority = PRIO_HIGH;
+
+      if ( IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread is the first thread of the priority queue associated with its
+      ${/glossary/scheduler-home:/term}, while the priority queue contains at least
+      one other thread.
+  - name: Second
+    representatives:
+    - name: OneOther
+      test-code: |
+        ctx->lower = false;
+    - name: TwoOthers
+      test-code: |
+        ctx->lower = true;
+    test-code: |
+      ctx->initial_priority = PRIO_VERY_LOW;
+
+      if ( IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread is the second thread of the priority queue associated with its
+      ${/glossary/scheduler-home:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: NewPriority
+  states:
+  - name: High
+    test-code: |
+      ctx->new_priority = PRIO_VERY_HIGH;
+    text: |
+      While the new ${/glossary/priority-eligible:/term} of the thread with respect
+      to its ${/glossary/scheduler-home:/term} is higher than the highest priority of
+      the other threads of the priority queue.
+  - name: Equal
+    test-code: |
+      ctx->new_priority = PRIO_NORMAL;
+    text: |
+      While the new ${/glossary/priority-eligible:/term} of the thread with respect
+      to its ${/glossary/scheduler-home:/term} is equal to the highest priority of
+      the other threads of the priority queue.
+  - name: Low
+    test-code: |
+      ctx->new_priority = PRIO_LOW;
+    text: |
+      While the new ${/glossary/priority-eligible:/term} of the thread with respect
+      to its ${/glossary/scheduler-home:/term} is lower than the highest priority of
+      the other threads of the priority queue.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherQueue
+  states:
+  - name: None
+    test-code: |
+      ctx->other = OTHER_NONE;
+    text: |
+      While the thread queue has exactly one priority queue.
+  - name: Before
+    test-code: |
+      ctx->other = OTHER_BEFORE;
+
+      if ( !HasProcessors( 2 ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a second priority queue, while this priority queue
+      is positioned before the priority queue which contains the thread.
+  - name: After
+    test-code: |
+      ctx->other = OTHER_AFTER;
+
+      if ( !HasProcessors( 2 ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a second priority queue, while this priority queue
+      is positioned after the priority queue which contains the thread.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension TargetPosition covers the position of the thread in the priority
+  queue of its home scheduler, 2 states. Each state has two representatives. In
+  the representative OneOther, the priority queue contains one other thread. In
+  the representative TwoOthers, it also contains a last thread with a priority
+  lower than each new priority.
+
+  Dimension NewPriority covers the new priority against the highest priority of
+  the other threads, 3 states.
+
+  Dimension OtherQueue covers a second priority queue and its position, 3 states.
+
+  A thread which waits for a mutex with the MrsP locking protocol has the ceiling
+  priority. A change of its real priority therefore does not change its eligible
+  priority, so the test skips the sticky enqueue.
+requirement-type: functional
+skip-reasons:
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, ctx->initial_priority );
+  SetSelfPriority( PRIO_ULTRA_LOW );
+  ctx->tq_ctx->how_many = 1;
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+
+  if ( ctx->other == OTHER_BEFORE ) {
+    TQClearDone( ctx->tq_ctx, TQ_HELPER_C );
+    Enqueue( ctx, TQ_HELPER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  Enqueue( ctx, TQ_BLOCKER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_B );
+  Enqueue( ctx, TQ_BLOCKER_B, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+  ctx->tq_ctx->how_many += 2;
+
+  if ( ctx->lower ) {
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_D, PRIO_VERY_LOW );
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_D );
+    Enqueue( ctx, TQ_BLOCKER_D, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  if ( ctx->other == OTHER_AFTER ) {
+    TQClearDone( ctx->tq_ctx, TQ_HELPER_C );
+    Enqueue( ctx, TQ_HELPER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  ctx->queue = GetTCB( ctx, TQ_BLOCKER_C )->Wait.queue;
+  T_assert_not_null( ctx->queue );
+  TQTakeSnapshot( &ctx->before, ctx->queue );
+  (void)
+    SetPriority( ctx->tq_ctx->worker_id[ TQ_BLOCKER_C ], ctx->new_priority );
+  TQTakeSnapshot( &ctx->after, ctx->queue );
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_B );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_C );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_B );
+
+  if ( ctx->lower ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_D );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_D );
+  }
+
+  if ( ctx->other != OTHER_NONE ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_HELPER_C );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_HELPER_C );
+  }
+
+  SetSelfPriority( PRIO_NORMAL );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the priority of the thread before the change.
+  description: null
+  member: |
+    rtems_task_priority initial_priority
+- brief: |
+    This member specifies the priority of the thread after the change.
+  description: null
+  member: |
+    rtems_task_priority new_priority
+- brief: |
+    This member is true, if the priority queue contains a last thread with a
+    priority lower than each new priority.
+  description: null
+  member: |
+    bool lower
+- brief: |
+    This member specifies the position of the priority queue which does not contain
+    the thread.
+  description: null
+  member: |
+    Other other
+- brief: |
+    This member references the thread queue.
+  description: null
+  member: |
+    Thread_queue_Queue *queue
+- brief: |
+    This member contains the priority queues before the change.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues after the change.
+  description: null
+  member: |
+    TQSnapshot after
+test-context-support: |
+  typedef enum { OTHER_NONE, OTHER_BEFORE, OTHER_AFTER } Other;
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-priority-change-priority.h
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
+test-local-includes:
+- tr-tq-priority-change-priority.h
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, PRIO_NORMAL );
+
+    #if defined( RTEMS_SMP )
+    Setup( ctx );
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static bool HasProcessors( uint32_t count )
+  {
+    return rtems_scheduler_get_processor_maximum() >= count;
+  }
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static const rtems_tcb *GetTCB( const Context *ctx, TQWorkerKind worker )
+  {
+    return ctx->tq_ctx->worker_tcb[ worker ];
+  }
+
+  #if defined( RTEMS_SMP )
+  static void Setup( Context *ctx )
+  {
+    if ( HasProcessors( 2 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_B_ID, PRIO_LOW );
+    }
+  }
+  #endif
+
+  static void CheckPosition( const Context *ctx, bool first )
+  {
+    const TQPriorityQueueSnapshot *queue;
+    size_t                         index;
+
+    index = TQSnapshotFind( &ctx->after, SCHEDULER_A_ID );
+    T_ne_sz( index, SIZE_MAX );
+
+    if ( index == SIZE_MAX ) {
+      return;
+    }
+
+    queue = &ctx->after.queue[ index ];
+    T_eq_sz( queue->count, ctx->lower ? 3 : 2 );
+
+    if ( first ) {
+      T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_BLOCKER_C ) );
+      T_eq_ptr( queue->thread[ 1 ], GetTCB( ctx, TQ_BLOCKER_B ) );
+    } else {
+      T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_BLOCKER_B ) );
+      T_eq_ptr( queue->thread[ 1 ], GetTCB( ctx, TQ_BLOCKER_C ) );
+    }
+
+    if ( ctx->lower ) {
+      T_eq_ptr( queue->thread[ 2 ], GetTCB( ctx, TQ_BLOCKER_D ) );
+    }
+  }
+test-target: testsuites/validation/tr-tq-priority-change-priority.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+  description: null
+text: |
+  When the priority of a thread which waits on the thread queue changes.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Position: &id001
+    - if:
+        pre-conditions:
+          NewPriority: High
+      then: First
+    - else: Second
+    QueueOrder: Kept
+  pre-conditions:
+    TargetPosition: all
+    NewPriority: all
+    OtherQueue:
+    - None
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Position: *id001
+    QueueOrder: Kept
+  pre-conditions:
+    TargetPosition: all
+    NewPriority: all
+    OtherQueue:
+    - Before
+    - After
+type: requirement

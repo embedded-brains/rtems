@@ -10,6 +10,10 @@ links:
   uid: /score/tq/req/enqueue-fifo
 - role: function-implementation
   uid: /score/tq/req/enqueue-priority
+- role: function-implementation
+  uid: /score/tq/req/enqueue-priority-further-helping
+- role: function-implementation
+  uid: /score/tq/req/enqueue-priority-ineligible
 post-conditions:
 - name: Status
   states:
@@ -151,10 +155,20 @@ post-conditions:
       enqueued in FIFO order.
   - name: Priority
     test-code: |
-      ${/score/tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx );
+      ${/score/tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx, false );
+      ${/score/tq/req/enqueue-priority-further-helping:/test-run}(
+        &ctx->tq_ctx,
+        false
+      );
+      ${/score/tq/req/enqueue-priority-ineligible:/test-run}(
+        &ctx->tq_ctx,
+        false
+      );
     text: |
       Where the thread queue uses the priority discipline, the calling thread shall
-      be enqueued in priority order.
+      be enqueued as specified by ${/score/tq/req/enqueue-priority:/spec},
+      ${/score/tq/req/enqueue-priority-further-helping:/spec}, and
+      ${/score/tq/req/enqueue-priority-ineligible:/spec}.
   test-epilogue: |
     MessageQueueTeardown( ctx );
   test-prologue: |
@@ -443,6 +457,8 @@ test-local-includes:
 - tx-thread-queue.h
 - tr-tq-enqueue-fifo.h
 - tr-tq-enqueue-priority.h
+- tr-tq-enqueue-priority-further-helping.h
+- tr-tq-enqueue-priority-ineligible.h
 test-prepare: |
   /* Clean away pending events - happens after RTEMS_WAIT + RTEMS_NO_TIMEOUT */
   (void) PollAnyEvents();

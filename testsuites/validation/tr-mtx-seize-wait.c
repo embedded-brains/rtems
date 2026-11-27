@@ -36,18 +36,22 @@
 #endif
 
 #include "tr-mtx-seize-wait.h"
-#include "tr-tq-enqueue-ceiling.h"
 #include "tr-tq-enqueue-deadlock.h"
 #include "tr-tq-enqueue-fifo.h"
+#include "tr-tq-enqueue-priority-further-helping.h"
+#include "tr-tq-enqueue-priority-ineligible.h"
 #include "tr-tq-enqueue-priority-inherit.h"
 #include "tr-tq-enqueue-priority.h"
+#include "tr-tq-helping-add-priority.h"
+#include "tr-tq-helping-remove-priority.h"
+#include "tr-tq-priority-change-priority.h"
 
 #include <rtems/test.h>
 
 /**
  * @defgroup ScoreMtxReqSeizeWait spec:/score/mtx/req/seize-wait
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
@@ -104,6 +108,12 @@ typedef struct {
    *   after the directive call.
    */
   rtems_task_priority priority_after;
+
+  /**
+   * @brief This member is true, if the test ran the test cases of the enqueue
+   *   in priority order.
+   */
+  bool position_done;
 
   /**
    * @brief This member contains a copy of the corresponding
@@ -175,10 +185,6 @@ static const char *const *const ScoreMtxReqSeizeWait_PreDesc[] = {
   ScoreMtxReqSeizeWait_PreDesc_Priority,
   NULL
 };
-
-#if defined( RTEMS_SMP )
-#include "tr-tq-enqueue-mrsp.h"
-#endif
 
 typedef ScoreMtxReqSeizeWait_Context Context;
 
@@ -661,40 +667,69 @@ static void ScoreMtxReqSeizeWait_Post_Enqueued_Check(
 
     case ScoreMtxReqSeizeWait_Post_Enqueued_Priority: {
       /*
-       * The calling thread shall be enqueued in priority order.
+       * The calling thread shall wait on the thread queue of the mutex as
+       * specified by spec:/score/tq/req/enqueue-priority,
+       * spec:/score/tq/req/enqueue-priority-further-helping,
+       * spec:/score/tq/req/enqueue-priority-ineligible,
+       * spec:/score/tq/req/priority-change-priority,
+       * spec:/score/tq/req/helping-add-priority, and
+       * spec:/score/tq/req/helping-remove-priority.
        */
-      ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx->base );
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ScoreTqReqEnqueuePriority_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ScoreTqReqEnqueuePriorityFurtherHelping_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ScoreTqReqEnqueuePriorityIneligible_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ScoreTqReqPriorityChangePriority_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ScoreTqReqHelpingAddPriority_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ScoreTqReqHelpingRemovePriority_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+      }
       break;
     }
 
     case ScoreMtxReqSeizeWait_Post_Enqueued_PriorityInherit: {
       /*
-       * The calling thread shall be enqueued in priority order with priority
-       * inheritance.
+       * The calling thread shall wait on the thread queue of the mutex as
+       * specified by spec:/score/tq/req/enqueue-priority,
+       * spec:/score/tq/req/enqueue-priority-further-helping,
+       * spec:/score/tq/req/enqueue-priority-ineligible,
+       * spec:/score/tq/req/enqueue-priority-inherit,
+       * spec:/score/tq/req/priority-change-priority,
+       * spec:/score/tq/req/helping-add-priority, and
+       * spec:/score/tq/req/helping-remove-priority.
        */
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ScoreTqReqEnqueuePriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqEnqueuePriorityFurtherHelping_Run(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ScoreTqReqEnqueuePriorityIneligible_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqPriorityChangePriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqHelpingAddPriority_Run( &ctx->tq_ctx->base, false );
+        ScoreTqReqHelpingRemovePriority_Run( &ctx->tq_ctx->base, false );
+      }
+
       ScoreTqReqEnqueuePriorityInherit_Run( &ctx->tq_ctx->base );
-      break;
-    }
-
-    case ScoreMtxReqSeizeWait_Post_Enqueued_PriorityCeiling: {
-      /*
-       * The calling thread shall be enqueued in priority order according to
-       * the priority ceiling locking protocol.
-       */
-      ScoreTqReqEnqueueCeiling_Run( &ctx->tq_ctx->base );
-      break;
-    }
-
-    case ScoreMtxReqSeizeWait_Post_Enqueued_PriorityMrsP: {
-      /*
-       * The calling thread shall be enqueued in priority order according to
-       * the MrsP locking protocol.
-       */
-      #if defined( RTEMS_SMP )
-      ScoreTqReqEnqueueMrsp_Run( &ctx->tq_ctx->base );
-      #else
-      T_unreachable();
-      #endif
       break;
     }
 
@@ -771,6 +806,20 @@ static void ScoreMtxReqSeizeWait_Post_Priority_Check(
   }
 }
 
+static void ScoreMtxReqSeizeWait_Setup( ScoreMtxReqSeizeWait_Context *ctx )
+{
+  ctx->position_done = false;
+}
+
+static void ScoreMtxReqSeizeWait_Setup_Wrap( void *arg )
+{
+  ScoreMtxReqSeizeWait_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  ScoreMtxReqSeizeWait_Setup( ctx );
+}
+
 static void ScoreMtxReqSeizeWait_Prepare( ScoreMtxReqSeizeWait_Context *ctx )
 {
   ctx->owner_caller = false;
@@ -811,7 +860,7 @@ ScoreMtxReqSeizeWait_Entries[] = {
     ScoreMtxReqSeizeWait_Post_Owner_Caller,
     ScoreMtxReqSeizeWait_Post_Priority_Ceiling },
   { 0, 0, 0, 0, 0, 0, 0, ScoreMtxReqSeizeWait_Post_Status_NA,
-    ScoreMtxReqSeizeWait_Post_Enqueued_PriorityCeiling,
+    ScoreMtxReqSeizeWait_Post_Enqueued_Priority,
     ScoreMtxReqSeizeWait_Post_Owner_Other,
     ScoreMtxReqSeizeWait_Post_Priority_Nop },
   { 0, 0, 0, 0, 0, 0, 0, ScoreMtxReqSeizeWait_Post_Status_DeadlockStatus,
@@ -838,7 +887,7 @@ ScoreMtxReqSeizeWait_Entries[] = {
     ScoreMtxReqSeizeWait_Post_Owner_Other,
     ScoreMtxReqSeizeWait_Post_Priority_Nop },
   { 0, 0, 0, 0, 0, 0, 0, ScoreMtxReqSeizeWait_Post_Status_NA,
-    ScoreMtxReqSeizeWait_Post_Enqueued_PriorityMrsP,
+    ScoreMtxReqSeizeWait_Post_Enqueued_Priority,
     ScoreMtxReqSeizeWait_Post_Owner_Other,
     ScoreMtxReqSeizeWait_Post_Priority_Ceiling },
   { 0, 0, 0, 0, 0, 0, 1, ScoreMtxReqSeizeWait_Post_Status_DeadlockStatus,
@@ -915,7 +964,7 @@ static size_t ScoreMtxReqSeizeWait_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture ScoreMtxReqSeizeWait_Fixture = {
-  .setup = NULL,
+  .setup = ScoreMtxReqSeizeWait_Setup_Wrap,
   .stop = NULL,
   .teardown = NULL,
   .scope = ScoreMtxReqSeizeWait_Scope,

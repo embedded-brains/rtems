@@ -46,6 +46,7 @@
 #include "tr-sem-seize-try.h"
 #include "tr-sem-seize-wait.h"
 #include "tr-sem-surrender.h"
+#include "tr-tq-extract-priority.h"
 #include "tr-tq-timeout-priority-inherit.h"
 #include "tr-tq-timeout.h"
 #include "tx-thread-queue.h"
@@ -55,7 +56,7 @@
 /**
  * @defgroup NewlibValSysLock spec:/newlib/val/sys-lock
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @brief Tests the `<sys/lock.h>` mutex and semaphore directives.
  *
@@ -387,6 +388,7 @@ static void NewlibValSysLock_Action_0( NewlibValSysLock_Context *ctx )
   ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
   ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_DEADLOCK;
   ScoreTqReqTimeoutPriorityInherit_Run( &ctx->tq_mtx_ctx.base );
+  ScoreTqReqExtractPriority_Run( &ctx->tq_mtx_ctx.base, false );
 
   /*
    * Validate the _Mutex_Acquire() directive.
@@ -462,6 +464,7 @@ static void NewlibValSysLock_Action_1( NewlibValSysLock_Context *ctx )
   ctx->tq_mtx_ctx.base.wait = TQ_WAIT_FOREVER;
   ctx->tq_mtx_ctx.recursive = TQ_MTX_RECURSIVE_ALLOWED;
   ScoreTqReqTimeoutPriorityInherit_Run( &ctx->tq_mtx_ctx.base );
+  ScoreTqReqExtractPriority_Run( &ctx->tq_mtx_ctx.base, false );
 
   /*
    * Validate the _Mutex_recursive_Acquire() directive.
@@ -528,6 +531,7 @@ static void NewlibValSysLock_Action_2( NewlibValSysLock_Context *ctx )
   ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
   SemaphoreSetCount( &ctx->tq_sem_ctx, 1 );
   ScoreTqReqTimeout_Run( &ctx->tq_sem_ctx.base );
+  ScoreTqReqExtractPriority_Run( &ctx->tq_sem_ctx.base, false );
 
   /*
    * Validate the _Semaphore_Wait_timed_ticks() directive for a timeout

@@ -5,17 +5,23 @@ enabled-by: true
 functional-type: action
 links:
 - role: function-implementation
-  uid: /score/tq/req/enqueue-ceiling
-- role: function-implementation
   uid: /score/tq/req/enqueue-deadlock
 - role: function-implementation
   uid: /score/tq/req/enqueue-fifo
 - role: function-implementation
-  uid: /score/tq/req/enqueue-mrsp
-- role: function-implementation
   uid: /score/tq/req/enqueue-priority
 - role: function-implementation
+  uid: /score/tq/req/enqueue-priority-further-helping
+- role: function-implementation
+  uid: /score/tq/req/enqueue-priority-ineligible
+- role: function-implementation
   uid: /score/tq/req/enqueue-priority-inherit
+- role: function-implementation
+  uid: /score/tq/req/helping-add-priority
+- role: function-implementation
+  uid: /score/tq/req/helping-remove-priority
+- role: function-implementation
+  uid: /score/tq/req/priority-change-priority
 - role: requirement-refinement
   uid: ../if/group
 post-conditions:
@@ -64,31 +70,78 @@ post-conditions:
       The calling thread shall be enqueued in FIFO order.
   - name: Priority
     test-code: |
-      ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base );
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ${../../tq/req/enqueue-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ${../../tq/req/enqueue-priority-further-helping:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ${../../tq/req/enqueue-priority-ineligible:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ${../../tq/req/priority-change-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ${../../tq/req/helping-add-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+        ${../../tq/req/helping-remove-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+      }
     text: |
-      The calling thread shall be enqueued in priority order.
+      The calling thread shall wait on the thread queue of the mutex as specified by
+      ${../../tq/req/enqueue-priority:/spec},
+      ${../../tq/req/enqueue-priority-further-helping:/spec},
+      ${../../tq/req/enqueue-priority-ineligible:/spec},
+      ${../../tq/req/priority-change-priority:/spec},
+      ${../../tq/req/helping-add-priority:/spec}, and
+      ${../../tq/req/helping-remove-priority:/spec}.
   - name: PriorityInherit
     test-code: |
+      if ( !ctx->position_done ) {
+        ctx->position_done = true;
+        ${../../tq/req/enqueue-priority:/test-run}( &ctx->tq_ctx->base, false );
+        ${../../tq/req/enqueue-priority-further-helping:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/enqueue-priority-ineligible:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/priority-change-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/helping-add-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+        ${../../tq/req/helping-remove-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          false
+        );
+      }
+
       ${../../tq/req/enqueue-priority-inherit:/test-run}( &ctx->tq_ctx->base );
     text: |
-      The calling thread shall be enqueued in priority order with priority
-      inheritance.
-  - name: PriorityCeiling
-    test-code: |
-      ${../../tq/req/enqueue-ceiling:/test-run}( &ctx->tq_ctx->base );
-    text: |
-      The calling thread shall be enqueued in priority order according to the
-      priority ceiling locking protocol.
-  - name: PriorityMrsP
-    test-code: |
-      #if defined( RTEMS_SMP )
-        ${../../tq/req/enqueue-mrsp:/test-run}( &ctx->tq_ctx->base );
-      #else
-        T_unreachable();
-      #endif
-    text: |
-      The calling thread shall be enqueued in priority order according to the MrsP
-      locking protocol.
+      The calling thread shall wait on the thread queue of the mutex as specified by
+      ${../../tq/req/enqueue-priority:/spec},
+      ${../../tq/req/enqueue-priority-further-helping:/spec},
+      ${../../tq/req/enqueue-priority-ineligible:/spec},
+      ${../../tq/req/enqueue-priority-inherit:/spec},
+      ${../../tq/req/priority-change-priority:/spec},
+      ${../../tq/req/helping-add-priority:/spec}, and
+      ${../../tq/req/helping-remove-priority:/spec}.
   test-epilogue: null
   test-prologue: null
 - name: Owner
@@ -316,6 +369,12 @@ test-context:
   description: null
   member: |
     rtems_task_priority priority_after
+- brief: |
+    This member is true, if the test ran the test cases of the enqueue in priority
+    order.
+  description: null
+  member: |
+    bool position_done
 test-context-support: null
 test-description: null
 test-header:
@@ -334,23 +393,27 @@ test-header:
 test-includes: []
 test-local-includes:
 - tr-mtx-seize-wait.h
-- tr-tq-enqueue-ceiling.h
 - tr-tq-enqueue-deadlock.h
 - tr-tq-enqueue-fifo.h
 - tr-tq-enqueue-priority.h
+- tr-tq-enqueue-priority-further-helping.h
+- tr-tq-enqueue-priority-ineligible.h
+- tr-tq-helping-add-priority.h
+- tr-tq-helping-remove-priority.h
+- tr-tq-priority-change-priority.h
 - tr-tq-enqueue-priority-inherit.h
 test-prepare: |
   ctx->owner_caller = false;
   ctx->owner_other = false;
   ctx->deadlock = false;
   ctx->priority_before = PRIO_VERY_HIGH;
-test-setup: null
+test-setup:
+  brief: null
+  code: |
+    ctx->position_done = false;
+  description: null
 test-stop: null
 test-support: |
-  #if defined( RTEMS_SMP )
-  #include "tr-tq-enqueue-mrsp.h"
-  #endif
-
   typedef ${.:/test-context-type} Context;
 
   static Status_Control Status( const Context *ctx, Status_Control status )
@@ -722,7 +785,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: N/A
-    Enqueued: PriorityCeiling
+    Enqueued: Priority
     Owner: Other
     Priority: Nop
   pre-conditions:
@@ -759,7 +822,7 @@ transition-map:
 - enabled-by: true
   post-conditions:
     Status: N/A
-    Enqueued: PriorityMrsP
+    Enqueued: Priority
     Owner: Other
     Priority: Ceiling
   pre-conditions:

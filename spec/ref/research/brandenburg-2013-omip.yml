@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+author:
+- Brandenburg, Björn B.
+booktitle: Proceedings of the 25th Euromicro Conference on Real-Time Systems (ECRTS
+  2013)
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+reference-type: inproceedings
+title: A Fully Preemptive Multiprocessor Semaphore Protocol for Latency-Sensitive
+  Real-Time Applications
+type: reference
+work-hash: null
+work-url: https://people.mpi-sws.org/~bbb/papers/pdf/ecrts13b.pdf
+year: '2013'

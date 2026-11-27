@@ -9,6 +9,8 @@ links:
 - role: function-implementation
   uid: /score/tq/req/surrender-mrsp
 - role: function-implementation
+  uid: /score/tq/req/surrender-priority
+- role: function-implementation
   uid: /score/tq/req/surrender-priority-inherit
 - role: requirement-refinement
   uid: ../if/group
@@ -69,26 +71,48 @@ post-conditions:
   - name: Priority
     test-code: |
       T_eq_u32( ctx->counter, 1 );
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ${../../tq/req/surrender-priority:/test-run}(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+      }
+
       ${../../tq/req/surrender:/test-run}( &ctx->tq_ctx->base );
     text: |
-      The thread queue of the mutex shall be surrendered in priority order.
+      The thread queue of the mutex shall be surrendered as specified by
+      ${../../tq/req/surrender-priority:/spec}.
   - name: PriorityInherit
     test-code: |
       T_eq_u32( ctx->counter, 1 );
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ${../../tq/req/surrender-priority:/test-run}( &ctx->tq_ctx->base, false );
+      }
+
       ${../../tq/req/surrender-priority-inherit:/test-run}( &ctx->tq_ctx->base );
     text: |
-      The thread queue of the mutex shall be surrendered in priority order with
-      priority inheritance.
+      The thread queue of the mutex shall be surrendered as specified by
+      ${../../tq/req/surrender-priority:/spec} and
+      ${../../tq/req/surrender-priority-inherit:/spec}.
   - name: MrsP
     test-code: |
       #if defined( RTEMS_SMP )
         T_eq_u32( ctx->counter, 1 );
+        if ( !ctx->dequeue_done ) {
+          ctx->dequeue_done = true;
+          ${../../tq/req/surrender-priority:/test-run}( &ctx->tq_ctx->base, false );
+        }
+
         ${../../tq/req/surrender-mrsp:/test-run}( &ctx->tq_ctx->base );
       #else
         T_unreachable();
       #endif
     text: |
-      The thread queue of the mutex shall be surrendered in priority order with MrsP.
+      The thread queue of the mutex shall be surrendered as specified by
+      ${../../tq/req/surrender-priority:/spec} and
+      ${../../tq/req/surrender-mrsp:/spec}.
   test-epilogue: null
   test-prologue: null
 - name: Priority
@@ -348,6 +372,12 @@ test-context:
   description: null
   member: |
     uint32_t counter
+- brief: |
+    This member is true, if the test ran the test cases of the dequeue in priority
+    order.
+  description: null
+  member: |
+    bool dequeue_done
 test-context-support: null
 test-description: null
 test-header:
@@ -366,6 +396,7 @@ test-header:
 test-includes: []
 test-local-includes:
 - tr-mtx-surrender.h
+- tr-tq-surrender-priority.h
 - tr-tq-surrender.h
 - tr-tq-surrender-priority-inherit.h
 test-prepare: |
@@ -379,7 +410,11 @@ test-prepare: |
   } else {
     ctx->priority_real = PRIO_NORMAL;
   }
-test-setup: null
+test-setup:
+  brief: null
+  code: |
+    ctx->dequeue_done = false;
+  description: null
 test-stop: null
 test-support: |
   #if defined( RTEMS_SMP )

@@ -1,0 +1,604 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: Dequeue
+  states:
+  - name: First
+    test-code: |
+      CheckDequeue( ctx );
+    text: |
+      The surrender operation shall dequeue the first thread of the first priority
+      queue of the thread queue.
+  test-epilogue: null
+  test-prologue: null
+- name: Extract
+  states:
+  - name: All
+    test-code: |
+      CheckExtract( ctx );
+    text: |
+      The surrender operation shall remove the dequeued thread from each priority
+      queue of the thread queue.
+  test-epilogue: null
+  test-prologue: null
+- name: EmptyQueue
+  states:
+  - name: Removed
+    test-code: |
+      CheckEmptyQueues( ctx );
+    text: |
+      The surrender operation shall remove each priority queue which contains no
+      thread after the removal of the dequeued thread from the thread queue.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Rotated
+    test-code: |
+      CheckOrder( ctx, true );
+    text: |
+      The priority queue which was the first priority queue of the thread queue
+      before the surrender shall be positioned after each other priority queue of the
+      thread queue.
+  - name: Kept
+    test-code: |
+      CheckOrder( ctx, false );
+    text: |
+      The surrender operation shall not change the order of the priority queues of
+      the thread queue.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: FirstQueueThreads
+  states:
+  - name: One
+    test-code: |
+      ctx->first_more = false;
+
+      if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the first priority queue of the thread queue contains exactly one thread.
+  - name: More
+    test-code: |
+      ctx->first_more = true;
+
+      if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the first priority queue of the thread queue contains at least two
+      threads.
+  test-epilogue: null
+  test-prologue: null
+- name: FirstThreadQueues
+  states:
+  - name: Only
+    test-code: |
+      ctx->helping = false;
+      ctx->alone = false;
+    text: |
+      While the first thread of the first priority queue of the thread queue is
+      contained in no other priority queue of the thread queue.
+  - name: Shared
+    test-code: |
+      ctx->helping = true;
+      ctx->alone = false;
+
+      if ( !HasProcessors( 2 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the first thread of the first priority queue of the thread queue is
+      contained in another priority queue of the thread queue, while this priority
+      queue contains at least one other thread.
+  - name: Alone
+    test-code: |
+      ctx->helping = true;
+      ctx->alone = true;
+
+      if ( !HasProcessors( 2 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the first thread of the first priority queue of the thread queue is
+      contained in another priority queue of the thread queue, while this priority
+      queue contains no other thread.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueCount
+  states:
+  - name: One
+    test-code: |
+      ctx->queue_count = 1;
+    text: |
+      While the thread queue has exactly one priority queue.
+  - name: Two
+    test-code: |
+      ctx->queue_count = 2;
+
+      if ( !HasProcessors( 2 ) || ( ctx->home_only && !ctx->alone ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has exactly two priority queues.
+  - name: More
+    test-code: |
+      ctx->queue_count = 3;
+
+      if ( !HasThirdScheduler( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has at least three priority queues.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension FirstQueueThreads covers the count of threads in the first priority
+  queue, 2 states.
+
+  Dimension FirstThreadQueues covers the other priority queues which contain the
+  first thread of the first priority queue, 3 states.
+
+  Dimension QueueCount covers the count of priority queues of the thread queue, 3
+  states.
+
+  The sticky variant runs on at least four processors. A thread which waits in a
+  sticky enqueue occupies a processor of its home scheduler. The test needs these
+  processors to set up the states. A system with two processors reaches the same
+  states without them. The test skips the sticky variant on a system with less
+  than four processors.
+requirement-type: functional
+skip-reasons:
+  NoOtherQueue: |
+    The first thread of the first priority queue cannot be contained in another
+    priority queue, if the thread queue has only one priority queue.
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  rtems_event_set events;
+  size_t          i;
+
+  SetSelfPriority( PRIO_VERY_LOW );
+  ctx->tq_ctx->how_many = 1;
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueuePrepare( ctx->tq_ctx );
+  } else {
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  }
+
+  if ( ctx->helping ) {
+    TQSendAndWaitForExecutionStop(
+      ctx->tq_ctx,
+      TQ_BLOCKER_C,
+      TQ_EVENT_MUTEX_A_OBTAIN
+    );
+    TQSendAndWaitForExecutionStop(
+      ctx->tq_ctx,
+      TQ_BLOCKER_E,
+      TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
+    );
+  }
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    if ( HasRole( ctx, (Role) i ) ) {
+      events = TQ_EVENT_ENQUEUE;
+
+      if ( i != ROLE_FIRST ) {
+        events |= TQ_EVENT_SURRENDER;
+      }
+
+      TQClearDone( ctx->tq_ctx, role_worker[ i ] );
+      Enqueue( ctx, role_worker[ i ], events );
+      ++ctx->tq_ctx->how_many;
+    }
+  }
+
+  ctx->queue = GetFirst( ctx )->Wait.queue;
+  T_assert_not_null( ctx->queue );
+  TQTakeSnapshot( &ctx->before, ctx->queue );
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueueDone( ctx->tq_ctx );
+  } else {
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  }
+
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  ctx->first_done = true;
+  TQTakeSnapshot( &ctx->after, ctx->queue );
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    ctx->waits[ i ] = ctx->tq_ctx->worker_tcb[ role_worker[ i ] ]
+                        ->Wait.queue == ctx->queue;
+  }
+
+  events = TQ_EVENT_SURRENDER;
+
+  if ( ctx->helping ) {
+    events |= TQ_EVENT_MUTEX_A_RELEASE;
+  }
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_C, events );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    if ( HasRole( ctx, (Role) i ) ) {
+      TQWaitForDone( ctx->tq_ctx, role_worker[ i ] );
+      TQWaitForExecutionStop( ctx->tq_ctx, role_worker[ i ] );
+    }
+  }
+
+  if ( ctx->helping ) {
+    TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
+    TQMutexRelease( ctx->tq_ctx, TQ_MUTEX_A );
+  }
+
+  SetSelfPriority( PRIO_NORMAL );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member is true, if the first priority queue contains at least two threads.
+  description: null
+  member: |
+    bool first_more
+- brief: |
+    This member is true, if the first thread of the first priority queue has a
+    helping scheduler.
+  description: null
+  member: |
+    bool helping
+- brief: |
+    This member is true, if the priority queue associated with the helping
+    scheduler of the first thread contains no other thread.
+  description: null
+  member: |
+    bool alone
+- brief: |
+    This member specifies the count of priority queues.
+  description: null
+  member: |
+    size_t queue_count
+- brief: |
+    This member is true, if the first thread of the first priority queue returned
+    from the enqueue.
+  description: null
+  member: |
+    bool first_done
+- brief: |
+    This member references the thread queue.
+  description: null
+  member: |
+    Thread_queue_Queue *queue
+- brief: |
+    This member specifies for each role, if its thread waits on the thread queue
+    after the surrender.
+  description: null
+  member: |
+    bool waits[ ROLE_COUNT ]
+- brief: |
+    This member contains the priority queues before the surrender.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues after the surrender.
+  description: null
+  member: |
+    TQSnapshot after
+test-context-support: |
+  typedef enum {
+    ROLE_FIRST,
+    ROLE_FIRST_NEXT,
+    ROLE_SECOND,
+    ROLE_THIRD,
+    ROLE_COUNT
+  } Role;
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-surrender-priority.h
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
+test-local-includes:
+- tr-tq-surrender-priority.h
+test-prepare: |
+  ctx->first_done = false;
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, PRIO_NORMAL );
+
+    #if defined( RTEMS_SMP )
+    Setup( ctx );
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const TQWorkerKind role_worker[ ROLE_COUNT ] =
+    { TQ_BLOCKER_C, TQ_BLOCKER_B, TQ_WORKER_F, TQ_HELPER_C };
+
+  static bool HasProcessors( uint32_t count )
+  {
+    return rtems_scheduler_get_processor_maximum() >= count;
+  }
+
+  static bool HasThirdScheduler( const Context *ctx );
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static bool HasRole( const Context *ctx, Role role )
+  {
+    switch ( role ) {
+      case ROLE_FIRST:
+        return true;
+      case ROLE_FIRST_NEXT:
+        return ctx->first_more;
+      case ROLE_SECOND:
+        return ctx->queue_count >= 2 && !ctx->alone;
+      default:
+        return ctx->queue_count >= 3;
+    }
+  }
+
+  static rtems_id GetThirdScheduler( const Context *ctx )
+  {
+    return IsSticky( ctx ) ? SCHEDULER_E_ID : SCHEDULER_C_ID;
+  }
+
+  /*
+   * The test suite configuration may provide less schedulers than processors.
+   */
+  static bool HasThirdScheduler( const Context *ctx )
+  {
+    rtems_status_code sc;
+    cpu_set_t         set;
+
+    CPU_ZERO( &set );
+    sc = rtems_scheduler_get_processor_set(
+      GetThirdScheduler( ctx ),
+      sizeof( set ),
+      &set
+    );
+
+    return sc == RTEMS_SUCCESSFUL && CPU_COUNT( &set ) > 0;
+  }
+
+  #if defined( RTEMS_SMP )
+  /*
+   * A thread which waits in a sticky enqueue occupies a processor of its home
+   * scheduler.  The runner owns the thread queue and uses the only processor of
+   * scheduler A.
+   */
+  static void Setup( Context *ctx )
+  {
+    rtems_id first;
+
+    if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+      return;
+    }
+
+    if ( IsSticky( ctx ) ) {
+      first = SCHEDULER_C_ID;
+    } else {
+      first = SCHEDULER_A_ID;
+    }
+
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_C, first, PRIO_HIGH );
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_B, first, PRIO_NORMAL );
+
+    if ( HasProcessors( 2 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    }
+
+    if ( HasThirdScheduler( ctx ) ) {
+      TQSetScheduler(
+        ctx->tq_ctx,
+        TQ_HELPER_C,
+        GetThirdScheduler( ctx ),
+        PRIO_LOW
+      );
+    }
+  }
+  #endif
+
+  static const rtems_tcb *GetFirst( const Context *ctx )
+  {
+    return ctx->tq_ctx->worker_tcb[ role_worker[ ROLE_FIRST ] ];
+  }
+
+  /*
+   * The expected priority queues after the surrender are the priority queues
+   * before the surrender which keep a thread after the removal of the dequeued
+   * thread.  If rotate is true, the first priority queue goes to the end.
+   */
+  static size_t GetExpected(
+    const Context            *ctx,
+    bool                      rotate,
+    const Scheduler_Control **expected
+  )
+  {
+    const TQSnapshot *before;
+    size_t            count;
+    size_t            i;
+
+    before = &ctx->before;
+    count = 0;
+
+    for ( i = 0; i < before->count; ++i ) {
+      size_t                         index;
+      const TQPriorityQueueSnapshot *queue;
+
+      if ( rotate ) {
+        index = ( i + 1 ) % before->count;
+      } else {
+        index = i;
+      }
+
+      queue = &before->queue[ index ];
+
+      if (
+        queue->count - ( TQSnapshotContains( queue, GetFirst( ctx ) ) ? 1 : 0 ) >
+        0
+      ) {
+        expected[ count ] = queue->scheduler;
+        ++count;
+      }
+    }
+
+    return count;
+  }
+
+  static void CheckOrder( const Context *ctx, bool rotate )
+  {
+    const Scheduler_Control *expected[ RTEMS_ARRAY_SIZE( ctx->before.queue ) ];
+    size_t                   count;
+    size_t                   i;
+
+    count = GetExpected( ctx, rotate, expected );
+    T_eq_sz( ctx->after.count, count );
+
+    for ( i = 0; i < count && i < ctx->after.count; ++i ) {
+      T_eq_ptr( ctx->after.queue[ i ].scheduler, expected[ i ] );
+    }
+  }
+
+  static void CheckDequeue( const Context *ctx )
+  {
+    size_t i;
+
+    T_true( ctx->first_done );
+
+    for ( i = ROLE_FIRST_NEXT; i < ROLE_COUNT; ++i ) {
+      if ( HasRole( ctx, (Role) i ) ) {
+        T_true( ctx->waits[ i ] );
+      }
+    }
+  }
+
+  static void CheckExtract( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < ctx->after.count; ++i ) {
+      T_false( TQSnapshotContains( &ctx->after.queue[ i ], GetFirst( ctx ) ) );
+    }
+  }
+
+  static void CheckEmptyQueues( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < ctx->after.count; ++i ) {
+      T_gt_sz( ctx->after.queue[ i ].count, 0 );
+    }
+  }
+test-target: testsuites/validation/tr-tq-surrender-priority.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_A_ID, PRIO_LOW );
+  description: null
+text: |
+  When the thread queue is surrendered.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Dequeue: First
+    Extract: All
+    EmptyQueue: Removed
+    QueueOrder: &id001
+    - if:
+        pre-conditions:
+          FirstQueueThreads: More
+      then: Rotated
+    - else: Kept
+  pre-conditions:
+    FirstQueueThreads: all
+    FirstThreadQueues:
+    - Only
+    QueueCount:
+    - One
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: true
+  post-conditions: NoOtherQueue
+  pre-conditions:
+    FirstQueueThreads: all
+    FirstThreadQueues:
+    - Shared
+    - Alone
+    QueueCount:
+    - One
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Dequeue: First
+    Extract: All
+    EmptyQueue: Removed
+    QueueOrder: *id001
+  pre-conditions:
+    FirstQueueThreads: all
+    FirstThreadQueues: all
+    QueueCount:
+    - Two
+    - More
+type: requirement

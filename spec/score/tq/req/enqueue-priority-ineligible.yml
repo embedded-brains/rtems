@@ -1,0 +1,285 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: PositionEligible
+  states:
+  - name: AsOne
+    test-code: |
+      CheckEligible( ctx );
+    text: |
+      The enqueueing thread shall be enqueued in the priority queues associated with
+      its eligible schedulers as specified by ${enqueue-priority:/spec} for a thread
+      queue which has exactly one priority queue associated with an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Kept
+    test-code: |
+      CheckOrder( ctx );
+    text: |
+      The order of the priority queues which the thread queue contained before the
+      enqueue shall not change.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: QueueIneligible
+  states:
+  - name: More
+    test-code: |
+      ctx->order[ 0 ] = TQ_HELPER_C;
+      ctx->order[ 1 ] = TQ_BLOCKER_D;
+
+      if ( !UsesProcessors( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has at least two priority queues associated with
+      ${/glossary/scheduler-ineligible:/plural} of the enqueueing thread.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The enqueue adds the enqueueing thread only to the priority queues associated
+  with its eligible schedulers. It does not access a priority queue associated
+  with an ${/glossary/scheduler-ineligible:/term} of the enqueueing thread. The
+  map of ${enqueue-priority:/spec} skips this case. Its variants need six
+  processors and multiply the variants of each other dimension.
+
+  Dimension QueueIneligible holds the one case of this requirement, 1 state. The
+  test provides exactly two priority queues associated with the schedulers B and
+  D. The enqueueing thread has no helping scheduler.
+references: []
+requirement-type: functional
+skip-reasons:
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  size_t i;
+
+  SetSelfPriority( PRIO_VERY_LOW );
+  ctx->tq_ctx->how_many = 1;
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueuePrepare( ctx->tq_ctx );
+  } else {
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  }
+
+  for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->order ); ++i ) {
+    TQClearDone( ctx->tq_ctx, ctx->order[ i ] );
+    Enqueue( ctx, ctx->order[ i ], TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  TQTakeSnapshot( &ctx->before, GetQueue( ctx ) );
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  Enqueue( ctx, TQ_BLOCKER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+  TQTakeSnapshot( &ctx->after, GetQueue( ctx ) );
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueueDone( ctx->tq_ctx );
+  } else {
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  }
+
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+
+  for ( i = 0; i < RTEMS_ARRAY_SIZE( ctx->order ); ++i ) {
+    TQWaitForDone( ctx->tq_ctx, ctx->order[ i ] );
+    TQWaitForExecutionStop( ctx->tq_ctx, ctx->order[ i ] );
+  }
+
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_C );
+  SetSelfPriority( PRIO_NORMAL );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the workers which create the priority queues associated
+    with the ${/glossary/scheduler-ineligible:/plural} of the enqueueing thread in
+    creation order.
+  description: null
+  member: |
+    TQWorkerKind order[ 2 ]
+- brief: |
+    This member contains the priority queues of the thread queue before the
+    enqueue.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues of the thread queue while the
+    enqueueing thread waits.
+  description: null
+  member: |
+    TQSnapshot after
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-enqueue-priority-ineligible.h
+test-includes: []
+test-local-includes:
+- tr-tq-enqueue-priority-ineligible.h
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
+
+    #if defined( RTEMS_SMP )
+    if ( UsesProcessors( ctx ) ) {
+      RemoveProcessor( SCHEDULER_C_ID, 3 );
+      AddProcessor( SCHEDULER_D_ID, 3 );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_D_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_B_ID, PRIO_LOW );
+
+      if ( IsSticky( ctx ) ) {
+        TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_C, SCHEDULER_C_ID, PRIO_HIGH );
+      }
+    }
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  static bool UsesProcessors( const Context *ctx )
+  {
+    return !ctx->home_only && rtems_scheduler_get_processor_maximum() >= 4;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static Thread_queue_Queue *GetQueue( const Context *ctx )
+  {
+    Thread_queue_Queue *queue;
+
+    queue = ctx->tq_ctx->worker_tcb[ ctx->order[ 0 ] ]->Wait.queue;
+    T_assert_not_null( queue );
+    return queue;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue occupies a processor of its home
+   * scheduler, so the enqueueing thread uses scheduler C as its home scheduler.
+   * The runner owns the thread queue and uses the only processor of scheduler
+   * A.
+   */
+  static rtems_id HomeScheduler( const Context *ctx )
+  {
+    return IsSticky( ctx ) ? SCHEDULER_C_ID : SCHEDULER_A_ID;
+  }
+
+  /*
+   * The thread queue contained no priority queue of the home scheduler, so the
+   * map of the enqueue states a new priority queue after the other priority
+   * queues.
+   */
+  static void CheckEligible( const Context *ctx )
+  {
+    const TQPriorityQueueSnapshot *queue;
+    size_t                         index;
+
+    index = TQSnapshotFind( &ctx->after, HomeScheduler( ctx ) );
+    T_eq_sz( index, 2 );
+
+    if ( index == SIZE_MAX ) {
+      return;
+    }
+
+    queue = &ctx->after.queue[ index ];
+    T_eq_sz( queue->count, 1 );
+    T_eq_ptr( queue->thread[ 0 ], ctx->tq_ctx->worker_tcb[ TQ_BLOCKER_C ] );
+  }
+
+  static void CheckOrder( const Context *ctx )
+  {
+    T_eq_sz( ctx->before.count, 2 );
+    T_eq_sz( ctx->after.count, 3 );
+    T_eq_ptr(
+      ctx->before.queue[ 0 ].scheduler,
+      ctx->after.queue[ 0 ].scheduler
+    );
+    T_eq_ptr(
+      ctx->before.queue[ 1 ].scheduler,
+      ctx->after.queue[ 1 ].scheduler
+    );
+    T_eq_ptr(
+      ctx->after.queue[ 0 ].thread[ 0 ],
+      ctx->tq_ctx->worker_tcb[ ctx->order[ 0 ] ]
+    );
+  }
+test-target: testsuites/validation/tr-tq-enqueue-priority-ineligible.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+
+    #if defined( RTEMS_SMP )
+    if ( UsesProcessors( ctx ) ) {
+      RemoveProcessor( SCHEDULER_D_ID, 3 );
+      AddProcessor( SCHEDULER_C_ID, 3 );
+    }
+    #endif
+  description: null
+text: |
+  When the calling task is enqueued on the thread queue.
+transition-map:
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionEligible: AsOne
+    QueueOrder: Kept
+  pre-conditions:
+    QueueIneligible: all
+type: requirement

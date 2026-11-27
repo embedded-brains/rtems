@@ -7,6 +7,8 @@ links:
 - role: interface-function
   uid: ../if/obtain
 - role: function-implementation
+  uid: /score/tq/req/extract-priority
+- role: function-implementation
   uid: /score/tq/req/timeout
 - role: function-implementation
   uid: /score/tq/req/timeout-mrsp
@@ -22,24 +24,39 @@ post-conditions:
     text: |
       The semaphore obtain timeout actions shall be done as specified by
       ${/score/tq/req/timeout:/spec}.
+  - name: TimeoutPriority
+    test-code: |
+      ctx->tq_ctx.wait = TQ_WAIT_TIMED;
+      ${/score/tq/req/timeout:/test-run}( &ctx->tq_ctx );
+      ${/score/tq/req/extract-priority:/test-run}(
+        &ctx->tq_ctx,
+        ( ctx->attribute_set & RTEMS_PRIORITY_CEILING ) != 0
+      );
+    text: |
+      The semaphore obtain timeout actions shall be done as specified by
+      ${/score/tq/req/timeout:/spec} and ${/score/tq/req/extract-priority:/spec}.
   - name: TimeoutMrsP
     test-code: |
       #if defined( RTEMS_SMP )
         ctx->tq_ctx.wait = TQ_WAIT_TIMED;
         ${/score/tq/req/timeout-mrsp:/test-run}( &ctx->tq_ctx );
+        ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_ctx, false );
       #else
         T_unreachable();
       #endif
     text: |
       The semaphore obtain timeout actions shall be done as specified by
-      ${/score/tq/req/timeout-mrsp:/spec}.
+      ${/score/tq/req/timeout-mrsp:/spec} and
+      ${/score/tq/req/extract-priority:/spec}.
   - name: TimeoutPriorityInherit
     test-code: |
       ctx->tq_ctx.wait = TQ_WAIT_FOREVER;
       ${/score/tq/req/timeout-priority-inherit:/test-run}( &ctx->tq_ctx );
+      ${/score/tq/req/extract-priority:/test-run}( &ctx->tq_ctx, false );
     text: |
       The semaphore obtain timeout actions shall be done as specified by
-      ${/score/tq/req/timeout-priority-inherit:/spec}.
+      ${/score/tq/req/timeout-priority-inherit:/spec} and
+      ${/score/tq/req/extract-priority:/spec}.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
@@ -147,6 +164,7 @@ test-includes:
 - rtems.h
 - string.h
 test-local-includes:
+- tr-tq-extract-priority.h
 - tr-tq-timeout.h
 - tr-tq-timeout-priority-inherit.h
 - tx-thread-queue.h
@@ -186,6 +204,10 @@ transition-map:
         pre-conditions:
           Class: PrioInherit
       then: TimeoutPriorityInherit
+    - if:
+        pre-conditions:
+          Discipline: Priority
+      then: TimeoutPriority
     - else: Timeout
   pre-conditions:
     Class: all

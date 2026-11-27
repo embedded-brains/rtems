@@ -1,0 +1,598 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: Extract
+  states:
+  - name: All
+    test-code: |
+      CheckExtract( ctx );
+    text: |
+      The thread queue extract operation shall remove the extracted thread from each
+      priority queue of the thread queue.
+  test-epilogue: null
+  test-prologue: null
+- name: EmptyQueue
+  states:
+  - name: Removed
+    test-code: |
+      CheckEmptyQueues( ctx );
+    text: |
+      The thread queue extract operation shall remove each priority queue which
+      contains no thread after the removal of the extracted thread from the thread
+      queue.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Kept
+    test-code: |
+      CheckOrder( ctx );
+    text: |
+      The thread queue extract operation shall not change the order of the priority
+      queues of the thread queue.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: TargetQueueThreads
+  states:
+  - name: One
+    test-code: |
+      ctx->neighbor = false;
+
+      if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the priority queue associated with the ${/glossary/scheduler-home:/term}
+      of the extracted thread contains no other thread.
+  - name: More
+    test-code: |
+      ctx->neighbor = true;
+
+      if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the priority queue associated with the ${/glossary/scheduler-home:/term}
+      of the extracted thread contains at least one other thread.
+  test-epilogue: null
+  test-prologue: null
+- name: TargetQueues
+  states:
+  - name: Only
+    test-code: |
+      ctx->helping = false;
+      ctx->alone = false;
+    text: |
+      While the extracted thread is contained in no other priority queue of the
+      thread queue.
+  - name: Shared
+    test-code: |
+      ctx->helping = true;
+      ctx->alone = false;
+
+      if ( !HasProcessors( 2 ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the extracted thread is contained in another priority queue of the thread
+      queue, while this priority queue contains at least one other thread.
+  - name: Alone
+    test-code: |
+      ctx->helping = true;
+      ctx->alone = true;
+
+      if ( !HasProcessors( 2 ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the extracted thread is contained in another priority queue of the thread
+      queue, while this priority queue contains no other thread.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherQueue
+  states:
+  - name: None
+    test-code: |
+      ctx->other = OTHER_NONE;
+    text: |
+      While each priority queue of the thread queue contains the extracted thread.
+  - name: Present
+    representatives:
+    - name: Before
+      test-code: |
+        ctx->other = OTHER_BEFORE;
+    - name: Between
+      test-code: |
+        if ( !ctx->helping || ( ctx->alone && !ctx->neighbor ) ) {
+          ${.:skip}
+        } else {
+          ctx->other = OTHER_BETWEEN;
+        }
+    - name: After
+      test-code: |
+        ctx->other = OTHER_AFTER;
+    test-code: |
+      if ( !HasThirdScheduler( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue which does not contain the
+      extracted thread.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension TargetQueueThreads covers whether the priority queue of the home
+  scheduler of the extracted thread contains another thread, 2 states.
+
+  Dimension TargetQueues covers the other priority queues which contain the
+  extracted thread, 3 states.
+
+  Dimension OtherQueue covers a priority queue which does not contain the
+  extracted thread, 2 states. The state Present has three representatives. In the
+  representatives Before and After, this priority queue is positioned before or
+  after each priority queue which contains the extracted thread. In the
+  representative Between, it is positioned between two such priority queues. This
+  needs a priority queue of the extracted thread which exists before the other
+  priority queue, so the representative skips a run without it.
+
+  The test extracts the thread through the thread timeout. A task delete and a
+  task restart extract a waiting thread through the same operation.
+
+  The sticky variant runs on at least four processors. A thread which waits in a
+  sticky enqueue occupies a processor of its home scheduler. The test needs these
+  processors to set up the states. A system with two processors reaches the same
+  states without them. The test skips the sticky variant on a system with less
+  than four processors.
+requirement-type: functional
+skip-reasons:
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  static const Role order[ 4 ][ ROLE_COUNT ] = {
+    { ROLE_OTHER, ROLE_TARGET, ROLE_NEIGHBOR, ROLE_SHARER },
+    { ROLE_NEIGHBOR, ROLE_OTHER, ROLE_TARGET, ROLE_SHARER },
+    { ROLE_SHARER, ROLE_OTHER, ROLE_TARGET, ROLE_NEIGHBOR },
+    { ROLE_TARGET, ROLE_NEIGHBOR, ROLE_SHARER, ROLE_OTHER }
+  };
+
+  const Role      *roles;
+  Per_CPU_Control *cpu_self;
+  rtems_event_set  events;
+  size_t           i;
+  TQWait           wait;
+
+  /*
+   * The thread timeout of a thread which waits with a timeout would leave the
+   * watchdog of the thread armed.
+   */
+  wait = ctx->tq_ctx->wait;
+  ctx->tq_ctx->wait = TQ_WAIT_FOREVER;
+  SetSelfPriority( PRIO_VERY_LOW );
+  ctx->tq_ctx->how_many = 1;
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueuePrepare( ctx->tq_ctx );
+  } else {
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  }
+
+  if ( ctx->helping ) {
+    TQSendAndWaitForExecutionStop(
+      ctx->tq_ctx,
+      TQ_BLOCKER_C,
+      TQ_EVENT_MUTEX_A_OBTAIN
+    );
+    TQSendAndWaitForExecutionStop(
+      ctx->tq_ctx,
+      TQ_BLOCKER_E,
+      TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
+    );
+  }
+
+  if ( ctx->other == OTHER_BEFORE ) {
+    roles = order[ 0 ];
+  } else if ( ctx->other == OTHER_BETWEEN && ctx->neighbor ) {
+    roles = order[ 1 ];
+  } else if ( ctx->other == OTHER_BETWEEN ) {
+    roles = order[ 2 ];
+  } else {
+    roles = order[ 3 ];
+  }
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    Role role;
+
+    role = roles[ i ];
+
+    if ( HasRole( ctx, role ) ) {
+      events = TQ_EVENT_ENQUEUE;
+
+      if ( role != ROLE_TARGET ) {
+        events |= TQ_EVENT_SURRENDER;
+      }
+
+      TQClearDone( ctx->tq_ctx, role_worker[ role ] );
+      Enqueue( ctx, role_worker[ role ], events );
+      ++ctx->tq_ctx->how_many;
+    }
+  }
+
+  ctx->queue = GetTarget( ctx )->Wait.queue;
+  T_assert_not_null( ctx->queue );
+  TQTakeSnapshot( &ctx->before, ctx->queue );
+
+  cpu_self = _Thread_Dispatch_disable();
+  TQTimeout( ctx->tq_ctx->worker_tcb[ TQ_BLOCKER_C ] );
+  _Thread_Dispatch_direct( cpu_self );
+
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  ctx->target_done = true;
+  TQTakeSnapshot( &ctx->after, ctx->queue );
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    ctx->waits[ i ] = ctx->tq_ctx->worker_tcb[ role_worker[ i ] ]
+                        ->Wait.queue == ctx->queue;
+  }
+
+  if ( ctx->helping ) {
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_C, TQ_EVENT_MUTEX_A_RELEASE );
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  }
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueueDone( ctx->tq_ctx );
+  } else {
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  }
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    if ( HasRole( ctx, (Role) i ) ) {
+      TQWaitForDone( ctx->tq_ctx, role_worker[ i ] );
+      TQWaitForExecutionStop( ctx->tq_ctx, role_worker[ i ] );
+    }
+  }
+
+  if ( ctx->helping ) {
+    TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
+    TQMutexRelease( ctx->tq_ctx, TQ_MUTEX_A );
+  }
+
+  SetSelfPriority( PRIO_NORMAL );
+  ctx->tq_ctx->wait = wait;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member is true, if the priority queue of the home scheduler of the
+    extracted thread contains another thread.
+  description: null
+  member: |
+    bool neighbor
+- brief: |
+    This member is true, if the extracted thread has a helping scheduler.
+  description: null
+  member: |
+    bool helping
+- brief: |
+    This member is true, if the priority queue associated with the helping
+    scheduler of the extracted thread contains no other thread.
+  description: null
+  member: |
+    bool alone
+- brief: |
+    This member specifies the position of the priority queue which does not contain
+    the extracted thread.
+  description: null
+  member: |
+    Other other
+- brief: |
+    This member is true, if the extracted thread returned from the enqueue.
+  description: null
+  member: |
+    bool target_done
+- brief: |
+    This member references the thread queue.
+  description: null
+  member: |
+    Thread_queue_Queue *queue
+- brief: |
+    This member specifies for each role, if its thread waits on the thread queue
+    after the extract.
+  description: null
+  member: |
+    bool waits[ ROLE_COUNT ]
+- brief: |
+    This member contains the priority queues before the extract.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues after the extract.
+  description: null
+  member: |
+    TQSnapshot after
+test-context-support: |
+  typedef enum {
+    ROLE_TARGET,
+    ROLE_NEIGHBOR,
+    ROLE_SHARER,
+    ROLE_OTHER,
+    ROLE_COUNT
+  } Role;
+
+  typedef enum { OTHER_NONE, OTHER_BEFORE, OTHER_BETWEEN, OTHER_AFTER } Other;
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-extract-priority.h
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
+test-local-includes:
+- tr-tq-extract-priority.h
+test-prepare: |
+  ctx->target_done = false;
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, PRIO_NORMAL );
+
+    #if defined( RTEMS_SMP )
+    Setup( ctx );
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static const TQWorkerKind role_worker[ ROLE_COUNT ] =
+    { TQ_BLOCKER_C, TQ_BLOCKER_B, TQ_WORKER_F, TQ_HELPER_C };
+
+  static bool HasProcessors( uint32_t count )
+  {
+    return rtems_scheduler_get_processor_maximum() >= count;
+  }
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static bool HasRole( const Context *ctx, Role role )
+  {
+    switch ( role ) {
+      case ROLE_TARGET:
+        return true;
+      case ROLE_NEIGHBOR:
+        return ctx->neighbor;
+      case ROLE_SHARER:
+        return ctx->helping && !ctx->alone;
+      default:
+        return ctx->other != OTHER_NONE;
+    }
+  }
+
+  static rtems_id GetThirdScheduler( const Context *ctx )
+  {
+    return IsSticky( ctx ) ? SCHEDULER_E_ID : SCHEDULER_C_ID;
+  }
+
+  /*
+   * The test suite configuration may provide less schedulers than processors.
+   */
+  static bool HasThirdScheduler( const Context *ctx )
+  {
+    rtems_status_code sc;
+    cpu_set_t         set;
+
+    CPU_ZERO( &set );
+    sc = rtems_scheduler_get_processor_set(
+      GetThirdScheduler( ctx ),
+      sizeof( set ),
+      &set
+    );
+
+    return sc == RTEMS_SUCCESSFUL && CPU_COUNT( &set ) > 0;
+  }
+
+  #if defined( RTEMS_SMP )
+  /*
+   * A thread which waits in a sticky enqueue occupies a processor of its home
+   * scheduler.  The runner owns the thread queue and uses the only processor of
+   * scheduler A.
+   */
+  static void Setup( Context *ctx )
+  {
+    rtems_id first;
+
+    if ( IsSticky( ctx ) && !HasProcessors( 4 ) ) {
+      return;
+    }
+
+    if ( IsSticky( ctx ) ) {
+      first = SCHEDULER_C_ID;
+    } else {
+      first = SCHEDULER_A_ID;
+    }
+
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_C, first, PRIO_HIGH );
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_B, first, PRIO_NORMAL );
+
+    if ( HasProcessors( 2 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    }
+
+    if ( HasThirdScheduler( ctx ) ) {
+      TQSetScheduler(
+        ctx->tq_ctx,
+        TQ_HELPER_C,
+        GetThirdScheduler( ctx ),
+        PRIO_LOW
+      );
+    }
+  }
+  #endif
+
+  static const rtems_tcb *GetTarget( const Context *ctx )
+  {
+    return ctx->tq_ctx->worker_tcb[ role_worker[ ROLE_TARGET ] ];
+  }
+
+  /*
+   * The expected priority queues after the extract are the priority queues
+   * before the extract which keep a thread after the removal of the target
+   * thread.
+   */
+  static void CheckOrder( const Context *ctx )
+  {
+    const TQSnapshot *before;
+    size_t            count;
+    size_t            i;
+
+    before = &ctx->before;
+    count = 0;
+
+    for ( i = 0; i < before->count; ++i ) {
+      const TQPriorityQueueSnapshot *queue;
+
+      queue = &before->queue[ i ];
+
+      if (
+        queue->count -
+          ( TQSnapshotContains( queue, GetTarget( ctx ) ) ? 1 : 0 ) >
+        0
+      ) {
+        T_lt_sz( count, ctx->after.count );
+
+        if ( count < ctx->after.count ) {
+          T_eq_ptr( ctx->after.queue[ count ].scheduler, queue->scheduler );
+        }
+
+        ++count;
+      }
+    }
+
+    T_eq_sz( ctx->after.count, count );
+  }
+
+  static void CheckExtract( const Context *ctx )
+  {
+    size_t i;
+
+    T_true( ctx->target_done );
+
+    for ( i = 0; i < ctx->after.count; ++i ) {
+      T_false( TQSnapshotContains( &ctx->after.queue[ i ], GetTarget( ctx ) ) );
+    }
+
+    for ( i = ROLE_NEIGHBOR; i < ROLE_COUNT; ++i ) {
+      if ( HasRole( ctx, (Role) i ) ) {
+        T_true( ctx->waits[ i ] );
+      }
+    }
+  }
+
+  static void CheckEmptyQueues( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < ctx->after.count; ++i ) {
+      T_gt_sz( ctx->after.queue[ i ].count, 0 );
+    }
+  }
+test-target: testsuites/validation/tr-tq-extract-priority.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_A_ID, PRIO_LOW );
+  description: null
+text: |
+  When a thread is extracted from the thread queue.
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Extract: All
+    EmptyQueue: Removed
+    QueueOrder: Kept
+  pre-conditions:
+    TargetQueueThreads: all
+    TargetQueues:
+    - Only
+    OtherQueue:
+    - None
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Extract: All
+    EmptyQueue: Removed
+    QueueOrder: Kept
+  pre-conditions:
+    TargetQueueThreads: all
+    TargetQueues:
+    - Shared
+    - Alone
+    OtherQueue: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Extract: All
+    EmptyQueue: Removed
+    QueueOrder: Kept
+  pre-conditions:
+    TargetQueueThreads: all
+    TargetQueues:
+    - Only
+    OtherQueue:
+    - Present
+type: requirement

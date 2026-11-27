@@ -1,0 +1,439 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: requirement-refinement
+  uid: ../if/group
+post-conditions:
+- name: Thread
+  states:
+  - name: Removed
+    test-code: |
+      CheckThread( ctx );
+    text: |
+      The thread queue shall remove the thread from the priority queue associated
+      with the ${/glossary/scheduler-helping:/term} which is removed from the thread.
+  test-epilogue: null
+  test-prologue: null
+- name: RemovedQueue
+  states:
+  - name: Removed
+    test-code: |
+      CheckRemovedQueue( ctx, false );
+    text: |
+      The thread queue shall remove the priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is removed from the thread.
+  - name: Kept
+    test-code: |
+      CheckRemovedQueue( ctx, true );
+    text: |
+      The priority queue associated with the ${/glossary/scheduler-helping:/term}
+      which is removed from the thread shall keep its other threads in their order.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Kept
+    test-code: |
+      CheckOrder( ctx );
+    text: |
+      The removal of the ${/glossary/scheduler-helping:/term} shall not change the
+      order of the other priority queues of the thread queue.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: RemovedQueue
+  states:
+  - name: Alone
+    test-code: |
+      ctx->waiter_priority = PRIO_INVALID;
+
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is removed from the thread contains
+      no other thread.
+  - name: Shared
+    representatives:
+    - name: ThreadFirst
+      test-code: |
+        ctx->waiter_priority = PRIO_NORMAL;
+    - name: ThreadSecond
+      test-code: |
+        ctx->waiter_priority = PRIO_VERY_HIGH;
+    test-code: |
+      if ( !HasProcessors( 2 ) || IsSticky( ctx ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the priority queue associated with the
+      ${/glossary/scheduler-helping:/term} which is removed from the thread contains
+      at least one other thread.
+  test-epilogue: null
+  test-prologue: null
+- name: OtherQueue
+  states:
+  - name: None
+    test-code: |
+      ctx->other = OTHER_NONE;
+    text: |
+      While each priority queue of the thread queue is associated with the
+      ${/glossary/scheduler-home:/term} of the thread or with the
+      ${/glossary/scheduler-helping:/term} which is removed from the thread.
+  - name: Present
+    representatives:
+    - name: Before
+      test-code: |
+        ctx->other = OTHER_BEFORE;
+    - name: After
+      test-code: |
+        ctx->other = OTHER_AFTER;
+    test-code: |
+      if ( !HasProcessors( 3 ) || ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue which is associated with a
+      ${/glossary/scheduler:/term} other than the ${/glossary/scheduler-home:/term}
+      of the thread and the ${/glossary/scheduler-helping:/term} which is removed
+      from the thread.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension RemovedQueue covers the other threads of the priority queue of the
+  removed helping scheduler, 2 states. The state Shared has two representatives.
+  In the representative ThreadFirst, the thread is the first thread of this
+  priority queue. In the representative ThreadSecond, it is the second thread.
+
+  Dimension OtherQueue covers a priority queue of a third scheduler, 2 states.
+  The state Present has two representatives. This priority queue is positioned
+  before or after the priority queue of the removed helping scheduler.
+
+  The test adds the helping scheduler through a thread which waits for a mutex
+  with the priority inheritance locking protocol owned by the thread. A restart
+  of this thread removes the helping scheduler. A thread which waits for a mutex
+  with the MrsP locking protocol occupies a processor, so the test skips the
+  sticky enqueue.
+requirement-type: functional
+skip-reasons:
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+test-action: |
+  rtems_status_code sc;
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQSetPriority( ctx->tq_ctx, TQ_WORKER_F, ctx->waiter_priority );
+  }
+
+  SetSelfPriority( PRIO_ULTRA_LOW );
+  ctx->tq_ctx->how_many = 1;
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  TQSendAndWaitForExecutionStop(
+    ctx->tq_ctx,
+    TQ_BLOCKER_C,
+    TQ_EVENT_MUTEX_A_OBTAIN
+  );
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  Enqueue(
+    ctx,
+    TQ_BLOCKER_C,
+    TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_MUTEX_A_RELEASE
+  );
+  ++ctx->tq_ctx->how_many;
+
+  if ( ctx->other == OTHER_BEFORE ) {
+    EnqueueOther( ctx );
+  }
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQClearDone( ctx->tq_ctx, TQ_WORKER_F );
+    Enqueue( ctx, TQ_WORKER_F, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  ctx->queue = GetTCB( ctx, TQ_BLOCKER_C )->Wait.queue;
+  T_assert_not_null( ctx->queue );
+  TQSendAndWaitForExecutionStop(
+    ctx->tq_ctx,
+    TQ_BLOCKER_E,
+    TQ_EVENT_MUTEX_A_OBTAIN
+  );
+
+  if ( ctx->other == OTHER_AFTER ) {
+    EnqueueOther( ctx );
+  }
+
+  TQTakeSnapshot( &ctx->before, ctx->queue );
+
+  /*
+   * The restart extracts the thread from the thread queue of mutex A, so the
+   * waiting thread loses the helping scheduler.
+   */
+  sc = rtems_task_restart(
+    ctx->tq_ctx->worker_id[ TQ_BLOCKER_E ],
+    (rtems_task_argument) ctx->tq_ctx
+  );
+  T_rsc_success( sc );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_E );
+  TQTakeSnapshot( &ctx->after, ctx->queue );
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_C );
+
+  if ( ctx->waiter_priority != PRIO_INVALID ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_WORKER_F );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_WORKER_F );
+  }
+
+  if ( ctx->other != OTHER_NONE ) {
+    TQWaitForDone( ctx->tq_ctx, TQ_HELPER_C );
+    TQWaitForExecutionStop( ctx->tq_ctx, TQ_HELPER_C );
+  }
+
+  TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
+  TQMutexRelease( ctx->tq_ctx, TQ_MUTEX_A );
+  SetSelfPriority( PRIO_NORMAL );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the priority of the other thread in the priority queue of
+    the removed helping scheduler. PRIO_INVALID means that this priority queue
+    contains no other thread.
+  description: null
+  member: |
+    rtems_task_priority waiter_priority
+- brief: |
+    This member specifies the position of the priority queue of a third scheduler.
+  description: null
+  member: |
+    Other other
+- brief: |
+    This member references the thread queue.
+  description: null
+  member: |
+    Thread_queue_Queue *queue
+- brief: |
+    This member contains the priority queues before the removal.
+  description: null
+  member: |
+    TQSnapshot before
+- brief: |
+    This member contains the priority queues after the removal.
+  description: null
+  member: |
+    TQSnapshot after
+test-context-support: |
+  typedef enum { OTHER_NONE, OTHER_BEFORE, OTHER_AFTER } Other;
+test-description: null
+test-header:
+  code: null
+  freestanding: false
+  includes: []
+  local-includes:
+  - tx-thread-queue.h
+  run-params:
+  - description: |
+      is the thread queue context.
+    dir: inout
+    name: tq_ctx
+    specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
+  target: testsuites/validation/tr-tq-helping-remove-priority.h
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
+test-local-includes:
+- tr-tq-helping-remove-priority.h
+test-prepare: null
+test-setup:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
+
+    #if defined( RTEMS_SMP )
+    Setup( ctx );
+    #endif
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  static bool HasProcessors( uint32_t count )
+  {
+    return rtems_scheduler_get_processor_maximum() >= count;
+  }
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  static const rtems_tcb *GetTCB( const Context *ctx, TQWorkerKind worker )
+  {
+    return ctx->tq_ctx->worker_tcb[ worker ];
+  }
+
+  #if defined( RTEMS_SMP )
+  static void Setup( Context *ctx )
+  {
+    if ( HasProcessors( 2 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    }
+
+    if ( HasProcessors( 3 ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_C_ID, PRIO_LOW );
+    }
+  }
+  #endif
+
+  static void EnqueueOther( Context *ctx )
+  {
+    TQClearDone( ctx->tq_ctx, TQ_HELPER_C );
+    Enqueue( ctx, TQ_HELPER_C, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  static void CheckThread( const Context *ctx )
+  {
+    size_t index;
+
+    index = TQSnapshotFind( &ctx->after, SCHEDULER_B_ID );
+
+    if ( index != SIZE_MAX ) {
+      T_false( TQSnapshotContains(
+        &ctx->after.queue[ index ],
+        GetTCB( ctx, TQ_BLOCKER_C )
+      ) );
+    }
+
+    index = TQSnapshotFind( &ctx->after, SCHEDULER_A_ID );
+    T_ne_sz( index, SIZE_MAX );
+
+    if ( index != SIZE_MAX ) {
+      T_true( TQSnapshotContains(
+        &ctx->after.queue[ index ],
+        GetTCB( ctx, TQ_BLOCKER_C )
+      ) );
+    }
+  }
+
+  static void CheckRemovedQueue( const Context *ctx, bool kept )
+  {
+    const TQPriorityQueueSnapshot *queue;
+    size_t                         index;
+
+    index = TQSnapshotFind( &ctx->after, SCHEDULER_B_ID );
+
+    if ( !kept ) {
+      T_eq_sz( index, SIZE_MAX );
+      return;
+    }
+
+    T_ne_sz( index, SIZE_MAX );
+
+    if ( index == SIZE_MAX ) {
+      return;
+    }
+
+    queue = &ctx->after.queue[ index ];
+    T_eq_sz( queue->count, 1 );
+    T_eq_ptr( queue->thread[ 0 ], GetTCB( ctx, TQ_WORKER_F ) );
+  }
+
+  /*
+   * The expected priority queues after the removal are the priority queues
+   * before the removal without an empty priority queue of the removed helping
+   * scheduler.
+   */
+  static void CheckOrder( const Context *ctx )
+  {
+    const Scheduler_Control *removed;
+    size_t                   count;
+    size_t                   i;
+
+    removed = _Scheduler_Get_by_id( SCHEDULER_B_ID );
+    count = 0;
+
+    for ( i = 0; i < ctx->before.count; ++i ) {
+      const TQPriorityQueueSnapshot *queue;
+
+      queue = &ctx->before.queue[ i ];
+
+      if ( queue->scheduler == removed && queue->count == 1 ) {
+        continue;
+      }
+
+      T_lt_sz( count, ctx->after.count );
+
+      if ( count < ctx->after.count ) {
+        T_eq_ptr( ctx->after.queue[ count ].scheduler, queue->scheduler );
+      }
+
+      ++count;
+    }
+
+    T_eq_sz( ctx->after.count, count );
+  }
+test-target: testsuites/validation/tr-tq-helping-remove-priority.c
+test-teardown:
+  brief: null
+  code: |
+    TQReset( ctx->tq_ctx );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_A_ID, PRIO_LOW );
+  description: null
+text: |
+  When a helping scheduler is removed from a thread which waits on the thread
+  queue.
+transition-map:
+- enabled-by: true
+  post-conditions: NoOtherScheduler
+  pre-conditions: default
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    Thread: Removed
+    RemovedQueue:
+    - if:
+        pre-conditions:
+          RemovedQueue: Alone
+      then: Removed
+    - else: Kept
+    QueueOrder: Kept
+  pre-conditions:
+    RemovedQueue: all
+    OtherQueue: all
+type: requirement

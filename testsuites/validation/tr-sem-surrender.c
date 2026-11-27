@@ -36,6 +36,7 @@
 #endif
 
 #include "tr-sem-surrender.h"
+#include "tr-tq-surrender-priority.h"
 #include "tr-tq-surrender.h"
 
 #include <rtems/test.h>
@@ -44,6 +45,7 @@
  * @defgroup ScoreSemReqSurrender spec:/score/sem/req/surrender
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
@@ -83,6 +85,12 @@ typedef struct {
    *   semaphore.
    */
   bool blocked;
+
+  /**
+   * @brief This member is true, if the test ran the test cases of the dequeue
+   *   in priority order.
+   */
+  bool dequeue_done;
 
   /**
    * @brief This member contains a copy of the corresponding
@@ -309,9 +317,14 @@ static void ScoreSemReqSurrender_Post_Surrender_Check(
 
     case ScoreSemReqSurrender_Post_Surrender_Priority: {
       /*
-       * The thread queue of the semaphore shall be surrendered in priority
-       * order.
+       * The thread queue of the semaphore shall be surrendered as specified by
+       * spec:/score/tq/req/surrender-priority.
        */
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ScoreTqReqSurrenderPriority_Run( &ctx->tq_ctx->base, false );
+      }
+
       ScoreTqReqSurrender_Run( &ctx->tq_ctx->base );
       break;
     }
@@ -366,6 +379,7 @@ static void ScoreSemReqSurrender_Post_Count_Check(
 
 static void ScoreSemReqSurrender_Setup( ScoreSemReqSurrender_Context *ctx )
 {
+  ctx->dequeue_done = false;
   ctx->tq_ctx->base.wait = TQ_WAIT_FOREVER;
   TQReset( &ctx->tq_ctx->base );
 }

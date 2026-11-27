@@ -6,6 +6,8 @@ functional-type: action
 links:
 - role: function-implementation
   uid: /score/tq/req/surrender
+- role: function-implementation
+  uid: /score/tq/req/surrender-priority
 - role: requirement-refinement
   uid: ../if/group
 post-conditions:
@@ -34,9 +36,15 @@ post-conditions:
       The thread queue of the semaphore shall be surrendered in FIFO order.
   - name: Priority
     test-code: |
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ${../../tq/req/surrender-priority:/test-run}( &ctx->tq_ctx->base, false );
+      }
+
       ${../../tq/req/surrender:/test-run}( &ctx->tq_ctx->base );
     text: |
-      The thread queue of the semaphore shall be surrendered in priority order.
+      The thread queue of the semaphore shall be surrendered as specified by
+      ${../../tq/req/surrender-priority:/spec}.
   test-epilogue: null
   test-prologue: null
 - name: Count
@@ -187,6 +195,12 @@ test-context:
   description: null
   member: |
     bool blocked
+- brief: |
+    This member is true, if the test ran the test cases of the dequeue in priority
+    order.
+  description: null
+  member: |
+    bool dequeue_done
 test-context-support: null
 test-description: null
 test-header:
@@ -205,11 +219,13 @@ test-header:
 test-includes: []
 test-local-includes:
 - tr-sem-surrender.h
+- tr-tq-surrender-priority.h
 - tr-tq-surrender.h
 test-prepare: null
 test-setup:
   brief: null
   code: |
+    ctx->dequeue_done = false;
     ctx->tq_ctx->base.wait = TQ_WAIT_FOREVER;
     TQReset( &ctx->tq_ctx->base );
   description: null

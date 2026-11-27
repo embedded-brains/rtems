@@ -7,284 +7,859 @@ links:
 - role: requirement-refinement
   uid: ../if/group
 post-conditions:
-- name: Position
+- name: PositionHome
   states:
-  - name: InitialFirst
+  - name: Initial
     test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
+      CheckPosition( ctx, ROLE_HOME, PLACE_INITIAL );
     text: |
-      A priority queue associated with the scheduler which contains exactly the
-      enqueueing thread shall be created as the first priority queue of the thread
-      queue.
-  - name: InitialLast
-    test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_D ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-    text: |
-      A priority queue associated with the scheduler which contains exactly the
-      enqueueing thread shall be created as the last priority queue of the thread
-      queue.
+      A priority queue which contains exactly the enqueueing thread and which is
+      associated with the ${/glossary/scheduler-home:/term} of the enqueueing thread
+      shall be positioned after each priority queue which the thread queue contained
+      before the enqueue.
   - name: First
     test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
+      CheckPosition( ctx, ROLE_HOME, PLACE_FIRST );
     text: |
-      The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
+      The enqueueing thread shall be enqueued as the first thread of the priority
+      queue associated with the ${/glossary/scheduler-home:/term} of the enqueueing
+      thread.
   - name: Second
     test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
+      CheckPosition( ctx, ROLE_HOME, PLACE_SECOND );
     text: |
       The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
-  - name: FirstFirst
-    test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_D ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-    text: |
-      The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
-
-      The position of the priority queue in the thread queue shall not change.
-  - name: SecondFirst
-    test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_D ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-    text: |
-      The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
-
-      The position of the priority queue in the thread queue shall not change.
-  - name: FirstLast
-    test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_D ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-    text: |
-      The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
-
-      The position of the priority queue in the thread queue shall not change.
-  - name: SecondLast
-    test-code: |
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_D ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_B ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-      T_eq_ptr( GetUnblock( ctx, &i ), NULL );
-    text: |
-      The enqueueing thread shall be enqueued in the priority queue associated with
-      the scheduler.
-
-      The position of the priority queue in the thread queue shall not change.
+      the ${/glossary/scheduler-home:/term} of the enqueueing thread after each
+      thread of the priority queue with a priority higher than or equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this ${/glossary/scheduler-home:/term} and before each thread of the priority
+      queue with a lower priority.
   test-epilogue: null
-  test-prologue: |
-    size_t i;
-
-    i = 0;
-
-    /* Event receives */
-    T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_C ) );
-    T_eq_ptr( GetUnblock( ctx, &i ), GetTCB( ctx, TQ_BLOCKER_A ) );
+  test-prologue: null
+- name: PositionFirstHelping
+  states:
+  - name: Absent
+    test-code: |
+      CheckPosition( ctx, ROLE_FIRST, PLACE_NONE );
+    text: |
+      The enqueueing thread shall not be enqueued in a priority queue associated with
+      the first ${/glossary/scheduler-helping:/term} of the enqueueing thread.
+  - name: Initial
+    test-code: |
+      CheckPosition( ctx, ROLE_FIRST, PLACE_INITIAL );
+    text: |
+      A priority queue which contains exactly the enqueueing thread and which is
+      associated with the first ${/glossary/scheduler-helping:/term} of the
+      enqueueing thread shall be positioned after each priority queue which the
+      thread queue contained before the enqueue and after the priority queue
+      associated with the ${/glossary/scheduler-home:/term} of the enqueueing thread.
+  - name: First
+    test-code: |
+      CheckPosition( ctx, ROLE_FIRST, PLACE_FIRST );
+    text: |
+      The enqueueing thread shall be enqueued as the first thread of the priority
+      queue associated with the first ${/glossary/scheduler-helping:/term} of the
+      enqueueing thread.
+  - name: Second
+    test-code: |
+      CheckPosition( ctx, ROLE_FIRST, PLACE_SECOND );
+    text: |
+      The enqueueing thread shall be enqueued in the priority queue associated with
+      the first ${/glossary/scheduler-helping:/term} of the enqueueing thread after
+      each thread of the priority queue with a priority higher than or equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this first ${/glossary/scheduler-helping:/term} and before each thread of the
+      priority queue with a lower priority.
+  test-epilogue: null
+  test-prologue: null
+- name: PositionSecondHelping
+  states:
+  - name: Absent
+    test-code: |
+      CheckPosition( ctx, ROLE_SECOND, PLACE_NONE );
+    text: |
+      The enqueueing thread shall not be enqueued in a priority queue associated with
+      the second ${/glossary/scheduler-helping:/term} of the enqueueing thread.
+  - name: Initial
+    test-code: |
+      CheckPosition( ctx, ROLE_SECOND, PLACE_INITIAL );
+    text: |
+      A priority queue which contains exactly the enqueueing thread and which is
+      associated with the second ${/glossary/scheduler-helping:/term} of the
+      enqueueing thread shall be positioned after each priority queue which the
+      thread queue contained before the enqueue and after the priority queues
+      associated with the ${/glossary/scheduler-home:/term} and the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread.
+  - name: First
+    test-code: |
+      CheckPosition( ctx, ROLE_SECOND, PLACE_FIRST );
+    text: |
+      The enqueueing thread shall be enqueued as the first thread of the priority
+      queue associated with the second ${/glossary/scheduler-helping:/term} of the
+      enqueueing thread.
+  - name: Second
+    test-code: |
+      CheckPosition( ctx, ROLE_SECOND, PLACE_SECOND );
+    text: |
+      The enqueueing thread shall be enqueued in the priority queue associated with
+      the second ${/glossary/scheduler-helping:/term} of the enqueueing thread after
+      each thread of the priority queue with a priority higher than or equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this second ${/glossary/scheduler-helping:/term} and before each thread of the
+      priority queue with a lower priority.
+  test-epilogue: null
+  test-prologue: null
+- name: PositionOtherHelping
+  states:
+  - name: Absent
+    test-code: |
+      CheckPosition( ctx, ROLE_OTHER, PLACE_NONE );
+    text: |
+      The enqueueing thread shall not be enqueued in a priority queue associated with
+      a ${/glossary/scheduler-helping:/term} of the enqueueing thread other than the
+      first and the second ${/glossary/scheduler-helping:/term}.
+  - name: Initial
+    test-code: |
+      CheckPosition( ctx, ROLE_OTHER, PLACE_INITIAL );
+    text: |
+      For each ${/glossary/scheduler-helping:/term} of the enqueueing thread other
+      than the first and the second ${/glossary/scheduler-helping:/term}, a priority
+      queue which contains exactly the enqueueing thread and which is associated with
+      this ${/glossary/scheduler-helping:/term} shall be positioned after each
+      priority queue which the thread queue contained before the enqueue, after the
+      priority queues associated with the ${/glossary/scheduler-home:/term}, the
+      first ${/glossary/scheduler-helping:/term}, and the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, and after the
+      priority queues associated with each ${/glossary/scheduler-helping:/term} which
+      became a ${/glossary/scheduler-helping:/term} of the enqueueing thread before
+      this ${/glossary/scheduler-helping:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueOrder
+  states:
+  - name: Kept
+    test-code: |
+      CheckOrder( ctx );
+    text: |
+      The order of the priority queues which the thread queue contained before the
+      enqueue shall not change.
+  test-epilogue: null
+  test-prologue: null
 pre-conditions:
 - name: EligibleScheduler
   states:
   - name: Home
     test-code: |
-      ctx->helping = false;
+      ctx->helping = 0;
+
+      if ( IsSticky( ctx ) && !HasFourProcessors() ) {
+        ${.:skip}
+      }
     text: |
-      While the enqueueing thread has no helping scheduler.
-  - name: Helping
+      While the enqueueing thread has no ${/glossary/scheduler-helping:/term}.
+  - name: One
     test-code: |
-      ctx->helping = true;
+      ctx->helping = 1;
+
+      if ( !HasFourProcessors() && ( IsSticky( ctx ) || !HasTwoProcessors() ) ) {
+        ${.:skip}
+      }
     text: |
-      While the enqueueing thread has at least one helping scheduler.
+      While the enqueueing thread has exactly one
+      ${/glossary/scheduler-helping:/term}.
+  - name: Two
+    test-code: |
+      ctx->helping = 2;
+
+      if ( !HasFourProcessors() || ( IsSticky( ctx ) && !HasFiveProcessors() ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the enqueueing thread has exactly two
+      ${/glossary/scheduler-helping:/plural}.
+  - name: More
+    test-code: |
+      ctx->helping = 3;
+    text: |
+      While the enqueueing thread has at least three
+      ${/glossary/scheduler-helping:/plural}, while the thread queue has no priority
+      queue associated with a ${/glossary/scheduler-helping:/term} of the enqueueing
+      thread other than the first and the second
+      ${/glossary/scheduler-helping:/term}.
   test-epilogue: null
   test-prologue: null
-- name: QueueEligible
+- name: QueueHome
   states:
-  - name: None
+  - name: Empty
     test-code: |
-      ctx->priority = PRIO_PSEUDO_ISR;
+      ctx->queue_priority[ ROLE_HOME ] = PRIO_INVALID;
     text: |
-      While all priority queues of the thread queue associated with eligible
-      schedulers of the enqueueing thread are empty.
+      While the thread queue has no priority queue associated with the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread.
   - name: High
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_HOME ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_HOME ] = true;
+        }
     test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->priority = PRIO_ULTRA_HIGH;
+      ctx->queue_priority[ ROLE_HOME ] = PRIO_VERY_HIGH;
+
+      if ( IsSticky( ctx ) ) {
+        ${.:skip}
+      }
     text: |
-      While a priority queue of the thread queue associated with an eligible
-      scheduler of the enqueueing thread is non-empty, while the highest priority of
-      the priority queue is higher than the priority of the enqueueing thread with
-      respect to the eligible scheduler.
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread, while the highest
+      priority of the priority queue is higher than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this ${/glossary/scheduler-home:/term}.
   - name: Equal
     test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->priority = PRIO_VERY_HIGH;
+      ctx->queue_priority[ ROLE_HOME ] = PRIO_HIGH;
     text: |
-      While a priority queue of the thread queue associated with an eligible
-      scheduler of the enqueueing thread is non-empty, while the highest priority of
-      the priority queue is equal to the priority of the enqueueing thread with
-      respect to the eligible scheduler.
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread, while the highest
+      priority of the priority queue is equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this ${/glossary/scheduler-home:/term}.
   - name: Low
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_HOME ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_HOME ] = true;
+        }
     test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->priority = PRIO_HIGH;
+      ctx->queue_priority[ ROLE_HOME ] = PRIO_NORMAL;
+
+      if ( IsSticky( ctx ) ) {
+        ${.:skip}
+      }
     text: |
-      While a priority queue of the thread queue associated with an eligible
-      scheduler of the enqueueing thread is non-empty, while the highest priority of
-      the priority queue is lower than the priority of the enqueueing thread with
-      respect to the eligible scheduler.
+      While the thread queue has a priority queue associated with the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread, while the highest
+      priority of the priority queue is lower than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this ${/glossary/scheduler-home:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueFirstHelping
+  states:
+  - name: Empty
+    test-code: |
+      ctx->queue_priority[ ROLE_FIRST ] = PRIO_INVALID;
+    text: |
+      While the thread queue has no priority queue associated with the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread.
+  - name: High
+    test-code: |
+      ctx->queue_priority[ ROLE_FIRST ] = PRIO_VERY_HIGH;
+
+      if ( ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is higher than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this first ${/glossary/scheduler-helping:/term}.
+  - name: Equal
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_FIRST ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_FIRST ] = true;
+        }
+    test-code: |
+      ctx->queue_priority[ ROLE_FIRST ] = PRIO_HIGH;
+
+      if ( ctx->home_only || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this first ${/glossary/scheduler-helping:/term}.
+  - name: Low
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_FIRST ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_FIRST ] = true;
+        }
+    test-code: |
+      ctx->queue_priority[ ROLE_FIRST ] = PRIO_NORMAL;
+
+      if ( ctx->home_only || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is lower than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this first ${/glossary/scheduler-helping:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: QueueSecondHelping
+  states:
+  - name: Empty
+    test-code: |
+      ctx->queue_priority[ ROLE_SECOND ] = PRIO_INVALID;
+    text: |
+      While the thread queue has no priority queue associated with the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread.
+  - name: High
+    test-code: |
+      ctx->queue_priority[ ROLE_SECOND ] = PRIO_VERY_HIGH;
+
+      if ( ctx->home_only ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is higher than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this second ${/glossary/scheduler-helping:/term}.
+  - name: Equal
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_SECOND ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_SECOND ] = true;
+        }
+    test-code: |
+      ctx->queue_priority[ ROLE_SECOND ] = PRIO_HIGH;
+
+      if ( ctx->home_only || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is equal to the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this second ${/glossary/scheduler-helping:/term}.
+  - name: Low
+    representatives:
+    - name: Alone
+      test-code: |
+        ctx->with_lower[ ROLE_SECOND ] = false;
+    - name: Lower
+      test-code: |
+        if ( HasLower( ctx ) ) {
+          ${.:skip}
+        } else {
+          ctx->with_lower[ ROLE_SECOND ] = true;
+        }
+    test-code: |
+      ctx->queue_priority[ ROLE_SECOND ] = PRIO_NORMAL;
+
+      if ( ctx->home_only || IsSticky( ctx ) ) {
+        ${.:skip}
+      }
+    text: |
+      While the thread queue has a priority queue associated with the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread, while the
+      highest priority of the priority queue is lower than the
+      ${/glossary/priority-eligible:/term} of the enqueueing thread with respect to
+      this second ${/glossary/scheduler-helping:/term}.
   test-epilogue: null
   test-prologue: null
 - name: QueueIneligible
   states:
   - name: None
     test-code: |
-      ctx->other_before = false;
-      ctx->other_after = false;
+      ctx->queue_priority[ ROLE_INELIGIBLE ] = PRIO_INVALID;
+      ctx->queue_priority[ ROLE_INELIGIBLE_LAST ] = PRIO_INVALID;
     text: |
-      While no priority queue of the thread queue exists which is not associated with
-      an eligible scheduler of the enqueueing thread.
-  - name: Only
+      While the thread queue has no priority queue associated with an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread.
+  - name: One
     test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = true;
-      ctx->other_after = false;
+      ctx->queue_priority[ ROLE_INELIGIBLE ] = PRIO_LOW;
+      ctx->queue_priority[ ROLE_INELIGIBLE_LAST ] = PRIO_INVALID;
+
+      if (
+        !HasFourProcessors() || ctx->home_only ||
+        ( IsSticky( ctx ) && !HasEightProcessors() && HasQueue( ctx, ROLE_HOME ) )
+      ) {
+        ${.:skip}
+      }
     text: |
-      While exactly one priority queue of the thread queue exists which is not
-      associated with an eligible scheduler of the enqueueing thread.
-  - name: Before
+      While the thread queue has exactly one priority queue associated with an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread.
+  - name: More
     test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = true;
-      ctx->other_after = false;
+      ctx->queue_priority[ ROLE_INELIGIBLE ] = PRIO_LOW;
+      ctx->queue_priority[ ROLE_INELIGIBLE_LAST ] = PRIO_LOW;
     text: |
-      While a priority queue of the thread queue exists which is not associated with
-      an eligible scheduler of the enqueueing thread, while this priority queue is
-      positioned before all priority queues which are associated with eligible
-      schedulers of the enqueueing thread.
-  - name: After
-    test-code: |
-      ++ctx->tq_ctx->how_many;
-      ctx->other_before = false;
-      ctx->other_after = true;
-    text: |
-      While a priority queue of the thread queue exists which is not associated with
-      an eligible scheduler of the enqueueing thread, while this priority queue is
-      positioned after all priority queues which are associated with eligible
-      schedulers of the enqueueing thread.
+      While the thread queue has at least two priority queues associated with
+      ${/glossary/scheduler-ineligible:/plural} of the enqueueing thread, while each
+      of these priority queues except one is positioned after each other priority
+      queue of the thread queue.
   test-epilogue: null
   test-prologue: null
-rationale: null
+- name: QueueOrder
+  states:
+  - name: HomeFirstSecondIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_FIRST, ROLE_SECOND, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, the first
+      ${/glossary/scheduler-helping:/term}, the second
+      ${/glossary/scheduler-helping:/term}, and an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are positioned
+      in this order, where a priority queue which the thread queue does not contain
+      is left out.
+  - name: HomeFirstIneligibleSecond
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_FIRST, ROLE_INELIGIBLE, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, the first
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: HomeSecondFirstIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_SECOND, ROLE_FIRST, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, the second
+      ${/glossary/scheduler-helping:/term}, the first
+      ${/glossary/scheduler-helping:/term}, and an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are positioned
+      in this order, where a priority queue which the thread queue does not contain
+      is left out.
+  - name: HomeSecondIneligibleFirst
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_SECOND, ROLE_INELIGIBLE, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, the second
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: HomeIneligibleFirstSecond
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_INELIGIBLE, ROLE_FIRST, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, an ${/glossary/scheduler-ineligible:/term},
+      the first ${/glossary/scheduler-helping:/term}, and the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: HomeIneligibleSecondFirst
+    test-code: |
+      SetOrder( ctx, ROLE_HOME, ROLE_INELIGIBLE, ROLE_SECOND, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with the
+      ${/glossary/scheduler-home:/term}, an ${/glossary/scheduler-ineligible:/term},
+      the second ${/glossary/scheduler-helping:/term}, and the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: FirstHomeSecondIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_HOME, ROLE_SECOND, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      the second ${/glossary/scheduler-helping:/term}, and an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are positioned
+      in this order, where a priority queue which the thread queue does not contain
+      is left out.
+  - name: FirstHomeIneligibleSecond
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_HOME, ROLE_INELIGIBLE, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: FirstSecondHomeIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_SECOND, ROLE_HOME, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, the second
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      and an ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are
+      positioned in this order, where a priority queue which the thread queue does
+      not contain is left out.
+  - name: FirstSecondIneligibleHome
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_SECOND, ROLE_INELIGIBLE, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, the second
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: FirstIneligibleHomeSecond
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_INELIGIBLE, ROLE_HOME, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, the ${/glossary/scheduler-home:/term},
+      and the second ${/glossary/scheduler-helping:/term} of the enqueueing thread
+      are positioned in this order, where a priority queue which the thread queue
+      does not contain is left out.
+  - name: FirstIneligibleSecondHome
+    test-code: |
+      SetOrder( ctx, ROLE_FIRST, ROLE_INELIGIBLE, ROLE_SECOND, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with the first
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, the second
+      ${/glossary/scheduler-helping:/term}, and the ${/glossary/scheduler-home:/term}
+      of the enqueueing thread are positioned in this order, where a priority queue
+      which the thread queue does not contain is left out.
+  - name: SecondHomeFirstIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_HOME, ROLE_FIRST, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      the first ${/glossary/scheduler-helping:/term}, and an
+      ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are positioned
+      in this order, where a priority queue which the thread queue does not contain
+      is left out.
+  - name: SecondHomeIneligibleFirst
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_HOME, ROLE_INELIGIBLE, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: SecondFirstHomeIneligible
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_FIRST, ROLE_HOME, ROLE_INELIGIBLE );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, the first
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      and an ${/glossary/scheduler-ineligible:/term} of the enqueueing thread are
+      positioned in this order, where a priority queue which the thread queue does
+      not contain is left out.
+  - name: SecondFirstIneligibleHome
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_FIRST, ROLE_INELIGIBLE, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, the first
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, and the
+      ${/glossary/scheduler-home:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: SecondIneligibleHomeFirst
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_INELIGIBLE, ROLE_HOME, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, the ${/glossary/scheduler-home:/term},
+      and the first ${/glossary/scheduler-helping:/term} of the enqueueing thread are
+      positioned in this order, where a priority queue which the thread queue does
+      not contain is left out.
+  - name: SecondIneligibleFirstHome
+    test-code: |
+      SetOrder( ctx, ROLE_SECOND, ROLE_INELIGIBLE, ROLE_FIRST, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with the second
+      ${/glossary/scheduler-helping:/term}, an
+      ${/glossary/scheduler-ineligible:/term}, the first
+      ${/glossary/scheduler-helping:/term}, and the ${/glossary/scheduler-home:/term}
+      of the enqueueing thread are positioned in this order, where a priority queue
+      which the thread queue does not contain is left out.
+  - name: IneligibleHomeFirstSecond
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_HOME, ROLE_FIRST, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the ${/glossary/scheduler-home:/term},
+      the first ${/glossary/scheduler-helping:/term}, and the second
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: IneligibleHomeSecondFirst
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_HOME, ROLE_SECOND, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the ${/glossary/scheduler-home:/term},
+      the second ${/glossary/scheduler-helping:/term}, and the first
+      ${/glossary/scheduler-helping:/term} of the enqueueing thread are positioned in
+      this order, where a priority queue which the thread queue does not contain is
+      left out.
+  - name: IneligibleFirstHomeSecond
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_FIRST, ROLE_HOME, ROLE_SECOND );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the first
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      and the second ${/glossary/scheduler-helping:/term} of the enqueueing thread
+      are positioned in this order, where a priority queue which the thread queue
+      does not contain is left out.
+  - name: IneligibleFirstSecondHome
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_FIRST, ROLE_SECOND, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the first
+      ${/glossary/scheduler-helping:/term}, the second
+      ${/glossary/scheduler-helping:/term}, and the ${/glossary/scheduler-home:/term}
+      of the enqueueing thread are positioned in this order, where a priority queue
+      which the thread queue does not contain is left out.
+  - name: IneligibleSecondHomeFirst
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_SECOND, ROLE_HOME, ROLE_FIRST );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the second
+      ${/glossary/scheduler-helping:/term}, the ${/glossary/scheduler-home:/term},
+      and the first ${/glossary/scheduler-helping:/term} of the enqueueing thread are
+      positioned in this order, where a priority queue which the thread queue does
+      not contain is left out.
+  - name: IneligibleSecondFirstHome
+    test-code: |
+      SetOrder( ctx, ROLE_INELIGIBLE, ROLE_SECOND, ROLE_FIRST, ROLE_HOME );
+    text: |
+      While the priority queues of the thread queue associated with an
+      ${/glossary/scheduler-ineligible:/term}, the second
+      ${/glossary/scheduler-helping:/term}, the first
+      ${/glossary/scheduler-helping:/term}, and the ${/glossary/scheduler-home:/term}
+      of the enqueueing thread are positioned in this order, where a priority queue
+      which the thread queue does not contain is left out.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  Dimension EligibleScheduler covers the count of helping schedulers of the
+  enqueueing thread, 4 states. The map skips the state More, which
+  ${enqueue-priority-further-helping:/spec} specifies. On a system with two or
+  three processors, scheduler B is the first helping scheduler, so the state One
+  runs there as well.
+
+  Dimension QueueHome covers the priority queue associated with the home
+  scheduler, 4 states. The states are the absence of the priority queue and the
+  three orders of its highest priority against the priority of the enqueueing
+  thread.
+
+  Dimension QueueFirstHelping covers the priority queue associated with the first
+  helping scheduler in the same way, 4 states.
+
+  Dimension QueueSecondHelping covers the priority queue associated with the
+  second helping scheduler in the same way, 4 states.
+
+  The states High and Low of QueueHome have two representatives. So do the states
+  Equal and Low of QueueFirstHelping and QueueSecondHelping. In the
+  representative Alone, the priority queue contains one thread. In the
+  representative Lower, it also contains a thread with a priority lower than the
+  eligible priority of the enqueueing thread. One worker provides this thread, so
+  a run which needs it in two priority queues is skipped. The other states have
+  one representative. The sticky enqueue reaches them, and a second waiting
+  thread would need a second processor of the scheduler.
+
+  Dimension QueueIneligible covers the count of priority queues associated with
+  ineligible schedulers, 3 states. The map skips the state More, which
+  ${enqueue-priority-ineligible:/spec} specifies.
+
+  Dimension QueueOrder covers the creation orders of the priority queues of the
+  four roles, 24 states. The map skips a variant which differs from an earlier
+  variant only in the position of an absent priority queue.
 requirement-type: functional
 skip-reasons:
-  Invalid: |
-    These variants are invalid due to three independent reasons. Firstly, where the
-    system was built with SMP support disabled, no other scheduler can exist.
-    Secondly, a priority queue must be present to have another priority queue
-    positioned before or after the priority queue. Thirdly, if only one priority
-    queue shall be present, then on other priority queue can exist.
+  FurtherHelping: |
+    The requirement ${enqueue-priority-further-helping:/spec} specifies the enqueue
+    of a thread with at least three ${/glossary/scheduler-helping:/plural}.
+  MoreIneligible: |
+    The requirement ${enqueue-priority-ineligible:/spec} specifies the enqueue in a
+    thread queue with at least two priority queues associated with
+    ${/glossary/scheduler-ineligible:/plural} of the enqueueing thread.
+  NoHelpingScheduler: |
+    A priority queue associated with a helping scheduler cannot exist without the
+    helping scheduler.
+  NoOtherScheduler: |
+    Where the system was built with SMP support disabled, no other scheduler can
+    exist.
+  SameOrder: |
+    The variant arranges the same thread queue as an earlier variant with another
+    order of priority queues which the thread queue does not contain.
 test-action: |
-  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
+  rtems_event_set events;
+  size_t          i;
 
-  if ( ctx->other_before ) {
-    TQSendAndWaitForExecutionStop(
-      ctx->tq_ctx,
-      TQ_BLOCKER_D,
-      TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC_2
-    );
-  }
+  SetSelfPriority( PRIO_VERY_LOW );
+  ctx->tq_ctx->how_many = 1;
+  BorrowProcessor( ctx );
 
-  if ( ctx->priority != PRIO_PSEUDO_ISR ) {
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, ctx->priority );
-    TQSend( ctx->tq_ctx, TQ_BLOCKER_B, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
-  }
-
-  if ( ctx->other_after ) {
-    TQSendAndWaitForExecutionStop(
-      ctx->tq_ctx,
-      TQ_BLOCKER_D,
-      TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC_2
-    );
-  }
-
-  if ( ctx->helping ) {
-    if ( ctx->other_before || ctx->other_after ) {
-      if ( rtems_scheduler_get_processor_maximum() > 2 ) {
-        AddHelper( ctx->tq_ctx, SCHEDULER_C_ID );
-      }
-    } else {
-      AddHelper( ctx->tq_ctx, SCHEDULER_B_ID );
-    }
-  }
-
-  TQSchedulerRecordStart( ctx->tq_ctx );
-  TQSend(
-    ctx->tq_ctx,
-    TQ_BLOCKER_C,
-    TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER | TQ_EVENT_RUNNER_SYNC
-  );
-  TQGetProperties( ctx->tq_ctx, TQ_BLOCKER_C );
-  TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
-
-  if ( ctx->other_before || ctx->other_after ) {
-    TQSynchronizeRunner2();
+  if ( IsSticky( ctx ) ) {
+    TQEnqueuePrepare( ctx->tq_ctx );
   } else {
-    TQSynchronizeRunner();
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_PREPARE );
   }
 
-  TQSchedulerRecordStop( ctx->tq_ctx );
+  if ( ctx->helping > 0 ) {
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_C, TQ_EVENT_MUTEX_A_OBTAIN );
 
-  if ( ctx->helping ) {
-    if ( ctx->other_before || ctx->other_after ) {
-      if ( rtems_scheduler_get_processor_maximum() > 2 ) {
-        RemoveHelper( ctx->tq_ctx );
-      }
-    } else {
-      RemoveHelper( ctx->tq_ctx );
+    for ( i = 0; i < ctx->helping; ++i ) {
+      AddHelper( ctx, i );
     }
   }
+
+  for ( i = 0; i <= ROLE_ORDER_COUNT; ++i ) {
+    Role role;
+
+    if ( i < ROLE_ORDER_COUNT ) {
+      role = ctx->order[ i ];
+    } else {
+      role = ROLE_INELIGIBLE_LAST;
+    }
+
+    if ( HasQueue( ctx, role ) ) {
+      TQWorkerKind worker;
+
+      worker = role_worker[ role ];
+      TQSetPriority( ctx->tq_ctx, worker, ctx->queue_priority[ role ] );
+      TQClearDone( ctx->tq_ctx, worker );
+      Enqueue( ctx, worker, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+      ++ctx->tq_ctx->how_many;
+    }
+  }
+
+  EnqueueLower( ctx );
+  events = TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER;
+
+  if ( ctx->helping > 0 ) {
+    events |= TQ_EVENT_MUTEX_A_RELEASE;
+  }
+
+  TQClearDone( ctx->tq_ctx, TQ_BLOCKER_C );
+  Enqueue( ctx, TQ_BLOCKER_C, events );
+  TakeSnapshot( ctx );
+
+  if ( IsSticky( ctx ) ) {
+    TQEnqueueDone( ctx->tq_ctx );
+  } else {
+    TQClearDone( ctx->tq_ctx, TQ_BLOCKER_A );
+    TQSend( ctx->tq_ctx, TQ_BLOCKER_A, TQ_EVENT_ENQUEUE_DONE );
+    TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_A );
+  }
+
+  TQWaitForDone( ctx->tq_ctx, TQ_BLOCKER_C );
+
+  for ( i = 0; i < ROLE_COUNT; ++i ) {
+    if ( HasQueue( ctx, (Role) i ) ) {
+      TQWaitForDone( ctx->tq_ctx, role_worker[ i ] );
+      TQWaitForExecutionStop( ctx->tq_ctx, role_worker[ i ] );
+    }
+  }
+
+  TQWaitForExecutionStop( ctx->tq_ctx, TQ_BLOCKER_C );
+  ReturnLower( ctx );
+
+  if ( ctx->helping > 0 ) {
+    TQMutexObtain( ctx->tq_ctx, TQ_MUTEX_A );
+    TQMutexRelease( ctx->tq_ctx, TQ_MUTEX_A );
+  }
+
+  ReturnProcessor( ctx );
+
+  SetSelfPriority( PRIO_NORMAL );
 test-brief: null
 test-cleanup: null
 test-context:
 - brief: |
-    This this member is true, then the enqueueing thread shall have at least one
-    helping scheduler.
+    This member specifies the count of helping schedulers of the enqueueing thread.
   description: null
   member: |
-    bool helping
+    size_t helping
 - brief: |
-    This member specifies the priority of a thread with an eligible scheduler equal
-    to an eligible scheduler of the enqueueing thread.
+    This member specifies the highest priority of the priority queue of each role.
+    PRIO_INVALID means that the thread queue contains no priority queue for the
+    role.
   description: null
   member: |
-    rtems_task_priority priority
+    rtems_task_priority queue_priority[ ROLE_COUNT ]
 - brief: |
-    If this member is true, then a thread those eligible schedulers are ineligible
-    scheduler to the enqueueing task should be enqueued before a thread with an
-    eligible scheduler equal to an eligible scheduler of the enqueueing thread.
+    This member specifies the creation order of the priority queues of the roles.
   description: null
   member: |
-    size_t other_before
+    Role order[ ROLE_ORDER_COUNT ]
 - brief: |
-    If this member is true, then a thread those eligible schedulers are ineligible
-    scheduler to the enqueueing task should be enqueued after a thread with an
-    eligible scheduler equal to an eligible scheduler of the enqueueing thread.
+    This member is true for a role, if the priority queue of the role also contains
+    the lower thread.
   description: null
   member: |
-    size_t other_after
-test-context-support: null
+    bool with_lower[ ROLE_COUNT ]
+- brief: |
+    This member contains the priority queues of the thread queue while the
+    enqueueing thread waits.
+  description: null
+  member: |
+    TQSnapshot snapshot
+test-context-support: |
+  typedef enum {
+    ROLE_HOME,
+    ROLE_FIRST,
+    ROLE_SECOND,
+    ROLE_INELIGIBLE,
+    ROLE_OTHER,
+    ROLE_INELIGIBLE_LAST,
+    ROLE_COUNT
+  } Role;
+
+  #define ROLE_ORDER_COUNT 4
+
+  typedef enum { PLACE_NONE, PLACE_INITIAL, PLACE_FIRST, PLACE_SECOND } Place;
 test-description: null
 test-header:
   code: null
@@ -298,180 +873,2336 @@ test-header:
     dir: inout
     name: tq_ctx
     specifier: TQContext *${.:name}
+  - description: |
+      is true, if the thread queue admits only threads with the home scheduler of the
+      enqueueing thread as their home scheduler, otherwise false.
+    dir: null
+    name: home_only
+    specifier: bool ${.:name}
   target: testsuites/validation/tr-tq-enqueue-priority.h
-test-includes: []
+test-includes:
+- rtems/score/priorityimpl.h
+- rtems/score/schedulerimpl.h
+- rtems/score/threadqimpl.h
+- string.h
 test-local-includes:
 - tr-tq-enqueue-priority.h
 test-prepare: |
-  ctx->tq_ctx->how_many = 1;
+  ctx->queue_priority[ ROLE_OTHER ] = PRIO_INVALID;
+  memset( ctx->with_lower, 0, sizeof( ctx->with_lower ) );
 test-setup:
   brief: null
   code: |
     TQReset( ctx->tq_ctx );
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_ULTRA_HIGH );
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_B, PRIO_LOW );
-    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_A, PRIO_VERY_HIGH );
+    TQSetPriority( ctx->tq_ctx, TQ_BLOCKER_C, PRIO_HIGH );
 
     #if defined( RTEMS_SMP )
-    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_B_ID, PRIO_LOW );
+    if ( IsSticky( ctx ) ) {
+      if ( HasFourProcessors() ) {
+        SetupSticky( ctx );
+      }
+    } else if ( HasFourProcessors() ) {
+      RemoveProcessor( SCHEDULER_C_ID, 3 );
+      AddProcessor( SCHEDULER_D_ID, 3 );
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_C_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_D_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_C_ID, PRIO_HIGH );
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_A, SCHEDULER_B_ID, PRIO_HIGH );
+    } else if ( HasTwoProcessors() ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    }
     #endif
   description: null
 test-stop: null
 test-support: |
   typedef ${.:/test-context-type} Context;
 
-  static const rtems_tcb *GetUnblock( Context *ctx, size_t *index )
+  static const TQWorkerKind role_worker[ ROLE_COUNT ] = {
+    TQ_BLOCKER_B,
+    TQ_WORKER_F,
+    TQ_HELPER_C,
+    TQ_BLOCKER_D,
+    TQ_HELPER_B,
+    TQ_WORKER_G
+  };
+
+  static const rtems_id role_scheduler_blocks[ ROLE_COUNT ] = {
+    SCHEDULER_A_ID,
+    SCHEDULER_C_ID,
+    SCHEDULER_B_ID,
+    SCHEDULER_D_ID,
+    SCHEDULER_E_ID,
+    SCHEDULER_F_ID
+  };
+
+  /*
+   * With two or three processors, scheduler B owns the only processor which
+   * scheduler A does not own, so scheduler B is the first helping scheduler.
+   */
+  static const rtems_id role_scheduler_two[ ROLE_COUNT ] = {
+    SCHEDULER_A_ID,
+    SCHEDULER_B_ID,
+    SCHEDULER_C_ID,
+    SCHEDULER_D_ID,
+    SCHEDULER_E_ID,
+    SCHEDULER_F_ID
+  };
+
+  static const TQWorkerKind helper_provider[ 3 ] =
+    { TQ_BLOCKER_E, TQ_HELPER_A, TQ_HELPER_B };
+
+  /*
+   * The third helper provider and the worker of ROLE_OTHER are needed only for
+   * a third helping scheduler, which the map skips.
+   */
+  #define LOWER_WORKER TQ_HELPER_B
+
+  static bool HasTwoProcessors( void )
   {
-    const rtems_tcb *thread;
-
-    do {
-      thread = TQGetNextUnblock( ctx->tq_ctx, index )->thread;
-    } while ( thread == ctx->tq_ctx->runner_tcb );
-
-    return thread;
+    return rtems_scheduler_get_processor_maximum() >= 2;
   }
 
-  static const rtems_tcb *GetTCB( Context *ctx, TQWorkerKind worker )
+  static bool HasFourProcessors( void )
   {
-    return ctx->tq_ctx->worker_tcb[ worker ];
+    return rtems_scheduler_get_processor_maximum() >= 4;
   }
 
-  static void AddHelper( TQContext *tq_ctx, rtems_id scheduler_id )
+  static bool HasFiveProcessors( void )
   {
-    TQSend( tq_ctx, TQ_BLOCKER_C, TQ_EVENT_MUTEX_A_OBTAIN );
-    TQSetScheduler( tq_ctx, TQ_BLOCKER_E, scheduler_id, PRIO_LOW );
+    return rtems_scheduler_get_processor_maximum() >= 5;
+  }
+
+  static bool HasEightProcessors( void )
+  {
+    return rtems_scheduler_get_processor_maximum() >= 8;
+  }
+
+  static bool IsSticky( const Context *ctx )
+  {
+    return ctx->tq_ctx->enqueue_variant == TQ_ENQUEUE_STICKY;
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue does not stop its execution.
+   */
+  static void Enqueue(
+    Context        *ctx,
+    TQWorkerKind    worker,
+    rtems_event_set events
+  )
+  {
+    if ( IsSticky( ctx ) ) {
+      TQSendAndWaitForIntendToBlock( ctx->tq_ctx, worker, events );
+    } else {
+      TQSendAndWaitForExecutionStop( ctx->tq_ctx, worker, events );
+    }
+  }
+
+  /*
+   * A thread which waits in a sticky enqueue occupies a processor of its home
+   * scheduler, so each role uses a scheduler of its own.  The runner owns the
+   * thread queue and uses the only processor of scheduler A.
+   */
+  static rtems_id RoleScheduler( const Context *ctx, Role role )
+  {
+    if ( !IsSticky( ctx ) ) {
+      if ( !HasFourProcessors() ) {
+        return role_scheduler_two[ role ];
+      }
+
+      return role_scheduler_blocks[ role ];
+    }
+
+    switch ( role ) {
+      case ROLE_HOME:
+        return SCHEDULER_C_ID;
+      case ROLE_FIRST:
+        return SCHEDULER_B_ID;
+      case ROLE_SECOND:
+        return SCHEDULER_E_ID;
+      case ROLE_INELIGIBLE:
+        return HasEightProcessors() ? SCHEDULER_H_ID : SCHEDULER_D_ID;
+      case ROLE_OTHER:
+        return SCHEDULER_F_ID;
+      default:
+        return SCHEDULER_G_ID;
+    }
+  }
+
+  #if defined( RTEMS_SMP )
+  static void SetupSticky( Context *ctx )
+  {
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_C, SCHEDULER_C_ID, PRIO_HIGH );
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_B, SCHEDULER_C_ID, PRIO_LOW );
+    TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_E, SCHEDULER_B_ID, PRIO_HIGH );
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_B_ID, PRIO_LOW );
+
+    if ( HasFiveProcessors() ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_A, SCHEDULER_E_ID, PRIO_HIGH );
+      TQSetScheduler( ctx->tq_ctx, TQ_HELPER_C, SCHEDULER_E_ID, PRIO_LOW );
+    }
+
+    if ( HasEightProcessors() ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_H_ID, PRIO_LOW );
+    }
+  }
+  #endif
+
+  /*
+   * With less than eight processors, the priority queue of the ineligible
+   * scheduler uses processor 3, which scheduler C owns otherwise.
+   */
+  static bool BorrowsProcessor( const Context *ctx )
+  {
+    return IsSticky( ctx ) && !HasEightProcessors() &&
+           ctx->queue_priority[ ROLE_INELIGIBLE ] != PRIO_INVALID;
+  }
+
+  static void BorrowProcessor( Context *ctx )
+  {
+    if ( BorrowsProcessor( ctx ) ) {
+      RemoveProcessor( SCHEDULER_C_ID, 3 );
+      AddProcessor( SCHEDULER_D_ID, 3 );
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_D_ID, PRIO_LOW );
+    }
+  }
+
+  static void ReturnProcessor( Context *ctx )
+  {
+    if ( BorrowsProcessor( ctx ) ) {
+      TQSetScheduler( ctx->tq_ctx, TQ_BLOCKER_D, SCHEDULER_A_ID, PRIO_LOW );
+      RemoveProcessor( SCHEDULER_D_ID, 3 );
+      AddProcessor( SCHEDULER_C_ID, 3 );
+    }
+  }
+
+  static void SetOrder( Context *ctx, Role a, Role b, Role c, Role d )
+  {
+    ctx->order[ 0 ] = a;
+    ctx->order[ 1 ] = b;
+    ctx->order[ 2 ] = c;
+    ctx->order[ 3 ] = d;
+  }
+
+  static bool HasQueue( const Context *ctx, Role role )
+  {
+    return ctx->queue_priority[ role ] != PRIO_INVALID;
+  }
+
+  static Role LowerRole( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < ROLE_COUNT; ++i ) {
+      if ( ctx->with_lower[ i ] ) {
+        return (Role) i;
+      }
+    }
+
+    return ROLE_COUNT;
+  }
+
+  static bool HasLower( const Context *ctx )
+  {
+    return LowerRole( ctx ) != ROLE_COUNT;
+  }
+
+  static void SetLowerScheduler( Context *ctx, rtems_id scheduler_id )
+  {
+  #if defined( RTEMS_SMP )
+    TQSetScheduler( ctx->tq_ctx, LOWER_WORKER, scheduler_id, PRIO_LOW );
+  #else
+    (void) scheduler_id;
+    TQSetPriority( ctx->tq_ctx, LOWER_WORKER, PRIO_LOW );
+  #endif
+  }
+
+  static void EnqueueLower( Context *ctx )
+  {
+    Role role;
+
+    role = LowerRole( ctx );
+
+    if ( role == ROLE_COUNT ) {
+      return;
+    }
+
+    SetLowerScheduler( ctx, RoleScheduler( ctx, role ) );
+    TQClearDone( ctx->tq_ctx, LOWER_WORKER );
+    Enqueue( ctx, LOWER_WORKER, TQ_EVENT_ENQUEUE | TQ_EVENT_SURRENDER );
+    ++ctx->tq_ctx->how_many;
+  }
+
+  static void ReturnLower( Context *ctx )
+  {
+    if ( HasLower( ctx ) ) {
+      TQWaitForDone( ctx->tq_ctx, LOWER_WORKER );
+      TQWaitForExecutionStop( ctx->tq_ctx, LOWER_WORKER );
+      SetLowerScheduler( ctx, SCHEDULER_A_ID );
+    }
+  }
+
+  static bool IsEligible( const Context *ctx, Role role )
+  {
+    return role == ROLE_HOME || ( role == ROLE_FIRST && ctx->helping >= 1 ) ||
+           ( role == ROLE_SECOND && ctx->helping >= 2 ) ||
+           ( role == ROLE_OTHER && ctx->helping >= 3 );
+  }
+
+  /*
+   * The snapshot reads the priority queues of the thread queue in the order of
+   * the thread queue while the enqueueing thread waits.
+   */
+  static void TakeSnapshot( Context *ctx )
+  {
+    Thread_queue_Queue *queue;
+
+    queue = ctx->tq_ctx->worker_tcb[ TQ_BLOCKER_C ]->Wait.queue;
+    T_assert_not_null( queue );
+    TQTakeSnapshot( &ctx->snapshot, queue );
+  }
+
+  static size_t FindQueue( const Context *ctx, Role role )
+  {
+    return TQSnapshotFind( &ctx->snapshot, RoleScheduler( ctx, role ) );
+  }
+
+  static void CheckPosition( Context *ctx, Role role, Place place )
+  {
+    const rtems_tcb               *enqueued;
+    const rtems_tcb               *waiter;
+    const rtems_tcb               *lower;
+    const TQPriorityQueueSnapshot *queue;
+    size_t                         count;
+    size_t                         index;
+    size_t                         i;
+
+    enqueued = ctx->tq_ctx->worker_tcb[ TQ_BLOCKER_C ];
+    waiter = ctx->tq_ctx->worker_tcb[ role_worker[ role ] ];
+    lower = ctx->tq_ctx->worker_tcb[ LOWER_WORKER ];
+    count = ctx->with_lower[ role ] ? 3 : 2;
+    index = FindQueue( ctx, role );
+
+    if ( place == PLACE_NONE ) {
+      if ( index != SIZE_MAX ) {
+        T_false( TQSnapshotContains( &ctx->snapshot.queue[ index ], enqueued ) );
+      }
+
+      return;
+    }
+
+    T_ne_sz( index, SIZE_MAX );
+
+    if ( index == SIZE_MAX ) {
+      return;
+    }
+
+    queue = &ctx->snapshot.queue[ index ];
+
+    switch ( place ) {
+      case PLACE_INITIAL:
+        T_eq_sz( queue->count, 1 );
+        T_eq_ptr( queue->thread[ 0 ], enqueued );
+
+        for ( i = 0; i < ROLE_COUNT; ++i ) {
+          if ( HasQueue( ctx, (Role) i ) ) {
+            T_lt_sz( FindQueue( ctx, (Role) i ), index );
+          }
+        }
+
+        for ( i = ROLE_HOME; i < role; ++i ) {
+          if ( IsEligible( ctx, (Role) i ) ) {
+            T_lt_sz( FindQueue( ctx, (Role) i ), index );
+          }
+        }
+
+        break;
+      case PLACE_FIRST:
+        T_eq_sz( queue->count, count );
+        T_eq_ptr( queue->thread[ 0 ], enqueued );
+        T_eq_ptr( queue->thread[ 1 ], waiter );
+        break;
+      default:
+        T_eq_int( place, PLACE_SECOND );
+        T_eq_sz( queue->count, count );
+        T_eq_ptr( queue->thread[ 0 ], waiter );
+        T_eq_ptr( queue->thread[ 1 ], enqueued );
+        break;
+    }
+
+    if ( count == 3 ) {
+      T_eq_ptr( queue->thread[ 2 ], lower );
+    }
+  }
+
+  static void CheckOrder( Context *ctx )
+  {
+    Role   roles[ ROLE_COUNT ];
+    size_t count;
+    size_t last;
+    size_t i;
+
+    memcpy( roles, ctx->order, sizeof( ctx->order ) );
+    roles[ ROLE_ORDER_COUNT ] = ROLE_INELIGIBLE_LAST;
+    roles[ ROLE_ORDER_COUNT + 1 ] = ROLE_OTHER;
+    count = 0;
+    last = 0;
+
+    for ( i = 0; i < ROLE_COUNT; ++i ) {
+      Role role;
+
+      role = roles[ i ];
+
+      if ( HasQueue( ctx, role ) ) {
+        size_t index;
+
+        index = FindQueue( ctx, role );
+        T_ne_sz( index, SIZE_MAX );
+
+        if ( count > 0 ) {
+          T_gt_sz( index, last );
+        }
+
+        last = index;
+        ++count;
+      } else if ( IsEligible( ctx, role ) ) {
+        ++count;
+      }
+    }
+
+    T_eq_sz( ctx->snapshot.count, count );
+  }
+
+  static void AddHelper( Context *ctx, size_t index )
+  {
     TQSendAndWaitForExecutionStop(
-      tq_ctx,
-      TQ_BLOCKER_E,
+      ctx->tq_ctx,
+      helper_provider[ index ],
       TQ_EVENT_MUTEX_A_OBTAIN | TQ_EVENT_MUTEX_A_RELEASE
     );
-  }
-
-  static void RemoveHelper( TQContext *tq_ctx )
-  {
-    TQSend( tq_ctx, TQ_BLOCKER_C, TQ_EVENT_MUTEX_A_RELEASE );
-    TQMutexObtain( tq_ctx, TQ_MUTEX_A );
-    TQMutexRelease( tq_ctx, TQ_MUTEX_A );
   }
 test-target: testsuites/validation/tr-tq-enqueue-priority.c
 test-teardown:
   brief: null
   code: |
     TQReset( ctx->tq_ctx );
+
+    #if defined( RTEMS_SMP )
+    TQSetScheduler( ctx->tq_ctx, TQ_WORKER_F, SCHEDULER_A_ID, PRIO_LOW );
+
+    if ( HasFourProcessors() && !IsSticky( ctx ) ) {
+      RemoveProcessor( SCHEDULER_D_ID, 3 );
+      AddProcessor( SCHEDULER_C_ID, 3 );
+    }
+    #endif
   description: null
 text: |
   When the calling task is enqueued on the thread queue.
 transition-map:
 - enabled-by: true
   post-conditions:
-    Position: InitialFirst
+    PositionHome: Initial
+    PositionFirstHelping: Absent
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
   pre-conditions:
     EligibleScheduler:
     - Home
-    QueueEligible:
-    - None
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
     QueueIneligible:
     - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
 - enabled-by: true
-  post-conditions:
-    Position: First
+  post-conditions: SameOrder
   pre-conditions:
     EligibleScheduler:
     - Home
-    QueueEligible:
-    - Low
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
     QueueIneligible:
     - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
 - enabled-by: true
   post-conditions:
-    Position: Second
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Absent
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
   pre-conditions:
     EligibleScheduler:
     - Home
-    QueueEligible:
+    QueueHome:
     - High
     - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
     QueueIneligible:
     - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
 - enabled-by: true
-  post-conditions: Invalid
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: true
+  post-conditions: NoOtherScheduler
   pre-conditions: default
-- enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: InitialFirst
+- enabled-by: true
+  post-conditions: NoHelpingScheduler
   pre-conditions:
     EligibleScheduler:
-    - Helping
-    QueueEligible:
-    - None
+    - Home
+    QueueHome: all
+    QueueFirstHelping: &id001
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping: all
+    QueueIneligible: all
+    QueueOrder: all
+- enabled-by: true
+  post-conditions: NoHelpingScheduler
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    - One
+    QueueHome: all
+    QueueFirstHelping: all
+    QueueSecondHelping: *id001
+    QueueIneligible: all
+    QueueOrder: all
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Absent
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Absent
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeIneligibleFirstSecond
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
     QueueIneligible:
     - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
 - enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: First
+  post-conditions: SameOrder
   pre-conditions:
     EligibleScheduler:
-    - Helping
-    QueueEligible:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - FirstHomeSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - FirstIneligibleHomeSecond
+    - IneligibleFirstHomeSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeIneligibleFirstSecond
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome: &id002
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id002
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - FirstHomeSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome: &id003
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id003
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Absent
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome: &id004
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id004
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeIneligibleFirstSecond
+    - FirstHomeIneligibleSecond
+    - FirstIneligibleHomeSecond
+    - IneligibleHomeFirstSecond
+    - IneligibleFirstHomeSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome: &id005
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id005
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - High
+    - Equal
     - Low
     QueueIneligible:
     - None
+    QueueOrder:
+    - SecondHomeFirstIneligible
 - enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: Second
+  post-conditions: SameOrder
   pre-conditions:
     EligibleScheduler:
-    - Helping
-    QueueEligible:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
     - High
     - Equal
-    QueueIneligible:
-    - None
-- enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: InitialLast
-  pre-conditions:
-    EligibleScheduler: all
-    QueueEligible:
-    - None
-    QueueIneligible:
-    - Only
-- enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: FirstLast
-  pre-conditions:
-    EligibleScheduler: all
-    QueueEligible:
     - Low
     QueueIneligible:
-    - Before
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
 - enabled-by: RTEMS_SMP
   post-conditions:
-    Position: SecondLast
+    PositionHome: Initial
+    PositionFirstHelping: Initial
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
   pre-conditions:
-    EligibleScheduler: all
-    QueueEligible:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
     - High
     - Equal
-    QueueIneligible:
-    - Before
-- enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: FirstFirst
-  pre-conditions:
-    EligibleScheduler: all
-    QueueEligible:
     - Low
     QueueIneligible:
-    - After
+    - One
+    QueueOrder:
+    - SecondIneligibleHomeFirst
+    - IneligibleSecondHomeFirst
 - enabled-by: RTEMS_SMP
-  post-conditions:
-    Position: SecondFirst
+  post-conditions: SameOrder
   pre-conditions:
-    EligibleScheduler: all
-    QueueEligible:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
     - High
     - Equal
+    - Low
     QueueIneligible:
-    - After
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - FirstHomeSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - FirstIneligibleHomeSecond
+    - IneligibleFirstHomeSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping:
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping: &id006
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping: *id006
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - FirstSecondHomeIneligible
+    - SecondFirstHomeIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping: &id007
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping: *id007
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome: Initial
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping: &id008
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping: *id008
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - FirstSecondIneligibleHome
+    - FirstIneligibleSecondHome
+    - SecondFirstIneligibleHome
+    - SecondIneligibleFirstHome
+    - IneligibleFirstSecondHome
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - Empty
+    QueueFirstHelping: &id009
+    - High
+    - Equal
+    - Low
+    QueueSecondHelping: *id009
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstIneligibleHomeSecond
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondIneligibleHomeFirst
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleSecondHomeFirst
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeIneligibleFirstSecond
+    - IneligibleHomeFirstSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome:
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id010
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping: *id010
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeSecondFirstIneligible
+    - SecondHomeFirstIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id011
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping: *id011
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping: Initial
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id012
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping: *id012
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - SecondHomeIneligibleFirst
+    - SecondIneligibleHomeFirst
+    - IneligibleHomeSecondFirst
+    - IneligibleSecondHomeFirst
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id013
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping: *id013
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeIneligibleFirstSecond
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id014
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id014
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - FirstHomeSecondIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id015
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id015
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping: Initial
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id016
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id016
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeIneligibleFirstSecond
+    - FirstHomeIneligibleSecond
+    - FirstIneligibleHomeSecond
+    - IneligibleHomeFirstSecond
+    - IneligibleFirstHomeSecond
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id017
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id017
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id018
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id018
+    QueueSecondHelping: *id018
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeSecondFirstIneligible
+    - FirstHomeSecondIneligible
+    - FirstSecondHomeIneligible
+    - SecondHomeFirstIneligible
+    - SecondFirstHomeIneligible
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id019
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id019
+    QueueSecondHelping: *id019
+    QueueIneligible:
+    - None
+    QueueOrder:
+    - HomeFirstIneligibleSecond
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeIneligibleSecond
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeIneligibleFirst
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions:
+    PositionHome:
+    - if:
+        pre-conditions:
+          QueueHome: Low
+      then: First
+    - else: Second
+    PositionFirstHelping:
+    - if:
+        pre-conditions:
+          QueueFirstHelping: Low
+      then: First
+    - else: Second
+    PositionSecondHelping:
+    - if:
+        pre-conditions:
+          QueueSecondHelping: Low
+      then: First
+    - else: Second
+    PositionOtherHelping: Absent
+    QueueOrder: Kept
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id020
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id020
+    QueueSecondHelping: *id020
+    QueueIneligible:
+    - One
+    QueueOrder:
+    - HomeFirstSecondIneligible
+    - HomeFirstIneligibleSecond
+    - HomeSecondFirstIneligible
+    - HomeSecondIneligibleFirst
+    - HomeIneligibleFirstSecond
+    - HomeIneligibleSecondFirst
+    - FirstHomeSecondIneligible
+    - FirstHomeIneligibleSecond
+    - FirstSecondHomeIneligible
+    - FirstSecondIneligibleHome
+    - FirstIneligibleHomeSecond
+    - FirstIneligibleSecondHome
+    - SecondHomeFirstIneligible
+    - SecondHomeIneligibleFirst
+    - SecondFirstHomeIneligible
+    - SecondFirstIneligibleHome
+    - SecondIneligibleHomeFirst
+    - SecondIneligibleFirstHome
+    - IneligibleHomeFirstSecond
+    - IneligibleHomeSecondFirst
+    - IneligibleFirstHomeSecond
+    - IneligibleFirstSecondHome
+    - IneligibleSecondHomeFirst
+    - IneligibleSecondFirstHome
+- enabled-by: RTEMS_SMP
+  post-conditions: SameOrder
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: &id021
+    - High
+    - Equal
+    - Low
+    QueueFirstHelping: *id021
+    QueueSecondHelping: *id021
+    QueueIneligible:
+    - One
+    QueueOrder: []
+- enabled-by: RTEMS_SMP
+  post-conditions: FurtherHelping
+  pre-conditions:
+    EligibleScheduler:
+    - More
+    QueueHome: all
+    QueueFirstHelping: all
+    QueueSecondHelping: all
+    QueueIneligible: all
+    QueueOrder: all
+- enabled-by: RTEMS_SMP
+  post-conditions: MoreIneligible
+  pre-conditions:
+    EligibleScheduler:
+    - Home
+    QueueHome: all
+    QueueFirstHelping:
+    - Empty
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - More
+    QueueOrder: all
+- enabled-by: RTEMS_SMP
+  post-conditions: MoreIneligible
+  pre-conditions:
+    EligibleScheduler:
+    - One
+    QueueHome: all
+    QueueFirstHelping: all
+    QueueSecondHelping:
+    - Empty
+    QueueIneligible:
+    - More
+    QueueOrder: all
+- enabled-by: RTEMS_SMP
+  post-conditions: MoreIneligible
+  pre-conditions:
+    EligibleScheduler:
+    - Two
+    QueueHome: all
+    QueueFirstHelping: all
+    QueueSecondHelping: all
+    QueueIneligible:
+    - More
+    QueueOrder: all
 type: requirement

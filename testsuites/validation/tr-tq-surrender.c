@@ -47,6 +47,7 @@
  * @defgroup ScoreTqReqSurrender spec:/score/tq/req/surrender
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
@@ -313,8 +314,8 @@ static void ScoreTqReqSurrender_Post_Dequeue_Check(
 
     case ScoreTqReqSurrender_Post_Dequeue_Priority: {
       /*
-       * The first thread in priority order shall be dequeued from the thread
-       * queue.
+       * The thread queue surrender operation shall dequeue a thread as
+       * specified by spec:/score/tq/req/surrender-priority.
        */
       T_eq_u32( TQGetWorkerCounter( ctx->tq_ctx, TQ_BLOCKER_A ), 1 );
       T_eq_u32( TQGetWorkerCounter( ctx->tq_ctx, TQ_BLOCKER_B ), 2 );

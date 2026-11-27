@@ -46,6 +46,7 @@
  * @defgroup ScoreTqReqSurrenderMrsp spec:/score/tq/req/surrender-mrsp
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
@@ -365,8 +366,8 @@ static void ScoreTqReqSurrenderMrsp_Post_Dequeue_Check(
   switch ( state ) {
     case ScoreTqReqSurrenderMrsp_Post_Dequeue_Priority: {
       /*
-       * The first thread in priority order shall be dequeued from the thread
-       * queue.
+       * The thread queue surrender operation shall dequeue a thread as
+       * specified by spec:/score/tq/req/surrender-priority.
        */
       /* Validation is done by spec:/score/tq/req/enqueue-priority */
       break;

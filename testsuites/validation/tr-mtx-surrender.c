@@ -37,6 +37,7 @@
 
 #include "tr-mtx-surrender.h"
 #include "tr-tq-surrender-priority-inherit.h"
+#include "tr-tq-surrender-priority.h"
 #include "tr-tq-surrender.h"
 
 #include <rtems/test.h>
@@ -45,6 +46,7 @@
  * @defgroup ScoreMtxReqSurrender spec:/score/mtx/req/surrender
  *
  * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
@@ -125,6 +127,12 @@ typedef struct {
    * @brief This member contains the counter snapshot after the directive call.
    */
   uint32_t counter;
+
+  /**
+   * @brief This member is true, if the test ran the test cases of the dequeue
+   *   in priority order.
+   */
+  bool dequeue_done;
 
   /**
    * @brief This member contains a copy of the corresponding
@@ -742,30 +750,51 @@ static void ScoreMtxReqSurrender_Post_Surrender_Check(
 
     case ScoreMtxReqSurrender_Post_Surrender_Priority: {
       /*
-       * The thread queue of the mutex shall be surrendered in priority order.
+       * The thread queue of the mutex shall be surrendered as specified by
+       * spec:/score/tq/req/surrender-priority.
        */
       T_eq_u32( ctx->counter, 1 );
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ScoreTqReqSurrenderPriority_Run(
+          &ctx->tq_ctx->base,
+          ctx->tq_ctx->protocol == TQ_MTX_PRIORITY_CEILING
+        );
+      }
+
       ScoreTqReqSurrender_Run( &ctx->tq_ctx->base );
       break;
     }
 
     case ScoreMtxReqSurrender_Post_Surrender_PriorityInherit: {
       /*
-       * The thread queue of the mutex shall be surrendered in priority order
-       * with priority inheritance.
+       * The thread queue of the mutex shall be surrendered as specified by
+       * spec:/score/tq/req/surrender-priority and
+       * spec:/score/tq/req/surrender-priority-inherit.
        */
       T_eq_u32( ctx->counter, 1 );
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ScoreTqReqSurrenderPriority_Run( &ctx->tq_ctx->base, false );
+      }
+
       ScoreTqReqSurrenderPriorityInherit_Run( &ctx->tq_ctx->base );
       break;
     }
 
     case ScoreMtxReqSurrender_Post_Surrender_MrsP: {
       /*
-       * The thread queue of the mutex shall be surrendered in priority order
-       * with MrsP.
+       * The thread queue of the mutex shall be surrendered as specified by
+       * spec:/score/tq/req/surrender-priority and
+       * spec:/score/tq/req/surrender-mrsp.
        */
       #if defined( RTEMS_SMP )
       T_eq_u32( ctx->counter, 1 );
+      if ( !ctx->dequeue_done ) {
+        ctx->dequeue_done = true;
+        ScoreTqReqSurrenderPriority_Run( &ctx->tq_ctx->base, false );
+      }
+
       ScoreTqReqSurrenderMrsp_Run( &ctx->tq_ctx->base );
       #else
       T_unreachable();
@@ -804,6 +833,20 @@ static void ScoreMtxReqSurrender_Post_Priority_Check(
     case ScoreMtxReqSurrender_Post_Priority_NA:
       break;
   }
+}
+
+static void ScoreMtxReqSurrender_Setup( ScoreMtxReqSurrender_Context *ctx )
+{
+  ctx->dequeue_done = false;
+}
+
+static void ScoreMtxReqSurrender_Setup_Wrap( void *arg )
+{
+  ScoreMtxReqSurrender_Context *ctx;
+
+  ctx = arg;
+  ctx->Map.in_action_loop = false;
+  ScoreMtxReqSurrender_Setup( ctx );
 }
 
 static void ScoreMtxReqSurrender_Prepare( ScoreMtxReqSurrender_Context *ctx )
@@ -973,7 +1016,7 @@ static size_t ScoreMtxReqSurrender_Scope( void *arg, char *buf, size_t n )
 }
 
 static T_fixture ScoreMtxReqSurrender_Fixture = {
-  .setup = NULL,
+  .setup = ScoreMtxReqSurrender_Setup_Wrap,
   .stop = NULL,
   .teardown = NULL,
   .scope = ScoreMtxReqSurrender_Scope,

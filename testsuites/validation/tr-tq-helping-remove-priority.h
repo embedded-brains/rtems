@@ -3,11 +3,11 @@
 /**
  * @file
  *
- * @ingroup ScoreTqReqEnqueueMrsp
+ * @ingroup ScoreTqReqHelpingRemovePriority
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,8 +31,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _TR_TQ_ENQUEUE_MRSP_H
-#define _TR_TQ_ENQUEUE_MRSP_H
+#ifndef _TR_TQ_HELPING_REMOVE_PRIORITY_H
+#define _TR_TQ_HELPING_REMOVE_PRIORITY_H
 
 #include "tx-thread-queue.h"
 
@@ -41,47 +41,49 @@ extern "C" {
 #endif
 
 /**
- * @addtogroup ScoreTqReqEnqueueMrsp
+ * @addtogroup ScoreTqReqHelpingRemovePriority
  *
  * @{
  */
 
 typedef enum {
-  ScoreTqReqEnqueueMrsp_Pre_EligibleScheduler_Home,
-  ScoreTqReqEnqueueMrsp_Pre_EligibleScheduler_Helping,
-  ScoreTqReqEnqueueMrsp_Pre_EligibleScheduler_NA
-} ScoreTqReqEnqueueMrsp_Pre_EligibleScheduler;
+  ScoreTqReqHelpingRemovePriority_Pre_RemovedQueue_Alone,
+  ScoreTqReqHelpingRemovePriority_Pre_RemovedQueue_Shared,
+  ScoreTqReqHelpingRemovePriority_Pre_RemovedQueue_NA
+} ScoreTqReqHelpingRemovePriority_Pre_RemovedQueue;
 
 typedef enum {
-  ScoreTqReqEnqueueMrsp_Pre_QueueEligible_None,
-  ScoreTqReqEnqueueMrsp_Pre_QueueEligible_Equal,
-  ScoreTqReqEnqueueMrsp_Pre_QueueEligible_Low,
-  ScoreTqReqEnqueueMrsp_Pre_QueueEligible_NA
-} ScoreTqReqEnqueueMrsp_Pre_QueueEligible;
+  ScoreTqReqHelpingRemovePriority_Pre_OtherQueue_None,
+  ScoreTqReqHelpingRemovePriority_Pre_OtherQueue_Present,
+  ScoreTqReqHelpingRemovePriority_Pre_OtherQueue_NA
+} ScoreTqReqHelpingRemovePriority_Pre_OtherQueue;
 
 typedef enum {
-  ScoreTqReqEnqueueMrsp_Pre_QueueIneligible_None,
-  ScoreTqReqEnqueueMrsp_Pre_QueueIneligible_Only,
-  ScoreTqReqEnqueueMrsp_Pre_QueueIneligible_Before,
-  ScoreTqReqEnqueueMrsp_Pre_QueueIneligible_After,
-  ScoreTqReqEnqueueMrsp_Pre_QueueIneligible_NA
-} ScoreTqReqEnqueueMrsp_Pre_QueueIneligible;
+  ScoreTqReqHelpingRemovePriority_Post_Thread_Removed,
+  ScoreTqReqHelpingRemovePriority_Post_Thread_NA
+} ScoreTqReqHelpingRemovePriority_Post_Thread;
 
 typedef enum {
-  ScoreTqReqEnqueueMrsp_Post_Position_InitialFirst,
-  ScoreTqReqEnqueueMrsp_Post_Position_InitialLast,
-  ScoreTqReqEnqueueMrsp_Post_Position_Second,
-  ScoreTqReqEnqueueMrsp_Post_Position_SecondFirst,
-  ScoreTqReqEnqueueMrsp_Post_Position_SecondLast,
-  ScoreTqReqEnqueueMrsp_Post_Position_NA
-} ScoreTqReqEnqueueMrsp_Post_Position;
+  ScoreTqReqHelpingRemovePriority_Post_RemovedQueue_Removed,
+  ScoreTqReqHelpingRemovePriority_Post_RemovedQueue_Kept,
+  ScoreTqReqHelpingRemovePriority_Post_RemovedQueue_NA
+} ScoreTqReqHelpingRemovePriority_Post_RemovedQueue;
+
+typedef enum {
+  ScoreTqReqHelpingRemovePriority_Post_QueueOrder_Kept,
+  ScoreTqReqHelpingRemovePriority_Post_QueueOrder_NA
+} ScoreTqReqHelpingRemovePriority_Post_QueueOrder;
 
 /**
  * @brief Runs the parameterized test case.
  *
- * @param[in,out] tq_ctx is the thread queue test context.
+ * @param[in,out] tq_ctx is the thread queue context.
+ *
+ * @param home_only is true, if the thread queue admits only threads with the
+ *   home scheduler of the enqueueing thread as their home scheduler, otherwise
+ *   false.
  */
-void ScoreTqReqEnqueueMrsp_Run( TQContext *tq_ctx );
+void ScoreTqReqHelpingRemovePriority_Run( TQContext *tq_ctx, bool home_only );
 
 /** @} */
 
@@ -89,4 +91,4 @@ void ScoreTqReqEnqueueMrsp_Run( TQContext *tq_ctx );
 }
 #endif
 
-#endif /* _TR_TQ_ENQUEUE_MRSP_H */
+#endif /* _TR_TQ_HELPING_REMOVE_PRIORITY_H */

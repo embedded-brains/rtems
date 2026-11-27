@@ -38,6 +38,7 @@
 #include <pthread.h>
 #include <string.h>
 
+#include "tr-tq-extract-priority.h"
 #include "tr-tq-timeout-priority-inherit.h"
 #include "tr-tq-timeout.h"
 #include "tx-support.h"
@@ -63,6 +64,7 @@ typedef enum {
 
 typedef enum {
   CPthreadReqMutexTimedlockTimeout_Post_Action_Timeout,
+  CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriority,
   CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriorityInherit,
   CPthreadReqMutexTimedlockTimeout_Post_Action_NA
 } CPthreadReqMutexTimedlockTimeout_Post_Action;
@@ -190,13 +192,26 @@ static void CPthreadReqMutexTimedlockTimeout_Post_Action_Check(
       break;
     }
 
+    case CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriority: {
+      /*
+       * The timeout actions shall be done as specified by
+       * spec:/score/tq/req/timeout and spec:/score/tq/req/extract-priority.
+       */
+      ctx->tq_ctx.wait = TQ_WAIT_TIMED;
+      ScoreTqReqTimeout_Run( &ctx->tq_ctx );
+      ScoreTqReqExtractPriority_Run( &ctx->tq_ctx, true );
+      break;
+    }
+
     case CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriorityInherit: {
       /*
        * The timeout actions shall be done as specified by
-       * spec:/score/tq/req/timeout-priority-inherit.
+       * spec:/score/tq/req/timeout-priority-inherit and
+       * spec:/score/tq/req/extract-priority.
        */
       ctx->tq_ctx.wait = TQ_WAIT_FOREVER;
       ScoreTqReqTimeoutPriorityInherit_Run( &ctx->tq_ctx );
+      ScoreTqReqExtractPriority_Run( &ctx->tq_ctx, false );
       break;
     }
 
@@ -274,12 +289,13 @@ static void CPthreadReqMutexTimedlockTimeout_Cleanup(
 static const CPthreadReqMutexTimedlockTimeout_Entry
 CPthreadReqMutexTimedlockTimeout_Entries[] = {
   { 0, 0, CPthreadReqMutexTimedlockTimeout_Post_Action_Timeout },
-  { 0, 0, CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriorityInherit }
+  { 0, 0, CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriorityInherit },
+  { 0, 0, CPthreadReqMutexTimedlockTimeout_Post_Action_TimeoutPriority }
 };
 
 static const uint8_t
 CPthreadReqMutexTimedlockTimeout_Map[] = {
-  0, 1, 0
+  0, 1, 2
 };
 
 /* clang-format on */

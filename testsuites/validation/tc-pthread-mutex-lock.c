@@ -50,7 +50,7 @@
 /**
  * @defgroup CPthreadReqMutexLock spec:/c/pthread/req/mutex-lock
  *
- * @ingroup TestsuitesValidationNoClock1
+ * @ingroup TestsuitesValidationNoClock2
  *
  * @{
  */
