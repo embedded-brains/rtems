@@ -44,6 +44,7 @@ source:
 - cpukit/libc/string/strchr.c
 - cpukit/libc/string/strchrnul.c
 - cpukit/libc/string/strcmp.c
+- cpukit/libc/string/strcspn.c
 - cpukit/libc/string/strlcpy.c
 - cpukit/libc/string/strlen.c
 - cpukit/libc/string/strncasecmp.c
