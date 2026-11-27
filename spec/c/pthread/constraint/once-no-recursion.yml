@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  The initialization routine shall not call ${../if/once:/name} with the
+  once-control object for which it runs. The recursive call does not return,
+  since the initialization routine does not complete.
+type: constraint

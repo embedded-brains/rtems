@@ -206,6 +206,7 @@ install:
   - cpukit/include/rtems/score/object.h
   - cpukit/include/rtems/score/objectdata.h
   - cpukit/include/rtems/score/objectimpl.h
+  - cpukit/include/rtems/score/onceimpl.h
   - cpukit/include/rtems/score/percpu.h
   - cpukit/include/rtems/score/priority.h
   - cpukit/include/rtems/score/prioritybitmap.h
@@ -433,6 +434,7 @@ source:
 - cpukit/posix/src/pthreadgetcpuclockid.c
 - cpukit/posix/src/pthreadgetnamenp.c
 - cpukit/posix/src/pthreadjoin.c
+- cpukit/posix/src/pthreadonce.c
 - cpukit/posix/src/pthreadsetaffinitynp.c
 - cpukit/posix/src/pthreadsetnamenp.c
 - cpukit/posix/src/setcancelstate.c
@@ -601,6 +603,7 @@ source:
 - cpukit/score/src/objectgetnoprotection.c
 - cpukit/score/src/objectinitializeinformation.c
 - cpukit/score/src/objectnametoid.c
+- cpukit/score/src/once.c
 - cpukit/score/src/percpu.c
 - cpukit/score/src/percpuasm.c
 - cpukit/score/src/processormaskcopy.c

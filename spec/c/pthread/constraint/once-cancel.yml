@@ -1,0 +1,20 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: |
+  ${/ref/std/posix-2024/pthread-once:/name} states that the effect on the
+  once-control object of a cancelled initialization routine is as if
+  ${../if/once:/name} was never called. RTEMS implements no
+  ${../glossary/cancellation-point:/term}, see
+  ${/ref/rtems/c-user/task-life-states:/name}. It delays a
+  ${../glossary/thread-cancel-request:/term} for the thread which executes the
+  initialization routine until the ${../if/once:/name} call returns. This
+  deviates from the standard.
+text: |
+  The application shall not rely on the cancellation of a thread while it
+  executes the initialization routine of ${../if/once:/name}.
+type: constraint

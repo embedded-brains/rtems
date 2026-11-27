@@ -213,7 +213,6 @@ install:
   - cpukit/include/rtems/score/mpci.h
   - cpukit/include/rtems/score/mpciimpl.h
   - cpukit/include/rtems/score/objectmp.h
-  - cpukit/include/rtems/score/onceimpl.h
   - cpukit/include/rtems/score/percpudata.h
   - cpukit/include/rtems/score/schedulercbs.h
   - cpukit/include/rtems/score/schedulercbsimpl.h
@@ -767,7 +766,6 @@ source:
 - cpukit/posix/src/pthreadgetattrnp.c
 - cpukit/posix/src/pthreadgetschedparam.c
 - cpukit/posix/src/pthreadinitthreads.c
-- cpukit/posix/src/pthreadonce.c
 - cpukit/posix/src/pthreadsetschedparam.c
 - cpukit/posix/src/pthreadsetschedprio.c
 - cpukit/posix/src/rwlockattrdestroy.c
@@ -938,7 +936,6 @@ source:
 - cpukit/score/src/objectnametoidstring.c
 - cpukit/score/src/objectsetname.c
 - cpukit/score/src/objectshrinkinformation.c
-- cpukit/score/src/once.c
 - cpukit/score/src/percpudata.c
 - cpukit/score/src/pheapallocate.c
 - cpukit/score/src/pheapextend.c
