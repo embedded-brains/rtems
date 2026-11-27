@@ -565,12 +565,10 @@ static void CStringsReqStrcasecmp_Pre_Stop_Prepare(
 
     case CStringsReqStrcasecmp_Pre_Stop_Less: {
       /*
-       * While no string holds a null byte at the stop index, while the byte of
-       * the string referenced by the `s1` parameter at the stop index is less
-       * than the byte of the string referenced by the `s2` parameter at the
-       * stop index, after the conversion of each uppercase letter to the
-       * corresponding lowercase letter, where both bytes are interpreted as
-       * type `unsigned char`.
+       * While no string holds a null byte at the stop index, while the
+       * lowercase value of the byte of the string referenced by the `s1`
+       * parameter at the stop index is less than the lowercase value of the
+       * byte of the string referenced by the `s2` parameter at the stop index.
        */
       ctx->pairs = less_pairs;
       break;
@@ -578,12 +576,10 @@ static void CStringsReqStrcasecmp_Pre_Stop_Prepare(
 
     case CStringsReqStrcasecmp_Pre_Stop_Greater: {
       /*
-       * While no string holds a null byte at the stop index, while the byte of
-       * the string referenced by the `s1` parameter at the stop index is
-       * greater than the byte of the string referenced by the `s2` parameter
-       * at the stop index, after the conversion of each uppercase letter to
-       * the corresponding lowercase letter, where both bytes are interpreted
-       * as type `unsigned char`.
+       * While no string holds a null byte at the stop index, while the
+       * lowercase value of the byte of the string referenced by the `s1`
+       * parameter at the stop index is greater than the lowercase value of the
+       * byte of the string referenced by the `s2` parameter at the stop index.
        */
       ctx->pairs = greater_pairs;
       break;
