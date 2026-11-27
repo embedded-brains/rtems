@@ -370,6 +370,15 @@
  */
 
 /**
+ * @file cpukit/libc/string/strcspn.c
+ *
+ * @ingroup libcsupport
+ *
+ * @brief This source file contains the implementation of the strcspn()
+ *   function.
+ */
+
+/**
  * @file cpukit/libc/string/strlen.c
  *
  * @ingroup libcsupport
