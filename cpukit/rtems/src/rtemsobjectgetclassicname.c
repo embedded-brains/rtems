@@ -55,6 +55,7 @@ rtems_status_code rtems_object_get_classic_name(
     return RTEMS_INVALID_ADDRESS;
   }
 
+  name_u.name_u32 = 0;
   status = _Objects_Id_to_name( id, &name_u );
 
   *name = name_u.name_u32;
