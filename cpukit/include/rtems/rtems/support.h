@@ -517,6 +517,14 @@ typedef struct {
 
   /**
    * @brief This member contains the number of free bytes of the heap.
+   *
+   * The red-black tree heap keeps the descriptors of up to one more slab than it
+   * needs. An allocation and a free at the bound of its reserve therefore do not
+   * carve and free a slab each time. After the free of all blocks of a load, the
+   * free size of this heap may stay below the free size before the load. The
+   * difference is at most the size of one slab of descriptors. A slab which the
+   * heap drains stays used until later frees complete the drain. Until then, the
+   * difference is at most the size of two slabs.
    */
   size_t free_size;
 
