@@ -10,7 +10,12 @@ rationale: |
   One allocation, free or resize moves at most four descriptors, so the release
   of a slab spreads over several operations. The descriptors of one more slab
   keep an allocation and a free at the bound of the reserve from carving and
-  releasing a slab each time.
+  releasing a slab each time. As a consequence, the state of the heap depends on
+  its history. After the free of the blocks of a load, the heap may keep one slab
+  more than before the load. Its free size may then stay below the free size
+  before the load by up to the size of one slab. The slab which the heap drains
+  stays used until later operations complete the drain. Until then, the free size
+  may stay below by up to the size of two slabs.
 requirement-type: functional
 text: |
   When the slabs inside the memory areas of the heap hold more descriptors than
