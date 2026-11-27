@@ -3237,9 +3237,9 @@
  * allocated in a special linker section (`.rtemsstack.interrupt`). The
  * placement of this linker section is BSP-specific.
  *
- * Some BSPs use the interrupt stack as the initialization stack which is used
- * to perform the sequential system initialization before the multithreading is
- * started.
+ * The BSPs use the interrupt stack of the boot processor as the initialization
+ * stack. The sequential system initialization runs on this stack before the
+ * multitasking starts.
  *
  * The interrupt stacks are covered by the stack checker, see @ref
  * CONFIGURE_STACK_CHECKER_ENABLED. However, using a too small interrupt stack
