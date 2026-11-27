@@ -62,6 +62,14 @@ extern "C" {
  * A red-black tree orders the free blocks by the size and then by the begin.
  * A second tree orders the used blocks, the slabs and the holes by the begin.
  *
+ * The heap frees a slab inside its areas only if the other slabs hold the
+ * descriptors of one more slab than the reserve needs.  After the free of the
+ * blocks of a load, the heap therefore keeps at most one slab more than before
+ * the load.  Its free size then stays below the free size before the load by
+ * at most #RBHEAP_SLAB_SIZE.  The slab which the heap drains stays a used
+ * block until later frees complete the drain.  Until then, the free size stays
+ * below the free size before the load by at most two times #RBHEAP_SLAB_SIZE.
+ *
  * @{
  */
 
