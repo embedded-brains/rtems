@@ -1,0 +1,305 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/destroy
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/sem-destroy
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/destroy:/name} shall be zero.
+  - name: Error
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/destroy:/name} shall be -1.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the directive call.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be equal to ${/c/errno/if/einval:/name}.
+  - name: Busy
+    test-code: |
+      T_eq_int( ctx->errno_value, EBUSY );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be equal to ${/c/errno/if/ebusy:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Object
+  states:
+  - name: Destroyed
+    test-code: |
+      T_eq_ulong( ctx->sem->_flags, 0 );
+    text: |
+      The ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/destroy:/params[0]/name} parameter shall no longer be an initialized
+      ${/glossary/countingsemaphore:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_mem( ctx->sem, &ctx->sem_before, sizeof( ctx->sem_before ) );
+    text: |
+      The object referenced by the ${../if/destroy:/params[0]/name} parameter shall
+      not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sem
+  states:
+  - name: Obj
+    test-code: |
+      ctx->sem = &ctx->sem_obj;
+    text: |
+      While the ${../if/destroy:/params[0]/name} parameter references an object of
+      type ${/c/if/sem_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->sem = NULL;
+    text: |
+      While the ${../if/destroy:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Valid
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( sem_init( &ctx->sem_obj, 0, 1 ), 0 );
+    text: |
+      While the object referenced by the ${../if/destroy:/params[0]/name} parameter
+      is an initialized ${/glossary/countingsemaphore:/term}.
+  - name: 'No'
+    test-code: |
+      memset( &ctx->sem_obj, 0, sizeof( ctx->sem_obj ) );
+    text: |
+      While the object referenced by the ${../if/destroy:/params[0]/name} parameter
+      is not an initialized ${/glossary/countingsemaphore:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Named
+  states:
+  - name: 'Yes'
+    test-code: |
+      _POSIX_Semaphore_Initialize( &ctx->sem_obj, "named", 1 );
+      ctx->named = true;
+    text: |
+      While the ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/destroy:/params[0]/name} parameter is a
+      ${../glossary/named-semaphore:/term}.
+  - name: 'No'
+    test-code: |
+      ctx->named = false;
+    text: |
+      While the ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/destroy:/params[0]/name} parameter is an
+      ${../glossary/unnamed-semaphore:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Busy
+  states:
+  - name: 'Yes'
+    test-code: |
+      T_eq_int( sem_init( &ctx->sem_obj, 0, 0 ), 0 );
+      ctx->worker_id = CreateTask( "WORK", PRIO_HIGH );
+      StartTask( ctx->worker_id, WaitWorker, ctx );
+    text: |
+      While a thread waits on the ${/glossary/countingsemaphore:/term} referenced by
+      the ${../if/destroy:/params[0]/name} parameter.
+  - name: 'No'
+    test-code: |
+      ctx->worker_id = 0;
+    text: |
+      While no thread waits on the ${/glossary/countingsemaphore:/term} referenced by
+      the ${../if/destroy:/params[0]/name} parameter.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/sem-destroy:/name} allows ${/c/errno/if/einval:/name} for
+  a ${../if/destroy:/params[0]/name} parameter which is not a valid semaphore and
+  ${/c/errno/if/ebusy:/name} for a semaphore on which a thread waits. This gives
+  the states of the pre-conditions Valid and Busy.
+
+  The standard leaves the behaviour undefined for a named semaphore. RTEMS
+  returns -1 and sets ${/c/errno/if/einval:/name}, which gives the pre-condition
+  Named. The test makes a semaphore named by initializing it with a name through
+  the implementation, since the qualified RTEMS configuration does not provide
+  ${/c/if/sem_open:/name}.
+
+  The standard leaves the behaviour undefined for a
+  ${../if/destroy:/params[0]/name} parameter which is equal to
+  ${/c/if/null:/name}. State Null of pre-condition Sem specifies that RTEMS
+  returns -1 and sets ${/c/errno/if/einval:/name}. The object of state No of
+  pre-condition Valid has all bytes set to zero, so that the validation of the
+  semaphore is the only reason for the error.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  Action( ctx );
+test-brief: null
+test-cleanup: |
+  if ( ctx->worker_id != 0 ) {
+    T_eq_int( sem_post( &ctx->sem_obj ), 0 );
+    DeleteTask( ctx->worker_id );
+    ctx->worker_id = 0;
+  }
+
+  if ( ctx->named ) {
+    _POSIX_Semaphore_Destroy( &ctx->sem_obj );
+  } else if ( ctx->status != 0 ) {
+    (void) sem_destroy( &ctx->sem_obj );
+  }
+test-context:
+- brief: |
+    This member provides the object referenced by the
+    ${../if/destroy:/params[0]/name} parameter.
+  description: null
+  member: sem_t sem_obj
+- brief: |
+    This member specifies the ${../if/destroy:/params[0]/name} parameter value.
+  description: null
+  member: sem_t *sem
+- brief: |
+    This member is true, if the sem_obj member is a named semaphore.
+  description: null
+  member: bool named
+- brief: |
+    This member contains the identifier of the thread which waits on the semaphore.
+  description: null
+  member: rtems_id worker_id
+- brief: |
+    This member contains the return value of the ${../if/destroy:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/destroy:/name} call.
+  description: null
+  member: int errno_value
+- brief: |
+    This member contains a copy of the object referenced by the
+    ${../if/destroy:/params[0]/name} parameter before the call.
+  description: null
+  member: sem_t sem_before
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- rtems/posix/semaphoreimpl.h
+- semaphore.h
+- string.h
+test-local-includes:
+- tx-support.h
+test-prepare: |
+  ctx->worker_id = 0;
+  ctx->named = false;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+  description: null
+test-stop: null
+test-support: |
+  static void WaitWorker( rtems_task_argument arg )
+  {
+    CSemaphoreReqDestroy_Context *ctx;
+
+    ctx = (CSemaphoreReqDestroy_Context *) arg;
+    T_eq_int( sem_wait( &ctx->sem_obj ), 0 );
+    SuspendSelf();
+  }
+
+  static void Action( CSemaphoreReqDestroy_Context *ctx )
+  {
+    errno = -1;
+
+    if ( ctx->sem != NULL ) {
+      memcpy( &ctx->sem_before, ctx->sem, sizeof( ctx->sem_before ) );
+    }
+
+    ctx->status = sem_destroy( ctx->sem );
+    ctx->errno_value = errno;
+  }
+test-target: testsuites/validation/tc-posix-sem-destroy.c
+test-teardown:
+  brief: null
+  code: |
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Error
+    - if:
+        pre-conditions:
+          Valid: 'No'
+      then: Error
+    - if:
+        pre-conditions:
+          Named: 'Yes'
+      then: Error
+    - if:
+        pre-conditions:
+          Busy: 'Yes'
+      then: Error
+    - else: Ok
+    Errno:
+    - if:
+        pre-conditions:
+          Busy: 'Yes'
+      then: Busy
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Nop
+    - else: Inval
+    Object:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Destroyed
+    - else: Nop
+  pre-conditions:
+    Sem: all
+    Valid:
+      applicable:
+        pre-conditions:
+          Sem: Obj
+    Named:
+      applicable:
+        pre-conditions:
+          Valid: 'Yes'
+    Busy:
+      applicable:
+        pre-conditions:
+          Named: 'No'
+type: requirement

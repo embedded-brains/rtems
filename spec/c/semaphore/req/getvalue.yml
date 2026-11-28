@@ -1,0 +1,285 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/getvalue
+- role: requirement-refinement
+  uid: /c/req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/sem-getvalue
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getvalue:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/getvalue:/name} shall be minus
+      one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Sval
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->sval_obj, 0 );
+    text: |
+      The object referenced by the ${../if/getvalue:/params[1]/name} parameter shall
+      be zero.
+  - name: One
+    test-code: |
+      T_eq_int( ctx->sval_obj, 1 );
+    text: |
+      The object referenced by the ${../if/getvalue:/params[1]/name} parameter shall
+      be one.
+  - name: Max
+    test-code: |
+      T_eq_int( ctx->sval_obj, SEM_VALUE_MAX );
+    text: |
+      The object referenced by the ${../if/getvalue:/params[1]/name} parameter shall
+      be ${/c/if/sem_value_max:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->sval_obj, SVAL_POISON );
+    text: |
+      The object referenced by the ${../if/getvalue:/params[1]/name} parameter shall
+      not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Sem
+  states:
+  - name: Nop
+    test-code: |
+      sem_t expected;
+
+      memcpy( &expected, &ctx->sem_before, sizeof( expected ) );
+      ExpectReleasedLock( ctx, &expected );
+      T_eq_mem( &ctx->sem_obj, &expected, sizeof( ctx->sem_obj ) );
+    text: |
+      The object referenced by the ${../if/getvalue:/params[0]/name} parameter shall
+      not be modified.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sem
+  states:
+  - name: Obj
+    test-code: |
+      T_eq_int( sem_init( &ctx->sem_obj, 0, 0 ), 0 );
+      ctx->sem = &ctx->sem_obj;
+    text: |
+      While the ${../if/getvalue:/params[0]/name} parameter references an object of
+      type ${/c/if/sem_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->sem = NULL;
+    text: |
+      While the ${../if/getvalue:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The object was initialized by the arrangement of pre-condition Sem */
+    text: |
+      While the object referenced by the ${../if/getvalue:/params[0]/name} parameter
+      is an initialized ${/glossary/countingsemaphore:/term}.
+  - name: 'No'
+    test-code: |
+      T_eq_int( sem_destroy( &ctx->sem_obj ), 0 );
+    text: |
+      While the object referenced by the ${../if/getvalue:/params[0]/name} parameter
+      is not an initialized ${/glossary/countingsemaphore:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Zero
+    test-code: |
+      ctx->sem_obj._Semaphore._count = 0;
+    text: |
+      While the value of the ${/glossary/countingsemaphore:/term} is zero.
+  - name: One
+    test-code: |
+      ctx->sem_obj._Semaphore._count = 1;
+    text: |
+      While the value of the ${/glossary/countingsemaphore:/term} is one.
+  - name: Max
+    test-code: |
+      ctx->sem_obj._Semaphore._count = SEM_VALUE_MAX;
+    text: |
+      While the value of the ${/glossary/countingsemaphore:/term} is
+      ${/c/if/sem_value_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/sem-getvalue:/name} specifies that
+  ${../if/getvalue:/name} stores the value of the
+  ${/glossary/countingsemaphore:/term} in the object referenced by the
+  ${../if/getvalue:/params[1]/name} parameter. This gives post-condition Sval.
+  The value does not influence the control flow, so the states of pre-condition
+  Value are zero, one and ${/c/if/sem_value_max:/name}. They show that the stored
+  value is read from the semaphore, and the largest value shows the conversion to
+  the signed type of the object. The value is written directly into the semaphore
+  object, since only waiting and posting change it through the interface.
+
+  RTEMS returns minus one and sets ${/c/errno/if/errno:/name} to
+  ${/c/errno/if/einval:/name} if the ${../if/getvalue:/params[0]/name} parameter
+  is ${/c/if/null:/name} or references no initialized semaphore. A destroyed
+  semaphore gives state No of pre-condition Initialized. A ${/c/if/null:/name}
+  ${../if/getvalue:/params[1]/name} parameter is not a state, since RTEMS writes
+  through it without a check.
+
+  ${../if/getvalue:/name} does not write the semaphore object, which
+  post-condition Sem specifies.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->sem_before, &ctx->sem_obj, sizeof( ctx->sem_before ) );
+  errno = ERRNO_POISON;
+  ctx->status = sem_getvalue( ctx->sem, &ctx->sval_obj );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: |
+  if ( ctx->sem != NULL && ctx->sem_obj._flags != 0 ) {
+    T_eq_int( sem_destroy( &ctx->sem_obj ), 0 );
+  }
+test-context:
+- brief: |
+    This member specifies the ${../if/getvalue:/params[0]/name} parameter value.
+  description: null
+  member: |
+    sem_t *sem
+- brief: |
+    This member contains the return value of the ${../if/getvalue:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the return value of the ${/c/errno/if/errno:/name} after
+    the ${../if/getvalue:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member contains the semaphore object.
+  description: null
+  member: |
+    sem_t sem_obj
+- brief: |
+    This member contains a copy of the semaphore object before the
+    ${../if/getvalue:/name} call.
+  description: null
+  member: |
+    sem_t sem_before
+- brief: |
+    This member contains the object referenced by the
+    ${../if/getvalue:/params[1]/name} parameter.
+  description: null
+  member: |
+    int sval_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- limits.h
+- semaphore.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  memset( &ctx->sem_obj, 0, sizeof( ctx->sem_obj ) );
+  ctx->sval_obj = SVAL_POISON;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  /*
+   * In SMP configurations, the functions acquire and release the ticket lock of
+   * the thread queue of the semaphore, which advances its counters.  The checks
+   * of the semaphore object expect a released lock and take its counters from
+   * the object.
+   */
+  static void ExpectReleasedLock( const Context *ctx, sem_t *expected )
+  {
+    const struct _Ticket_lock_Control *lock;
+
+    lock = &ctx->sem_obj._Semaphore._Queue._Lock;
+    T_eq_uint( lock->_next_ticket, lock->_now_serving );
+    expected->_Semaphore._Queue._Lock = *lock;
+  }
+
+  #define ERRNO_POISON -1
+
+  #define SVAL_POISON -1
+test-target: testsuites/validation/tc-posix-sem-getvalue.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: MinusOne
+    - else: Ok
+    Errno:
+    - if:
+        post-conditions:
+          Status: MinusOne
+      then: Inval
+    - else: Nop
+    Sval:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Value
+    - else: Nop
+    Sem:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - else: Nop
+  pre-conditions:
+    Sem: all
+    Initialized:
+      applicable:
+        pre-conditions:
+          Sem: Obj
+    Value:
+      applicable:
+        pre-conditions:
+          Sem: Obj
+type: requirement

@@ -217,7 +217,7 @@ static Status_Control RecursiveSurrender( TQContext *ctx )
   return STATUS_SUCCESSFUL;
 }
 
-/* The surrender runner uses UINT32_MAX as the maximum count. */
+/* The maximum count is UINT32_MAX. */
 RTEMS_STATIC_ASSERT( UINT_MAX == UINT32_MAX, sys_lock_semaphore_count );
 
 static Status_Control SemaphoreEnqueue( TQContext *ctx, TQWait wait )
@@ -496,6 +496,7 @@ static void NewlibValSysLock_Action_2( NewlibValSysLock_Context *ctx )
   ctx->tq_sem_ctx.base.enqueue = SemaphoreEnqueue;
   ctx->tq_sem_ctx.get_count = SemaphoreGetCount;
   ctx->tq_sem_ctx.set_count = SemaphoreSetCount;
+  ctx->tq_sem_ctx.max_count = UINT32_MAX;
 
   /*
    * Validate the _Semaphore_Try_wait() directive.

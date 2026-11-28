@@ -1,0 +1,268 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/init
+- role: requirement-refinement
+  uid: ../../req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/sem-init
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/init:/name} shall be zero.
+  - name: Error
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/init:/name} shall be -1.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, -1 );
+    text: |
+      The ${/c/errno/if/errno:/name} shall not be changed by the directive call.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The ${/c/errno/if/errno:/name} shall be equal to ${/c/errno/if/einval:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Object
+  states:
+  - name: Initialized
+    test-code: |
+      T_eq_ulong(
+        ctx->sem_obj._flags,
+        (uintptr_t) &ctx->sem_obj ^ POSIX_SEMAPHORE_MAGIC
+      );
+    text: |
+      The object referenced by the ${../if/init:/params[0]/name} parameter shall be
+      an initialized ${/glossary/countingsemaphore:/term}.
+  - name: Nop
+    test-code: |
+      sem_t expected;
+
+      memset( &expected, 0xff, sizeof( expected ) );
+      T_eq_mem( &ctx->sem_obj, &expected, sizeof( expected ) );
+    text: |
+      The object referenced by the ${../if/init:/params[0]/name} parameter shall not
+      be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Count
+  states:
+  - name: Valid
+    test-code: |
+      T_eq_u32( SemOf( ctx )->count, ctx->value );
+    text: |
+      The count of the ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/init:/params[0]/name} parameter shall be equal to the value of the
+      ${../if/init:/params[2]/name} parameter.
+  - name: Max
+    test-code: |
+      T_eq_u32( SemOf( ctx )->count, SEM_VALUE_MAX );
+    text: |
+      The count of the ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/init:/params[0]/name} parameter shall be ${/c/if/sem_value_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Queue
+  states:
+  - name: Empty
+    test-code: |
+      T_null( SemOf( ctx )->Queue.Queue.heads );
+    text: |
+      The ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/init:/params[0]/name} parameter shall have no waiting thread.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sem
+  states:
+  - name: Valid
+    test-code: |
+      ctx->sem = &ctx->sem_obj;
+      memset( &ctx->sem_obj, 0xff, sizeof( ctx->sem_obj ) );
+    text: |
+      While the ${../if/init:/params[0]/name} parameter references an object of type
+      ${/c/if/sem_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->sem = NULL;
+    text: |
+      While the ${../if/init:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Pshared
+  states:
+  - name: Zero
+    test-code: |
+      ctx->pshared = 0;
+    text: |
+      While the ${../if/init:/params[1]/name} parameter is equal to zero.
+  - name: NonZero
+    test-code: |
+      ctx->pshared = 1;
+    text: |
+      While the ${../if/init:/params[1]/name} parameter is not equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Valid
+    test-code: |
+      ctx->value = 1;
+    text: |
+      While the ${../if/init:/params[2]/name} parameter is less than
+      ${/c/if/sem_value_max:/name}.
+  - name: Max
+    test-code: |
+      ctx->value = SEM_VALUE_MAX;
+    text: |
+      While the ${../if/init:/params[2]/name} parameter is equal to
+      ${/c/if/sem_value_max:/name}.
+  - name: TooBig
+    test-code: |
+      ctx->value = (unsigned int) SEM_VALUE_MAX + 1u;
+    text: |
+      While the ${../if/init:/params[2]/name} parameter is greater than
+      ${/c/if/sem_value_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  ${/ref/std/posix-2024/sem-init:/name} requires ${/c/errno/if/einval:/name} for
+  a ${../if/init:/params[2]/name} parameter which is greater than
+  ${/c/if/sem_value_max:/name}. This gives the states of pre-condition Value,
+  where state Max is the largest value which the call accepts.
+
+  The standard leaves the behaviour undefined for a ${../if/init:/params[0]/name}
+  parameter which is equal to ${/c/if/null:/name}. State Null of pre-condition
+  Sem specifies that RTEMS returns -1 and sets ${/c/errno/if/einval:/name}. The
+  memory of the object is filled with 0xff before the call, so that each
+  post-condition can only hold if the function writes the corresponding member.
+
+  ${/ref/std/posix-2024/sem-init:/name} also requires ENOSPC for an exhausted
+  resource and EPERM for a lack of privileges. ${../if/init:/name} allocates no
+  resource and RTEMS requires no privilege, so it cannot return these values and
+  no state is specified for them.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  errno = -1;
+  ctx->status = sem_init( ctx->sem, ctx->pshared, ctx->value );
+  ctx->errno_value = errno;
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member provides the object referenced by the ${../if/init:/params[0]/name}
+    parameter.
+  description: null
+  member: sem_t sem_obj
+- brief: |
+    This member specifies the ${../if/init:/params[0]/name} parameter value.
+  description: null
+  member: sem_t *sem
+- brief: |
+    This member specifies the ${../if/init:/params[1]/name} parameter value.
+  description: null
+  member: int pshared
+- brief: |
+    This member specifies the ${../if/init:/params[2]/name} parameter value.
+  description: null
+  member: unsigned int value
+- brief: |
+    This member contains the return value of the ${../if/init:/name} call.
+  description: null
+  member: int status
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/init:/name} call.
+  description: null
+  member: int errno_value
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- limits.h
+- rtems/posix/semaphoreimpl.h
+- semaphore.h
+- string.h
+test-local-includes: []
+test-prepare: |
+  ctx->value = 1;
+test-setup: null
+test-stop: null
+test-support: |
+  static Sem_Control *SemOf( CSemaphoreReqInit_Context *ctx )
+  {
+    return _Sem_Get( &ctx->sem_obj._Semaphore );
+  }
+test-target: testsuites/validation/tc-posix-sem-init.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Error
+    - if:
+        pre-conditions:
+          Value: TooBig
+      then: Error
+    - else: Ok
+    Errno:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Nop
+    - else: Inval
+    Object:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Initialized
+    - else: Nop
+    Count:
+    - if:
+        post-conditions:
+          Status: Ok
+      then-specified-by: Value
+    - else: N/A
+    Queue:
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Empty
+    - else: N/A
+  pre-conditions:
+    Sem: all
+    Pshared: all
+    Value:
+      applicable:
+        pre-conditions:
+          Sem: Valid
+type: requirement

@@ -230,6 +230,7 @@ test-actions:
     ctx->tq_sem_ctx.base.enqueue = SemaphoreEnqueue;
     ctx->tq_sem_ctx.get_count = SemaphoreGetCount;
     ctx->tq_sem_ctx.set_count = SemaphoreSetCount;
+    ctx->tq_sem_ctx.max_count = UINT32_MAX;
   checks:
   - brief: |
       Validate the ${../if/sys-lock-semaphore-try-wait:/name} directive.
@@ -474,7 +475,7 @@ test-support: |
     return STATUS_SUCCESSFUL;
   }
 
-  /* The surrender runner uses UINT32_MAX as the maximum count. */
+  /* The maximum count is UINT32_MAX. */
   RTEMS_STATIC_ASSERT( UINT_MAX == UINT32_MAX, sys_lock_semaphore_count );
 
   static Status_Control SemaphoreEnqueue( TQContext *ctx, TQWait wait )

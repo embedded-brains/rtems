@@ -27,6 +27,7 @@ post-conditions:
       ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
       The calling task shall surrender the semaphore as specified by
@@ -40,6 +41,7 @@ post-conditions:
       ctx->tq_sem_ctx.variant = TQ_SEM_BINARY;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
       The calling task shall surrender the semaphore as specified by
@@ -53,6 +55,7 @@ post-conditions:
       ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
       The calling task shall surrender the semaphore as specified by
@@ -66,6 +69,7 @@ post-conditions:
       ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
       ctx->tq_sem_ctx.get_count = TQSemGetCountClassic;
       ctx->tq_sem_ctx.set_count = TQSemSetCountClassic;
+      ctx->tq_sem_ctx.max_count = UINT32_MAX;
       ${/score/sem/req/surrender:/test-run}( &ctx->tq_sem_ctx );
     text: |
       The calling task shall surrender the semaphore as specified by

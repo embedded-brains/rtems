@@ -1,0 +1,574 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/timedwait
+- role: requirement-refinement
+  uid: /c/req/group-posix-api
+- role: reference
+  uid: /ref/std/posix-2024/sem-clockwait
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedwait:/name} shall be zero.
+  - name: MinusOne
+    test-code: |
+      T_eq_int( ctx->status, -1 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedwait:/name} shall be minus
+      one.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->errno_value, EINVAL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be ${/c/errno/if/einval:/name}.
+  - name: Timedout
+    test-code: |
+      T_eq_int( ctx->errno_value, ETIMEDOUT );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be
+      ${/c/errno/if/etimedout:/name}.
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_POISON );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Sem
+  states:
+  - name: Decremented
+    test-code: |
+      sem_t expected;
+
+      memcpy( &expected, &ctx->sem_before, sizeof( expected ) );
+      expected._Semaphore._count = 0;
+      ExpectReleasedLock( ctx, &expected );
+      T_eq_mem( &ctx->sem_obj, &expected, sizeof( ctx->sem_obj ) );
+    text: |
+      The value of the ${/glossary/countingsemaphore:/term} referenced by the
+      ${../if/timedwait:/params[0]/name} parameter shall be decremented by one, and
+      the object shall not be modified otherwise.
+  - name: Nop
+    test-code: |
+      sem_t expected;
+
+      memcpy( &expected, &ctx->sem_before, sizeof( expected ) );
+      ExpectReleasedLock( ctx, &expected );
+      T_eq_mem( &ctx->sem_obj, &expected, sizeof( ctx->sem_obj ) );
+    text: |
+      The object referenced by the ${../if/timedwait:/params[0]/name} parameter shall
+      not be modified.
+  test-epilogue: null
+  test-prologue: null
+- name: Wake
+  states:
+  - name: Zero
+    test-code: |
+      T_eq_int(
+        ctx->tq_sem_ctx.base.status[ TQ_BLOCKER_A ],
+        TQConvertStatus( &ctx->tq_sem_ctx.base, STATUS_SUCCESSFUL )
+      );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/timedwait:/name} for the blocked
+      thread shall be zero after another thread posted the semaphore.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Sem
+  states:
+  - name: Obj
+    test-code: |
+      T_eq_int( sem_init( &ctx->sem_obj, 0, 0 ), 0 );
+      ctx->sem = &ctx->sem_obj;
+    text: |
+      While the ${../if/timedwait:/params[0]/name} parameter references an object of
+      type ${/c/if/sem_t:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->sem = NULL;
+    text: |
+      While the ${../if/timedwait:/params[0]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Initialized
+  states:
+  - name: 'Yes'
+    test-code: |
+      /* The object was initialized by the arrangement of pre-condition Sem */
+    text: |
+      While the object referenced by the ${../if/timedwait:/params[0]/name} parameter
+      is an initialized ${/glossary/countingsemaphore:/term}.
+  - name: 'No'
+    test-code: |
+      T_eq_int( sem_destroy( &ctx->sem_obj ), 0 );
+    text: |
+      While the object referenced by the ${../if/timedwait:/params[0]/name} parameter
+      is not an initialized ${/glossary/countingsemaphore:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Value
+  states:
+  - name: Zero
+    test-code: |
+      ctx->sem_obj._Semaphore._count = 0;
+      ctx->value_zero = true;
+    text: |
+      While the value of the ${/glossary/countingsemaphore:/term} is zero.
+  - name: One
+    test-code: |
+      ctx->sem_obj._Semaphore._count = 1;
+    text: |
+      While the value of the ${/glossary/countingsemaphore:/term} is one.
+  test-epilogue: null
+  test-prologue: null
+- name: Abstime
+  states:
+  - name: Future
+    test-code: |
+      T_eq_int( clock_gettime( CLOCK_REALTIME, &ctx->abstime_obj ), 0 );
+      ++ctx->abstime_obj.tv_sec;
+      ctx->abstime = &ctx->abstime_obj;
+      ctx->abstime_future = true;
+    text: |
+      While the ${../if/timedwait:/params[1]/name} parameter references a valid
+      absolute time which is in the future.
+  - name: Past
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 0;
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/timedwait:/params[1]/name} parameter references a valid
+      absolute time which is not in the future.
+  - name: Invalid
+    test-code: |
+      ctx->abstime_obj.tv_sec = 0;
+      ctx->abstime_obj.tv_nsec = 1000000000;
+      ctx->abstime = &ctx->abstime_obj;
+    text: |
+      While the ${../if/timedwait:/params[1]/name} parameter references an absolute
+      time with a nanoseconds value which is not in the range from zero to 999999999.
+  - name: 'Null'
+    test-code: |
+      ctx->abstime = NULL;
+    text: |
+      While the ${../if/timedwait:/params[1]/name} parameter is ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  RTEMS checks the ${../if/timedwait:/params[0]/name} parameter before the
+  semaphore is seized. It returns minus one and sets ${/c/errno/if/errno:/name}
+  to ${/c/errno/if/einval:/name} if the parameter is ${/c/if/null:/name} or
+  references no initialized semaphore. A destroyed semaphore gives state No of
+  pre-condition Initialized.
+
+  ${/ref/std/posix-2024/sem-clockwait:/name} specifies that the absolute time is
+  not checked if the semaphore can be decremented immediately. RTEMS checks it
+  only for a value of zero. It returns ${/c/errno/if/einval:/name} for a
+  ${/c/if/null:/name} pointer or an invalid nanoseconds value, and
+  ${/c/errno/if/etimedout:/name} for a time which is not in the future. A
+  negative nanoseconds value is checked by the same comparison as a value of one
+  billion, so state Invalid uses only the latter. A value of zero with a time in
+  the future blocks until another thread posts the semaphore, which
+  post-condition Wake specifies.
+
+  The value of the semaphore is written directly into the semaphore object.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  memcpy( &ctx->sem_before, &ctx->sem_obj, sizeof( ctx->sem_before ) );
+  errno = ERRNO_POISON;
+
+  if (
+    ctx->sem == &ctx->sem_obj && ctx->sem_obj._flags != 0 && ctx->value_zero &&
+    ctx->abstime_future
+  ) {
+    ctx->tq_sem_ctx.base.thread_queue_object = &ctx->sem_obj;
+    TQSendAndWaitForExecutionStop(
+      &ctx->tq_sem_ctx.base,
+      TQ_BLOCKER_A,
+      TQ_EVENT_ENQUEUE_TIMED | TQ_EVENT_RUNNER_SYNC
+    );
+    T_eq_int( sem_post( &ctx->sem_obj ), 0 );
+    TQSynchronizeRunner();
+  } else {
+    ctx->status = sem_timedwait( ctx->sem, ctx->abstime );
+    ctx->errno_value = errno;
+  }
+test-brief: null
+test-cleanup: |
+  if ( ctx->sem_obj._flags != 0 ) {
+    T_eq_int( sem_destroy( &ctx->sem_obj ), 0 );
+  }
+test-context:
+- brief: |
+    This member contains the thread queue test context.
+  description: null
+  member: |
+    TQSemContext tq_sem_ctx
+- brief: |
+    This member is true, if the value of the semaphore is zero.
+  description: null
+  member: |
+    bool value_zero
+- brief: |
+    This member is true, if the absolute time is in the future.
+  description: null
+  member: |
+    bool abstime_future
+- brief: |
+    This member specifies the ${../if/timedwait:/params[0]/name} parameter value.
+  description: null
+  member: |
+    sem_t *sem
+- brief: |
+    This member specifies the ${../if/timedwait:/params[1]/name} parameter value.
+  description: null
+  member: |
+    const struct timespec *abstime
+- brief: |
+    This member contains the return value of the ${../if/timedwait:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member contains the return value of the ${/c/errno/if/errno:/name} after
+    the ${../if/timedwait:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member contains the semaphore object.
+  description: null
+  member: |
+    sem_t sem_obj
+- brief: |
+    This member contains a copy of the semaphore object before the
+    ${../if/timedwait:/name} call.
+  description: null
+  member: |
+    sem_t sem_before
+- brief: |
+    This member contains the object referenced by the
+    ${../if/timedwait:/params[1]/name} parameter.
+  description: null
+  member: |
+    struct timespec abstime_obj
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- semaphore.h
+- string.h
+- time.h
+test-local-includes:
+- tx-support.h
+- tx-thread-queue.h
+test-prepare: |
+  memset( &ctx->sem_obj, 0, sizeof( ctx->sem_obj ) );
+  ctx->value_zero = false;
+  ctx->abstime_future = false;
+test-setup:
+  brief: null
+  code: |
+    SetSelfPriority( PRIO_NORMAL );
+    memset( ctx, 0, sizeof( *ctx ) );
+    ctx->tq_sem_ctx.base.enqueue_variant = TQ_ENQUEUE_BLOCKS;
+    ctx->tq_sem_ctx.base.discipline = TQ_PRIORITY;
+    ctx->tq_sem_ctx.base.deadlock = TQ_DEADLOCK_FATAL;
+    ctx->tq_sem_ctx.base.convert_status = TQConvertStatusPOSIX;
+    ctx->tq_sem_ctx.base.enqueue_prepare = TQEnqueuePrepareDefault;
+    ctx->tq_sem_ctx.base.enqueue_done = TQEnqueueDoneDefault;
+    ctx->tq_sem_ctx.base.enqueue = TQEnqueuePOSIXSem;
+    ctx->tq_sem_ctx.base.surrender = TQSurrenderPOSIXSem;
+    ctx->tq_sem_ctx.variant = TQ_SEM_COUNTING;
+    ctx->tq_sem_ctx.get_count = TQSemGetCountPOSIX;
+    ctx->tq_sem_ctx.set_count = TQSemSetCountPOSIX;
+    TQInitialize( &ctx->tq_sem_ctx.base );
+  description: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  /*
+   * In SMP configurations, the functions acquire and release the ticket lock of
+   * the thread queue of the semaphore, which advances its counters.  The checks
+   * of the semaphore object expect a released lock and take its counters from
+   * the object.
+   */
+  static void ExpectReleasedLock( const Context *ctx, sem_t *expected )
+  {
+    const struct _Ticket_lock_Control *lock;
+
+    lock = &ctx->sem_obj._Semaphore._Queue._Lock;
+    T_eq_uint( lock->_next_ticket, lock->_now_serving );
+    expected->_Semaphore._Queue._Lock = *lock;
+  }
+
+  #define ERRNO_POISON -1
+test-target: testsuites/validation/tc-posix-sem-timedwait.c
+test-teardown:
+  brief: null
+  code: |
+    TQDestroy( &ctx->tq_sem_ctx.base );
+    RestoreRunnerPriority();
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: MinusOne
+    - else: Ok
+    Errno:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        and:
+        - pre-conditions:
+            Value: Zero
+        - pre-conditions:
+            Abstime: Past
+      then: Timedout
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: Inval
+    - else: Nop
+    Sem:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Decremented
+    - else: Nop
+    Wake: N/A
+  pre-conditions:
+    Sem:
+    - 'Null'
+    Initialized: N/A
+    Value: N/A
+    Abstime: N/A
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: MinusOne
+    - else: Ok
+    Errno:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        and:
+        - pre-conditions:
+            Value: Zero
+        - pre-conditions:
+            Abstime: Past
+      then: Timedout
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: Inval
+    - else: Nop
+    Sem:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Decremented
+    - else: Nop
+    Wake: N/A
+  pre-conditions:
+    Sem:
+    - Obj
+    Initialized: all
+    Value: all
+    Abstime:
+    - Past
+    - Invalid
+    - 'Null'
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: MinusOne
+    - else: Ok
+    Errno:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        and:
+        - pre-conditions:
+            Value: Zero
+        - pre-conditions:
+            Abstime: Past
+      then: Timedout
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: Inval
+    - else: Nop
+    Sem:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Decremented
+    - else: Nop
+    Wake: N/A
+  pre-conditions:
+    Sem:
+    - Obj
+    Initialized:
+    - 'Yes'
+    - 'No'
+    Value:
+    - One
+    Abstime:
+    - Future
+- enabled-by: true
+  post-conditions:
+    Status:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: MinusOne
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: MinusOne
+    - else: Ok
+    Errno:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: Inval
+    - if:
+        pre-conditions:
+          Initialized: 'No'
+      then: Inval
+    - if:
+        and:
+        - pre-conditions:
+            Value: Zero
+        - pre-conditions:
+            Abstime: Past
+      then: Timedout
+    - if:
+        pre-conditions:
+          Value: Zero
+      then: Inval
+    - else: Nop
+    Sem:
+    - if:
+        pre-conditions:
+          Sem: 'Null'
+      then: N/A
+    - if:
+        post-conditions:
+          Status: Ok
+      then: Decremented
+    - else: Nop
+    Wake: N/A
+  pre-conditions:
+    Sem:
+    - Obj
+    Initialized:
+    - 'No'
+    Value:
+    - Zero
+    Abstime:
+    - Future
+- enabled-by: true
+  post-conditions:
+    Status: N/A
+    Errno: N/A
+    Sem: N/A
+    Wake: Zero
+  pre-conditions:
+    Sem:
+    - Obj
+    Initialized:
+    - 'Yes'
+    Value:
+    - Zero
+    Abstime:
+    - Future
+type: requirement

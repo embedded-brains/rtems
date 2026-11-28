@@ -1,0 +1,12 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: group
+term: named semaphore
+text: |
+  A ${/glossary/countingsemaphore:/term} which is identified by a name.
+type: glossary

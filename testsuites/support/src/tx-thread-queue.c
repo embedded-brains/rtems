@@ -43,9 +43,14 @@
 #include <rtems/test-thread-queue.h>
 #include <rtems/test-support.h>
 
+#include <errno.h>
+#include <limits.h>
+#include <semaphore.h>
+
 #include <rtems/score/threadimpl.h>
 #include <rtems/rtems/semimpl.h>
 #include <rtems/posix/muteximpl.h>
+#include <rtems/score/semaphoreimpl.h>
 
 #include <pthread.h>
 
@@ -851,6 +856,64 @@ rtems_tcb *TQGetOwnerClassicSem( TQContext *ctx )
   _ISR_lock_ISR_enable( &queue_context.Lock_context.Lock_context );
 
   return thread;
+}
+
+Status_Control TQEnqueuePOSIXSem( TQContext *ctx, TQWait wait )
+{
+  sem_t           *sem;
+  struct timespec  abstime;
+  int              eno;
+
+  sem = ctx->thread_queue_object;
+
+  switch ( wait ) {
+    case TQ_WAIT_FOREVER:
+      eno = ( sem_wait( sem ) == 0 ) ? 0 : errno;
+      break;
+    case TQ_WAIT_TIMED:
+      abstime.tv_sec = INT64_MAX;
+      abstime.tv_nsec = 0;
+      eno = ( sem_timedwait( sem, &abstime ) == 0 ) ? 0 : errno;
+      break;
+    default:
+      eno = ( sem_trywait( sem ) == 0 ) ? 0 : errno;
+      break;
+  }
+
+  return STATUS_BUILD( 0, eno );
+}
+
+Status_Control TQSurrenderPOSIXSem( TQContext *ctx )
+{
+  sem_t *sem;
+  int    eno;
+
+  sem = ctx->thread_queue_object;
+  eno = ( sem_post( sem ) == 0 ) ? 0 : errno;
+
+  return STATUS_BUILD( 0, eno );
+}
+
+uint32_t TQSemGetCountPOSIX( TQSemContext *ctx )
+{
+  sem_t       *sem;
+  Sem_Control *the_sem;
+
+  sem = ctx->base.thread_queue_object;
+  the_sem = _Sem_Get( &sem->_Semaphore );
+
+  return the_sem->count;
+}
+
+void TQSemSetCountPOSIX( TQSemContext *ctx, uint32_t count )
+{
+  sem_t       *sem;
+  Sem_Control *the_sem;
+
+  sem = ctx->base.thread_queue_object;
+  the_sem = _Sem_Get( &sem->_Semaphore );
+
+  the_sem->count = count;
 }
 
 uint32_t TQSemGetCount( TQSemContext *ctx )

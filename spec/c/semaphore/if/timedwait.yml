@@ -1,0 +1,71 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Decrement the value of the ${/glossary/countingsemaphore:/term} referenced by
+  ${.:/params[0]/name}, waiting while the value is zero until the absolute time
+  referenced by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 OHB System AG
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - ${/c/if/sem_t:/name} *restrict ${.:/params[0]/name}
+    - const ${/c/if/timespec:/name} *restrict ${.:/params[1]/name}
+    return: int
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: /c/if/semaphore
+- role: interface-ingroup
+  uid: group
+- description: |
+    The ${.:/params[0]/name} parameter is ${/c/if/null:/name}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The object referenced by the ${.:/params[0]/name} parameter is not an
+    initialized ${/glossary/countingsemaphore:/term}.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The value of the ${/glossary/countingsemaphore:/term} is zero and the
+    ${.:/params[1]/name} parameter is ${/c/if/null:/name} or references a time with
+    a nanoseconds value which is not in the range from zero to 999999999.
+  role: errno
+  uid: /c/errno/if/einval
+- description: |
+    The value of the ${/glossary/countingsemaphore:/term} was zero until the
+    absolute time referenced by the ${.:/params[1]/name} parameter.
+  role: errno
+  uid: /c/errno/if/etimedout
+- role: reference
+  uid: /ref/std/posix-2024/sem-clockwait
+name: sem_timedwait
+notes: |
+  See ${/ref/std/posix-2024/sem-clockwait:/name}.
+params:
+- description: |
+    is the pointer to the ${/glossary/countingsemaphore:/term}.
+  dir: inout
+  name: sem
+- description: |
+    is the pointer to the absolute time of the timeout, measured by
+    ${/c/time/if/clock-realtime:/name}.
+  dir: in
+  name: abs_timeout
+return:
+  return: null
+  return-values:
+  - description: |
+      The requested operation was successful.
+    value: 0
+  - description: |
+      An error occurred. The ${/c/errno/if/errno:/name} is set to indicate the error.
+    value: -1
+type: interface
