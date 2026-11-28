@@ -32,9 +32,9 @@ A fix in a pull request against `eb/qual` stays on `eb/qual`. A maintainer
 moves it to `eb/main` only where `eb/main` needs it.
 
 The workflow Harmonia merges every change of `eb/main` into `eb/qual` through a
-pull request. The pull request merges by auto-merge with a merge commit. Never
-merge it with "Rebase and merge" or "Squash and merge". These copy the commits
-of `eb/main` into `eb/qual`, and the next Harmonia pull request offers the same
+pull request. A maintainer merges it with "Create a merge commit". Never merge
+it with "Rebase and merge" or "Squash and merge". These copy the commits of
+`eb/main` into `eb/qual`, and the next Harmonia pull request offers the same
 changes again.
 
 A change of a specification item enters `eb/qual` in one pull request. The pull
