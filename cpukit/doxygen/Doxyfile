@@ -53,6 +53,7 @@ FILE_PATTERNS          = *.c \
                          *.dox
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       = ${.:/exclude-patterns}
+IMAGE_PATH             = ${.:/input}
 SOURCE_BROWSER         = YES
 GENERATE_HTML          = ${.:/generate-html}
 HTML_OUTPUT            = .

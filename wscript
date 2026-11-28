@@ -1866,6 +1866,7 @@ def _generate_sdd(bld):
         version["__RTEMS_REVISION__"]
     ])
     include_path = sorted(node.abspath() for node in include_paths)
+    images = top.find_node("cpukit/doxygen/images")
     settings = [
         ("PROJECT_NAME",
          f"\"RTEMS Software Design Document [{bld.variant}]\""),
@@ -1875,6 +1876,7 @@ def _generate_sdd(bld):
                              bld.bldnode.abspath()]),
         ("STRIP_FROM_INC_PATH", include_path),
         ("INPUT", sorted(inputs)),
+        ("IMAGE_PATH", f"\"{images.abspath()}\""),
         ("INCLUDE_PATH", include_path + system_includes),
         ("PREDEFINED", _SDD_PREDEFINED + predefined),
         ("GENERATE_TAGFILE",
