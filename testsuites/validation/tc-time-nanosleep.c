@@ -170,8 +170,8 @@ typedef struct {
   /**
    * @brief If this member is true, then the worker task sets the `tv_sec`
    *   member of the object referenced by the `rqtp` parameter so that the
-   *   interval ends at the implementation limit plus
-   *   CTimeReqNanosleep_Context::rqtp_sec_beyond_limit seconds.
+   *   interval ends at the implementation limit plus `rqtp_sec_beyond_limit`
+   *   seconds.
    */
   bool rqtp_sec_at_limit;
 
