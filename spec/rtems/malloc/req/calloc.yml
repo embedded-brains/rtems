@@ -1,136 +1,281 @@
 SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 enabled-by: true
 functional-type: action
 links:
 - role: interface-function
   uid: ../if/calloc
+- role: requirement-refinement
+  uid: /score/heap/req/disjoint
 post-conditions:
 - name: Status
   states:
+  - name: Block
+    test-code: |
+      T_not_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/calloc:/name} shall be the begin
+      address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
   - name: 'Null'
     test-code: |
       T_null( ctx->ptr );
     text: |
-      The return value of ${../if/calloc:/name} shall be equal to
+      The ${/glossary/returnvalue:/term} of ${../if/calloc:/name} shall be equal to
       ${/c/if/null:/name}.
-  - name: AreaBegin
-    test-code: |
-      T_not_null( ctx->ptr );
-    text: |
-      The return value of ${../if/calloc:/name} shall be equal to the begin address
-      of the allocated memory area.
   test-epilogue: null
   test-prologue: null
 - name: Alignment
   states:
-  - name: Valid
+  - name: Heap
     test-code: |
       T_eq_uptr( (uintptr_t) ctx->ptr % CPU_HEAP_ALIGNMENT, 0 );
     text: |
-      The begin address of the allocated memory area shall be an integral multiple of
-      the heap alignment of the ${/glossary/target-arch:/term}.
+      The begin address of the ${/score/heap/glossary/used-block:/term} shall be an
+      integral multiple of the heap alignment of the ${/glossary/target-arch:/term}.
   test-epilogue: null
   test-prologue: null
-- name: Size
-  states:
-  - name: Valid
-    test-code: |
-      /* Assume that the next allocation is done from adjacent memory */
-      ptr = ctx->ptr;
-      ctx->ptr = rtems_calloc( ctx->nelem, ctx->elsize );
-      T_not_null( ptr );
-      a = (uintptr_t) ptr;
-      b = (uintptr_t) ctx->ptr;
-      size = a < b ? b - a : a - b;
-      T_ge_uptr( size, ctx->nelem * ctx->elsize );
-    text: |
-      The size of the allocated memory area shall greater than or equal to the
-      product of the `nelem` and `elsize` parameters.
-  test-epilogue: null
-  test-prologue: |
-    void     *ptr;
-    uintptr_t a;
-    uintptr_t b;
-    uintptr_t size;
 - name: Content
   states:
   - name: Zero
     test-code: |
-      T_eq_u64( *(uint64_t *) ctx->ptr, 0 );
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->nelem * ctx->elsize );
+      T_true( IsZero( ctx->ptr, ctx->nelem * ctx->elsize ) );
     text: |
-      The content of the allocated memory area shall be cleared to zero.
+      The ${/score/heap/glossary/used-block:/term} shall begin with `nelem` times
+      `elsize` bytes of zero.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+- name: Heap
+  states:
+  - name: Allocated
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks + 1 );
+    text: |
+      The ${/score/heap/glossary/c-program-heap:/term} shall have one more
+      ${/score/heap/glossary/used-block:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+    text: |
+      The ${/score/heap/glossary/used-block:/plural} and the
+      ${/score/heap/glossary/free-block:/plural} of the
+      ${/score/heap/glossary/c-program-heap:/term} shall not be changed by the
+      ${../if/calloc:/name} call.
   test-epilogue: null
   test-prologue: null
 pre-conditions:
 - name: ElementCount
   states:
-  - name: Huge
-    test-code: |
-      ctx->nelem = SIZE_MAX;
-    text: |
-      While the `nelem` parameter is not equal to zero, while the `nelem` parameter
-      is too large to allocate a memory area with the specified size.
   - name: Zero
     test-code: |
       ctx->nelem = 0;
     text: |
       While the `nelem` parameter is equal to zero.
-  - name: Valid
-    test-code: |
-      ctx->nelem = 1;
+  - name: NonZero
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->nelem = 2;
+    - name: One
+      test-code: |
+        ctx->nelem = 1;
+    - name: Large
+      test-code: |
+        ctx->nelem = 65536;
+    - name: SizeMax
+      test-code: |
+        ctx->nelem = SIZE_MAX;
+    test-code: null
     text: |
-      While the `nelem` parameter is not equal to zero, while the `nelem` parameter
-      is small enough to allocate a memory area with the specified size.
+      While the `nelem` parameter is not equal to zero.
   test-epilogue: null
   test-prologue: null
 - name: ElementSize
   states:
-  - name: Huge
-    test-code: |
-      ctx->elsize = SIZE_MAX;
-    text: |
-      While the `elsize` parameter is not equal to zero, while the `elsize` parameter
-      is too large to allocate a memory area with the specified size.
   - name: Zero
     test-code: |
       ctx->elsize = 0;
     text: |
       While the `elsize` parameter is equal to zero.
-  - name: Valid
-    test-code: |
-      ctx->elsize = sizeof( uint64_t );
+  - name: NonZero
+    representatives:
+    - name: One
+      test-code: |
+        ctx->elsize = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->elsize = RBHEAP_MIN_SIZE + 1;
+    - name: Slab
+      test-code: |
+        ctx->elsize = RBHEAP_SLAB_SIZE;
+    - name: SizeMax
+      test-code: |
+        ctx->elsize = SIZE_MAX;
+    test-code: null
     text: |
-      While the `elsize` parameter is not equal to zero, while the `elsize` parameter
-      is small enough to allocate a memory area with the specified size.
+      While the `elsize` parameter is not equal to zero.
   test-epilogue: null
   test-prologue: null
-rationale: null
+- name: Product
+  states:
+  - name: Valid
+    representatives:
+    - name: Given
+      test-code: |
+        if ( ctx->nelem != 0 && ctx->elsize > SIZE_MAX / ctx->nelem ) {
+          ${.:skip}
+        }
+    - name: Limit
+      test-code: |
+        if ( ctx->nelem == 0 || ctx->elsize == 0 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX / ctx->nelem;
+        }
+    test-code: null
+    text: |
+      While the product of the `nelem` and the `elsize` parameters is less than or
+      equal to ${/c/if/size_max:/name}.
+  - name: Overflow
+    representatives:
+    - name: JustAbove
+      test-code: |
+        if ( ctx->nelem < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX / ctx->nelem + 1;
+        }
+    - name: Max
+      test-code: |
+        if ( ctx->nelem < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->elsize = SIZE_MAX;
+        }
+    test-code: null
+    text: |
+      While the product of the `nelem` and the `elsize` parameters is greater than
+      ${/c/if/size_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: 'Yes'
+    representatives:
+    - name: Empty
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nelem * ctx->elsize,
+            RBHEAP_ALIGNMENT
+          );
+        }
+    test-code: null
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has a
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  - name: 'No'
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->nelem * ctx->elsize >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->nelem * ctx->elsize <=
+            HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nelem * ctx->elsize - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has no
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The ${/score/heap/glossary/c-program-heap:/term} returns ${/c/if/null:/name}
+  for a request of size zero.
+
+  The state code of Product reads the `nelem` parameter value, so Product follows
+  ElementCount.
+
+  Dimension Product covers the product of the `nelem` and the `elsize`
+  parameters, 2 states.
+
+  Dimension Fit covers the free blocks of the
+  ${/score/heap/glossary/c-program-heap:/term}, 2 states.
 requirement-type: functional
-skip-reasons: {}
+skip-reasons:
+  ZeroProduct: |
+    The product of the `nelem` and the `elsize` parameters is zero if one of the
+    two parameters is zero, so the product cannot exceed ${/c/if/size_max:/name}.
 test-action: |
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->before );
   ctx->ptr = rtems_calloc( ctx->nelem, ctx->elsize );
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->after );
 test-brief: null
 test-cleanup: null
 test-context:
 - brief: |
-    This member provides a memory support context.
+    This member contains the heap of the test.
   description: null
   member: |
-    MemoryContext mem_ctx
+    HeapContext heap
 - brief: |
-    This member contains the return value of the ${../if/calloc:/name} call.
+    This member contains the snapshot of the heap before the call.
+  description: null
+  member: |
+    HeapSnapshot before
+- brief: |
+    This member contains the snapshot of the heap after the call.
+  description: null
+  member: |
+    HeapSnapshot after
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/calloc:/name} call.
   description: null
   member: |
     void *ptr
 - brief: |
-    This member specifies if the `nelem` parameter value.
+    This member specifies the `nelem` parameter value.
   description: null
   member: |
     size_t nelem
 - brief: |
-    This member specifies if the `elsize` parameter value.
+    This member specifies the `elsize` parameter value.
   description: null
   member: |
     size_t elsize
@@ -138,61 +283,133 @@ test-context-support: null
 test-description: null
 test-header: null
 test-includes:
+- stdint.h
 - rtems/malloc.h
+- string.h
 test-local-includes:
-- tx-support.h
-test-prepare: null
+- tx-heap.h
+test-prepare: |
+  memset( HeapGetArea(), 0xff, HEAP_AREA_SIZE );
+  HeapReset( &ctx->heap );
 test-setup:
   brief: null
   code: |
-    MemorySave( &ctx->mem_ctx );
+    HeapInstall( &ctx->heap );
   description: null
 test-stop: null
-test-support: null
+test-support: |
+  static bool IsZero( const void *ptr, size_t size )
+  {
+    const unsigned char *bytes;
+    size_t               i;
+
+    bytes = ptr;
+
+    for ( i = 0; i < size; ++i ) {
+      if ( bytes[ i ] != 0 ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 test-target: testsuites/validation/tc-mem-rtems-calloc.c
 test-teardown:
   brief: null
   code: |
-    MemoryRestore( &ctx->mem_ctx );
+    HeapRestore( &ctx->heap );
   description: null
 text: |
   ${.:text-template}
 transition-map:
 - enabled-by: true
   post-conditions:
-    Status: AreaBegin
-    Alignment: Valid
-    Size: Valid
+    Status: Block
+    Alignment: Heap
     Content: Zero
+    Heap: Allocated
   pre-conditions:
     ElementCount:
-    - Valid
+    - NonZero
     ElementSize:
+    - NonZero
+    Product:
     - Valid
+    Fit:
+    - 'Yes'
 - enabled-by: true
   post-conditions:
     Status: 'Null'
-    Alignment: Valid
-    Size: N/A
+    Alignment: N/A
     Content: N/A
+    Heap: Nop
   pre-conditions:
     ElementCount:
-    - Huge
-    - Zero
+    - NonZero
     ElementSize:
-    - Huge
-    - Zero
+    - NonZero
+    Product:
     - Valid
+    Fit:
+    - 'No'
 - enabled-by: true
   post-conditions:
     Status: 'Null'
-    Alignment: Valid
-    Size: N/A
+    Alignment: N/A
     Content: N/A
+    Heap: Nop
   pre-conditions:
     ElementCount:
-    - Valid
+    - NonZero
     ElementSize:
-    - Huge
+    - NonZero
+    Product:
+    - Overflow
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    ElementCount:
     - Zero
+    ElementSize: all
+    Product:
+    - Valid
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    ElementCount:
+    - NonZero
+    ElementSize:
+    - Zero
+    Product:
+    - Valid
+    Fit: all
+- enabled-by: true
+  post-conditions: ZeroProduct
+  pre-conditions:
+    ElementCount: all
+    ElementSize:
+    - Zero
+    Product:
+    - Overflow
+    Fit: all
+- enabled-by: true
+  post-conditions: ZeroProduct
+  pre-conditions:
+    ElementCount:
+    - Zero
+    ElementSize:
+    - NonZero
+    Product:
+    - Overflow
+    Fit: all
 type: requirement

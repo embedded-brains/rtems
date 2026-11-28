@@ -1,0 +1,446 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/calloc
+- role: requirement-refinement
+  uid: /score/heap/req/disjoint
+post-conditions:
+- name: Status
+  states:
+  - name: Block
+    test-code: |
+      T_not_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/calloc:/name} shall be the begin
+      address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/c-program-heap:/term}.
+  - name: 'Null'
+    test-code: |
+      T_null( ctx->ptr );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/calloc:/name} shall be equal to
+      ${../if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Errno
+  states:
+  - name: Nop
+    test-code: |
+      T_eq_int( ctx->errno_value, ERRNO_SENTINEL );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall not be changed by the
+      ${../if/calloc:/name} call.
+  - name: ENOMEM
+    test-code: |
+      T_eq_int( ctx->errno_value, ENOMEM );
+    text: |
+      The value of ${/c/errno/if/errno:/name} shall be equal to
+      ${/c/errno/if/enomem:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Alignment
+  states:
+  - name: Heap
+    test-code: |
+      T_eq_uptr( (uintptr_t) ctx->ptr % CPU_HEAP_ALIGNMENT, 0 );
+    text: |
+      The begin address of the ${/score/heap/glossary/used-block:/term} shall be an
+      integral multiple of the heap alignment of the ${/glossary/target-arch:/term}.
+  test-epilogue: null
+  test-prologue: null
+- name: Content
+  states:
+  - name: Zero
+    test-code: |
+      T_true( _RBHeap_Size_of_block( &ctx->heap.heap, ctx->ptr, &size ) );
+      T_ge_uptr( size, ctx->nmemb * ctx->size );
+      T_true( IsZero( ctx->ptr, ctx->nmemb * ctx->size ) );
+    text: |
+      The ${/score/heap/glossary/used-block:/term} shall begin with `nmemb` times
+      `size` bytes of zero.
+  test-epilogue: null
+  test-prologue: |
+    uintptr_t size;
+- name: Heap
+  states:
+  - name: Allocated
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks + 1 );
+    text: |
+      The ${/score/heap/glossary/c-program-heap:/term} shall have one more
+      ${/score/heap/glossary/used-block:/term}.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+    text: |
+      The ${/score/heap/glossary/used-block:/plural} and the
+      ${/score/heap/glossary/free-block:/plural} of the
+      ${/score/heap/glossary/c-program-heap:/term} shall not be changed by the
+      ${../if/calloc:/name} call.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Nmemb
+  states:
+  - name: Zero
+    test-code: |
+      ctx->nmemb = 0;
+    text: |
+      While the ${../if/calloc:/params[0]/name} parameter is equal to zero.
+  - name: NonZero
+    representatives:
+    - name: Two
+      test-code: |
+        ctx->nmemb = 2;
+    - name: One
+      test-code: |
+        ctx->nmemb = 1;
+    - name: Large
+      test-code: |
+        ctx->nmemb = 65536;
+    - name: SizeMax
+      test-code: |
+        ctx->nmemb = SIZE_MAX;
+    test-code: null
+    text: |
+      While the ${../if/calloc:/params[0]/name} parameter is not equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Size
+  states:
+  - name: Zero
+    test-code: |
+      ctx->size = 0;
+    text: |
+      While the ${../if/calloc:/params[1]/name} parameter is equal to zero.
+  - name: NonZero
+    representatives:
+    - name: One
+      test-code: |
+        ctx->size = 1;
+    - name: MinMinusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE - 1;
+    - name: Min
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE;
+    - name: MinPlusOne
+      test-code: |
+        ctx->size = RBHEAP_MIN_SIZE + 1;
+    - name: Slab
+      test-code: |
+        ctx->size = RBHEAP_SLAB_SIZE;
+    - name: SizeMax
+      test-code: |
+        ctx->size = SIZE_MAX;
+    test-code: null
+    text: |
+      While the ${../if/calloc:/params[1]/name} parameter is not equal to zero.
+  test-epilogue: null
+  test-prologue: null
+- name: Product
+  states:
+  - name: Valid
+    representatives:
+    - name: Given
+      test-code: |
+        if ( ctx->nmemb != 0 && ctx->size > SIZE_MAX / ctx->nmemb ) {
+          ${.:skip}
+        }
+    - name: Limit
+      test-code: |
+        if ( ctx->nmemb == 0 || ctx->size == 0 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX / ctx->nmemb;
+        }
+    test-code: null
+    text: |
+      While the product of the `nmemb` and the ${../if/calloc:/params[1]/name}
+      parameters is less than or equal to ${/c/if/size_max:/name}.
+  - name: Overflow
+    representatives:
+    - name: JustAbove
+      test-code: |
+        if ( ctx->nmemb < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX / ctx->nmemb + 1;
+        }
+    - name: Max
+      test-code: |
+        if ( ctx->nmemb < 2 ) {
+          ${.:skip}
+        } else {
+          ctx->size = SIZE_MAX;
+        }
+    test-code: null
+    text: |
+      While the product of the `nmemb` and the ${../if/calloc:/params[1]/name}
+      parameters is greater than ${/c/if/size_max:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: Fit
+  states:
+  - name: 'Yes'
+    representatives:
+    - name: Empty
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        }
+    - name: Exact
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size > HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          ${.:skip}
+        } else {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nmemb * ctx->size,
+            RBHEAP_ALIGNMENT
+          );
+        }
+    test-code: null
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has a
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  - name: 'No'
+    representatives:
+    - name: Exhausted
+      test-code: |
+        HeapExhaust( &ctx->heap.heap );
+    - name: Short
+      test-code: |
+        if (
+          ctx->nmemb * ctx->size >= RBHEAP_MIN_SIZE + RBHEAP_ALIGNMENT &&
+          ctx->nmemb * ctx->size <= HeapGetLargestAllocatableSize( &ctx->heap.heap )
+        ) {
+          HeapLeaveFreeBlock(
+            &ctx->heap.heap,
+            ctx->nmemb * ctx->size - RBHEAP_ALIGNMENT,
+            RBHEAP_ALIGNMENT
+          );
+        } else {
+          HeapExhaust( &ctx->heap.heap );
+        }
+    test-code: null
+    text: |
+      While the ${/score/heap/glossary/c-program-heap:/term} has no
+      ${/score/heap/glossary/free-block:/term} which satisfies the request.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The ${/score/heap/glossary/c-program-heap:/term} returns ${../if/null:/name}
+  for a request of size zero.
+
+  The state code of Product reads the ${../if/calloc:/params[0]/name} parameter
+  value, so Product follows Nmemb.
+
+  Dimension Product covers the product of the `nmemb` and the
+  ${../if/calloc:/params[1]/name} parameters, 2 states.
+
+  Dimension Fit covers the free blocks of the
+  ${/score/heap/glossary/c-program-heap:/term}, 2 states.
+requirement-type: functional
+skip-reasons:
+  ZeroProduct: |
+    The product of the `nmemb` and the ${../if/calloc:/params[1]/name} parameters
+    is zero if one of the two parameters is zero, so the product cannot exceed
+    ${/c/if/size_max:/name}.
+test-action: |
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->before );
+  errno = ERRNO_SENTINEL;
+  ctx->ptr = calloc( ctx->nmemb, ctx->size );
+  ctx->errno_value = errno;
+  HeapTakeSnapshot( &ctx->heap.heap, &ctx->after );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the snapshot of the heap before the call.
+  description: null
+  member: |
+    HeapSnapshot before
+- brief: |
+    This member contains the snapshot of the heap after the call.
+  description: null
+  member: |
+    HeapSnapshot after
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/calloc:/name} call.
+  description: null
+  member: |
+    void *ptr
+- brief: |
+    This member contains the value of ${/c/errno/if/errno:/name} after the
+    ${../if/calloc:/name} call.
+  description: null
+  member: |
+    int errno_value
+- brief: |
+    This member specifies the ${../if/calloc:/params[0]/name} parameter value.
+  description: null
+  member: |
+    size_t nmemb
+- brief: |
+    This member specifies the ${../if/calloc:/params[1]/name} parameter value.
+  description: null
+  member: |
+    size_t size
+test-context-support: |
+  #define ERRNO_SENTINEL -1
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdint.h
+- stdlib.h
+- string.h
+test-local-includes:
+- tx-heap.h
+test-prepare: |
+  memset( HeapGetArea(), 0xff, HEAP_AREA_SIZE );
+  HeapReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: |
+  static bool IsZero( const void *ptr, size_t size )
+  {
+    const unsigned char *bytes;
+    size_t               i;
+
+    bytes = ptr;
+
+    for ( i = 0; i < size; ++i ) {
+      if ( bytes[ i ] != 0 ) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+test-target: testsuites/validation/tc-mem-calloc.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Block
+    Errno: Nop
+    Alignment: Heap
+    Content: Zero
+    Heap: Allocated
+  pre-conditions:
+    Nmemb:
+    - NonZero
+    Size:
+    - NonZero
+    Product:
+    - Valid
+    Fit:
+    - 'Yes'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: ENOMEM
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    Nmemb:
+    - NonZero
+    Size:
+    - NonZero
+    Product:
+    - Valid
+    Fit:
+    - 'No'
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: ENOMEM
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    Nmemb:
+    - NonZero
+    Size:
+    - NonZero
+    Product:
+    - Overflow
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    Nmemb:
+    - Zero
+    Size: all
+    Product:
+    - Valid
+    Fit: all
+- enabled-by: true
+  post-conditions:
+    Status: 'Null'
+    Errno: Nop
+    Alignment: N/A
+    Content: N/A
+    Heap: Nop
+  pre-conditions:
+    Nmemb:
+    - NonZero
+    Size:
+    - Zero
+    Product:
+    - Valid
+    Fit: all
+- enabled-by: true
+  post-conditions: ZeroProduct
+  pre-conditions:
+    Nmemb: all
+    Size:
+    - Zero
+    Product:
+    - Overflow
+    Fit: all
+- enabled-by: true
+  post-conditions: ZeroProduct
+  pre-conditions:
+    Nmemb:
+    - Zero
+    Size:
+    - NonZero
+    Product:
+    - Overflow
+    Fit: all
+type: requirement

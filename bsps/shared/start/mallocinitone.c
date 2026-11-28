@@ -41,9 +41,9 @@
 #include <rtems/mallocinitone.h>
 #include <rtems/score/wkspacedata.h>
 
-static Heap_Control _Malloc_Heap;
+static RBHeap_control _Malloc_Heap;
 
-Heap_Control *_Workspace_Malloc_initialize_separate( void )
+RBHeap_control *_Workspace_Malloc_initialize_separate( void )
 {
   return _Malloc_Initialize_for_one_area( &_Malloc_Heap );
 }

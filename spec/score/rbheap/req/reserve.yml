@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  With E entries in the tree of the used blocks, at most E + 1 free blocks exist.
+  The reserve guarantees that an allocation after a free never needs a new slab.
+requirement-type: functional
+text: |
+  After each allocation, the slabs of the heap shall hold at least 2 * E + 3
+  descriptors, where E is the count of the used blocks, the holes and the slabs
+  inside the memory areas of the heap.
+type: requirement

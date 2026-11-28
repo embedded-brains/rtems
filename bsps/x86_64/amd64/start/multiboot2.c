@@ -39,7 +39,7 @@
 #include <multiboot2.h>
 #include <multiboot2impl.h>
 
-#include <rtems/score/heap.h>
+#include <rtems/score/rbheap.h>
 
 #include <efi.h>
 
@@ -71,7 +71,7 @@ static int bootservices_running = 0;
 
 static char multiboot_boot_args[256];
 
-extern Heap_Control *RTEMS_Malloc_Heap;
+extern RBHeap_control *RTEMS_Malloc_Heap;
 
 #ifdef BSP_MULTIBOOT_SUPPORT
 

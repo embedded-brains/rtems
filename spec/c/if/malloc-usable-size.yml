@@ -1,0 +1,37 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Get the size of the memory area referenced by ${.:/params[0]/name} which the
+  caller can use.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    return: ${/c/if/size_t:/name}
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: malloc-h
+- role: interface-ingroup
+  uid: group
+name: malloc_usable_size
+notes: null
+params:
+- description: |
+    is ${/c/if/null:/name} or the begin address of a memory area which a memory
+    allocation function of the ${/score/heap/glossary/c-program-heap:/term}
+    returned.
+  dir: null
+  name: ptr
+return:
+  return: |
+    Returns the size in bytes of the memory area which the caller can use.
+  return-values: []
+type: interface

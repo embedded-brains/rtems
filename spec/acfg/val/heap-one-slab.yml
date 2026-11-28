@@ -1,0 +1,61 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Check the effect of the RTEMS Workspace configuration options of the test
+    suite.
+  action-code: |
+    /* Nothing to do */
+  checks:
+  - brief: |
+      Check that the RTEMS Workspace is a red-black tree heap.
+    code: |
+      T_true( _RBHeap_Walk( &_Workspace_RBHeap ) );
+      T_eq_uptr(
+        _Workspace_RBHeap.area_begin,
+        (uintptr_t) _Workspace_Storage_area
+      );
+    links:
+    - role: validation
+      uid: ../req/workspace-allocator
+  - brief: |
+      Check that the statically allocated descriptors of the RTEMS Workspace fit into
+      one slab.
+    code: |
+      T_eq_uptr( _Workspace_Descriptor_size, RBHEAP_SLAB_SIZE );
+    links:
+    - role: validation
+      uid: ../req/workspace-descriptor-count
+  - brief: |
+      Check that the RTEMS Workspace reserves a thread-local storage area which holds
+      the thread-local storage of the application.
+    code: |
+      T_eq_sz( _Thread_Maximum_TLS_size, 0 );
+      T_ne_sz( _Workspace_TLS_area_count, 0 );
+      T_le_uptr( _TLS_Get_allocation_size(), 64 * sizeof( void * ) );
+    links:
+    - role: validation
+      uid: /acfg/if/max-thread-local-storage-size
+  links: []
+test-brief: |
+  Tests the RTEMS Workspace configuration options of the test suite.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems/score/rbheap.h
+- rtems/score/thread.h
+- rtems/score/tls.h
+- rtems/score/wkspace.h
+- rtems/score/wkspacedata.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-acfg-heap-one-slab.c
+test-teardown: null
+type: test-case

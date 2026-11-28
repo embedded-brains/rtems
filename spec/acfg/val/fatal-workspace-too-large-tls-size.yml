@@ -1,0 +1,103 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    The test action is carried out by providing a thread-local storage object of
+    sufficient size with respect to the application configuration of the test
+    suite.
+  action-code: |
+    if ( shall_not_load_the_value ) {
+      uint8_t value;
+
+      value = large_tls_object[ 0 ];
+      RTEMS_OBFUSCATE_VARIABLE( value );
+    }
+  checks:
+  - brief: |
+      Check that the expected fatal source is present.
+    code: |
+      T_step_eq_int( ${.:/step}, ctx->source, INTERNAL_ERROR_CORE );
+    links:
+    - role: validation
+      uid: ../req/fatal-workspace-too-large-tls-size
+  - brief: |
+      Check that the expected fatal code is present.
+    code: |
+      T_step_eq_ulong( ${.:/step}, ctx->code, INTERNAL_ERROR_TOO_LARGE_TLS_SIZE );
+    links:
+    - role: validation
+      uid: ../req/fatal-workspace-too-large-tls-size
+  - brief: |
+      Check that the ${/acfg/if/max-thread-local-storage-size:/name} application
+      configuration option resulted in the expected system setting.
+    code: |
+      T_step_eq_sz( ${.:/step}, _Thread_Maximum_TLS_size, 0 );
+    links:
+    - role: validation
+      uid: /acfg/if/max-thread-local-storage-size
+  - brief: |
+      Check that the RTEMS Workspace reserves a thread-local storage area.
+    code: |
+      T_step_ne_sz( ${.:/step}, _Workspace_TLS_area_count, 0 );
+    links:
+    - role: validation
+      uid: ../req/fatal-workspace-too-large-tls-size
+  - brief: |
+      Check that the RTEMS Workspace is a red-black tree heap without statically
+      allocated descriptors.
+    code: |
+      T_step_eq_uptr( ${.:/step}, _Workspace_Descriptor_size, 0 );
+      T_step_eq_uptr(
+        ${.:/step},
+        _Workspace_RBHeap.area_begin,
+        (uintptr_t) _Workspace_Storage_area
+      );
+    links:
+    - role: validation
+      uid: ../req/workspace-allocator
+    - role: validation
+      uid: ../req/workspace-descriptor-count
+  links: []
+test-brief: |
+  Tests a fatal error.
+test-context: []
+test-context-support: null
+test-description: null
+test-header:
+  code: null
+  freestanding: true
+  includes:
+  - rtems.h
+  local-includes: []
+  run-params:
+  - description: |
+      is fatal source.
+    dir: null
+    name: source
+    specifier: ${/rtems/userext/if/fatal-source:/name} ${.:name}
+  - description: |
+      is fatal code.
+    dir: null
+    name: code
+    specifier: ${/rtems/userext/if/fatal-code:/name} ${.:name}
+  target: testsuites/validation/tr-fatal-workspace-too-large-tls-size.h
+test-includes:
+- rtems.h
+- rtems/score/rbheap.h
+- rtems/score/thread.h
+- rtems/score/wkspace.h
+- rtems/score/wkspacedata.h
+test-local-includes:
+- tr-fatal-workspace-too-large-tls-size.h
+test-setup: null
+test-stop: null
+test-support: |
+  static _Thread_local volatile uint8_t large_tls_object[ 64 * sizeof( void * ) + 1 ];
+
+  static volatile bool shall_not_load_the_value;
+test-target: testsuites/validation/tr-fatal-workspace-too-large-tls-size.c
+test-teardown: null
+type: test-case

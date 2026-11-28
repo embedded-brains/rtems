@@ -41,12 +41,13 @@
 #define _RTEMS_SCORE_WKSPACEDATA_H
 
 #include <rtems/score/basedefs.h>
+#include <rtems/score/heapinfo.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct Heap_Control;
+struct RBHeap_control;
 
 /**
  * @defgroup RTEMSScoreWorkspace Workspace Handler
@@ -118,7 +119,7 @@ extern const size_t _Workspace_TLS_area_count;
  * This constant is defined by the application configuration via
  * <rtems/confdefs.h> or a default configuration.
  */
-extern struct Heap_Control *const *const _Workspace_Fallback_heap;
+extern struct RBHeap_control *const *const _Workspace_Fallback_heap;
 
 /**
  * @brief Allocates a memory block of the specified size from the workspace.
@@ -174,7 +175,117 @@ void _Workspace_Free_with_fallback( void *ptr );
  *
  * @return Returns the heap control used for the C Program Heap.
  */
-struct Heap_Control *_Workspace_Malloc_initialize_separate( void );
+struct RBHeap_control *_Workspace_Malloc_initialize_separate( void );
+
+/**
+ * @brief This object is the red-black tree heap of the RTEMS Workspace.
+ *
+ * The application configuration uses this heap if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ */
+extern struct RBHeap_control _Workspace_RBHeap;
+
+/**
+ * @brief Initializes ::_Workspace_RBHeap with the storage area of the RTEMS
+ *   Workspace.
+ */
+void _Workspace_RBHeap_initialize( void );
+
+/**
+ * @brief Stops the system initialization if the allocation size of the
+ *   thread-local storage exceeds the size which the storage area of the RTEMS
+ *   Workspace reserves for it.
+ */
+void _Workspace_Check_TLS_allocation_size( void );
+
+/**
+ * @brief Allocates a memory area from the storage area of the RTEMS
+ *   Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  Otherwise, the function of the
+ * library allocates from ::_Workspace_Area.
+ *
+ * @param size is the size in bytes of the memory area.
+ *
+ * @return Returns the begin address of the memory area, otherwise NULL.
+ */
+void *_Workspace_Storage_allocate( size_t size );
+
+/**
+ * @brief Frees a memory area which _Workspace_Storage_allocate() returned.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @param ptr is the begin address of the memory area.
+ */
+void _Workspace_Storage_free( void *ptr );
+
+/**
+ * @brief Gets the statistics of the storage area of the RTEMS Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  The caller shall own the
+ * allocator mutex.
+ *
+ * @param[out] stats is the statistics.
+ *
+ * @param[out] largest_free_size is the size of the largest free block.
+ */
+void _Workspace_Get_statistics(
+  Heap_Statistics *stats,
+  uintptr_t       *largest_free_size
+);
+
+/**
+ * @brief Gets the information of the storage area of the RTEMS Workspace.
+ *
+ * The application configuration defines this function if it selects
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.  The caller shall own the
+ * allocator mutex.
+ *
+ * @param[out] info is the information.
+ */
+void _Workspace_Get_information( Heap_Information_block *info );
+
+/**
+ * @brief The begin of the static descriptor area of the RTEMS Workspace.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT via <rtems/confdefs.h> if
+ * #CONFIGURE_WORKSPACE_ALLOCATOR selects the red-black tree heap.
+ */
+extern void *const _Workspace_Descriptor_begin;
+
+/**
+ * @brief The size in bytes of the static descriptor area of the RTEMS
+ *   Workspace.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT via <rtems/confdefs.h> if
+ * #CONFIGURE_WORKSPACE_ALLOCATOR selects the red-black tree heap.
+ */
+extern const uintptr_t _Workspace_Descriptor_size;
+
+/**
+ * @brief The begin of the static descriptor area of the C Program Heap.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_MALLOC_DESCRIPTOR_COUNT via <rtems/confdefs.h> or a default
+ * configuration.
+ */
+extern void *const _Malloc_Descriptor_begin;
+
+/**
+ * @brief The size in bytes of the static descriptor area of the C
+ *   Program Heap.
+ *
+ * This constant is defined by the application configuration option
+ * #CONFIGURE_MALLOC_DESCRIPTOR_COUNT via <rtems/confdefs.h> or a default
+ * configuration.
+ */
+extern const uintptr_t _Malloc_Descriptor_size;
 
 /** @} */
 

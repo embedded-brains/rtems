@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: /c/if/free
+rationale: |
+  A free of ${/c/if/null:/name} may happen before the system initialization
+  creates the ${/score/heap/glossary/c-program-heap:/term}.
+requirement-type: functional
+text: |
+  When ${/c/if/free:/name} is called with a ${/c/if/null:/name} pointer, the
+  function shall return without an access to the
+  ${/score/heap/glossary/c-program-heap:/term}.
+type: requirement

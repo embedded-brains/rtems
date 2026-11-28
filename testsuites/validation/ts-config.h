@@ -10,7 +10,7 @@
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -90,6 +90,12 @@ extern "C" {
 #define TEST_MAXIMUM_TIMERS 10
 
 #define TEST_MAXIMUM_USER_EXTENSIONS 5
+
+#define TEST_MALLOC_CPU_DESCRIPTORS 64
+
+#define TEST_MALLOC_DESCRIPTOR_COUNT 150
+
+#define TEST_WORKSPACE_DESCRIPTOR_COUNT 200
 
 /*
  * Use at least two so that the CPU time budget decrement in

@@ -17,6 +17,7 @@ extra-files:
 - testsuites/validation/ts-record.h
 - testsuites/validation/ts-sysinit.h
 - testsuites/validation/tx-assert.h
+- testsuites/validation/tx-heap.h
 - testsuites/validation/tx-isr-lock.h
 - testsuites/validation/tx-register-check.h
 - testsuites/validation/tx-support.h
@@ -31,6 +32,16 @@ links:
 - role: build-dependency
   uid: fatal-boot-processor-not-assigned-to-scheduler
 - role: build-dependency
+  uid: fatal-free-double-bin
+- role: build-dependency
+  uid: fatal-free-double-bin-pop
+- role: build-dependency
+  uid: fatal-free-double-bin-remote
+- role: build-dependency
+  uid: fatal-free-double-kept-owner
+- role: build-dependency
+  uid: fatal-free-double-kept-remote
+- role: build-dependency
   uid: fatal-idle-thread-create-failed
 - role: build-dependency
   uid: fatal-idle-thread-stack-too-small
@@ -38,6 +49,10 @@ links:
   uid: fatal-init-task-construct-failed
 - role: build-dependency
   uid: fatal-init-task-create-failed
+- role: build-dependency
+  uid: fatal-invalid-heap-free
+- role: build-dependency
+  uid: fatal-malloc-cpu-descriptors
 - role: build-dependency
   uid: fatal-mandatory-processor-not-present
 - role: build-dependency
@@ -63,6 +78,8 @@ links:
 - role: build-dependency
   uid: fatal-too-large-tls-size
 - role: build-dependency
+  uid: fatal-workspace-too-large-tls-size
+- role: build-dependency
   uid: model-0
 - role: build-dependency
   uid: performance-no-clock-0
@@ -82,6 +99,12 @@ links:
   uid: validation-cache
 - role: build-dependency
   uid: validation-cxx-0
+- role: build-dependency
+  uid: validation-heap-0
+- role: build-dependency
+  uid: validation-heap-1
+- role: build-dependency
+  uid: validation-heap-2
 - role: build-dependency
   uid: validation-intr
 - role: build-dependency

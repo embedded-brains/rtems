@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: C Program Heap
+text: |
+  The C Program Heap is the ${/glossary/heap:/term} from which the memory
+  allocation functions of the C library allocate memory areas.
+type: glossary

@@ -1,0 +1,178 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/free
+post-conditions:
+- name: Status
+  states:
+  - name: 'True'
+    test-code: |
+      T_true( ctx->status );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/free:/name} shall be true.
+  test-epilogue: null
+  test-prologue: null
+- name: Heap
+  states:
+  - name: Freed
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks + 1, ctx->before.used_blocks );
+    text: |
+      The ${/score/heap/glossary/workspace:/term} shall have one
+      ${/score/heap/glossary/used-block:/term} less.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->after.used_blocks, ctx->before.used_blocks );
+      T_eq_u32( ctx->after.free_blocks, ctx->before.free_blocks );
+      T_eq_uptr( ctx->after.free_size, ctx->before.free_size );
+    text: |
+      The ${/score/heap/glossary/used-block:/plural} and the
+      ${/score/heap/glossary/free-block:/plural} of the
+      ${/score/heap/glossary/workspace:/term} shall not be changed by the
+      ${../if/free:/name} call.
+  test-epilogue: null
+  test-prologue: null
+- name: AllocatorLock
+  states:
+  - name: Once
+    test-code: |
+      T_eq_uint( ctx->lock_count, 1 );
+    text: |
+      The ${../if/free:/name} directive shall obtain the object allocator mutex
+      exactly once.
+  - name: Nop
+    test-code: |
+      T_eq_uint( ctx->lock_count, 0 );
+    text: |
+      The ${../if/free:/name} directive shall not obtain the object allocator mutex.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Pointer
+  states:
+  - name: 'Null'
+    test-code: |
+      ctx->pointer = NULL;
+    text: |
+      While the ${../if/free:/params[0]/name} parameter is equal to
+      ${/c/if/null:/name}.
+  - name: Used
+    test-code: |
+      ctx->pointer = _RBHeap_Allocate( &_Workspace_RBHeap, 1 );
+      T_quiet_not_null( ctx->pointer );
+    text: |
+      While the ${../if/free:/params[0]/name} parameter is the begin address of a
+      ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/workspace:/term}.
+  - name: Invalid
+    test-code: |
+      ctx->pointer = HeapGetArea();
+    text: |
+      While the ${../if/free:/params[0]/name} parameter is not equal to
+      ${/c/if/null:/name}, while the ${../if/free:/params[0]/name} parameter is not
+      the begin address of a ${/score/heap/glossary/used-block:/term} of the
+      ${/score/heap/glossary/workspace:/term}.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+requirement-type: functional
+skip-reasons:
+  Undefined: |
+    The directive does not check that the memory area was allocated from the
+    ${/score/heap/glossary/workspace:/term}. The behaviour is undefined for another
+    memory area.
+test-action: |
+  HeapTakeSnapshot( &_Workspace_RBHeap, &ctx->before );
+  CallCounterObserve( &AllocatorLockCounter, rtems_task_self() );
+  ctx->status = rtems_workspace_free( ctx->pointer );
+  ctx->lock_count = CallCounterGet( &AllocatorLockCounter );
+  CallCounterObserve( &AllocatorLockCounter, 0 );
+  HeapTakeSnapshot( &_Workspace_RBHeap, &ctx->after );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the snapshot of the heap before the call.
+  description: null
+  member: |
+    HeapSnapshot before
+- brief: |
+    This member contains the snapshot of the heap after the call.
+  description: null
+  member: |
+    HeapSnapshot after
+- brief: |
+    This member contains the count of the obtains of the object allocator mutex
+    during the call.
+  description: null
+  member: |
+    unsigned int lock_count
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/free:/name} call.
+  description: null
+  member: |
+    bool status
+- brief: |
+    This member specifies the ${../if/free:/params[0]/name} parameter value.
+  description: null
+  member: |
+    void *pointer
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- rtems/score/wkspace.h
+test-local-includes:
+- tx-heap.h
+- tx-support.h
+test-prepare: |
+  WorkspaceReset( &ctx->heap );
+test-setup:
+  brief: null
+  code: |
+    WorkspaceInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-workspace-free.c
+test-teardown:
+  brief: null
+  code: |
+    WorkspaceRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: 'True'
+    Heap: Nop
+    AllocatorLock: Once
+  pre-conditions:
+    Pointer:
+    - 'Null'
+- enabled-by: true
+  post-conditions:
+    Status: 'True'
+    Heap: Freed
+    AllocatorLock: Once
+  pre-conditions:
+    Pointer:
+    - Used
+- enabled-by: true
+  post-conditions: Undefined
+  pre-conditions:
+    Pointer:
+    - Invalid
+type: requirement

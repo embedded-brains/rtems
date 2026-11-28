@@ -36,7 +36,8 @@
  */
 
 #include <rtems.h>
-#include <rtems/score/protectedheap.h>
+#include <rtems/score/apimutex.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/malloc.h>
 
 #ifdef __cplusplus
@@ -51,7 +52,15 @@ typedef enum {
 
 Malloc_System_state _Malloc_System_state( void );
 
-void _Malloc_Process_deferred_frees( void );
+/**
+ * @brief Allocates a block of the size from the C program heap and bypasses
+ *   the processor blocks.
+ *
+ * @param size is the size in bytes of the block.
+ *
+ * @return Returns the begin of the block, else NULL.
+ */
+void *_Malloc_Allocate_unbound( size_t size );
 
 #ifdef __cplusplus
 }

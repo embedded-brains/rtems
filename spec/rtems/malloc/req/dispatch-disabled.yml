@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: /c/if/malloc
+- role: interface-function
+  uid: /c/if/calloc
+- role: interface-function
+  uid: /c/if/realloc
+- role: interface-function
+  uid: /c/if/aligned-alloc
+- role: interface-function
+  uid: /c/if/posix-memalign
+- role: interface-function
+  uid: /rtems/malloc/if/malloc
+- role: interface-function
+  uid: /rtems/malloc/if/calloc
+rationale: |
+  An interrupt service routine runs with thread dispatching disabled.
+requirement-type: functional
+text: |
+  While the system is up, while thread dispatching is disabled, the memory
+  allocation functions of the ${/score/heap/glossary/c-program-heap:/term} shall
+  not allocate a memory area.
+type: requirement

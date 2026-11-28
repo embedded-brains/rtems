@@ -5,12 +5,12 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implementations of rtems_malloc() and
- *   posix_memalign() which do not support free().
+ * @brief This source file contains the default definitions of
+ *   ::_Malloc_Descriptor_begin and ::_Malloc_Descriptor_size.
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,52 +38,8 @@
 #include "config.h"
 #endif
 
-#include <rtems/malloc.h>
+#include <rtems/score/wkspacedata.h>
 
-#include <errno.h>
-#include <stdlib.h>
+void *const _Malloc_Descriptor_begin = NULL;
 
-#include <rtems/score/memory.h>
-
-void *rtems_malloc( size_t size )
-{
-  if ( size == 0 ) {
-    return NULL;
-  }
-
-  return _Memory_Allocate( _Memory_Get(), size, CPU_HEAP_ALIGNMENT );
-}
-
-int posix_memalign( void **memptr, size_t alignment, size_t size )
-{
-  void *p;
-
-  RTEMS_OBFUSCATE_VARIABLE( memptr );
-
-  if ( memptr == NULL ) {
-    return EINVAL;
-  }
-
-  *memptr = NULL;
-
-  if ( alignment < sizeof( void * ) ) {
-    return EINVAL;
-  }
-
-  if ( ( ( alignment - 1 ) & alignment ) != 0 ) {
-    return EINVAL;
-  }
-
-  if ( size == 0 ) {
-    return 0;
-  }
-
-  p = _Memory_Allocate( _Memory_Get(), size, alignment );
-
-  if ( p == NULL ) {
-    return ENOMEM;
-  }
-
-  *memptr = p;
-  return 0;
-}
+const uintptr_t _Malloc_Descriptor_size = 0;

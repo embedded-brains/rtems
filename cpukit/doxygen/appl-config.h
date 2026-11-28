@@ -3254,6 +3254,125 @@
  */
 #define CONFIGURE_INTERRUPT_STACK_SIZE
 
+/* Find related documentation with spec:/acfg/if/malloc-cpu-descriptors */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_CPU_DESCRIPTORS
+ *
+ * The value of this configuration option defines the count of descriptors of
+ * the processor blocks of the C Program Heap for each configured processor.
+ *
+ * @par Default Value
+ * The default value is 0.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be zero or greater than or equal
+ * to two times the count of size classes of the processor blocks of the C
+ * Program Heap.
+ *
+ * @par Notes
+ * @parblock
+ * A processor block is a block of the C Program Heap which a processor keeps
+ * for the allocations on this processor. The allocations and the frees of
+ * blocks up to @ref CONFIGURE_MALLOC_CPU_MAX_SIZE use the processor blocks of
+ * the current processor first. A value of zero disables the processor blocks.
+ *
+ * The C Program Heap allocates the descriptors of the processor blocks during
+ * system initialization.
+ *
+ * A free block in the bins of one processor is not available to the
+ * allocations on other processors. An allocation which fails in the C Program
+ * Heap takes no block from the bins. A block which another processor frees
+ * stays in the kept list of its owner until the owner misses a bin. Each
+ * processor therefore holds up to half the value of this option times @ref
+ * CONFIGURE_MALLOC_CPU_MAX_SIZE bytes.
+ *
+ * The owner of a block detects a double free of the block on another processor
+ * only when it takes the block from its bin or from its kept list. The system
+ * then terminates with the fatal source #RTEMS_FATAL_SOURCE_INVALID_HEAP_FREE
+ * in the context of an unrelated allocation.
+ *
+ * This configuration option is only evaluated in SMP configurations of RTEMS.
+ * In all other configurations, it has no effect.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_CPU_DESCRIPTORS
+
+/* Find related documentation with spec:/acfg/if/malloc-cpu-max-size */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_CPU_MAX_SIZE
+ *
+ * The value of this configuration option defines the maximum size in bytes of
+ * a processor block of the C Program Heap.
+ *
+ * @par Default Value
+ * The default value is 4096.
+ *
+ * @par Constraints
+ * @parblock
+ * The following constraints apply to this configuration option:
+ *
+ * - The value of the configuration option shall be a power of two.
+ *
+ * - The value of the configuration option shall be greater than or equal to
+ *   four times the alignment of the red-black tree heap and less than or equal
+ *   to 1048576.
+ * @endparblock
+ *
+ * @par Notes
+ * @parblock
+ * The option has no effect if @ref CONFIGURE_MALLOC_CPU_DESCRIPTORS is zero.
+ * The maximum size determines the count of size classes of the processor
+ * blocks.
+ *
+ * Four size classes cover each power of two. The C Program Heap rounds each
+ * request up to the maximum size to the size of its class, also if the heap
+ * and not a bin provides the block. The rounding to the size of the class
+ * therefore adds less than 25 percent to the size of a request.
+ *
+ * This configuration option is only evaluated in SMP configurations of RTEMS.
+ * In all other configurations, it has no effect.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_CPU_MAX_SIZE
+
+/* Find related documentation with spec:/acfg/if/malloc-descriptor-count */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+ *
+ * The value of this configuration option defines the count of block
+ * descriptors of the C Program Heap which `<rtems/confdefs.h>` allocates
+ * statically.
+ *
+ * @par Default Value
+ * The default value is 0.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be greater than or equal to
+ * zero.
+ *
+ * @par Notes
+ * @parblock
+ * The C Program Heap keeps a descriptor for each block apart from the block.
+ * It takes the descriptors from slabs. The statically allocated descriptors
+ * take no part of the memory of the C Program Heap. Further descriptors come
+ * from slabs in the memory of the C Program Heap.
+ *
+ * The size of a slab is 512 times the size of a pointer. Each slab holds one
+ * descriptor for itself. The header file `<rtems/confdefs.h>` rounds the count
+ * up to whole slabs.
+ * @endparblock
+ */
+#define CONFIGURE_MALLOC_DESCRIPTOR_COUNT
+
 /* Find related documentation with spec:/acfg/if/malloc-dirty */
 
 /**
@@ -3885,6 +4004,94 @@
  * function is used to print the information.
  */
 #define CONFIGURE_VERBOSE_SYSTEM_INITIALIZATION
+
+/* Find related documentation with spec:/acfg/if/workspace-allocator */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_WORKSPACE_ALLOCATOR
+ *
+ * The value of this configuration option selects the heap which manages the
+ * storage area of the RTEMS Workspace.
+ *
+ * @par Default Value
+ * The default value is #RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be
+ * #RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT or
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @par Notes
+ * @parblock
+ * The first-fit heap searches a list of free blocks, so the time of an
+ * allocation grows with the count of free blocks. The red-black tree heap
+ * allocates and frees a block in a time logarithmic in the count of blocks. It
+ * keeps a descriptor for each block in slabs apart from the blocks.
+ *
+ * The application links only the selected heap for the RTEMS Workspace.
+ * @endparblock
+ */
+#define CONFIGURE_WORKSPACE_ALLOCATOR
+
+/* Find related documentation with spec:/acfg/if/workspace-descriptor-count */
+
+/**
+ * @brief This configuration option is an integer define.
+ *
+ * @anchor CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
+ *
+ * The value of this configuration option defines the count of block
+ * descriptors of the RTEMS Workspace which `<rtems/confdefs.h>` allocates
+ * statically if @ref CONFIGURE_WORKSPACE_ALLOCATOR is
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE.
+ *
+ * @par Default Value
+ * The default value is two times the count of blocks for which the RTEMS
+ * Workspace reserves memory, plus three.
+ *
+ * @par Constraints
+ * The value of the configuration option shall be greater than or equal to
+ * zero.
+ *
+ * @par Notes
+ * @parblock
+ * The RTEMS Workspace keeps a descriptor for each block apart from the block.
+ * It takes the descriptors from slabs. The statically allocated descriptors
+ * take no part of the memory of the RTEMS Workspace. Further descriptors come
+ * from slabs in the memory of the RTEMS Workspace.
+ *
+ * The RTEMS Workspace reserves memory for one block for each of these objects:
+ *
+ * - a thread stack,
+ *
+ * - the buffers of a message queue,
+ *
+ * - the name of a POSIX named object, and
+ *
+ * - the data of a POSIX shared memory object.
+ *
+ * A Classic message queue counts only if @ref CONFIGURE_MESSAGE_BUFFER_MEMORY
+ * is not zero, since a message queue which rtems_message_queue_construct()
+ * constructs takes no block. At most one free block lies before each used
+ * block and after the last used block. The RTEMS Workspace keeps two more
+ * descriptors for the next allocation. The default value therefore holds a
+ * descriptor for each block which the configuration reserves.
+ *
+ * An application which allocates further blocks from the RTEMS Workspace
+ * either increases this value or adds the memory for their slabs with @ref
+ * CONFIGURE_MEMORY_OVERHEAD.
+ *
+ * A configuration which reserves no block gets an empty RTEMS Workspace
+ * without descriptors. Each allocation from it fails.
+ *
+ * The size of a slab is 512 times the size of a pointer. Each slab holds one
+ * descriptor for itself. The header file `<rtems/confdefs.h>` rounds the count
+ * up to whole slabs.
+ * @endparblock
+ */
+#define CONFIGURE_WORKSPACE_DESCRIPTOR_COUNT
 
 /* Find related documentation with spec:/acfg/if/zero-workspace-automatically */
 

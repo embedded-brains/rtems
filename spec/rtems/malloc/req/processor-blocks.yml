@@ -1,0 +1,28 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: /score/rbheap/req/bound
+- role: interface-function
+  uid: /c/if/malloc
+- role: interface-function
+  uid: /c/if/free
+- role: interface-function
+  uid: /c/if/realloc
+rationale: |
+  A processor block stays a used block of the
+  ${/score/heap/glossary/c-program-heap:/term}. The processor which bound the
+  block owns it. A free on another processor puts the block into the kept list of
+  the owner. The owner moves the block into its bin when an allocation finds an
+  empty bin.
+requirement-type: functional
+text: |
+  Where the application configures processor blocks, when a block of at most the
+  maximum size of a processor block is freed, the
+  ${/score/heap/glossary/c-program-heap:/term} shall keep the block for the next
+  allocation of its size class on the current processor while the bin of the size
+  class is not full.
+type: requirement

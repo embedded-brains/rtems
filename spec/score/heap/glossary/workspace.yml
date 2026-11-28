@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+glossary-type: term
+links:
+- role: glossary-member
+  uid: /glossary/group
+term: RTEMS Workspace
+text: |
+  The RTEMS Workspace is the ${/glossary/heap:/term} from which the system
+  allocates the memory of its objects, task stacks and message buffers.
+type: glossary

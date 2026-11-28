@@ -1,0 +1,158 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Call the memory allocation functions within an interrupt service routine.
+  action-code: |
+    CallWithinISR( Allocate, ctx );
+  checks:
+  - brief: |
+      Check that no function allocated a memory area.
+    code: |
+      CheckNone( ctx );
+    links:
+    - role: validation
+      uid: ../req/dispatch-disabled
+  links: []
+- action-brief: |
+    Call the memory allocation functions in task context with thread dispatching
+    disabled.
+  action-code: |
+    Per_CPU_Control *cpu_self;
+
+    cpu_self = _Thread_Dispatch_disable();
+    Allocate( ctx );
+    _Thread_Dispatch_enable( cpu_self );
+  checks:
+  - brief: |
+      Check that no function allocated a memory area.
+    code: |
+      CheckNone( ctx );
+    links:
+    - role: validation
+      uid: ../req/dispatch-disabled
+  links: []
+- action-brief: |
+    Call the memory allocation functions while the system is before multitasking.
+  action-code: |
+    AllocateInState( ctx, SYSTEM_STATE_BEFORE_MULTITASKING );
+  checks:
+  - brief: |
+      Check that each function allocated a memory area.
+    code: |
+      CheckAll( ctx );
+    links:
+    - role: validation
+      uid: ../req/not-up
+  links: []
+- action-brief: |
+    Call the memory allocation functions while the system is terminated.
+  action-code: |
+    AllocateInState( ctx, SYSTEM_STATE_TERMINATED );
+  checks:
+  - brief: |
+      Check that each function allocated a memory area.
+    code: |
+      CheckAll( ctx );
+    links:
+    - role: validation
+      uid: ../req/not-up
+  links: []
+test-brief: |
+  Tests the memory allocation functions of the C Program Heap in the calling
+  contexts.
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the block which the realloc() call resizes.
+  description: null
+  member: |
+    void *old
+- brief: |
+    This member contains the begin addresses which the functions returned.
+  description: null
+  member: |
+    void *ptr[ FUNCTION_COUNT ]
+test-context-support: |
+  #define FUNCTION_COUNT 7
+test-description: null
+test-header: null
+test-includes:
+- rtems/malloc.h
+- rtems/score/isrlevel.h
+- rtems/score/sysstate.h
+- rtems/score/threaddispatch.h
+- stdlib.h
+test-local-includes:
+- tx-heap.h
+- tx-support.h
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: |
+  typedef RtemsMallocValContext_Context Context;
+
+  static void Allocate( void *arg )
+  {
+    Context *ctx;
+    int      eno;
+
+    ctx = arg;
+    HeapReset( &ctx->heap );
+    ctx->old = _RBHeap_Allocate( &ctx->heap.heap, 1 );
+    T_quiet_not_null( ctx->old );
+    ctx->ptr[ 0 ] = malloc( 1 );
+    ctx->ptr[ 1 ] = calloc( 1, 1 );
+    ctx->ptr[ 2 ] = realloc( ctx->old, 2 * HEAP_AREA_SIZE / 3 );
+    ctx->ptr[ 3 ] = aligned_alloc( 64, 1 );
+    eno = posix_memalign( &ctx->ptr[ 4 ], 64, 1 );
+    (void) eno;
+    ctx->ptr[ 5 ] = rtems_malloc( 1 );
+    ctx->ptr[ 6 ] = rtems_calloc( 1, 1 );
+  }
+
+  static void AllocateInState( Context *ctx, System_state_Codes state )
+  {
+    ISR_Level level;
+
+    _ISR_Local_disable( level );
+    _System_state_Set( state );
+    Allocate( ctx );
+    _System_state_Set( SYSTEM_STATE_UP );
+    _ISR_Local_enable( level );
+  }
+
+  static void CheckNone( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < FUNCTION_COUNT; ++i ) {
+      T_null( ctx->ptr[ i ] );
+    }
+  }
+
+  static void CheckAll( const Context *ctx )
+  {
+    size_t i;
+
+    for ( i = 0; i < FUNCTION_COUNT; ++i ) {
+      T_not_null( ctx->ptr[ i ] );
+    }
+  }
+test-target: testsuites/validation/tc-mem-context.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+type: test-case

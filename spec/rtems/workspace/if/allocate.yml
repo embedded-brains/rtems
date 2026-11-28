@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Allocates a memory area from the RTEMS Workspace.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -23,8 +23,6 @@ links:
 - role: interface-ingroup
   uid: group
 - role: constraint
-  uid: /constraint/directive-not-pre-qualified
-- role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint
   uid: /constraint/directive-ctx-task
@@ -33,6 +31,9 @@ links:
 name: rtems_workspace_allocate
 notes: |
   This directive is intended to be used by tests of the RTEMS test suites.
+
+  If the RTEMS Workspace allocates from the C Program Heap when its storage area
+  is exhausted, then the directive also allocates from the C Program Heap.
 params:
 - description: |
     is the number of bytes to allocated.

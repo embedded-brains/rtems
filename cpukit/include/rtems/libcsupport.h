@@ -44,7 +44,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 
-#include <rtems/score/heap.h>
+#include <rtems/score/rbheap.h>
 #include <rtems/rtems/support.h>
 #include <rtems/rtems/tasks.h>
 
@@ -65,7 +65,18 @@ extern "C" {
 extern void malloc_dump(void);
 
 /**
- * @brief Malloc walk.
+ * @brief Checks the C Program Heap.
+ *
+ * The function visits each block of the heap with interrupts disabled.
+ *
+ * @param source is a number which the report of a corrupt heap contains.
+ *
+ * @param printf_enabled is true, if the function shall report a corrupt heap
+ *   through printk().
+ *
+ * @retval true The heap is consistent.
+ *
+ * @retval false The heap is corrupt.
  */
 extern bool malloc_walk(int source, bool printf_enabled);
 
@@ -74,14 +85,14 @@ extern bool malloc_walk(int source, bool printf_enabled);
  * 
  * This routine is primarily used for debugging. 
  */
-void malloc_set_heap_pointer(Heap_Control *new_heap);
+void malloc_set_heap_pointer( RBHeap_control *new_heap );
 
 /**
  * @brief Get malloc heap pointer.
  * 
  * This routine is primarily used for debugging. 
  */
-Heap_Control *malloc_get_heap_pointer( void );
+RBHeap_control *malloc_get_heap_pointer( void );
 
 /**
  * @brief Gets the number of free bytes of the heap which serves malloc().
@@ -96,7 +107,8 @@ extern size_t malloc_free_space(void);
 /**
  * @brief Get malloc status information.
  *
- * Find amount of free heap remaining.
+ * Find amount of free heap remaining.  The size of the largest used block
+ * is zero.
  *
  * @deprecated Use malloc_get_statistics() instead.  The function will be
  *   removed after the RTEMS 7 release.

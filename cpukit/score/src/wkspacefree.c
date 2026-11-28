@@ -38,14 +38,8 @@
 #endif
 
 #include <rtems/score/wkspace.h>
-#include <rtems/score/assert.h>
-#include <rtems/score/heapimpl.h>
 
 void _Workspace_Free( void *block )
 {
-  bool ok;
-
-  ok = _Heap_Free( &_Workspace_Area, block );
-  _Assert( ok );
-  (void) ok;
+  _Workspace_Storage_free( block );
 }

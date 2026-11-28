@@ -31,7 +31,7 @@
  *   SetTimecounterFrequency(), SetGetTimecountHandler(), UnsetClock(),
  *   GetTaskTimerInfo(), and DaysFromCivil().
  *
- * - Memory: MemoryAllocationFailWhen(), MemorySave(), and MemoryRestore().
+ * - Memory: MemoryAllocationFailWhen().
  *
  * - Interrupts: CallWithinISR(), CallWithinISRSubmit(),
  *   GetTestableInterruptVector(), and RaiseSoftwareInterrupt().
@@ -1295,69 +1295,6 @@ rtems_id GetTimerServerTaskId( void );
  *   otherwise false.
  */
 bool DeleteTimerServer( void );
-
-/**
- * @brief This structure contains the saved state of the memory areas of the
- *   system.
- *
- * See MemorySave() and MemoryRestore().
- */
-typedef struct {
-  /**
-   * @brief This member contains the saved state of each memory area.
-   */
-  struct {
-    /**
-     * @brief This member contains the begin of the memory area.
-     */
-    const void *begin;
-
-    /**
-     * @brief This member contains the begin of the free space of the memory
-     *   area.
-     */
-    void *free_begin;
-
-    /**
-     * @brief This member contains the end of the memory area.
-     */
-    const void *end;
-  } areas[ 2 ];
-
-  /**
-   * @brief This member contains the count of saved memory areas.
-   */
-  size_t count;
-} MemoryContext;
-
-/**
- * @brief Saves the state of the memory areas of the system.
- *
- * The function saves the begin, the free begin, and the end of each memory
- * area.  The system shall have at most two memory areas, otherwise the test
- * case ends.
- *
- * The memory allocation tests save the state in their setup and restore it
- * with MemoryRestore() later.  A test which lets directives allocate from the
- * memory areas keeps the areas of the other tests intact this way.  See
- * tc-mem-rtems-calloc.c.
- *
- * @param ctx is the context which receives the state.
- */
-void MemorySave( MemoryContext *ctx );
-
-/**
- * @brief Restores the state of the memory areas of the system.
- *
- * The function restores the begin, the free begin, and the end of each memory
- * area which MemorySave() saved.
- *
- * Call this function with the context which the setup of the test case filled.
- * See MemorySave().
- *
- * @param ctx is the context which MemorySave() filled.
- */
-void MemoryRestore( const MemoryContext *ctx );
 
 /**
  * @brief Fails a dynamic memory allocation when the counter reaches zero.

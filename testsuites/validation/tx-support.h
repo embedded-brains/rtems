@@ -31,7 +31,7 @@
  *   SetTimecounterFrequency(), SetGetTimecountHandler(), UnsetClock(),
  *   GetTaskTimerInfo(), and DaysFromCivil().
  *
- * - Memory: MemoryAllocationFailWhen(), MemorySave(), and MemoryRestore().
+ * - Memory: MemoryAllocationFailWhen().
  *
  * - Interrupts: CallWithinISR(), CallWithinISRSubmit(),
  *   GetTestableInterruptVector(), and RaiseSoftwareInterrupt().

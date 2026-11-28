@@ -1,0 +1,13 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+links:
+- role: requirement-refinement
+  uid: /req/usage-constraints
+rationale: null
+text: |
+  The value of the application configuration option shall be
+  ${/rtems/workspace/if/allocator-first-fit:/name} or
+  ${/rtems/workspace/if/allocator-red-black-tree:/name}.
+type: constraint

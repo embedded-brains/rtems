@@ -32,6 +32,9 @@ links:
 name: rtems_workspace_greedy_free
 notes: |
   This directive is intended to be used by tests of the RTEMS test suites.
+
+  The directive frees the blocks of the RTEMS Workspace and the blocks of the C
+  Program Heap which the greedy allocation used.
 params:
 - description: |
     is the pointer value returned by ${greedy-allocate:/name} or

@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/malloc-cpu-max-size
+- role: requirement-refinement
+  uid: group
+rationale: null
+requirement-type: functional
+text: |
+  The application configuration option shall define the maximum size in bytes of
+  a processor block of the C Program Heap.
+type: requirement

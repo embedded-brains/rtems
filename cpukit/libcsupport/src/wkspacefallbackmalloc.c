@@ -40,20 +40,19 @@
 
 #include <rtems/score/wkspacedata.h>
 #include <rtems/score/assert.h>
-#include <rtems/score/heapimpl.h>
 #include <rtems/score/wkspace.h>
 #include <rtems/malloc.h>
 
-#include <stdlib.h>
+#include "malloc_p.h"
 
 void *_Workspace_Allocate_with_fallback( size_t size )
 {
   void *ptr;
 
-  ptr = _Heap_Allocate( &_Workspace_Area, size );
+  ptr = _Workspace_Storage_allocate( size );
 
   if ( ptr == NULL ) {
-    ptr = rtems_malloc( size );
+    ptr = _Malloc_Allocate_unbound( size );
   }
 
   return ptr;
@@ -62,12 +61,12 @@ void *_Workspace_Allocate_with_fallback( size_t size )
 void _Workspace_Free_with_fallback( void *ptr )
 {
   if ( _Workspace_Is_in_storage_area( ptr ) ) {
+    _Workspace_Storage_free( ptr );
+  } else {
     bool ok;
 
-    ok = _Heap_Free( &_Workspace_Area, ptr );
+    ok = _RBHeap_Free( RTEMS_Malloc_Heap, ptr );
     _Assert( ok );
     (void) ok;
-  } else {
-    free( ptr );
   }
 }

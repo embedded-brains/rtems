@@ -40,7 +40,6 @@
 
 #include <rtems/malloc.h>
 #include <rtems/rtems/supportimpl.h>
-#include <rtems/score/apimutex.h>
 
 #include <errno.h>
 #include <string.h>
@@ -49,23 +48,47 @@
 
 int malloc_get_statistics( rtems_heap_statistics *stats )
 {
+  Heap_Information_block info;
+
   if ( stats == NULL ) {
     return EINVAL;
   }
 
-  switch ( _Malloc_System_state() ) {
-    case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _RTEMS_Get_heap_statistics( RTEMS_Malloc_Heap, stats );
-      _RTEMS_Unlock_allocator();
-      break;
-    case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      _RTEMS_Get_heap_statistics( RTEMS_Malloc_Heap, stats );
-      break;
-    default:
-      memset( stats, 0, sizeof( *stats ) );
-      return EPROTO;
+  if ( _Malloc_System_state() == MALLOC_SYSTEM_STATE_NO_ALLOCATION ) {
+    memset( stats, 0, sizeof( *stats ) );
+    return EPROTO;
   }
 
+  memset( &info, 0, sizeof( info ) );
+  _RBHeap_Get_statistics( RTEMS_Malloc_Heap, &info.Stats );
+  info.Used.number = info.Stats.used_blocks;
+  info.Free.number = info.Stats.free_blocks;
+  info.Free.total = info.Stats.free_size;
+
+  /*
+   * The blocks in the processor bins are free for the caller.  The heap frees
+   * the slabs which their entries keep, when the bins return them.
+   */
+#if defined( RTEMS_SMP )
+  if ( _RBHeap_Has_processor_blocks( RTEMS_Malloc_Heap ) ) {
+    uintptr_t bin_blocks;
+
+    _RBHeap_Get_processor_information( RTEMS_Malloc_Heap, &info );
+    bin_blocks = info.Free.number - info.Stats.free_blocks;
+    info.Free.total += _RBHeap_Get_releasable_size(
+      RTEMS_Malloc_Heap,
+      bin_blocks
+    );
+  }
+#endif
+
+  info.Stats.free_size = info.Free.total;
+  info.Stats.free_blocks = (uint32_t) info.Free.number;
+  info.Stats.used_blocks = (uint32_t) info.Used.number;
+  _RTEMS_Convert_heap_statistics(
+    &info.Stats,
+    _RBHeap_Get_largest_free_size( RTEMS_Malloc_Heap ),
+    stats
+  );
   return 0;
 }

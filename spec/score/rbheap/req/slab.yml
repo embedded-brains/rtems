@@ -1,0 +1,16 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  The descriptors lie apart from the blocks, so the heap writes nothing into a
+  free block and nothing besides the guard word into a used block.
+requirement-type: functional
+text: |
+  The heap shall keep the descriptor of each free block and of each used block in
+  a slab of descriptors.
+type: requirement

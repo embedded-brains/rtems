@@ -3,14 +3,11 @@
 /**
  * @file
  *
- * @ingroup RTEMSTestSuitesValidation
- *
- * @brief This source file contains the definition of MemorySave() and
- * MemoryRestore().
+ * @ingroup AcfgValFatalMallocCpuDescriptors
  */
 
 /*
- * Copyright (C) 2021 embedded brains GmbH & Co. KG
+ * Copyright (C) 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,51 +31,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
+#ifndef _TR_FATAL_MALLOC_CPU_DESCRIPTORS_H
+#define _TR_FATAL_MALLOC_CPU_DESCRIPTORS_H
+
+#include <rtems.h>
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
-#include <rtems/test-support.h>
+/**
+ * @addtogroup AcfgValFatalMallocCpuDescriptors
+ *
+ * @{
+ */
 
-#include <rtems/test.h>
-#include <rtems/score/memory.h>
+/**
+ * @brief Runs the parameterized test case.
+ *
+ * @param source is fatal source.
+ *
+ * @param code is fatal code.
+ */
+void AcfgValFatalMallocCpuDescriptors_Run(
+  rtems_fatal_source source,
+  rtems_fatal_code   code
+);
 
-void MemorySave( MemoryContext *ctx )
-{
-  const Memory_Information *mem;
-  size_t                    n;
-  size_t                    i;
+/** @} */
 
-  mem = _Memory_Get();
-  n = _Memory_Get_count( mem );
-  ctx->count = n;
-  T_assert_le_sz( n, RTEMS_ARRAY_SIZE( ctx->areas ) );
-
-  for ( i = 0; i < n; ++i ) {
-    Memory_Area *area;
-
-    area = _Memory_Get_area( mem, i );
-    ctx->areas[ i ].begin = _Memory_Get_begin( area );
-    ctx->areas[ i ].free_begin = _Memory_Get_free_begin( area );
-    ctx->areas[ i ].end = _Memory_Get_end( area );
-  }
+#ifdef __cplusplus
 }
+#endif
 
-void MemoryRestore( const MemoryContext *ctx )
-{
-  const Memory_Information *mem;
-  size_t                    n;
-  size_t                    i;
-
-  mem = _Memory_Get();
-  n = ctx->count;
-
-  for ( i = 0; i < n; ++i ) {
-    Memory_Area *area;
-
-    area = _Memory_Get_area( mem, i );
-    _Memory_Set_begin( area, ctx->areas[ i ].begin );
-    _Memory_Set_free_begin( area, ctx->areas[ i ].free_begin );
-    _Memory_Set_end( area, ctx->areas[ i ].end );
-  }
-}
+#endif /* _TR_FATAL_MALLOC_CPU_DESCRIPTORS_H */

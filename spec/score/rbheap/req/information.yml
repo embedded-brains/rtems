@@ -1,0 +1,17 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: ../if/group
+rationale: |
+  The counters of the heap provide the information. The largest size of the used
+  blocks would need a visit of each block with interrupts disabled.
+requirement-type: functional
+text: |
+  When the heap reports its information, the heap shall report the count, the
+  total size and the largest size of its free blocks, the count and the total
+  size of its used blocks, and zero for the largest size of its used blocks.
+type: requirement

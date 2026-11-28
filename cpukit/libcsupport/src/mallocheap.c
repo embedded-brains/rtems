@@ -38,11 +38,13 @@
 #include "config.h"
 #endif
 
+#include "malloc_p.h"
+
 #include <rtems/malloc.h>
 #include <rtems/sysinit.h>
 #include <rtems/score/wkspacedata.h>
 
-Heap_Control *RTEMS_Malloc_Heap;
+RBHeap_control *RTEMS_Malloc_Heap;
 
 void _Malloc_Initialize( void )
 {

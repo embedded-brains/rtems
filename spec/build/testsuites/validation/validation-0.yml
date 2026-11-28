@@ -21,7 +21,14 @@ source:
 - testsuites/validation/tc-counter-ticks-to-sbintime.c
 - testsuites/validation/tc-counter.c
 - testsuites/validation/tc-event-send-receive.c
+- testsuites/validation/tc-mem-aligned-alloc.c
+- testsuites/validation/tc-mem-calloc.c
+- testsuites/validation/tc-mem-context.c
+- testsuites/validation/tc-mem-free.c
+- testsuites/validation/tc-mem-malloc-usable-size.c
+- testsuites/validation/tc-mem-malloc.c
 - testsuites/validation/tc-mem-posix-memalign.c
+- testsuites/validation/tc-mem-realloc.c
 - testsuites/validation/tc-mem-rtems-calloc.c
 - testsuites/validation/tc-mem-rtems-malloc.c
 - testsuites/validation/tc-stackchk-is-blown.c
@@ -31,6 +38,7 @@ source:
 - testsuites/validation/tc-thread-idle-body-no-return.c
 - testsuites/validation/tr-event-send-receive.c
 - testsuites/validation/ts-validation-0.c
+- testsuites/validation/tx-heap.c
 stlib: []
 target: testsuites/validation/ts-validation-0.exe
 type: build

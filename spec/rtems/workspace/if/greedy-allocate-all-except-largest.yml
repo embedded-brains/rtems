@@ -36,6 +36,9 @@ links:
 name: rtems_workspace_greedy_allocate_all_except_largest
 notes: |
   This directive is intended to be used by tests of the RTEMS test suites.
+
+  If the RTEMS Workspace allocates from the C Program Heap when its storage area
+  is exhausted, then the directive also uses all blocks of the C Program Heap.
 params:
 - description: |
     is the remaining allocatable size.

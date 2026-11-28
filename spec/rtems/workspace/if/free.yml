@@ -2,7 +2,7 @@ SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
 brief: |
   Frees the memory area allocated from the RTEMS Workspace.
 copyrights:
-- Copyright (C) 2021 embedded brains GmbH & Co. KG
+- Copyright (C) 2021, 2026 embedded brains GmbH & Co. KG
 - Copyright (C) 1988, 2008 On-Line Applications Research Corporation (OAR)
 definition:
   default:
@@ -22,15 +22,15 @@ links:
 - role: interface-ingroup
   uid: group
 - role: constraint
-  uid: /constraint/directive-not-pre-qualified
-- role: constraint
   uid: /constraint/directive-ctx-devinit
 - role: constraint
   uid: /constraint/directive-ctx-task
 - role: constraint
   uid: /constraint/object-allocator
 name: rtems_workspace_free
-notes: null
+notes: |
+  The directive does not check that the memory area was allocated from the RTEMS
+  Workspace.
 params:
 - description: |
     is the begin address of the memory area to free.
@@ -38,6 +38,6 @@ params:
   name: pointer
 return:
   return: |
-    Returns true, if freeing the memory area was successful, otherwise false.
+    Returns true.
   return-values: []
 type: interface

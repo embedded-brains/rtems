@@ -1,0 +1,247 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/get-statistics
+post-conditions:
+- name: Status
+  states:
+  - name: Ok
+    test-code: |
+      T_eq_int( ctx->status, 0 );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      equal to zero.
+  - name: Inval
+    test-code: |
+      T_eq_int( ctx->status, EINVAL );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      equal to ${/c/errno/if/einval:/name}.
+  - name: Proto
+    test-code: |
+      T_eq_int( ctx->status, EPROTO );
+    text: |
+      The ${/glossary/returnvalue:/term} of ${../if/get-statistics:/name} shall be
+      equal to ${/c/errno/if/eproto:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: StatsVar
+  states:
+  - name: Set
+    test-code: |
+      _RBHeap_Get_statistics( &ctx->heap.heap, &stats );
+      T_eq_u64( ctx->stats.lifetime_allocated, stats.lifetime_allocated );
+      T_eq_u64( ctx->stats.lifetime_freed, stats.lifetime_freed );
+      T_eq_sz( ctx->stats.size, stats.size );
+      T_eq_sz( ctx->stats.free_size, stats.free_size );
+      T_eq_sz(
+        ctx->stats.largest_free_size,
+        _RBHeap_Get_largest_free_size( &ctx->heap.heap )
+      );
+      T_eq_sz( ctx->stats.min_free_size, stats.min_free_size );
+      T_eq_u32( ctx->stats.free_blocks, stats.free_blocks );
+      T_eq_u32( ctx->stats.max_free_blocks, stats.max_free_blocks );
+      T_eq_u32( ctx->stats.used_blocks, stats.used_blocks );
+      T_eq_u32( ctx->stats.allocs, stats.allocs );
+      T_eq_u32( ctx->stats.failed_allocs, stats.failed_allocs );
+      T_eq_u32( ctx->stats.frees, stats.frees );
+      T_eq_u32( ctx->stats.resizes, stats.resizes );
+    text: |
+      The object referenced by the `stats` parameter shall contain the statistics of
+      the ${/score/heap/glossary/c-program-heap:/term}.
+  - name: Zero
+    test-code: |
+      rtems_heap_statistics zero;
+
+      memset( &zero, 0, sizeof( zero ) );
+      T_eq_mem( &ctx->stats, &zero, sizeof( zero ) );
+    text: |
+      Each member of the object referenced by the `stats` parameter shall be equal to
+      zero.
+  - name: Nop
+    test-code: |
+      T_eq_u32( ctx->stats.allocs, UINT32_MAX );
+    text: |
+      Objects referenced by the `stats` parameter in past calls to
+      ${../if/get-statistics:/name} shall not be accessed by the
+      ${../if/get-statistics:/name} call.
+  test-epilogue: null
+  test-prologue: |
+    Heap_Statistics stats;
+pre-conditions:
+- name: Stats
+  states:
+  - name: Valid
+    test-code: |
+      ctx->stats_ptr = &ctx->stats;
+    text: |
+      While the `stats` parameter references an object of type
+      ${/rtems/workspace/if/heap-statistics:/name}.
+  - name: 'Null'
+    test-code: |
+      ctx->stats_ptr = NULL;
+    text: |
+      While the `stats` parameter is equal to ${/c/if/null:/name}.
+  test-epilogue: null
+  test-prologue: null
+- name: State
+  states:
+  - name: DispatchEnabled
+    test-code: |
+      ctx->system_state = SYSTEM_STATE_UP;
+      ctx->dispatch_disabled = false;
+    text: |
+      While the system is up, while thread dispatching is enabled.
+  - name: DispatchDisabled
+    test-code: |
+      ctx->system_state = SYSTEM_STATE_UP;
+      ctx->dispatch_disabled = true;
+    text: |
+      While the system is up, while thread dispatching is disabled.
+  - name: BeforeMultitasking
+    test-code: |
+      ctx->system_state = SYSTEM_STATE_BEFORE_MULTITASKING;
+      ctx->dispatch_disabled = false;
+    text: |
+      While the system is before multitasking.
+  - name: Terminated
+    test-code: |
+      ctx->system_state = SYSTEM_STATE_TERMINATED;
+      ctx->dispatch_disabled = false;
+    text: |
+      While the system is terminated.
+  test-epilogue: null
+  test-prologue: null
+rationale: null
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  Per_CPU_Control *cpu_self;
+  ISR_Level        level;
+
+  cpu_self = NULL;
+
+  if ( ctx->dispatch_disabled ) {
+    cpu_self = _Thread_Dispatch_disable();
+  }
+
+  _ISR_Local_disable( level );
+  _System_state_Set( ctx->system_state );
+  ctx->status = malloc_get_statistics( ctx->stats_ptr );
+  _System_state_Set( SYSTEM_STATE_UP );
+  _ISR_Local_enable( level );
+
+  if ( cpu_self != NULL ) {
+    _Thread_Dispatch_enable( cpu_self );
+  }
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the heap of the test.
+  description: null
+  member: |
+    HeapContext heap
+- brief: |
+    This member contains the ${/glossary/returnvalue:/term} of the
+    ${../if/get-statistics:/name} call.
+  description: null
+  member: |
+    int status
+- brief: |
+    This member provides the object referenced by the `stats` parameter.
+  description: null
+  member: |
+    rtems_heap_statistics stats
+- brief: |
+    This member specifies the system state of the call.
+  description: null
+  member: |
+    System_state_Codes system_state
+- brief: |
+    This member is true, if the call has thread dispatching disabled.
+  description: null
+  member: |
+    bool dispatch_disabled
+- brief: |
+    This member specifies the `stats` parameter value.
+  description: null
+  member: |
+    rtems_heap_statistics *stats_ptr
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- errno.h
+- stdint.h
+- string.h
+- rtems/malloc.h
+- rtems/score/sysstate.h
+- rtems/score/threaddispatch.h
+test-local-includes:
+- tx-heap.h
+- tx-support.h
+test-prepare: |
+  void     *ptr;
+  uintptr_t old_size;
+
+  memset( &ctx->stats, 0xff, sizeof( ctx->stats ) );
+  HeapReset( &ctx->heap );
+  ptr = _RBHeap_Allocate( &ctx->heap.heap, 1 );
+  T_quiet_not_null( ptr );
+  T_quiet_eq_int(
+    _RBHeap_Resize( &ctx->heap.heap, ptr, 2 * RBHEAP_MIN_SIZE, &old_size ),
+    RBHEAP_RESIZE_SUCCESSFUL
+  );
+  T_quiet_null( _RBHeap_Allocate( &ctx->heap.heap, HEAP_AREA_SIZE ) );
+  ptr = _RBHeap_Allocate( &ctx->heap.heap, 1 );
+  T_quiet_true( _RBHeap_Free( &ctx->heap.heap, ptr ) );
+test-setup:
+  brief: null
+  code: |
+    HeapInstall( &ctx->heap );
+  description: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-mem-get-statistics.c
+test-teardown:
+  brief: null
+  code: |
+    HeapRestore( &ctx->heap );
+  description: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Status: Ok
+    StatsVar: Set
+  pre-conditions:
+    Stats:
+    - Valid
+    State:
+    - DispatchEnabled
+    - BeforeMultitasking
+    - Terminated
+- enabled-by: true
+  post-conditions:
+    Status: Proto
+    StatsVar: Zero
+  pre-conditions:
+    Stats:
+    - Valid
+    State:
+    - DispatchDisabled
+- enabled-by: true
+  post-conditions:
+    Status: Inval
+    StatsVar: Nop
+  pre-conditions:
+    Stats:
+    - 'Null'
+    State: all
+type: requirement

@@ -1,0 +1,45 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+brief: |
+  Change the size of the memory area referenced by ${.:/params[0]/name} to the
+  size specified by ${.:/params[1]/name}.
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+definition:
+  default:
+    attributes: null
+    body: null
+    params:
+    - void *${.:/params[0]/name}
+    - ${/c/if/size_t:/name} ${.:/params[1]/name}
+    return: void *
+  variants: []
+description: null
+enabled-by: true
+index-entries: []
+interface-type: function
+links:
+- role: interface-placement
+  uid: stdlib
+- role: interface-ingroup
+  uid: group
+- role: reference
+  uid: /ref/std/c23/realloc
+name: realloc
+notes: null
+params:
+- description: |
+    is ${/c/if/null:/name} or the begin address of a memory area which a memory
+    allocation function of the ${/score/heap/glossary/c-program-heap:/term}
+    returned.
+  dir: null
+  name: ptr
+- description: |
+    is the new size in bytes of the memory area.
+  dir: null
+  name: size
+return:
+  return: |
+    Returns the begin address of the memory area of the new size, otherwise
+    ${/c/if/null:/name}.
+  return-values: []
+type: interface

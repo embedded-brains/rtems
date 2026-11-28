@@ -1,0 +1,21 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+enabled-by: true
+functional-type: function
+links:
+- role: requirement-refinement
+  uid: /req/fatal-error
+- role: requirement-refinement
+  uid: max-thread-local-storage-size
+rationale: null
+requirement-type: functional
+text: |
+  Where the application was configured with a value of zero for
+  ${../if/max-thread-local-storage-size:/name}, where the RTEMS Workspace
+  reserves at least one thread-local storage area, while the system is
+  initialized, if the actual thread-local storage size of the application is
+  greater than 64 times the size of a pointer, then the system shall terminate
+  with the ${/score/interr/if/internal-error-core:/name} fatal source and the
+  ${/score/interr/if/too-large-tls-size:/name} fatal code.
+type: requirement
