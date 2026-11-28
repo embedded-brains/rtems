@@ -44,6 +44,7 @@
 #include <rtems/counter.h>
 #include <rtems/malloc.h>
 #include <sys/cpuset.h>
+#include <rtems/score/rbheap.h>
 
 #include <rtems/test.h>
 
@@ -165,8 +166,11 @@
  *
  *   - Check that the heap walk reported no error.
  *
- *   - Check that the free size after the run is equal to the free size before
- *     the run.
+ *   - Check that the free size after the run is at most the free size before
+ *     the run. The red-black tree heap may keep one more slab of descriptors
+ *     after the run, and a slab which it drains stays used until later frees
+ *     complete the drain. The free size after the run is therefore at least
+ *     the free size before the run minus the size of two slabs.
  *
  * - Print the figures of the workers and of the heap.
  *
@@ -1654,10 +1658,17 @@ static void RtemsMallocValStressHeapSmp_Action_2(
   T_true( ctx->walk_ok );
 
   /*
-   * Check that the free size after the run is equal to the free size before
-   * the run.
+   * Check that the free size after the run is at most the free size before the
+   * run. The red-black tree heap may keep one more slab of descriptors after
+   * the run, and a slab which it drains stays used until later frees complete
+   * the drain. The free size after the run is therefore at least the free size
+   * before the run minus the size of two slabs.
    */
-  T_eq_sz( ctx->after.free_size, ctx->before.free_size );
+  T_le_sz( ctx->after.free_size, ctx->before.free_size );
+  T_ge_sz(
+    ctx->after.free_size + 2 * RBHEAP_SLAB_SIZE,
+    ctx->before.free_size
+  );
 }
 
 /**
