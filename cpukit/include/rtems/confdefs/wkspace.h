@@ -56,7 +56,7 @@
 #include <rtems/score/heap.h>
 #include <rtems/score/memory.h>
 #include <rtems/score/stack.h>
-#include <rtems/score/wkspace.h>
+#include <rtems/score/wkspacedata.h>
 #include <rtems/malloc.h>
 #include <rtems/sysinit.h>
 
