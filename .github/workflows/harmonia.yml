@@ -190,11 +190,9 @@ jobs:
       # else and may be replaced.  With one, the push adds the merge commit
       # and fails if the branch moved since the checkout.
       #
-      # The pull request merges only through a merge commit, which keeps the
-      # commits of the source branch as ancestors of the target branch.
-      # Auto-merge merges once the required checks of the target branch pass.
-      # It needs the repository setting 'Allow auto-merge' and required status
-      # checks on the target branch.
+      # A maintainer merges the pull request through a merge commit, which
+      # keeps the commits of the source branch as ancestors of the target
+      # branch.
       run: |
         request="${RUNNER_TEMP}/${REQUEST_NAME}"
         body="${RUNNER_TEMP}/harmonia-body.txt"
@@ -213,8 +211,3 @@ jobs:
           gh pr edit "${url}" --title "${subject}" --body-file "${body}"
         fi
         echo "${url}"
-        gh pr merge "${url}" \
-          --auto \
-          --merge \
-          --subject "${subject}" \
-          --body-file "${body}"
