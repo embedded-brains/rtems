@@ -86,31 +86,6 @@ static inline bool _Workspace_Is_in_storage_area( const void *ptr )
 }
 
 /**
- * @brief Allocates a memory block of the specified size from the workspace.
- *
- * @param size The size of the memory block.
- *
- * @retval pointer The pointer to the memory block.  The pointer is at least
- *   aligned by CPU_HEAP_ALIGNMENT.
- * @retval NULL No memory block with the requested size is available in the
- *   workspace.
- */
-void *_Workspace_Allocate( size_t size );
-
-/**
- * @brief Frees memory to the workspace.
- *
- * This function frees the specified block of memory.
- *
- * @param block The memory to free.
- *
- * @note If @a block is equal to NULL, then the request is ignored.
- *        This allows the caller to not worry about whether or not
- *        a pointer is NULL.
- */
-void _Workspace_Free( void *block );
-
-/**
  * @brief Duplicates string with memory from the workspace.
  *
  * @param string The pointer to a zero terminated string.
