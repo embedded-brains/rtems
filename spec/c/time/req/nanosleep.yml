@@ -296,8 +296,7 @@ test-context:
 - brief: |
     If this member is true, then the worker task sets the `tv_sec` member of the
     object referenced by the `rqtp` parameter so that the interval ends at the
-    implementation limit plus ${.:/test-context-type}::rqtp_sec_beyond_limit
-    seconds.
+    implementation limit plus `rqtp_sec_beyond_limit` seconds.
   description: null
   member: |
     bool rqtp_sec_at_limit
