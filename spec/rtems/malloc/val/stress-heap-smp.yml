@@ -86,10 +86,17 @@ test-actions:
       T_true( ctx->walk_ok );
     links: []
   - brief: |
-      Check that the free size after the run is equal to the free size before the
-      run.
+      Check that the free size after the run is at most the free size before the run.
+      The red-black tree heap may keep one more slab of descriptors after the run,
+      and a slab which it drains stays used until later frees complete the drain. The
+      free size after the run is therefore at least the free size before the run
+      minus the size of two slabs.
     code: |
-      T_eq_sz( ctx->after.free_size, ctx->before.free_size );
+      T_le_sz( ctx->after.free_size, ctx->before.free_size );
+      T_ge_sz(
+        ctx->after.free_size + 2 * RBHEAP_SLAB_SIZE,
+        ctx->before.free_size
+      );
     links: []
   links: []
 - action-brief: |
@@ -446,6 +453,7 @@ test-includes:
 - rtems/bspIo.h
 - rtems/counter.h
 - rtems/malloc.h
+- rtems/score/rbheap.h
 test-local-includes: []
 test-setup:
   brief: null
