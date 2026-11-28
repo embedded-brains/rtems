@@ -616,6 +616,7 @@ source:
 - cpukit/score/src/rbtreeinsert.c
 - cpukit/score/src/rbtreemax.c
 - cpukit/score/src/rbtreemin.c
+- cpukit/score/src/sched.c
 - cpukit/score/src/scheduler.c
 - cpukit/score/src/schedulerdefaultmappriority.c
 - cpukit/score/src/schedulerdefaultnodedestroy.c

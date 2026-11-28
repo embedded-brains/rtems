@@ -37,7 +37,11 @@ source:
 - testsuites/validation/tc-pthread-self.c
 - testsuites/validation/tc-pthread-setname-np.c
 - testsuites/validation/tc-pthread-spin.c
+- testsuites/validation/tc-sched-index.c
+- testsuites/validation/tc-sched-name-to-index.c
+- testsuites/validation/tc-sched-processor-count.c
 - testsuites/validation/tc-sched-yield.c
+- testsuites/validation/tc-sched.c
 - testsuites/validation/tc-scheduler-add-processor.c
 - testsuites/validation/tc-scheduler-get-maximum-priority.c
 - testsuites/validation/tc-scheduler-get-processor-set.c

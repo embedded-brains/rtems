@@ -1,0 +1,138 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/sched-processor-count
+- role: requirement-refinement
+  uid: /score/sched/req/group
+post-conditions:
+- name: Result
+  states:
+  - name: ProcessorCount
+    test-code: |
+      T_eq_int( ctx->result, ctx->expected );
+    text: |
+      The return value of ${../if/sched-processor-count:/name} shall be the count of
+      processors owned by the ${/glossary/schedulerinstance:/term} specified by the
+      `index` parameter.
+  - name: Zero
+    test-code: |
+      T_eq_int( ctx->result, 0 );
+    text: |
+      The return value of ${../if/sched-processor-count:/name} shall be equal to
+      zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Index
+  states:
+  - name: OneProcessor
+    test-code: |
+      /* Scheduler A owns the processor with index zero */
+      ctx->index = 0;
+      ctx->expected = 1;
+    text: |
+      While the `index` parameter is the index of a
+      ${/glossary/schedulerinstance:/term} which owns exactly one processor.
+  - name: TwoProcessors
+    test-code: |
+      /* Scheduler C owns the processors with the indices two and three */
+      if ( rtems_scheduler_get_processor_maximum() < 4 ) {
+        ${.:skip}
+      }
+
+      ctx->index = 2;
+      ctx->expected = 2;
+    text: |
+      While the `index` parameter is the index of a
+      ${/glossary/schedulerinstance:/term} which owns exactly two processors.
+  - name: Count
+    test-code: |
+      ctx->index = SCHEDULER_COUNT;
+    text: |
+      While the `index` parameter is equal to the count of
+      ${/glossary/schedulerinstance:/plural}.
+  - name: Negative
+    test-code: |
+      ctx->index = -1;
+    text: |
+      While the `index` parameter is negative.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The index of a ${/glossary/schedulerinstance:/term} is its position in the
+  scheduler table configured by the application. The test compares the return
+  value with fixed values of the test suite configuration in `ts-default.h`, so
+  the expected values do not depend on another directive which uses the same
+  processor set. In ${/glossary/smp:/term} configurations, the test suite has the
+  scheduler instances A, B, C, and D. Otherwise, it has only scheduler instance
+  A.
+
+  Scheduler instance A owns one processor in all configurations. Scheduler
+  instance C owns two processors on a system with at least four processors. The
+  test skips state TwoProcessors on a system with fewer processors.
+
+  The function converts the `index` parameter to an unsigned value. A negative
+  index becomes a value greater than the count of scheduler instances, so the
+  states Count and Negative take the same branch.
+requirement-type: functional
+skip-reasons: {}
+test-action: |
+  ctx->result = _Sched_Processor_count( ctx->index );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member specifies the `index` parameter value.
+  description: null
+  member: |
+    int index
+- brief: |
+    This member contains the return value of the
+    ${../if/sched-processor-count:/name} call.
+  description: null
+  member: |
+    int result
+- brief: |
+    This member contains the expected count of processors owned by the
+    ${/glossary/schedulerinstance:/term} specified by the `index` parameter.
+  description: null
+  member: |
+    int expected
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- sys/lock.h
+test-local-includes: []
+test-prepare: null
+test-setup: null
+test-stop: null
+test-support: |
+  #if defined( RTEMS_SMP )
+  #define SCHEDULER_COUNT 4
+  #else
+  #define SCHEDULER_COUNT 1
+  #endif
+test-target: testsuites/validation/tc-sched-processor-count.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Index:
+          - OneProcessor
+          - TwoProcessors
+      then: ProcessorCount
+    - else: Zero
+  pre-conditions:
+    Index: all
+type: requirement

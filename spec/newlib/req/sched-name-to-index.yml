@@ -1,0 +1,223 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/sched-name-to-index
+- role: requirement-refinement
+  uid: /score/sched/req/group
+post-conditions:
+- name: Result
+  states:
+  - name: Index
+    test-code: |
+      T_eq_int( ctx->result, ctx->expected_index );
+    text: |
+      The return value of ${../if/sched-name-to-index:/name} shall be the index of
+      the scheduler of the table of configured schedulers whose name is equal to the
+      name which the call builds from the characters of the string referenced by the
+      `name` parameter.
+  - name: None
+    test-code: |
+      T_eq_int( ctx->result, -1 );
+    text: |
+      The return value of ${../if/sched-name-to-index:/name} shall be -1.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Name
+  states:
+  - name: First
+    test-code: |
+      memcpy( ctx->text, "A   ", 4 );
+      ctx->expected_index = 0;
+    text: |
+      While the first four characters of the string referenced by the `name`
+      parameter are the name of the first scheduler of the table of configured
+      schedulers.
+  - name: Second
+    test-code: |
+      memcpy( ctx->text, "B   ", 4 );
+      ctx->expected_index = 1;
+    text: |
+      While the first four characters of the string referenced by the `name`
+      parameter are the name of the second scheduler of the table of configured
+      schedulers.
+  - name: Third
+    test-code: |
+      memcpy( ctx->text, "C   ", 4 );
+      ctx->expected_index = 2;
+    text: |
+      While the first four characters of the string referenced by the `name`
+      parameter are the name of the third scheduler of the table of configured
+      schedulers.
+  - name: Fourth
+    test-code: |
+      memcpy( ctx->text, "D   ", 4 );
+      ctx->expected_index = 3;
+    text: |
+      While the first four characters of the string referenced by the `name`
+      parameter are the name of the fourth scheduler of the table of configured
+      schedulers.
+  - name: Other
+    test-code: |
+      memcpy( ctx->text, "Z   ", 4 );
+    text: |
+      While the first four characters of the string referenced by the `name`
+      parameter are not the name of a scheduler of the table of configured
+      schedulers.
+  test-epilogue: null
+  test-prologue: null
+- name: Len
+  states:
+  - name: Zero
+    test-code: |
+      ctx->len = 0;
+    text: |
+      While the `len` parameter is equal to zero, so that the call builds the name
+      from no character and sets all bytes of the name to zero.
+  - name: One
+    test-code: |
+      ctx->len = 1;
+    text: |
+      While the `len` parameter is equal to one, so that the call builds the name
+      from one character and sets the remaining bytes of the name to zero.
+  - name: Short
+    test-code: |
+      ctx->len = 3;
+    text: |
+      While the `len` parameter is greater than one and less than four, so that the
+      call builds the name from the given number of characters and sets the remaining
+      bytes of the name to zero.
+  - name: Four
+    test-code: |
+      ctx->len = 4;
+    text: |
+      While the `len` parameter is equal to four.
+  - name: Long
+    test-code: |
+      ctx->len = 5;
+    text: |
+      While the `len` parameter is greater than four and less than
+      ${/c/if/size_max:/name}, so that the call builds the name from the first four
+      characters only.
+  - name: Max
+    test-code: |
+      ctx->len = SIZE_MAX;
+    text: |
+      While the `len` parameter is equal to ${/c/if/size_max:/name}, so that the call
+      builds the name from the first four characters only.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The call builds the name of a scheduler from the characters of the string, at
+  most four, with the first character in the most significant byte. This is the
+  byte order of the name which ${/rtems/object/if/build-name:/name} builds. It
+  sets the bytes of a missing character to zero and reads no character beyond the
+  fourth one, so a parameter value of ${/c/if/size_max:/name} is valid for a
+  string of four characters.
+
+  The test suite configuration provides one scheduler in a configuration without
+  SMP support and four schedulers in a configuration with SMP support. Their
+  names have four characters, the letters A, B, C and D in this order, each
+  followed by three space characters, which means that none of the characters is
+  zero. Therefore a name built from fewer than four characters matches none of
+  them, and the pre-condition Len selects between the states Index and None for a
+  string which starts with the name of a scheduler. A name shorter than four
+  characters which matches a scheduler needs a scheduler name with trailing zero
+  bytes. No test suite configuration provides such a name, so the test does not
+  cover this case. The same holds for a name character with the most significant
+  bit set, since the scheduler names of these test suites are ASCII, so the test
+  cannot observe the conversion of a name character to an unsigned 8-bit value.
+  The names are distinct, so the test does not distinguish the lowest from
+  another index of equal names. Where the system is built with SMP support
+  disabled, the system has exactly one scheduler.
+requirement-type: functional
+skip-reasons:
+  OnlyOneScheduler: |
+    Where the system is built with SMP support disabled, the system has exactly one
+    scheduler.
+test-action: |
+  ctx->result = _Sched_Name_to_index( ctx->name, ctx->len );
+test-brief: null
+test-cleanup: null
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/sched-name-to-index:/name}
+    call.
+  description: null
+  member: |
+    int result
+- brief: |
+    This member contains the index which the call shall return for a match.
+  description: null
+  member: |
+    int expected_index
+- brief: |
+    This member provides the characters of the string.
+  description: null
+  member: |
+    char text[ 8 ]
+- brief: |
+    This member specifies the `name` parameter value.
+  description: null
+  member: |
+    const char *name
+- brief: |
+    This member specifies the `len` parameter value.
+  description: null
+  member: |
+    size_t len
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- stdint.h
+- string.h
+- sys/lock.h
+test-local-includes: []
+test-prepare: |
+  memset( ctx->text, 0, sizeof( ctx->text ) );
+  ctx->text[ 4 ] = 'X';
+  ctx->result = -2;
+  ctx->expected_index = -3;
+  ctx->name = ctx->text;
+test-setup: null
+test-stop: null
+test-support: null
+test-target: testsuites/validation/tc-sched-name-to-index.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - if:
+        pre-conditions:
+          Name:
+          - Other
+      then: None
+    - if:
+        pre-conditions:
+          Len:
+          - Zero
+          - One
+          - Short
+      then: None
+    - else: Index
+  pre-conditions:
+    Name: all
+    Len: all
+- enabled-by:
+    not: RTEMS_SMP
+  post-conditions: OnlyOneScheduler
+  pre-conditions:
+    Name:
+    - Second
+    - Third
+    - Fourth
+    Len: all
+type: requirement

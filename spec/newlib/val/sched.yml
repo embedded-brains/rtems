@@ -1,0 +1,43 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+links: []
+test-actions:
+- action-brief: |
+    Call ${../if/sched-count:/name}.
+  action-code: |
+    int count;
+
+    count = _Sched_Count();
+  checks:
+  - brief: |
+      Check that ${../if/sched-count:/name} returned the count of
+      ${/glossary/schedulerinstance:/plural} configured by the test suite.
+    code: |
+      T_eq_int( count, SCHEDULER_COUNT );
+    links:
+    - role: validation
+      uid: ../req/sched-count
+  links: []
+test-brief: |
+  Tests the scheduler queries defined by Newlib.
+test-context: []
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- sys/lock.h
+test-local-includes: []
+test-setup: null
+test-stop: null
+test-support: |
+  #if defined( RTEMS_SMP )
+  #define SCHEDULER_COUNT 4
+  #else
+  #define SCHEDULER_COUNT 1
+  #endif
+test-target: testsuites/validation/tc-sched.c
+test-teardown: null
+type: test-case

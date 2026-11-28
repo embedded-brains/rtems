@@ -955,7 +955,6 @@ source:
 - cpukit/score/src/rbtreeprepend.c
 - cpukit/score/src/rbtreeprev.c
 - cpukit/score/src/rbtreereplace.c
-- cpukit/score/src/sched.c
 - cpukit/score/src/schedulercbs.c
 - cpukit/score/src/schedulercbsattachthread.c
 - cpukit/score/src/schedulercbscleanup.c

@@ -1,0 +1,19 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+functional-type: function
+links:
+- role: interface-function
+  uid: ../if/sched-count
+- role: requirement-refinement
+  uid: /score/sched/req/group
+rationale: |
+  The ${/glossary/openmp:/term} implementation from ${/glossary/gcc:/term} uses
+  the function to allocate a table which has an entry for each
+  ${/glossary/schedulerinstance:/term}.
+requirement-type: functional
+text: |
+  The ${../if/sched-count:/name} directive shall return the count of
+  ${/glossary/schedulerinstance:/plural} configured by the application.
+type: requirement

@@ -1,0 +1,171 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+copyrights:
+- Copyright (C) 2026 OHB System AG
+enabled-by: true
+functional-type: action
+links:
+- role: interface-function
+  uid: ../if/sched-index
+- role: requirement-refinement
+  uid: /score/sched/req/group
+post-conditions:
+- name: Result
+  states:
+  - name: Home
+    test-code: |
+      T_eq_int( ctx->index, ctx->expected_index );
+    text: |
+      The return value of ${../if/sched-index:/name} shall be the index of the
+      ${/glossary/scheduler-home:/term} of the calling thread, which is the position
+      of that scheduler in the table of configured schedulers counted from zero.
+  test-epilogue: null
+  test-prologue: null
+pre-conditions:
+- name: Home
+  states:
+  - name: First
+    test-code: |
+      ctx->expected_index = 0;
+    text: |
+      While the ${/glossary/scheduler-home:/term} of the calling thread is the first
+      scheduler of the table of configured schedulers.
+  - name: Second
+    test-code: |
+      #if defined( RTEMS_SMP )
+        SetSelfScheduler( SCHEDULER_B_ID, PRIO_NORMAL );
+        ctx->scheduler_other = true;
+        ctx->expected_index = 1;
+      #endif
+    text: |
+      While the ${/glossary/scheduler-home:/term} of the calling thread is the second
+      scheduler of the table of configured schedulers.
+  - name: Third
+    test-code: |
+      #if defined( RTEMS_SMP )
+        MoveProcessorOne( ctx, SCHEDULER_C_ID );
+        SetSelfScheduler( SCHEDULER_C_ID, PRIO_NORMAL );
+        ctx->scheduler_other = true;
+        ctx->expected_index = 2;
+      #endif
+    text: |
+      While the ${/glossary/scheduler-home:/term} of the calling thread is the third
+      scheduler of the table of configured schedulers.
+  - name: Fourth
+    test-code: |
+      #if defined( RTEMS_SMP )
+        MoveProcessorOne( ctx, SCHEDULER_D_ID );
+        SetSelfScheduler( SCHEDULER_D_ID, PRIO_NORMAL );
+        ctx->scheduler_other = true;
+        ctx->expected_index = 3;
+      #endif
+    text: |
+      While the ${/glossary/scheduler-home:/term} of the calling thread is the fourth
+      scheduler of the table of configured schedulers.
+  test-epilogue: null
+  test-prologue: null
+rationale: |
+  The test suite configuration provides one scheduler in a configuration without
+  SMP support and four schedulers in a configuration with SMP support. Their
+  names have four characters, the letters A, B, C and D in this order, each
+  followed by three space characters. In the SMP configuration, the processor 0
+  is owned by the first and the processor 1 by the second scheduler. The third
+  scheduler owns the processors 2 and 3 only if they exist, and the fourth
+  scheduler owns no processor. A thread needs a scheduler with a processor as its
+  home scheduler, so the test moves the processor 1 to the third and the fourth
+  scheduler. Each system with SMP support has the processor 1, so the test needs
+  no state for a system with fewer processors. Where the system is built with SMP
+  support disabled, the system has exactly one scheduler.
+
+  The calling thread is the only input of the function, so the pre-condition Home
+  selects the table entry. The function has no error return.
+requirement-type: functional
+skip-reasons:
+  OnlyOneScheduler: |
+    Where the system is built with SMP support disabled, the system has exactly one
+    scheduler.
+test-action: |
+  ctx->index = _Sched_Index();
+test-brief: null
+test-cleanup: |
+  #if defined( RTEMS_SMP )
+    if ( ctx->scheduler_other ) {
+      RestoreRunnerScheduler();
+    }
+
+    if ( ctx->processor_owner != SCHEDULER_B_ID ) {
+      RemoveProcessor( ctx->processor_owner, 1 );
+      AddProcessor( SCHEDULER_B_ID, 1 );
+    }
+  #else
+    (void) ctx;
+  #endif
+test-context:
+- brief: |
+    This member contains the return value of the ${../if/sched-index:/name} call.
+  description: null
+  member: |
+    int index
+- brief: |
+    This member contains the index which the call shall return.
+  description: null
+  member: |
+    int expected_index
+- brief: |
+    This member is true, if the home scheduler of the calling thread is not the
+    first scheduler.
+  description: null
+  member: |
+    bool scheduler_other
+- brief: |
+    This member contains the identifier of the scheduler which owns the processor
+    with index one.
+  description: null
+  member: |
+    rtems_id processor_owner
+test-context-support: null
+test-description: null
+test-header: null
+test-includes:
+- rtems.h
+- sys/lock.h
+test-local-includes:
+- ts-config.h
+- tx-support.h
+test-prepare: |
+  ctx->index = -2;
+  ctx->expected_index = -3;
+  ctx->scheduler_other = false;
+  ctx->processor_owner = SCHEDULER_B_ID;
+test-setup: null
+test-stop: null
+test-support: |
+  typedef ${.:/test-context-type} Context;
+
+  #if defined( RTEMS_SMP )
+  static void MoveProcessorOne( Context *ctx, rtems_id scheduler_id )
+  {
+    RemoveProcessor( SCHEDULER_B_ID, 1 );
+    AddProcessor( scheduler_id, 1 );
+    ctx->processor_owner = scheduler_id;
+  }
+  #endif
+test-target: testsuites/validation/tc-sched-index.c
+test-teardown: null
+text: |
+  ${.:text-template}
+transition-map:
+- enabled-by: true
+  post-conditions:
+    Result:
+    - else: Home
+  pre-conditions:
+    Home: all
+- enabled-by:
+    not: RTEMS_SMP
+  post-conditions: OnlyOneScheduler
+  pre-conditions:
+    Home:
+    - Second
+    - Third
+    - Fourth
+type: requirement
