@@ -5,8 +5,9 @@
  *
  * @ingroup libcsupport
  *
- * @brief This source file contains the implementation of the deferred free
- *   support of the allocator.
+ * @brief This source file contains the implementation of
+ *   _Malloc_System_state(), rtems_heap_allocate_aligned_with_boundary() and
+ *   rtems_malloc().
  */
 
 /*
@@ -68,43 +69,44 @@ Malloc_System_state _Malloc_System_state( void )
   }
 }
 
-RTEMS_WEAK void _Malloc_Process_deferred_frees( void )
-{
-  /*
-   * Do nothing by default.  If free() is used by the application, then a
-   * strong implementation of this function will be provided.
-   */
-}
-
-void *rtems_heap_allocate_aligned_with_boundary(
+static void *_Malloc_Allocate(
   size_t    size,
   uintptr_t alignment,
-  uintptr_t boundary
+  uintptr_t boundary,
+  bool      bound
 )
 {
-  Heap_Control *heap = RTEMS_Malloc_Heap;
-  void         *p;
+  RBHeap_control *heap = RTEMS_Malloc_Heap;
+  void           *p;
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _Malloc_Process_deferred_frees();
-      p = _Heap_Allocate_aligned_with_boundary(
-        heap,
-        size,
-        alignment,
-        boundary
-      );
-      _RTEMS_Unlock_allocator();
+    case MALLOC_SYSTEM_STATE_NO_PROTECTION: {
+      size_t heap_size;
+
+      heap_size = size;
+      p = NULL;
+
+#if defined( RTEMS_SMP )
+      if ( bound && alignment == 0 && boundary == 0 ) {
+        p = _RBHeap_Allocate_from_processor( heap, size );
+        heap_size = _RBHeap_Round_for_processor( heap, size );
+      }
+#else
+      (void) bound;
+#endif
+
+      if ( p == NULL ) {
+        p = _RBHeap_Allocate_aligned_with_boundary(
+          heap,
+          heap_size,
+          alignment,
+          boundary
+        );
+      }
+
       break;
-    case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      p = _Heap_Allocate_aligned_with_boundary(
-        heap,
-        size,
-        alignment,
-        boundary
-      );
-      break;
+    }
     default:
       /*
        *  Do not attempt to allocate memory if not in correct system state.
@@ -124,6 +126,24 @@ void *rtems_heap_allocate_aligned_with_boundary(
   }
 
   return p;
+}
+
+void *rtems_heap_allocate_aligned_with_boundary(
+  size_t    size,
+  uintptr_t alignment,
+  uintptr_t boundary
+)
+{
+  return _Malloc_Allocate( size, alignment, boundary, true );
+}
+
+void *_Malloc_Allocate_unbound( size_t size )
+{
+  if ( size == 0 ) {
+    return NULL;
+  }
+
+  return _Malloc_Allocate( size, 0, 0, false );
 }
 
 void *rtems_malloc( size_t size )

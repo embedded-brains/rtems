@@ -49,15 +49,19 @@ static int all_thread_created;
 static pthread_mutex_t mutex1, mutex2;
 static pthread_cond_t  create_condition_var, set_condition_var;
 
+/*
+ * The test exhausts the memory which the RTEMS Workspace and the C Program
+ * Heap share, so a thread takes its value from this array.
+ */
+static int values[ INITIAL_TASK_COUNT + ADDITIONAL_TASK_COUNT ];
+
 static rtems_task Test_Thread( rtems_task_argument argument )
 {
-  (void) argument;
-
   int  sc;
   int *value_p, *value_p2;
 
-  value_p = malloc( sizeof( int ) );
-  rtems_test_assert( value_p != NULL );
+  rtems_test_assert( argument < RTEMS_ARRAY_SIZE( values ) );
+  value_p = &values[ argument ];
 
   *value_p = 123;
   sc = pthread_setspecific( Key, value_p );
@@ -140,7 +144,11 @@ static rtems_task Init( rtems_task_argument argument )
     );
 
     if ( rc == RTEMS_SUCCESSFUL ) {
-      rc = rtems_task_start( task_id, Test_Thread, 0 );
+      rc = rtems_task_start(
+        task_id,
+        Test_Thread,
+        (rtems_task_argument) created_thread_count
+      );
       rtems_test_assert( rc == RTEMS_SUCCESSFUL );
     }
 

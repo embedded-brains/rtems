@@ -38,8 +38,9 @@
 #include "config.h"
 #endif
 
+#include "malloc_p.h"
+
 #include <rtems/malloc.h>
-#include <rtems/score/protectedheap.h>
 
 int malloc_info( Heap_Information_block *the_info )
 {
@@ -47,6 +48,9 @@ int malloc_info( Heap_Information_block *the_info )
     return -1;
   }
 
-  _Protected_heap_Get_information( RTEMS_Malloc_Heap, the_info );
+  _RBHeap_Get_information( RTEMS_Malloc_Heap, the_info );
+#if defined( RTEMS_SMP )
+  _RBHeap_Get_processor_information( RTEMS_Malloc_Heap, the_info );
+#endif
   return 0;
 }

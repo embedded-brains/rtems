@@ -66,27 +66,55 @@ extern "C" {
  *  This is the pointer to the heap control structure used to manage the C
  *  program heap.
  */
-extern Heap_Control *RTEMS_Malloc_Heap;
+extern RBHeap_control *RTEMS_Malloc_Heap;
 
 void _Malloc_Initialize( void );
 
-typedef void *(*rtems_heap_extend_handler)(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+/**
+ * @brief Returns the count of size classes of the processor blocks for the
+ *   maximum size.
+ *
+ * The maximum size is a power of two of at least four times
+ * #RBHEAP_ALIGNMENT.
+ */
+#define RTEMS_MALLOC_CPU_CLASS_COUNT( max_size ) \
+  ( 4 * ( RTEMS_MALLOC_CPU_LOG2( max_size ) -    \
+          RTEMS_MALLOC_CPU_LOG2( RBHEAP_ALIGNMENT ) - 1 ) )
+
+/**
+ * @brief Returns the binary logarithm of a power of two from 4 up to 2 to the
+ *   power of 20.
+ */
+#define RTEMS_MALLOC_CPU_LOG2( x ) \
+  ( ( x ) >= 0x100000  ? 20        \
+    : ( x ) >= 0x80000 ? 19        \
+    : ( x ) >= 0x40000 ? 18        \
+    : ( x ) >= 0x20000 ? 17        \
+    : ( x ) >= 0x10000 ? 16        \
+    : ( x ) >= 0x8000  ? 15        \
+    : ( x ) >= 0x4000  ? 14        \
+    : ( x ) >= 0x2000  ? 13        \
+    : ( x ) >= 0x1000  ? 12        \
+    : ( x ) >= 0x800   ? 11        \
+    : ( x ) >= 0x400   ? 10        \
+    : ( x ) >= 0x200   ? 9         \
+    : ( x ) >= 0x100   ? 8         \
+    : ( x ) >= 0x80    ? 7         \
+    : ( x ) >= 0x40    ? 6         \
+    : ( x ) >= 0x20    ? 5         \
+    : ( x ) >= 0x10    ? 4         \
+    : ( x ) >= 0x8     ? 3         \
+                       : 2 )
+
+typedef void
+  *( *rtems_heap_extend_handler )( RBHeap_control *heap, size_t alloc_size );
 
 /**
  *  @brief RTEMS Extend Heap via Sbrk
  */
-void *rtems_heap_extend_via_sbrk(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+void *rtems_heap_extend_via_sbrk( RBHeap_control *heap, size_t alloc_size );
 
-void *rtems_heap_null_extend(
-  Heap_Control *heap,
-  size_t alloc_size
-);
+void *rtems_heap_null_extend( RBHeap_control *heap, size_t alloc_size );
 
 extern const rtems_heap_extend_handler rtems_malloc_extend_handler;
 
@@ -120,8 +148,8 @@ void rtems_heap_set_sbrk_amount( ptrdiff_t sbrk_amount );
  * @see rtems_heap_extend_via_sbrk().
  */
 void rtems_heap_sbrk_greedy_allocate(
-  Heap_Control *heap,
-  size_t alloc_size
+  RBHeap_control *heap,
+  size_t          alloc_size
 );
 
 /**
@@ -220,8 +248,8 @@ void *rtems_calloc(size_t nelem, size_t elsize)
 /**
  * @brief Gets the statistics of the heap which serves malloc().
  *
- * The function visits the free blocks of the heap to get the size of the
- * largest free block, so its execution time depends on the number of free
+ * The function takes the size of the largest free block from the free tree of
+ * the heap.  Its execution time grows with the logarithm of the number of free
  * blocks.  It does not change errno.
  *
  * @param[out] stats is the pointer to an object.  When the function call is

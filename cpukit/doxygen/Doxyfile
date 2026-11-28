@@ -1,0 +1,76 @@
+# SPDX-License-Identifier: BSD-2-Clause
+#
+# Copyright (C) 2020, 2026 embedded brains GmbH & Co. KG
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+# The template lists the settings of the software design document which
+# differ from the defaults of Doxygen.  The package items replace each
+# placeholder before Doxygen reads the file.
+
+PROJECT_NAME           = "${.:/component/document-package-title} Software Design Document [${.:/component/ident}]"
+PROJECT_NUMBER         = "Release ${.:/component/package-version}"
+OUTPUT_DIRECTORY       = "${.:/output-directory}"
+STRIP_FROM_PATH        = ${.:/strip-from-path}
+STRIP_FROM_INC_PATH    = ${.:/include-path}
+TOC_INCLUDE_HEADINGS   = 0
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+CASE_SENSE_NAMES       = YES
+SORT_GROUP_NAMES       = YES
+INPUT                  = ${.:/input}
+FILE_PATTERNS          = *.c \
+                         *.cc \
+                         *.cxx \
+                         *.cpp \
+                         *.c++ \
+                         *.inl \
+                         *.h \
+                         *.hh \
+                         *.hxx \
+                         *.hpp \
+                         *.h++ \
+                         *.inc \
+                         *.dox
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = ${.:/exclude-patterns}
+IMAGE_PATH             = ${.:/input}
+SOURCE_BROWSER         = YES
+GENERATE_HTML          = ${.:/generate-html}
+HTML_OUTPUT            = .
+GENERATE_TREEVIEW      = NO
+MATHJAX_RELPATH        = https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/
+GENERATE_LATEX         = ${.:/generate-latex}
+LATEX_CMD_NAME         = latex
+LATEX_BIB_STYLE        = plain
+MACRO_EXPANSION        = YES
+INCLUDE_PATH           = ${.:/include-path}
+PREDEFINED             = __GNUC__ \
+                         __aligned(x)= \
+                         __asm__(x)= \
+                         __attribute__(x)= \
+                         __rtems__ \
+                         "T_TEST_CASE(x)=void T_case_body_##x(void)" \
+                         __STDC_VERSION__=201112L \
+                         "RB_ENTRY(x)=struct { struct x *rbe_left; struct x *rbe_right; struct x *rbe_parent; int rbe_color; }"
+GENERATE_TAGFILE       = "${.:/tagfile}"
+HAVE_DOT               = YES

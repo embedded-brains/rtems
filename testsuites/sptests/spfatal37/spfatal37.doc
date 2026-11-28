@@ -1,0 +1,12 @@
+This file describes the concepts tested by this test set.
+
+test set name: spfatal37
+
+directives:
+
+  - rtems_cache_coherent_add_area()
+
+concepts:
+
+  - Ensure that the system initialization stops if an area which waits for
+    the cache-coherent heap is too small.

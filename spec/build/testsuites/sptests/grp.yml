@@ -263,6 +263,8 @@ links:
 - role: build-dependency
   uid: spfatal36
 - role: build-dependency
+  uid: spfatal37
+- role: build-dependency
   uid: spfifo01
 - role: build-dependency
   uid: spfifo02
@@ -280,6 +282,8 @@ links:
   uid: spglobalcon02
 - role: build-dependency
   uid: spheapprot
+- role: build-dependency
+  uid: spheapprot02
 - role: build-dependency
   uid: spinternalerror01
 - role: build-dependency
@@ -466,6 +470,8 @@ links:
   uid: spwatchdog
 - role: build-dependency
   uid: spwkspace
+- role: build-dependency
+  uid: spwkspace02
 type: build
 use-after:
 - rtemstest

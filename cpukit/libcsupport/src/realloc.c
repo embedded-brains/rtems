@@ -68,10 +68,9 @@ static void *new_alloc( void *old_ptr, size_t new_size, size_t old_size )
 
 void *realloc( void *ptr, size_t size )
 {
-  Heap_Control      *heap;
-  Heap_Resize_status status;
-  uintptr_t          old_size;
-  uintptr_t          avail_size;
+  RBHeap_control      *heap;
+  RBHeap_resize_status status;
+  uintptr_t            old_size;
 
   if ( ptr == NULL ) {
     return malloc( size );
@@ -86,23 +85,26 @@ void *realloc( void *ptr, size_t size )
 
   switch ( _Malloc_System_state() ) {
     case MALLOC_SYSTEM_STATE_NORMAL:
-      _RTEMS_Lock_allocator();
-      _Malloc_Process_deferred_frees();
-      status = _Heap_Resize_block( heap, ptr, size, &old_size, &avail_size );
-      _RTEMS_Unlock_allocator();
-      break;
     case MALLOC_SYSTEM_STATE_NO_PROTECTION:
-      status = _Heap_Resize_block( heap, ptr, size, &old_size, &avail_size );
+      status = _RBHeap_Resize( heap, ptr, size, &old_size );
       break;
     default:
       return NULL;
   }
 
   switch ( status ) {
-    case HEAP_RESIZE_SUCCESSFUL:
+    case RBHEAP_RESIZE_SUCCESSFUL:
       return ptr;
-    case HEAP_RESIZE_UNSATISFIED:
+    case RBHEAP_RESIZE_UNSATISFIED:
       return new_alloc( ptr, size, old_size );
+#if defined( RTEMS_SMP )
+    case RBHEAP_RESIZE_BOUND:
+      if ( _RBHeap_Processor_keeps( heap, size, old_size ) ) {
+        return ptr;
+      }
+
+      return new_alloc( ptr, size, old_size );
+#endif
     default:
       errno = EINVAL;
       return NULL;

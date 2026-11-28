@@ -240,12 +240,23 @@ typedef struct {
 
   /**
    * @brief This member contains the number of free bytes of the heap.
+   *
+   * The red-black tree heap keeps the descriptors of up to one more slab than it
+   * needs. An allocation and a free at the bound of its reserve therefore do not
+   * carve and free a slab each time. After the free of all blocks of a load, the
+   * free size of this heap may stay below the free size before the load. The
+   * difference is at most the size of one slab of descriptors. A slab which the
+   * heap drains stays used until later frees complete the drain. Until then, the
+   * difference is at most the size of two slabs.
    */
   size_t free_size;
 
   /**
    * @brief This member contains the size in bytes of the largest free block of
    *   the heap.
+   *
+   * The size of a block in the processor bins of the C Program Heap does not
+   * count for this member.
    */
   size_t largest_free_size;
 
@@ -365,6 +376,26 @@ bool rtems_workspace_allocate( size_t bytes, void **pointer );
  */
 bool rtems_workspace_free( void *pointer );
 
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief This constant selects the first-fit heap as the allocator of the
+ *   RTEMS Workspace.
+ *
+ * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_FIRST_FIT 0
+
+/**
+ * @ingroup RTEMSAPIClassicSupport
+ *
+ * @brief This constant selects the red-black tree heap as the allocator of
+ *   the RTEMS Workspace.
+ *
+ * @see #CONFIGURE_WORKSPACE_ALLOCATOR.
+ */
+#define RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE 1
+
 /* Find related documentation with spec:/rtems/support/if/workspace-get-information */
 
 /**
@@ -381,6 +412,11 @@ bool rtems_workspace_free( void *pointer );
  *
  * @deprecated Use rtems_workspace_get_statistics() instead.  The directive
  *   will be removed after the RTEMS 7 release.
+ *
+ * @par Notes
+ * If @ref CONFIGURE_WORKSPACE_ALLOCATOR is
+ * #RTEMS_WORKSPACE_ALLOCATOR_RED_BLACK_TREE, then the size of the largest used
+ * block is zero.
  *
  * @par Constraints
  * @parblock

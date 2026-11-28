@@ -46,6 +46,7 @@ actions:
     - lseek
     - lstat
     - malloc
+    - malloc04
     - mdosfsfserror
     - mdosfsfspatheval
     - mdosfsfsrdwr

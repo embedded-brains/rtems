@@ -205,6 +205,10 @@ links:
 - role: build-dependency
   uid: malloc04
 - role: build-dependency
+  uid: malloc05
+- role: build-dependency
+  uid: malloc06
+- role: build-dependency
   uid: malloctest
 - role: build-dependency
   uid: math
@@ -238,6 +242,8 @@ links:
   uid: pwdgrp02
 - role: build-dependency
   uid: rbheap01
+- role: build-dependency
+  uid: rbheap02
 - role: build-dependency
   uid: rcxx01
 - role: build-dependency

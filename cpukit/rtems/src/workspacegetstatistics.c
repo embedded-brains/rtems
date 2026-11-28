@@ -44,13 +44,18 @@
 
 bool rtems_workspace_get_statistics( rtems_heap_statistics *stats )
 {
+  Heap_Statistics heap_stats;
+  uintptr_t       largest_free_size;
+
   if ( stats == NULL ) {
     return false;
   }
 
   _RTEMS_Lock_allocator();
-  _RTEMS_Get_heap_statistics( &_Workspace_Area, stats );
+  _Workspace_Get_statistics( &heap_stats, &largest_free_size );
   _RTEMS_Unlock_allocator();
+
+  _RTEMS_Convert_heap_statistics( &heap_stats, largest_free_size, stats );
 
   stats->resizes = 0;
   return true;

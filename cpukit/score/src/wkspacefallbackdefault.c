@@ -40,4 +40,4 @@
 
 #include <rtems/score/wkspacedata.h>
 
-struct Heap_Control *const *const _Workspace_Fallback_heap;
+struct RBHeap_control *const *const _Workspace_Fallback_heap;

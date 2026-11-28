@@ -9,7 +9,7 @@
  */
 
 /*
- * Copyright (C) 2018 embedded brains GmbH & Co. KG
+ * Copyright (C) 2018, 2026 embedded brains GmbH & Co. KG
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,17 +37,32 @@
 #include "config.h"
 #endif
 
+#include <errno.h>
 #include <stdlib.h>
 
 #include <rtems/malloc.h>
 
 void *aligned_alloc( size_t alignment, size_t size )
 {
+  void *ptr;
+
+  /* Each valid alignment is a power of two */
+  if ( alignment == 0 || ( alignment & ( alignment - 1 ) ) != 0 ) {
+    errno = EINVAL;
+    return NULL;
+  }
+
   if ( size == 0 ) {
     return NULL;
   }
 
-  return rtems_heap_allocate_aligned_with_boundary( size, alignment, 0 );
+  ptr = rtems_heap_allocate_aligned_with_boundary( size, alignment, 0 );
+
+  if ( ptr == NULL ) {
+    errno = ENOMEM;
+  }
+
+  return ptr;
 }
 
 void *memalign( size_t, size_t ) RTEMS_ALIAS(

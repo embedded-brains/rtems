@@ -68,6 +68,7 @@
 #include <bsp/bootcard.h>
 
 #include <rtems/sysinit.h>
+#include <rtems/score/rbheap.h>
 
 #ifdef CONFIGURE_MALLOC_BSP_SUPPORTS_SBRK
 
@@ -183,7 +184,7 @@ void *sbrk(ptrdiff_t incr)
 
 static void bsp_sbrk_initialize(void)
 {
-  uintptr_t overhead = _Heap_Area_overhead(CPU_HEAP_ALIGNMENT);
+  uintptr_t overhead = RBHEAP_AREA_OVERHEAD;
   uintptr_t work_space_size = rtems_configuration_get_work_space_size();
   ptrdiff_t sbrk_amount = bsp_sbrk_init(
     _Memory_Get(),

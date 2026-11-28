@@ -39,9 +39,8 @@
 #endif
 
 #include <rtems/score/wkspace.h>
-#include <rtems/score/heapimpl.h>
 
 void *_Workspace_Allocate( size_t size )
 {
-  return _Heap_Allocate( &_Workspace_Area, size );
+  return _Workspace_Storage_allocate( size );
 }

@@ -31,11 +31,9 @@ test set name:  malloc02
 
 directives:
 
-  + free from ISR which is deferred
-  + malloc - deferred reclamation
+  + free from ISR
 
 concepts:
 
-+ adding to the deferred free operation chain
-+ processing the deferred free operation chain
++ a free from ISR releases the block at once
 + enable the malloc dirty option
