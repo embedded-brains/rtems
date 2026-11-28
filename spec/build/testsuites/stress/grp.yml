@@ -13,6 +13,8 @@ install: []
 ldflags: []
 links:
 - role: build-dependency
+  uid: stress-heap-smp
+- role: build-dependency
   uid: stress-record-smp
 type: build
 use-after:
