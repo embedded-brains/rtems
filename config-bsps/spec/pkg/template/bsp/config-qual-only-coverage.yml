@@ -44,6 +44,9 @@ attributes:
       - enabled-by: true
         key: CPUKIT_OPTIMIZATION_FLAGS
         value: -O0 -ffunction-sections -fdata-sections -frandom-seed=0
+      - enabled-by: true
+        key: PREFIX_MAP
+        value: $$$${PREFIX}/= ../../../../=
       name: ${.:/component/arch}/${.:/component/bsp}${.:/component/config:dash}-qual-only-coverage
     target: null
   directory: $${rtems-qual-only:/directory}

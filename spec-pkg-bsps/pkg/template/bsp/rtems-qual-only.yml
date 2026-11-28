@@ -15,6 +15,7 @@ attributes:
   build-spec-directories: []
   build-uids:
   - /build/cpukit/librtemscpu
+  - /build/testsuites/examples/grp
   - /build/testsuites/support/librtemstest
   - /build/testsuites/isvv/grp
   - /build/testsuites/membench/grp

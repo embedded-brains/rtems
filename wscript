@@ -39,6 +39,7 @@ try:
 except:
     import ConfigParser as configparser
 
+from waflib.Build import BuildContext
 from waflib.TaskGen import after, before_method, feature
 from waflib.Tools import c as waf_c, cxx as waf_cxx
 
@@ -1721,6 +1722,174 @@ def configure(conf):
     conf.env["VARIANTS"] = variant_list
 
 
+class DoxygenContext(BuildContext):
+    """builds the variants and generates the software design document of
+    each variant"""
+    cmd = "doxygen"
+    fun = "build"
+
+
+# Doxygen reads a file of the input list only if its name has one of these
+# suffixes.  The list matches FILE_PATTERNS of cpukit/doxygen/Doxyfile.
+_SDD_SUFFIXES = (".c", ".cc", ".cxx", ".cpp", ".c++", ".inl", ".h", ".hh",
+                 ".hxx", ".hpp", ".h++", ".inc", ".dox")
+
+# The longest prefix of a source path in this map decides if the software
+# design document contains the file.
+_SDD_PATH_RULES = {"testsuites/": False, "testsuites/support/": True}
+
+# No compiled file includes these headers.
+_SDD_INPUTS = ["cpukit/include/rtems/tod.h"]
+
+
+def _sdd_keep(path):
+    end = len(path)
+    while end >= 0:
+        decision = _SDD_PATH_RULES.get(path[:end + 1])
+        if decision is not None:
+            return decision
+        end = path.rfind("/", 0, end)
+    return True
+
+
+def _get_sdd_compiler_values(bld):
+    import subprocess
+
+    # The preprocessor of Doxygen shall see what the compiler sees.  It
+    # follows no #include_next, so the macros of the standard headers come
+    # from the compiler.
+    compiler = bld.env.CC + bld.env.ABI_FLAGS + ["-x", "c", "-E", "-"]
+    probe = "".join(f"#include <{header}>\n"
+                    for header in ("limits.h", "stdarg.h", "stdbool.h",
+                                   "stddef.h", "stdint.h", "inttypes.h",
+                                   "sys/types.h", "unistd.h"))
+    predefined = []
+    for line in subprocess.run(compiler + ["-dM"],
+                               input=probe,
+                               capture_output=True,
+                               text=True,
+                               check=True).stdout.splitlines():
+        parts = line.split(" ", 2)
+        if len(parts) == 3 and parts[1] not in ("__STDC_VERSION__",
+                                                "__GNUC__"):
+            value = parts[2].replace("\\", "\\\\").replace("\"", "\\\"")
+            predefined.append(f"\"{parts[1]}={value}\"")
+    system_includes = []
+    search = False
+    for line in subprocess.run(compiler + ["-v"],
+                               input="",
+                               capture_output=True,
+                               text=True,
+                               check=True).stderr.splitlines():
+        if line.startswith("#include <...> search starts here:"):
+            search = True
+        elif line.startswith("End of search list."):
+            search = False
+        elif search:
+            system_includes.append(os.path.normpath(line.strip()))
+    return predefined, system_includes
+
+
+def _generate_sdd(bld):
+    """
+    Generate the software design document of the variant with Doxygen.
+
+    The document contains the files which the build compiles and the headers
+    which these files include.
+    """
+    import shutil
+    import subprocess
+    from waflib import Logs
+
+    top = bld.srcnode
+    files = set(top.find_node(path) for path in _SDD_INPUTS)
+    include_paths = set()
+    for group in bld.groups:
+        for tg in group:
+            compiled = False
+            for tsk in getattr(tg, "tasks", []):
+                if tsk.__class__.__name__ in ("asm", "c", "cxx"):
+                    compiled = True
+                    files.update(tsk.inputs)
+                    files.update(bld.node_deps.get(tsk.uid(), []))
+            if compiled:
+                include_paths.update(
+                    node for node in getattr(tg, "includes_nodes", [])
+                    if node.is_child_of(top) and node.isdir())
+    inputs = []
+    for node in files:
+        if not node.name.endswith(_SDD_SUFFIXES) or not node.is_child_of(top):
+            continue
+        # A generated file follows the rule of its path in the source tree.
+        if node.is_child_of(bld.bldnode):
+            path = node.path_from(bld.bldnode)
+        else:
+            path = node.path_from(top)
+        if _sdd_keep(path):
+            inputs.append(node.abspath())
+    doxygen = shutil.which("doxygen")
+    if doxygen is None:
+        bld.fatal("The doxygen command needs the program doxygen")
+    template = top.find_node("cpukit/doxygen/Doxyfile")
+    output = bld.bldnode.make_node("sdd")
+    output.mkdir()
+    join = " \\\n".join
+    values = {
+        ".:/component/document-package-title":
+        "RTEMS",
+        ".:/component/ident":
+        bld.variant,
+        ".:/component/package-version":
+        ".".join([
+            version["__RTEMS_MAJOR__"], version["__RTEMS_MINOR__"],
+            version["__RTEMS_REVISION__"]
+        ]),
+        ".:/exclude-patterns":
+        "",
+        ".:/generate-html":
+        "YES",
+        ".:/generate-latex":
+        "NO",
+        ".:/include-path":
+        join(sorted(node.abspath() for node in include_paths)),
+        ".:/input":
+        join(sorted(inputs)),
+        ".:/output-directory":
+        output.abspath(),
+        ".:/strip-from-path":
+        join([top.abspath(), bld.bldnode.abspath()]),
+        ".:/tagfile":
+        os.path.join(output.abspath(), "tagfile"),
+    }
+
+    def replace(match):
+        try:
+            return values[match.group(1)]
+        except KeyError:
+            bld.fatal(f"The Doxyfile template '{template.abspath()}' has an "
+                      f"unknown key '{match.group(1)}'")
+
+    predefined, system_includes = _get_sdd_compiler_values(bld)
+    work = bld.bldnode.make_node("doxygen")
+    work.mkdir()
+    doxyfile = work.make_node("Doxyfile")
+    # The software design document of the build contains no graphs.
+    doxyfile.write(
+        re.sub(r"\$\{([^}]*)\}", replace, template.read()) +
+        "HAVE_DOT = NO\n" + f"INCLUDE_PATH += {join(system_includes)}\n" +
+        f"PREDEFINED += {join(predefined)}\n")
+    log = work.make_node("doxygen.log")
+    Logs.info(f"Generate the software design document of '{bld.variant}' "
+              f"in '{output.abspath()}'")
+    with open(log.abspath(), "w") as stdout:
+        status = subprocess.run([doxygen, doxyfile.abspath()],
+                                cwd=work.abspath(),
+                                stdout=stdout).returncode
+    if status != 0:
+        bld.fatal(f"Doxygen failed with status {status}, see "
+                  f"'{log.abspath()}'")
+
+
 def append_variant_builds(bld):
     import waflib.Options
     from waflib.Build import (
@@ -1731,7 +1900,7 @@ def append_variant_builds(bld):
     )
 
     for var in bld.env["VARIANTS"]:
-        for c in (BuildContext, CleanContext, InstallContext,
+        for c in (BuildContext, CleanContext, DoxygenContext, InstallContext,
                   UninstallContext):
             name = c.__name__.replace("Context", "").lower()
 
@@ -1846,6 +2015,8 @@ def build(bld):
     bsps[bld.env.ARCH][bld.env.BSP_BASE].build(bld, bic)
     items[bld.env.TOPGROUP].build(bld, bic)
     bld.add_post_fun(_remove_stale_outputs)
+    if bld.cmd.startswith("doxygen_"):
+        bld.add_post_fun(_generate_sdd)
 
 
 def add_log_filter(name):

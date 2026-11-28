@@ -1,0 +1,139 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+
+/*
+ * Copyright (C) 2020, 2025 embedded brains GmbH & Co. KG
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/**
+ * @file
+ *
+ * @ingroup RTEMSExamplesTrace
+ *
+ * @brief This header file provides the configuration of the event recording example.
+ */
+
+#ifndef APPL_CONFIG_H
+#define APPL_CONFIG_H
+
+#include <rtems.h>
+
+/**
+ * @defgroup RTEMSExamplesTrace Event recording example
+ *
+ * @ingroup Examples
+ *
+ * @brief This group contains the event recording example application.
+ */
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#define APPL_NAME "EXAMPLE TRACE"
+
+int main(void);
+
+#ifdef RTEMS_SMP
+#define CONFIGURE_MAXIMUM_PROCESSORS 32
+#else
+#define CONFIGURE_MAXIMUM_PROCESSORS 1
+#endif
+
+#define TASK_COUNT_PER_CPU 10
+
+#define CONFIGURE_MAXIMUM_TASKS (1 + TASK_COUNT_PER_CPU * CONFIGURE_MAXIMUM_PROCESSORS)
+
+/*
+ * This option enables the event recording.  For each configured processor, a
+ * ring buffer for event records is statically allocated.  Each ring buffer has
+ * an element count configured by this option.
+ */
+#define CONFIGURE_RECORD_PER_PROCESSOR_ITEMS 1024
+
+/*
+ * This option enables the generation of event records for thread related
+ * events.  This includes thread create, start, restart, delete, switch, begin,
+ * exitted and terminate events.
+ */
+#define CONFIGURE_RECORD_EXTENSIONS_ENABLED
+
+/*
+ * This option enables the generation of event records for interrupt
+ * entry and exit.
+ */
+#define CONFIGURE_RECORD_INTERRUPTS_ENABLED
+
+/*
+ * This option enables that the event records are dumped in a fatal error
+ * handler.  The event records are serialized using a base64 encoding.
+ */
+#define CONFIGURE_RECORD_FATAL_DUMP_BASE64
+
+#define CONFIGURE_APPLICATION_NEEDS_CLOCK_DRIVER
+
+#define CONFIGURE_MINIMUM_TASKS_WITH_USER_PROVIDED_STORAGE 1
+
+#define CONFIGURE_MAXIMUM_BARRIERS CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_MESSAGE_QUEUES CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_PARTITIONS CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_PERIODS CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_SEMAPHORES CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_TIMERS CONFIGURE_MAXIMUM_TASKS
+
+#define CONFIGURE_MAXIMUM_USER_EXTENSIONS 4
+
+#define CONFIGURE_MICROSECONDS_PER_TICK 1000
+
+#define CONFIGURE_MAXIMUM_FILE_DESCRIPTORS 0
+
+#define CONFIGURE_DISABLE_NEWLIB_REENTRANCY
+
+#define CONFIGURE_APPLICATION_DISABLE_FILESYSTEM
+
+#define CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE RTEMS_ALIGN_UP(64, RTEMS_TASK_STORAGE_ALIGNMENT)
+
+#define CONFIGURE_TASK_STACK_ALLOCATOR_MALLOC_AND_NO_FREE
+
+#define CONFIGURE_RTEMS_INIT_TASKS_TABLE
+
+#define CONFIGURE_INIT_TASK_ATTRIBUTES RTEMS_FLOATING_POINT
+
+#define CONFIGURE_INIT_TASK_INITIAL_MODES RTEMS_DEFAULT_MODES
+
+#define CONFIGURE_INIT_TASK_CONSTRUCT_STORAGE_SIZE \
+	RTEMS_TASK_STORAGE_SIZE(2 * CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE + RTEMS_MINIMUM_STACK_SIZE,                  \
+				CONFIGURE_INIT_TASK_ATTRIBUTES)
+
+#define CONFIGURE_IDLE_TASK_STORAGE_SIZE (CONFIGURE_MAXIMUM_THREAD_LOCAL_STORAGE_SIZE + RTEMS_MINIMUM_STACK_SIZE)
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* APPL_CONFIG_H */

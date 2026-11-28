@@ -1,0 +1,31 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: group
+cflags:
+- ${TEST_OPTIMIZATION_FLAGS}
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags: []
+cxxflags:
+- ${TEST_OPTIMIZATION_FLAGS}
+enabled-by: BUILD_EXAMPLES
+extra-files:
+- testsuites/examples/example/examples.h
+includes:
+- ${BSP_INCLUDES}
+install: []
+ldflags:
+- ${COVERAGE_LINKER_FLAGS}
+links:
+- role: build-dependency
+  uid: example
+- role: build-dependency
+  uid: examplecxx
+- role: build-dependency
+  uid: exampleada
+- role: build-dependency
+  uid: exampletrace
+type: build
+use-after:
+- rtemsbsp
+- rtemscpu
+use-before: []

@@ -1,0 +1,26 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+ada-main: testsuites/examples/example-ada/hello.adb
+ada-object-directory: testsuites/examples/example-ada
+adaflags: []
+adaincludes: []
+build-type: ada-test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags:
+- -ffile-prefix-map=${TOP_FROM_BUILD}/testsuites/examples/example-ada/=src/example-ada/
+cxxflags: []
+enabled-by: __RTEMS_ADA__
+includes: []
+ldflags: []
+links:
+- role: build-dependency
+  uid: ../ada/optgnat
+source:
+- testsuites/examples/example-ada/appl-config.c
+- testsuites/examples/example-ada/main.c
+stlib: []
+target: testsuites/examples/example-ada.exe
+type: build
+use-after: []
+use-before: []

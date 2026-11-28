@@ -1,0 +1,24 @@
+SPDX-License-Identifier: CC-BY-SA-4.0 OR BSD-2-Clause
+build-type: test-program
+cflags: []
+copyrights:
+- Copyright (C) 2026 embedded brains GmbH & Co. KG
+cppflags:
+- -ffile-prefix-map=${TOP_FROM_BUILD}/testsuites/examples/example++/=src/example++/
+cxxflags:
+- -fno-exceptions
+enabled-by: true
+extra-files:
+- testsuites/examples/example++/appl-config.h
+features: c cxx cxxprogram
+includes: []
+ldflags: []
+links: []
+source:
+- testsuites/examples/example++/appl-config.c
+- testsuites/examples/example++/main.cc
+stlib: []
+target: testsuites/examples/example-cxx.exe
+type: build
+use-after: []
+use-before: []
